@@ -2,6 +2,8 @@
 
 Hunt down build artifacts and development caches.
 
+План macOS приложения: [PRD](docs/PRD.md) и [ADR](docs/adr/0001-macos-app-architecture.md).
+
 Read-only CLI для поиска локальных артефактов сборки и кешей Swift, Rust и Python.
 Rust, без внешних dependencies. Утилита ничего не удаляет.
 
