@@ -1,111 +1,5 @@
-#[cfg(unix)]
-use std::os::unix::fs::MetadataExt;
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-    process,
-    time::Instant,
-};
-
-struct Row {
-    path: PathBuf,
-    language: &'static str,
-    kind: &'static str,
-    bytes: u64,
-    nested: bool,
-}
-struct Scanner {
-    rows: Vec<Row>,
-    errors: Vec<String>,
-    language: String,
-    environments: bool,
-    apparent: bool,
-}
-
-fn classify(path: &Path, environments: bool) -> Option<(&'static str, &'static str)> {
-    let name = path.file_name()?.to_str()?;
-    let parent = path.parent()?;
-    let python = matches!(name, "build" | "dist")
-        && ["pyproject.toml", "setup.py", "setup.cfg"]
-            .iter()
-            .any(|f| parent.join(f).is_file());
-    match name {
-        ".build" => Some(("swift", "build")),
-        "target" if parent.join("Cargo.toml").is_file() => Some(("rust", "build")),
-        "__pycache__" => Some(("python", "bytecode")),
-        ".pytest_cache" | ".mypy_cache" | ".ruff_cache" | ".pytype" | ".tox" | ".nox" => {
-            Some(("python", "cache"))
-        }
-        "build" | "dist" if python => Some(("python", "build")),
-        ".venv" | "venv" if environments && path.join("pyvenv.cfg").is_file() => {
-            Some(("python", "environment"))
-        }
-        _ if name.ends_with(".egg-info") => Some(("python", "metadata")),
-        _ if (name.ends_with(".pyc") || name.ends_with(".pyo")) && path.is_file() => {
-            Some(("python", "bytecode"))
-        }
-        _ => None,
-    }
-}
-
-impl Scanner {
-    fn walk(&mut self, path: &Path, inside: bool) -> u64 {
-        let metadata = match fs::symlink_metadata(path) {
-            Ok(m) => m,
-            Err(e) => {
-                self.errors.push(format!("{}: {e}", path.display()));
-                return 0;
-            }
-        };
-        if metadata.file_type().is_symlink() {
-            return 0;
-        }
-        let found = classify(path, self.environments)
-            .filter(|(lang, _)| self.language == "all" || self.language == *lang);
-        // Skip source-control data and virtual environments unless explicitly requested.
-        if !inside
-            && found.is_none()
-            && metadata.is_dir()
-            && (path.file_name().is_some_and(|n| n == ".git") || path.join("pyvenv.cfg").is_file())
-        {
-            return 0;
-        }
-        let active = inside || found.is_some();
-        #[cfg(unix)]
-        let mut bytes = if self.apparent {
-            metadata.len()
-        } else {
-            metadata.blocks() * 512
-        };
-        #[cfg(not(unix))]
-        let mut bytes = metadata.len();
-        if metadata.is_dir() {
-            match fs::read_dir(path) {
-                Ok(entries) => {
-                    for entry in entries {
-                        match entry {
-                            Ok(entry) => {
-                                bytes = bytes.saturating_add(self.walk(&entry.path(), active))
-                            }
-                            Err(e) => self.errors.push(format!("{}: {e}", path.display())),
-                        }
-                    }
-                }
-                Err(e) => self.errors.push(format!("{}: {e}", path.display())),
-            }
-        }
-        if let Some((language, kind)) = found {
-            self.rows.push(Row {
-                path: path.to_owned(),
-                language,
-                kind,
-                bytes,
-                nested: inside,
-            });
-        }
-        bytes
-    }
-}
+use build_hunter::{ScanControl, ScanOptions, rust_cli_policy, scan_with_policy};
+use std::{env, fs, path::PathBuf, process, time::Instant};
 
 fn human(bytes: u64) -> String {
     let mut size = bytes as f64;
@@ -119,6 +13,7 @@ fn human(bytes: u64) -> String {
     }
     format!("{size:.2} {unit}")
 }
+
 fn quoted(value: &str) -> String {
     let mut out = String::from("\"");
     for c in value.chars() {
@@ -132,16 +27,13 @@ fn quoted(value: &str) -> String {
     out.push('"');
     out
 }
+
 fn main() {
-    let mut scanner = Scanner {
-        rows: vec![],
-        errors: vec![],
-        language: "all".into(),
-        environments: false,
-        apparent: false,
-    };
-    let mut root = None;
+    let mut language = "all".to_owned();
+    let mut environments = false;
+    let mut apparent = false;
     let mut json = false;
+    let mut root = None;
     let mut args = env::args_os().skip(1);
     while let Some(arg) = args.next() {
         match arg.to_str() {
@@ -152,14 +44,14 @@ fn main() {
                 return;
             }
             Some("--language") => {
-                scanner.language = args
+                language = args
                     .next()
-                    .and_then(|value| value.into_string().ok())
+                    .and_then(|v| v.into_string().ok())
                     .unwrap_or_default();
             }
             Some("--json") => json = true,
-            Some("--apparent") => scanner.apparent = true,
-            Some("--include-envs") => scanner.environments = true,
+            Some("--apparent") => apparent = true,
+            Some("--include-envs") => environments = true,
             _ if arg.to_string_lossy().starts_with('-') || root.is_some() => {
                 eprintln!("Unexpected argument: {}", arg.to_string_lossy());
                 process::exit(2);
@@ -167,51 +59,81 @@ fn main() {
             _ => root = Some(PathBuf::from(arg)),
         }
     }
-    if !["all", "swift", "rust", "python"].contains(&scanner.language.as_str()) {
+    if !["all", "swift", "rust", "python"].contains(&language.as_str()) {
         eprintln!("Invalid --language; use all, swift, rust or python");
         process::exit(2);
     }
     let root = match fs::canonicalize(root.unwrap_or_else(|| PathBuf::from("."))) {
-        Ok(p) if p.is_dir() => p,
+        Ok(path) if path.is_dir() => path,
         _ => {
             eprintln!("PATH must be an accessible directory");
             process::exit(2);
         }
     };
     let start = Instant::now();
-    scanner.walk(&root, false);
-    scanner
-        .rows
-        .sort_by(|a, b| b.bytes.cmp(&a.bytes).then(a.path.cmp(&b.path)));
-    let total: u64 = scanner
-        .rows
-        .iter()
-        .filter(|r| !r.nested)
-        .map(|r| r.bytes)
-        .sum();
+    let control = ScanControl::new();
+    let report = scan_with_policy(
+        &root,
+        ScanOptions {
+            apparent_size: apparent,
+        },
+        &control,
+        |facts| {
+            let action = rust_cli_policy(facts, environments);
+            match action {
+                build_hunter::CandidateAction::Classify(classification)
+                    if language != "all"
+                        && classification.language
+                            != match language.as_str() {
+                                "swift" => 1,
+                                "rust" => 2,
+                                "python" => 3,
+                                _ => 0,
+                            } =>
+                {
+                    build_hunter::CandidateAction::Traverse
+                }
+                other => other,
+            }
+        },
+        |_| {},
+    );
+    let mut rows = report.artifacts;
+    rows.sort_by(|a, b| {
+        b.bytes
+            .cmp(&a.bytes)
+            .then(a.relative_path.cmp(&b.relative_path))
+    });
+    let total: u64 = rows.iter().filter(|r| !r.nested).map(|r| r.bytes).sum();
     if json {
         println!(
             "{{\"root\":{},\"total_bytes\":{total},\"elapsed_seconds\":{:.3},\"artifacts\":[",
             quoted(&root.to_string_lossy()),
             start.elapsed().as_secs_f64()
         );
-        for (i, r) in scanner.rows.iter().enumerate() {
+        for (i, row) in rows.iter().enumerate() {
             println!(
                 "{}{{\"path\":{},\"language\":{},\"kind\":{},\"bytes\":{},\"nested\":{}}}",
                 if i == 0 { "" } else { "," },
-                quoted(&r.path.to_string_lossy()),
-                quoted(r.language),
-                quoted(r.kind),
-                r.bytes,
-                r.nested
+                quoted(&root.join(&row.relative_path).to_string_lossy()),
+                quoted(row.language),
+                quoted(row.kind),
+                row.bytes,
+                row.nested
             );
         }
         println!(
             "],\"errors\":[{}]}}",
-            scanner
-                .errors
+            report
+                .warnings
                 .iter()
-                .map(|s| quoted(s))
+                .map(|warning| {
+                    quoted(&format!(
+                        "{}: {}",
+                        root.join(&warning.relative_path).display(),
+                        warning.message
+                    ))
+                })
                 .collect::<Vec<_>>()
                 .join(",")
         );
@@ -223,27 +145,31 @@ fn main() {
             "Language",
             "Kind"
         );
-        for r in &scanner.rows {
+        for row in &rows {
             println!(
                 "{:>14}  {:<7}  {:<11}  {}{}",
-                human(r.bytes),
-                r.language,
-                r.kind,
-                r.path.strip_prefix(&root).unwrap_or(&r.path).display(),
-                if r.nested { " [nested]" } else { "" }
+                human(row.bytes),
+                row.language,
+                row.kind,
+                row.relative_path.display(),
+                if row.nested { " [nested]" } else { "" }
             );
         }
         println!(
             "\n{} artifacts; total: {} ({total} bytes); {:.3}s",
-            scanner.rows.len(),
+            rows.len(),
             human(total),
             start.elapsed().as_secs_f64()
         );
-        for error in &scanner.errors {
-            eprintln!("Warning: {error}");
+        for warning in &report.warnings {
+            eprintln!(
+                "Warning: {}: {}",
+                root.join(&warning.relative_path).display(),
+                warning.message
+            );
         }
     }
-    if !scanner.errors.is_empty() {
+    if !report.warnings.is_empty() {
         process::exit(1);
     }
 }
@@ -251,44 +177,59 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static NEXT: AtomicU64 = AtomicU64::new(1);
+
     #[test]
     fn escapes_json() {
         assert_eq!(quoted("a\n\"\\"), "\"a\\u000a\\\"\\\\\"");
     }
+
     #[test]
-    fn nested_and_language_totals() {
-        let root = env::temp_dir().join(format!("build-hunter-test-{}", process::id()));
+    fn shared_scanner_preserves_nested_and_language_filter_behavior() {
+        let root = env::temp_dir().join(format!(
+            "build-hunter-cli-{}",
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
         fs::create_dir_all(root.join(".build/__pycache__")).unwrap();
         fs::write(root.join(".build/__pycache__/x.pyc"), b"123456").unwrap();
         fs::create_dir_all(root.join("target")).unwrap();
         fs::create_dir_all(root.join("dist")).unwrap();
-        assert!(classify(&root.join("target"), false).is_none());
-        assert!(classify(&root.join("dist"), false).is_none());
         fs::write(root.join("Cargo.toml"), "").unwrap();
         fs::write(root.join("pyproject.toml"), "").unwrap();
-        assert_eq!(
-            classify(&root.join("target"), false),
-            Some(("rust", "build"))
-        );
-        assert_eq!(
-            classify(&root.join("dist"), false),
-            Some(("python", "build"))
-        );
-        let mut s = Scanner {
-            rows: vec![],
-            errors: vec![],
-            language: "swift".into(),
-            environments: false,
-            apparent: true,
+        let run = |filter: u32| {
+            let control = ScanControl::new();
+            scan_with_policy(
+                &root,
+                ScanOptions {
+                    apparent_size: true,
+                },
+                &control,
+                |facts| match rust_cli_policy(facts, false) {
+                    build_hunter::CandidateAction::Classify(c)
+                        if filter != 0 && c.language != filter =>
+                    {
+                        build_hunter::CandidateAction::Traverse
+                    }
+                    action => action,
+                },
+                |_| {},
+            )
         };
-        s.walk(&root, false);
-        assert_eq!(s.rows.len(), 1);
-        assert!(s.rows[0].bytes >= 6);
-        s.rows.clear();
-        s.language = "all".into();
-        s.walk(&root, false);
-        assert_eq!(s.rows.iter().filter(|r| r.nested).count(), 2);
-        assert!(s.errors.is_empty());
+        let swift = run(1);
+        assert_eq!(swift.artifacts.len(), 1);
+        assert_eq!(swift.artifacts[0].language, "swift");
+        let all = run(0);
+        assert_eq!(
+            all.artifacts
+                .iter()
+                .filter(|artifact| artifact.nested)
+                .count(),
+            2
+        );
+        assert!(all.total_bytes() >= 6);
+        assert!(all.warnings.is_empty());
         fs::remove_dir_all(root).unwrap();
     }
 }

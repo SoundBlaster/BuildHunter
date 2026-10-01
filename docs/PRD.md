@@ -1,6 +1,6 @@
 # BuildHunter macOS PRD
 
-Дата: 2026-10-01. Статус: требования MVP согласованы в интервью; технические детали отмечены отдельно. Реализация GUI ещё не начата.
+Дата: 2026-10-02. Статус: требования MVP согласованы; SwiftUI skeleton и in-process Rust scanner integration реализованы. Signed sandbox runtime, Finder/clipboard actions и Store readiness остаются открытыми этапами.
 
 BuildHunter помогает разработчику найти локальные build artifacts, кеши и environments, случайно или намеренно созданные внутри дерева проектов. Основной сценарий — обнаружить занимающие место папки после работы инструментов и агентов, оценить их размеры и перейти к ним в Finder. Приложение не определяет, что можно безопасно удалить, и не удаляет данные.
 
@@ -102,9 +102,9 @@ Environments включены по умолчанию в GUI и обознача
 
 ## Этапы доставки и roadmap
 
-1. **Skeleton:** app target arm64/macOS 26, window model, Table и fake event source, SpecificationCore policies, sandbox configuration. Проверка: multiwindow и детерминированные policy/state tests.
-2. **Rust integration:** общий scanner core, streaming, cancellation и FFI adapter. Проверка: C/Swift boundary, ownership, nested totals и cancellation fixtures.
-3. **Runtime UX:** настоящий drop/open, read-only filesystem access, Finder/clipboard, partial reports. Проверка: signed sandboxed build на macOS 26 с несколькими окнами.
+1. **Skeleton — implemented:** app target arm64/macOS 26, window model, Table, mock states, SpecificationCore policies и sandbox entitlements. Проверка: policy/state tests и UI screenshots.
+2. **Rust integration — implemented:** общий scanner core, streaming, cancellation и FFI adapter. Проверка: Rust tests/Clippy/CLI fixtures, arm64 static-library build, Swift test по настоящему Rust FFI scanner; подпись и sandbox runtime ещё не подтверждены.
+3. **Runtime UX — in progress:** настоящий drop/open запускает read-only scan; завершить Finder/clipboard actions и подтвердить доступ в signed sandboxed build на macOS 26 с несколькими окнами.
 4. **Store readiness:** signing, bundle identity, icon, metadata, screenshots и release archive. Конкретные account, bundle ID и коммерческая модель ещё не выбраны. Публикация — отдельная задача.
 5. **После MVP:** Java/Kotlin и Go; правила и доказательства обнаружения проектируются отдельно, без заранее обещанных directory heuristics.
 

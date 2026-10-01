@@ -52,12 +52,12 @@ struct ArtifactPolicyTests {
         #expect(policy.decide(facts("source.py", directory: false)) == nil)
     }
 
-    @Test("Git metadata, symlinks, and candidates nested under an artifact are excluded")
+    @Test("Git is skipped during discovery but included in accepted artifact measurements")
     func exclusionsAndNestedRoots() {
         #expect(policy.decide(facts(".git")) == nil)
         #expect(policy.decide(facts(".build", symbolicLink: true)) == nil)
-        #expect(policy.decide(facts(".git")) == nil)
-        #expect(policy.decide(facts(".build", symbolicLink: true)) == nil)
+        #expect(!IsScannableArtifactCandidate().isSatisfiedBy(facts(".git")))
+        #expect(IsScannableArtifactCandidate().isSatisfiedBy(facts(".git", hasArtifactAncestor: true)))
         #expect(!IsOuterArtifactRoot().isSatisfiedBy(ArtifactRootContext(hasArtifactAncestor: true)))
         #expect(IsOuterArtifactRoot().isSatisfiedBy(ArtifactRootContext(hasArtifactAncestor: false)))
     }
@@ -66,10 +66,12 @@ struct ArtifactPolicyTests {
         _ name: String,
         directory: Bool = true,
         symbolicLink: Bool = false,
+        hasArtifactAncestor: Bool = false,
         own: Set<String> = [],
         parent: Set<String> = [],
     ) -> ArtifactPolicyContext {
         ArtifactPolicyContext(nodeName: name, isDirectory: directory, isSymbolicLink: symbolicLink,
+                              hasArtifactAncestor: hasArtifactAncestor,
                               ownMarkerFiles: own, parentMarkerFiles: parent)
     }
 }

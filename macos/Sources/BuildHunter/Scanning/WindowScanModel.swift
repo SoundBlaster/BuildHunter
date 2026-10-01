@@ -5,6 +5,7 @@ import Observation
 @Observable
 final class WindowScanModel {
     private(set) var targetName: String?
+    private(set) var targetURL: URL?
     private(set) var rows: [ScanRow] = []
     private(set) var warnings: [String] = []
     private(set) var generation: UInt64 = 0
@@ -15,14 +16,24 @@ final class WindowScanModel {
     private let source: any ScanEventSource
     private var scanTask: Task<Void, Never>?
 
-    init(source: any ScanEventSource = DemoScanSource()) {
+    init(source: any ScanEventSource = RustScanEventSource()) {
         self.source = source
     }
 
     func acceptDemoTarget(named name: String) {
+        replaceTarget(name: name, url: nil)
+    }
+
+    func accept(target url: URL) {
+        replaceTarget(name: url.lastPathComponent, url: url)
+    }
+
+    private func replaceTarget(name: String, url: URL?) {
+        source.cancel(generation: generation)
         scanTask?.cancel()
         generation &+= 1
         targetName = name
+        targetURL = url
         rows = []
         warnings = []
         beginScan()
@@ -31,6 +42,7 @@ final class WindowScanModel {
 #if DEBUG
     func showMockState(_ mockState: MockScanState) {
         scanTask?.cancel()
+        source.cancel(generation: generation)
         generation &+= 1
         targetName = mockState.targetName
         rows = []
@@ -43,7 +55,7 @@ final class WindowScanModel {
             apply(.discovered(generation: activeGeneration, artifact: artifact))
         }
         for (artifact, bytes) in mockState.completedArtifacts {
-            apply(.completed(generation: activeGeneration, artifactID: artifact.id, simulatedBytes: bytes))
+            apply(.completed(generation: activeGeneration, artifactID: artifact.id, bytes: bytes))
         }
         for warning in mockState.warnings {
             apply(.warning(generation: activeGeneration, message: warning))
@@ -56,6 +68,7 @@ final class WindowScanModel {
 
     func rescan() {
         guard targetName != nil else { return }
+        source.cancel(generation: generation)
         scanTask?.cancel()
         generation &+= 1
         rows = []
@@ -65,9 +78,11 @@ final class WindowScanModel {
 
     func stop() {
         guard phase == .scanning else { return }
+        let cancelledGeneration = generation
         generation &+= 1
         phase = .stopped
         markMeasuringRowsPartial()
+        source.cancel(generation: cancelledGeneration)
         scanTask?.cancel()
     }
 
@@ -78,10 +93,10 @@ final class WindowScanModel {
             guard !rows.contains(where: { $0.id == artifact.id }) else { return }
             rows.append(ScanRow(id: artifact.id, relativePath: artifact.relativePath,
                                 language: artifact.language, kind: artifact.kind, size: .measuring))
-        case .completed(_, let artifactID, let bytes):
+        case .completed(_, let artifactID, let bytes, let partial):
             guard let index = rows.firstIndex(where: { $0.id == artifactID }) else { return }
             guard rows[index].size == .measuring else { return }
-            rows[index].size = .simulated(bytes)
+            rows[index].size = partial ? .partial(bytes) : .measured(bytes)
         case .warning(_, let message):
             if !warnings.contains(message) { warnings.append(message) }
         case .finished(_, let result):
@@ -107,7 +122,7 @@ final class WindowScanModel {
     private func beginScan() {
         phase = .scanning
         let activeGeneration = generation
-        let stream = source.events(for: activeGeneration)
+        let stream = source.events(for: activeGeneration, target: targetURL)
         scanTask = Task { [weak self] in
             for await event in stream {
                 guard !Task.isCancelled, let self else { return }

@@ -5,4 +5,8 @@ edition = "2024"
 description = "Read-only build artifact and cache disk usage scanner"
 license = "MIT"
 
+[lib]
+name = "build_hunter"
+crate-type = ["staticlib", "rlib"]
+
 [dependencies]

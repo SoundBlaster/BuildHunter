@@ -39,12 +39,12 @@ struct BuildHunterWindow: View {
         }
         .fileImporter(isPresented: $model.isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {
-                model.acceptDemoTarget(named: url.lastPathComponent)
+                model.accept(target: url)
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let folder = urls.first, folder.hasDirectoryPath else { return false }
-            model.acceptDemoTarget(named: folder.lastPathComponent)
+            model.accept(target: folder)
             return true
         }
         .onDisappear {
@@ -56,8 +56,8 @@ struct BuildHunterWindow: View {
     }
 
     private var simulationBanner: some View {
-        Label {
-            Text("DEMO SCANNER — paths and sizes below are simulated; no files are read.")
+            Label {
+            Text("Read-only scan · artifacts are measured as the folder is traversed.")
                 .font(.callout.weight(.medium))
         } icon: {
             Image(systemName: "exclamationmark.triangle.fill")
@@ -72,7 +72,7 @@ struct BuildHunterWindow: View {
         ContentUnavailableView {
             Label("Choose a project folder", systemImage: "folder.badge.questionmark")
         } description: {
-            Text("Drop a folder here or use File → Open Folder… to preview the demo scanner.")
+                Text("Drop a folder here or use File → Open Folder… to scan local build artifacts.")
         } actions: {
             Button("Open Folder…") { model.isChoosingFolder = true }
                 .keyboardShortcut("o", modifiers: .command)
@@ -86,7 +86,7 @@ struct BuildHunterWindow: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Demo for \(targetName)")
+                    Text("\(targetName)")
                         .font(.title2.weight(.semibold))
                         .nestedAccessibilityIdentifier("target")
                     Text(statusDescription)
@@ -121,12 +121,12 @@ struct BuildHunterWindow: View {
             }
             .overlay {
                 if model.rows.isEmpty && model.isScanning {
-                    ProgressView("Waiting for simulated events…")
+                ProgressView("Searching for build artifacts…")
                         .padding()
                         .background(.regularMaterial, in: .rect(cornerRadius: 10))
                 }
             }
-            Text("Paths are fixture labels, not detected locations. Finder and Copy Path are unavailable in this skeleton.")
+            Text("BuildHunter only reads files and folders. It never deletes artifacts.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -137,18 +137,18 @@ struct BuildHunterWindow: View {
     private func sizeDescription(_ state: SizeState) -> String {
         switch state {
         case .measuring: "Simulating…"
-        case .simulated(let bytes): "~\(binarySize(bytes)) (demo)"
-        case .partial(let bytes): bytes.map { "~\(binarySize($0)) partial demo" } ?? "Partial · size unknown"
+        case .measured(let bytes): binarySize(bytes)
+        case .partial(let bytes): bytes.map { "\(binarySize($0)) partial" } ?? "Partial · size unknown"
         }
     }
 
     private var statusDescription: String {
         switch model.phase {
         case .idle: ""
-        case .scanning: "Showing simulated streaming results"
-        case .completed: "Demo complete"
-        case .stopped: "Demo stopped · partial results"
-        case .incomplete: "Demo incomplete · review warnings"
+        case .scanning: "Searching…"
+        case .completed: "Scan complete"
+        case .stopped: "Scan stopped · partial results"
+        case .incomplete: "Scan incomplete · review warnings"
         }
     }
 
@@ -168,8 +168,8 @@ struct BuildHunterWindow: View {
     let model = WindowScanModel(source: PreviewIdleScanSource())
     model.acceptDemoTarget(named: "Sample project")
     model.apply(.discovered(generation: model.generation,
-                             artifact: DemoArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000002")!,
-                                                    relativePath: "DemoFixture/App/.build", simulatedBytes: 0,
+                             artifact: ScanArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000002")!,
+                                                    relativePath: "DemoFixture/App/.build",
                                                     language: "Swift", kind: .buildOutput)))
     return BuildHunterWindow(model: model)
 }
@@ -178,8 +178,8 @@ struct BuildHunterWindow: View {
     let model = WindowScanModel(source: PreviewIdleScanSource())
     model.acceptDemoTarget(named: "Sample project")
     model.apply(.discovered(generation: model.generation,
-                             artifact: DemoArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000003")!,
-                                                    relativePath: "DemoFixture/App/.build", simulatedBytes: 0,
+                             artifact: ScanArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000003")!,
+                                                    relativePath: "DemoFixture/App/.build",
                                                     language: "Swift", kind: .buildOutput)))
     model.stop()
     return BuildHunterWindow(model: model)
@@ -194,7 +194,9 @@ struct BuildHunterWindow: View {
 }
 
 private struct PreviewIdleScanSource: ScanEventSource {
-    func events(for generation: UInt64) -> AsyncStream<ScanEvent> {
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
         AsyncStream { _ in }
     }
+
+    func cancel(generation: UInt64) {}
 }
