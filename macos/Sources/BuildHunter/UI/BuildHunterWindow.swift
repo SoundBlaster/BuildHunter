@@ -1,5 +1,5 @@
-import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct BuildHunterWindow: View {
     @State private var model: WindowScanModel
@@ -18,9 +18,10 @@ struct BuildHunterWindow: View {
             }
         }
         .frame(minWidth: 760, minHeight: 460)
-        .onChange(of: model.isChoosingFolder) { _, shouldChoose in
-            guard shouldChoose else { return }
-            chooseFolder()
+        .fileImporter(isPresented: $model.isChoosingFolder, allowedContentTypes: [.folder]) { result in
+            if case .success(let url) = result {
+                model.acceptDemoTarget(named: url.lastPathComponent)
+            }
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let folder = urls.first, folder.hasDirectoryPath else { return false }
@@ -131,17 +132,6 @@ struct BuildHunterWindow: View {
         return formatter.string(fromByteCount: bytes)
     }
 
-    private func chooseFolder() {
-        defer { model.isChoosingFolder = false }
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.prompt = "Preview Demo"
-        if panel.runModal() == .OK, let url = panel.url {
-            model.acceptDemoTarget(named: url.lastPathComponent)
-        }
-    }
 }
 
 #Preview("Empty window") {
