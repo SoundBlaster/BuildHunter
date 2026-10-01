@@ -35,8 +35,8 @@ if [[ "$mode" == test ]]; then
   xcrun xcresulttool export attachments --path "$output_dir/test.xcresult" \
     --output-path "$screenshot_dir" --filter '*.png'
   screenshot_count="$(find "$screenshot_dir" -type f -name '*.png' | wc -l | tr -d ' ')"
-  if [[ "$screenshot_count" -lt 6 ]]; then
-    echo "Expected 6 UI screenshots, found $screenshot_count" >&2
+  if [[ "$screenshot_count" -lt 7 ]]; then
+    echo "Expected 7 UI screenshots, found $screenshot_count" >&2
     exit 1
   fi
   python3 - "$output_dir/test-summary.json" <<'PY'
