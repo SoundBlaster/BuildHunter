@@ -6,7 +6,7 @@ This macOS 26+ arm64 SwiftUI app is the first GUI skeleton described by `../docs
 
 Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to upstream revision `483214469828c42f7b615654aa70d0acbecc4dbf` (SpecificationCore 2.1.0).
 
-Debug builds include a **Mock State** menu in the window toolbar. It can display an empty window, an active scan, completed sizes, a stopped scan with partial sizes, or an incomplete report with a warning. These fixtures are synthetic and are compiled out of Release builds.
+Debug builds include a **Mock State** menu in the window toolbar. It can display an empty window, an active scan, completed sizes, a stopped scan with partial sizes, or an incomplete report with a warning. These fixtures are synthetic and are compiled out of Release builds. `NestedA11yIDs` composes stable identifiers for test controls. UI tests select every state, check accessible status, open and dismiss the folder picker, and store screenshots in the `.xcresult` bundle. CI exports the six PNGs to `macos/.build/ci/ui-screenshots` and uploads them as an artifact.
 
 Generate and open the Xcode project:
 

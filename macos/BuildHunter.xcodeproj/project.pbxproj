@@ -18,8 +18,10 @@
 		702998E2BB6BC35A666F5102 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3C1F39E00DA07B5F110EE12B /* SpecificationCore */; };
 		8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */; };
 		A44DAE4AC0757409C7DD5BE9 /* BuildHunterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B019A5055F3DE5234638768B /* BuildHunterApp.swift */; };
+		BAF5BA137472C47B6D3DDF79 /* BuildHunterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */; };
 		DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */; };
 		E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B58340DBC91862752743D7 /* ScanEvent.swift */; };
+		E5BE11BE7273D4EAFFE06E47 /* NestedA11yIDs in Frameworks */ = {isa = PBXBuildFile; productRef = 350BA0250A13F735F168EA0F /* NestedA11yIDs */; };
 		FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -31,11 +33,20 @@
 			remoteGlobalIDString = 10FAEFF9C9AA195A9F0B6C04;
 			remoteInfo = BuildHunter;
 		};
+		C9C694C6E49D317E4BC95BBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9C1A674361135609AB0AAEC7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 10FAEFF9C9AA195A9F0B6C04;
+			remoteInfo = BuildHunter;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsScannableArtifactCandidate.swift; sourceTree = "<group>"; };
 		1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactPolicyTests.swift; sourceTree = "<group>"; };
+		25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterUITests.swift; sourceTree = "<group>"; };
+		2AF4D0C88B566535118385F4 /* BuildHunterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowScanModelTests.swift; sourceTree = "<group>"; };
 		468C96DD92C2663CDF234F16 /* BuildHunter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BuildHunter.entitlements; sourceTree = "<group>"; };
 		498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifyArtifactRoot.swift; sourceTree = "<group>"; };
@@ -57,6 +68,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33F97AD915EA2A1D798C7933 /* SpecificationCore in Frameworks */,
+				E5BE11BE7273D4EAFFE06E47 /* NestedA11yIDs in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				A832EA6096FC9CCAEF056894 /* BuildHunterTests */,
+				5E2DE45DAA1996B25672A58B /* BuildHunterUITests */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -110,6 +123,14 @@
 				E72FB6420C3CBE590D70D66D /* UI */,
 			);
 			path = BuildHunter;
+			sourceTree = "<group>";
+		};
+		5E2DE45DAA1996B25672A58B /* BuildHunterUITests */ = {
+			isa = PBXGroup;
+			children = (
+				25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */,
+			);
+			path = BuildHunterUITests;
 			sourceTree = "<group>";
 		};
 		6611DDC5D4168BAFEE5CAE93 = {
@@ -143,6 +164,7 @@
 			children = (
 				C404E32AE24EC6E7D5F08472 /* BuildHunter.app */,
 				91718F10DAF439B1C6C551A1 /* BuildHunterTests.xctest */,
+				2AF4D0C88B566535118385F4 /* BuildHunterUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -173,6 +195,7 @@
 			name = BuildHunter;
 			packageProductDependencies = (
 				CD515261407E62AB7380C8F1 /* SpecificationCore */,
+				350BA0250A13F735F168EA0F /* NestedA11yIDs */,
 			);
 			productName = BuildHunter;
 			productReference = C404E32AE24EC6E7D5F08472 /* BuildHunter.app */;
@@ -198,6 +221,24 @@
 			productReference = 91718F10DAF439B1C6C551A1 /* BuildHunterTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		97498C516133ADCE5F6328DA /* BuildHunterUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B7AB19F380BCFAE49F550B8F /* Build configuration list for PBXNativeTarget "BuildHunterUITests" */;
+			buildPhases = (
+				51A4FE2BCB6DB093978386A5 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5867103CE25C467885CEC584 /* PBXTargetDependency */,
+			);
+			name = BuildHunterUITests;
+			packageProductDependencies = (
+			);
+			productName = BuildHunterUITests;
+			productReference = 2AF4D0C88B566535118385F4 /* BuildHunterUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -207,6 +248,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					97498C516133ADCE5F6328DA = {
+						TestTargetID = 10FAEFF9C9AA195A9F0B6C04;
+					};
 				};
 			};
 			buildConfigurationList = 93A3F223CC5237385D0DA7A9 /* Build configuration list for PBXProject "BuildHunter" */;
@@ -219,6 +263,7 @@
 			mainGroup = 6611DDC5D4168BAFEE5CAE93;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */,
 				0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -228,11 +273,20 @@
 			targets = (
 				10FAEFF9C9AA195A9F0B6C04 /* BuildHunter */,
 				1AC73F0779A74ED95608E1E7 /* BuildHunterTests */,
+				97498C516133ADCE5F6328DA /* BuildHunterUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		51A4FE2BCB6DB093978386A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BAF5BA137472C47B6D3DDF79 /* BuildHunterUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D20D5EB0329CCEBC0D651B66 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -262,6 +316,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		5867103CE25C467885CEC584 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 10FAEFF9C9AA195A9F0B6C04 /* BuildHunter */;
+			targetProxy = C9C694C6E49D317E4BC95BBD /* PBXContainerItemProxy */;
+		};
 		E7A8C80BCED7C4DB9115D69A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 10FAEFF9C9AA195A9F0B6C04 /* BuildHunter */;
@@ -323,6 +382,48 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		606561689F693C4AADA88A46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.buildhunter.uitests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = BuildHunter;
+			};
+			name = Debug;
+		};
+		6F1EB4814DFE6D20F096BD3B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.buildhunter.uitests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = BuildHunter;
 			};
 			name = Release;
 		};
@@ -496,6 +597,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		B7AB19F380BCFAE49F550B8F /* Build configuration list for PBXNativeTarget "BuildHunterUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				606561689F693C4AADA88A46 /* Debug */,
+				6F1EB4814DFE6D20F096BD3B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		D4CF4F09B3A470CB8B3FED63 /* Build configuration list for PBXNativeTarget "BuildHunter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -516,9 +626,22 @@
 				revision = 483214469828c42f7b615654aa70d0acbecc4dbf;
 			};
 		};
+		2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SoundBlaster/NestedA11yIDs.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		350BA0250A13F735F168EA0F /* NestedA11yIDs */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */;
+			productName = NestedA11yIDs;
+		};
 		3C1F39E00DA07B5F110EE12B /* SpecificationCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */;

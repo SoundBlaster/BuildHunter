@@ -8,6 +8,9 @@ packages:
   SpecificationCore:
     url: https://github.com/SoundBlaster/SpecificationCore.git
     revision: 483214469828c42f7b615654aa70d0acbecc4dbf
+  NestedA11yIDs:
+    url: https://github.com/SoundBlaster/NestedA11yIDs.git
+    from: 1.0.0
 targets:
   BuildHunter:
     type: application
@@ -29,6 +32,8 @@ targets:
     dependencies:
       - package: SpecificationCore
         product: SpecificationCore
+      - package: NestedA11yIDs
+        product: NestedA11yIDs
   BuildHunterTests:
     type: bundle.unit-test
     platform: macOS
@@ -45,12 +50,30 @@ targets:
         ARCHS: arm64
         SWIFT_VERSION: "6.0"
         SWIFT_STRICT_CONCURRENCY: complete
+  BuildHunterUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: Tests/BuildHunterUITests
+    dependencies:
+      - target: BuildHunter
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.uitests
+        TEST_TARGET_NAME: BuildHunter
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        ARCHS: arm64
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_STRICT_CONCURRENCY: complete
 schemes:
   BuildHunter:
     build:
       targets:
         BuildHunter: all
         BuildHunterTests: [test]
+        BuildHunterUITests: [test]
     test:
       targets:
         - BuildHunterTests
+        - BuildHunterUITests
