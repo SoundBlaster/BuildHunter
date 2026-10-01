@@ -27,9 +27,12 @@ final class BuildHunterUITests: XCTestCase {
             XCTAssertTrue(option.waitForExistence(timeout: 5), "Missing mock-state option: \(optionID)")
             option.click()
 
-            let status = app.staticTexts["buildhunter.report.status"]
-            XCTAssertTrue(status.waitForExistence(timeout: 5))
-            XCTAssertEqual(status.label, scenario.status)
+            let statusContainer = app.descendants(matching: .any)
+                .matching(identifier: "buildhunter.report.status").firstMatch
+            XCTAssertTrue(statusContainer.waitForExistence(timeout: 5))
+            let statusText = statusContainer.descendants(matching: .staticText).firstMatch
+            XCTAssertTrue(statusText.waitForExistence(timeout: 5))
+            XCTAssertEqual(statusText.label, scenario.status)
             attachScreenshot(named: String(format: "%02d-%@", index + 2, scenario.id), from: app)
         }
 
