@@ -1,0 +1,53 @@
+name: macOS CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  tests:
+    name: macOS policy and scan tests
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Build and test
+        run: bash scripts/ci/macos.sh test
+      - name: Publish test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-test-evidence
+          path: |
+            macos/.build/ci/test.xcresult
+            macos/.build/ci/test-summary.json
+            macos/.build/ci/test.log
+          if-no-files-found: warn
+          retention-days: 7
+  release:
+    name: macOS Release build
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Build Release
+        run: bash scripts/ci/macos.sh release
+      - name: Publish build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release-evidence
+          path: macos/.build/ci/release.log
+          if-no-files-found: warn
+          retention-days: 7
