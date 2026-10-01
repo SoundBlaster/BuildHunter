@@ -1,0 +1,8 @@
+[package]
+name = "build-hunter"
+version = "0.1.0"
+edition = "2024"
+description = "Read-only build artifact and cache disk usage scanner"
+license = "MIT"
+
+[dependencies]
