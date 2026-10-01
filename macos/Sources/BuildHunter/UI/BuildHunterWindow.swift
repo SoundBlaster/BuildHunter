@@ -18,6 +18,20 @@ struct BuildHunterWindow: View {
             }
         }
         .frame(minWidth: 760, minHeight: 460)
+        .toolbar {
+#if DEBUG
+            ToolbarItem(placement: .automatic) {
+                Menu {
+                    ForEach(MockScanState.allCases) { mockState in
+                        Button(mockState.title) { model.showMockState(mockState) }
+                    }
+                } label: {
+                    Label("Mock State", systemImage: "testtube.2")
+                }
+                .help("Show a sample interface state")
+            }
+#endif
+        }
         .fileImporter(isPresented: $model.isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {
                 model.acceptDemoTarget(named: url.lastPathComponent)

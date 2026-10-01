@@ -167,6 +167,37 @@ struct WindowScanModelTests {
         #expect(second.targetName == "Beta")
     }
 
+#if DEBUG
+    @Test("Debug mock scenarios render empty, streaming, completed, stopped, and incomplete states")
+    func mockScenarios() {
+        let model = WindowScanModel(source: ControlledScanSource())
+
+        model.showMockState(.empty)
+        #expect(model.targetName == nil)
+        #expect(model.phase == .idle)
+        #expect(model.rows.isEmpty)
+
+        model.showMockState(.scanning)
+        #expect(model.phase == .scanning)
+        #expect(model.rows.count == 3)
+        #expect(model.rows.allSatisfy { $0.size == .measuring })
+
+        model.showMockState(.results)
+        #expect(model.phase == .completed)
+        #expect(model.rows.allSatisfy { if case .simulated = $0.size { true } else { false } })
+
+        model.showMockState(.stopped)
+        #expect(model.phase == .stopped)
+        #expect(model.rows.filter { $0.size == .partial(nil) }.count == 2)
+        #expect(model.rows.filter { if case .simulated = $0.size { true } else { false } }.count == 1)
+
+        model.showMockState(.incomplete)
+        #expect(model.phase == .incomplete)
+        #expect(model.warnings.count == 1)
+        #expect(model.rows.filter { $0.size == .partial(nil) }.count == 1)
+    }
+#endif
+
     private func makeArtifact() -> DemoArtifact {
         DemoArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000001")!,
                      relativePath: "DemoFixture/Alpha/.build", simulatedBytes: 20,

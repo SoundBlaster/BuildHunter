@@ -28,6 +28,32 @@ final class WindowScanModel {
         beginScan()
     }
 
+#if DEBUG
+    func showMockState(_ mockState: MockScanState) {
+        scanTask?.cancel()
+        generation &+= 1
+        targetName = mockState.targetName
+        rows = []
+        warnings = []
+        phase = mockState.targetName == nil ? .idle : .scanning
+
+        guard targetName != nil else { return }
+        let activeGeneration = generation
+        for artifact in mockState.artifacts {
+            apply(.discovered(generation: activeGeneration, artifact: artifact))
+        }
+        for (artifact, bytes) in mockState.completedArtifacts {
+            apply(.completed(generation: activeGeneration, artifactID: artifact.id, simulatedBytes: bytes))
+        }
+        for warning in mockState.warnings {
+            apply(.warning(generation: activeGeneration, message: warning))
+        }
+        if let terminalResult = mockState.terminalResult {
+            apply(.finished(generation: activeGeneration, result: terminalResult))
+        }
+    }
+#endif
+
     func rescan() {
         guard targetName != nil else { return }
         scanTask?.cancel()
