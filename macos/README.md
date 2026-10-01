@@ -6,6 +6,8 @@ This macOS 26+ arm64 SwiftUI app is the first GUI skeleton described by `../docs
 
 Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to upstream revision `483214469828c42f7b615654aa70d0acbecc4dbf` (SpecificationCore 2.1.0).
 
+Debug builds include a **Mock State** menu in the window toolbar. It can display an empty window, an active scan, completed sizes, a stopped scan with partial sizes, or an incomplete report with a warning. These fixtures are synthetic and are compiled out of Release builds.
+
 Generate and open the Xcode project:
 
 ```sh
