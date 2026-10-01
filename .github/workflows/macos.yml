@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   tests:
-    name: macOS policy and scan tests
+    name: macOS unit and UI tests
     runs-on: macos-26
     timeout-minutes: 35
     steps:
@@ -30,6 +30,7 @@ jobs:
             macos/.build/ci/test.xcresult
             macos/.build/ci/test-summary.json
             macos/.build/ci/test.log
+            macos/.build/ci/ui-screenshots
           if-no-files-found: warn
           retention-days: 7
   release:

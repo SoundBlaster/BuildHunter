@@ -31,8 +31,11 @@ requires moving the prior result bundle aside or using a clean output directory.
 
 - **Rust CI:** fmt, unit tests, Clippy, Release build and actual CLI process/fixture
   integration tests on Ubuntu, macOS and Windows.
-- **macOS CI / macOS policy and scan tests:** unsigned arm64 app/test compilation
-  and execution on macOS 26 with Xcode 26.6; publishes `.xcresult`, summary and log.
+- **macOS CI / macOS unit and UI tests:** unsigned arm64 app/test compilation and
+  execution on macOS 26 with Xcode 26.6. UI tests query NestedA11yIDs identifiers,
+  exercise all Debug mock states, and attach screenshots to `.xcresult`; the
+  script exports and counts the six scenario/picker screenshots. The workflow
+  publishes the bundle, screenshots, summary and log.
 - **macOS CI / macOS Release build:** independent unsigned Release compilation;
   publishes the log.
 

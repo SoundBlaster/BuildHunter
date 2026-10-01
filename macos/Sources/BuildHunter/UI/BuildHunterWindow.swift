@@ -1,4 +1,5 @@
 import SwiftUI
+import NestedA11yIDs
 import UniformTypeIdentifiers
 
 struct BuildHunterWindow: View {
@@ -21,14 +22,18 @@ struct BuildHunterWindow: View {
         .toolbar {
 #if DEBUG
             ToolbarItem(placement: .automatic) {
-                Menu {
-                    ForEach(MockScanState.allCases) { mockState in
-                        Button(mockState.title) { model.showMockState(mockState) }
+                VStack {
+                    Menu {
+                        ForEach(MockScanState.allCases) { mockState in
+                            Button(mockState.title) { model.showMockState(mockState) }
+                                .nestedAccessibilityIdentifier("scenario.\(mockState.id.rawValue)")
+                        }
+                    } label: {
+                        Label("Mock State", systemImage: "testtube.2")
                     }
-                } label: {
-                    Label("Mock State", systemImage: "testtube.2")
+                    .nestedAccessibilityIdentifier("mockState")
                 }
-                .help("Show a sample interface state")
+                .a11yRoot("buildhunter.toolbar")
             }
 #endif
         }
@@ -71,7 +76,9 @@ struct BuildHunterWindow: View {
         } actions: {
             Button("Open Folder…") { model.isChoosingFolder = true }
                 .keyboardShortcut("o", modifiers: .command)
+                .nestedAccessibilityIdentifier("openFolder")
         }
+        .a11yRoot("buildhunter.empty")
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -79,9 +86,12 @@ struct BuildHunterWindow: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Demo for \(targetName)").font(.title2.weight(.semibold))
+                    Text("Demo for \(targetName)")
+                        .font(.title2.weight(.semibold))
+                        .nestedAccessibilityIdentifier("target")
                     Text(statusDescription)
                         .foregroundStyle(.secondary)
+                        .nestedAccessibilityIdentifier("status")
                 }
                 Spacer()
                 if model.isScanning {
@@ -97,6 +107,7 @@ struct BuildHunterWindow: View {
                     }
                 }
                 .foregroundStyle(.orange)
+                .nestedAccessibilityIdentifier("warnings")
             }
             Table(model.rows) {
                 TableColumn("Path", value: \.relativePath)
@@ -120,6 +131,7 @@ struct BuildHunterWindow: View {
                 .foregroundStyle(.secondary)
         }
         .padding(18)
+        .a11yRoot("buildhunter.report")
     }
 
     private func sizeDescription(_ state: SizeState) -> String {

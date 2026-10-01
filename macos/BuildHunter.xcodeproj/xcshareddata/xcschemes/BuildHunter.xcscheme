@@ -35,6 +35,20 @@
                ReferencedContainer = "container:BuildHunter.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "97498C516133ADCE5F6328DA"
+               BuildableName = "BuildHunterUITests.xctest"
+               BlueprintName = "BuildHunterUITests"
+               ReferencedContainer = "container:BuildHunter.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -61,6 +75,17 @@
                BlueprintIdentifier = "1AC73F0779A74ED95608E1E7"
                BuildableName = "BuildHunterTests.xctest"
                BlueprintName = "BuildHunterTests"
+               ReferencedContainer = "container:BuildHunter.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "97498C516133ADCE5F6328DA"
+               BuildableName = "BuildHunterUITests.xctest"
+               BlueprintName = "BuildHunterUITests"
                ReferencedContainer = "container:BuildHunter.xcodeproj">
             </BuildableReference>
          </TestableReference>

@@ -27,6 +27,18 @@ if [[ "$mode" == test ]]; then
     -enableCodeCoverage YES 2>&1 | tee "$output_dir/test.log"
   xcrun xcresulttool get test-results summary --path "$output_dir/test.xcresult" \
     --format json > "$output_dir/test-summary.json"
+  screenshot_dir="$output_dir/ui-screenshots"
+  if [[ -e "$screenshot_dir" ]]; then
+    echo 'ui-screenshots already exists. Use a clean CI output directory.' >&2
+    exit 2
+  fi
+  xcrun xcresulttool export attachments --path "$output_dir/test.xcresult" \
+    --output-path "$screenshot_dir" --filter '*.png'
+  screenshot_count="$(find "$screenshot_dir" -type f -name '*.png' | wc -l | tr -d ' ')"
+  if [[ "$screenshot_count" -lt 6 ]]; then
+    echo "Expected 6 UI screenshots, found $screenshot_count" >&2
+    exit 1
+  fi
   python3 - "$output_dir/test-summary.json" <<'PY'
 import json
 import sys
@@ -34,7 +46,7 @@ from pathlib import Path
 summary = json.loads(Path(sys.argv[1]).read_text())
 if summary.get("result") != "Passed" or summary.get("failedTests", 0) or summary.get("passedTests", 0) < 1:
     raise SystemExit("Expected a passing test run with at least one executed test")
-print(f"Verified {summary['passedTests']} passing tests")
+print(f"Verified {summary['passedTests']} passing unit/UI tests")
 PY
 else
   xcodebuild build "${common[@]}" -configuration Release 2>&1 | tee "$output_dir/release.log"
