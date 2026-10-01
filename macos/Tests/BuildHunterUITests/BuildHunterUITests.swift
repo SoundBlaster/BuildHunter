@@ -17,7 +17,8 @@ final class BuildHunterUITests: XCTestCase {
         ]
 
         for (index, scenario) in scenarios.enumerated() {
-            let mockStateMenu = app.buttons["buildhunter.toolbar.mockState"]
+            let mockStateMenu = app.descendants(matching: .any)
+                .matching(identifier: "buildhunter.toolbar.mockState").firstMatch
             XCTAssertTrue(mockStateMenu.waitForExistence(timeout: 5))
             mockStateMenu.click()
 
@@ -43,7 +44,8 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(openFolder.waitForExistence(timeout: 10))
         openFolder.click()
 
-        let cancel = app.buttons["Cancel"]
+        let cancel = app.descendants(matching: .any)
+            .matching(identifier: "CancelButton").firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 10), "Open Folder should present a folder picker")
         attachScreenshot(named: "folder-picker", from: app)
         cancel.click()
