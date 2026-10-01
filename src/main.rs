@@ -142,21 +142,26 @@ fn main() {
     };
     let mut root = None;
     let mut json = false;
-    let mut args = env::args().skip(1);
+    let mut args = env::args_os().skip(1);
     while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "--help" | "-h" => {
+        match arg.to_str() {
+            Some("--help" | "-h") => {
                 println!(
                     "build-hunter [PATH] [--language all|swift|rust|python] [--json] [--apparent] [--include-envs]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
                 );
                 return;
             }
-            "--language" => scanner.language = args.next().unwrap_or_default(),
-            "--json" => json = true,
-            "--apparent" => scanner.apparent = true,
-            "--include-envs" => scanner.environments = true,
-            _ if arg.starts_with('-') || root.is_some() => {
-                eprintln!("Unexpected argument: {arg}");
+            Some("--language") => {
+                scanner.language = args
+                    .next()
+                    .and_then(|value| value.into_string().ok())
+                    .unwrap_or_default();
+            }
+            Some("--json") => json = true,
+            Some("--apparent") => scanner.apparent = true,
+            Some("--include-envs") => scanner.environments = true,
+            _ if arg.to_string_lossy().starts_with('-') || root.is_some() => {
+                eprintln!("Unexpected argument: {}", arg.to_string_lossy());
                 process::exit(2);
             }
             _ => root = Some(PathBuf::from(arg)),

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Exercise the compiled CLI against disposable filesystem fixtures."""
 import json
+import errno
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -69,7 +71,7 @@ class CLIIntegrationTests(unittest.TestCase):
         self.write(f"{name}/.build/object")
         rows = self.scan()["artifacts"]
         self.assertEqual(len(rows), 1)
-        self.assertEqual(Path(rows[0]["path"]), self.root / name / ".build")
+        self.assertTrue(os.path.samefile(rows[0]["path"], self.root / name / ".build"))
         if sys.platform != "win32":
             (self.root / "linked").symlink_to(self.root / name, target_is_directory=True)
             self.assertEqual(len(self.scan()["artifacts"]), 1)
@@ -79,6 +81,29 @@ class CLIIntegrationTests(unittest.TestCase):
         for args in (["--language", "unknown"], ["--unknown"], [str(self.root / "missing")]):
             result = subprocess.run([str(BINARY), *args], capture_output=True, text=True)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+
+    @unittest.skipIf(sys.platform == "win32", "Raw byte paths are Unix-specific")
+    def test_non_utf8_path_argument_does_not_panic(self):
+        root = os.fsencode(self.root) + b"/project-\xff"
+        try:
+            os.makedirs(root + b"/.build")
+            with open(root + b"/.build/object", "wb") as output:
+                output.write(b"fixture")
+            expected_exit = 0
+        except OSError as error:
+            if error.errno != errno.EILSEQ:
+                raise
+            # Some macOS filesystems reject these names; argument parsing must
+            # still return validation failure instead of panicking.
+            expected_exit = 2
+        result = subprocess.run([os.fsencode(BINARY), root, b"--json"], capture_output=True)
+        self.assertEqual(result.returncode, expected_exit, result.stderr)
+        if expected_exit == 0:
+            report = json.loads(result.stdout)
+            self.assertEqual(len(report["artifacts"]), 1)
+            self.assertEqual(report["artifacts"][0]["language"], "swift")
+        invalid = subprocess.run([os.fsencode(BINARY), b"--language", b"\xff"], capture_output=True)
+        self.assertEqual(invalid.returncode, 2, invalid.stderr)
 
 
 if __name__ == "__main__":
