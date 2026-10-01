@@ -25,7 +25,7 @@ class CLIIntegrationTests(unittest.TestCase):
         return path
 
     def scan(self, *flags):
-        result = subprocess.run([str(BINARY), str(self.root), "--json", *flags], capture_output=True, text=True)
+        result = subprocess.run([str(BINARY), str(self.root), "--json", *flags], capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
         self.assertFalse(report["errors"])
@@ -79,7 +79,7 @@ class CLIIntegrationTests(unittest.TestCase):
     def test_invalid_arguments_and_empty_directory(self):
         self.assertEqual(self.scan()["total_bytes"], 0)
         for args in (["--language", "unknown"], ["--unknown"], [str(self.root / "missing")]):
-            result = subprocess.run([str(BINARY), *args], capture_output=True, text=True)
+            result = subprocess.run([str(BINARY), *args], capture_output=True, text=True, encoding="utf-8")
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
 
     @unittest.skipIf(sys.platform == "win32", "Raw byte paths are Unix-specific")
