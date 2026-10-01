@@ -1,0 +1,56 @@
+name: BuildHunter
+options:
+  bundleIdPrefix: dev.buildhunter
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  SpecificationCore:
+    url: https://github.com/SoundBlaster/SpecificationCore.git
+    revision: 483214469828c42f7b615654aa70d0acbecc4dbf
+targets:
+  BuildHunter:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/BuildHunter
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.app
+        PRODUCT_NAME: BuildHunter
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        ARCHS: arm64
+        CODE_SIGN_ENTITLEMENTS: Sources/BuildHunter/BuildHunter.entitlements
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        SWIFT_STRICT_CONCURRENCY: complete
+    dependencies:
+      - package: SpecificationCore
+        product: SpecificationCore
+  BuildHunterTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/BuildHunterTests
+    dependencies:
+      - target: BuildHunter
+      - package: SpecificationCore
+        product: SpecificationCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.tests
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        ARCHS: arm64
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+schemes:
+  BuildHunter:
+    build:
+      targets:
+        BuildHunter: all
+        BuildHunterTests: [test]
+    test:
+      targets:
+        - BuildHunterTests
