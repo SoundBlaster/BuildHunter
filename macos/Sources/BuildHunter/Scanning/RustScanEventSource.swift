@@ -87,7 +87,7 @@ private final class RustScanJob: @unchecked Sendable {
     }
 }
 
-private final class RustScanBridgeContext: @unchecked Sendable {
+final class RustScanBridgeContext: @unchecked Sendable {
     let generation: UInt64
     let continuation: AsyncStream<ScanEvent>.Continuation
     private let lock = NSLock()
@@ -99,16 +99,18 @@ private final class RustScanBridgeContext: @unchecked Sendable {
         self.continuation = continuation
     }
 
-    func yield(_ event: ScanEvent) {
+    @discardableResult
+    func yield(_ event: ScanEvent) -> Bool {
         switch continuation.yield(event) {
         case .dropped:
             lock.lock()
             overflowed = true
             lock.unlock()
+            return true
         case .enqueued, .terminated:
-            break
+            return false
         @unknown default:
-            break
+            return false
         }
     }
 
@@ -168,25 +170,35 @@ private final class RustScanBridgeContext: @unchecked Sendable {
                 message: path.isEmpty ? detail : "\(path): \(detail)"
             ))
         case 4:
-            lock.lock()
-            let hadOverflow = overflowed
-            didFinish = true
-            lock.unlock()
-            if hadOverflow {
-                yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
-                yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
-            } else {
-                let result: ScanTerminalResult = switch value.status {
-                case 1: .stopped
-                case 3: .failed("The scanner could not complete the scan.")
-                default: .completed
-                }
-                yield(.finished(generation: generation, result: result))
-            }
-            continuation.finish()
+            finish(status: value.status)
         default:
             yield(.warning(generation: generation, message: "Rust scanner emitted an unknown event."))
         }
+    }
+
+    func finish(status: UInt32) {
+        lock.lock()
+        let shouldFinish = !didFinish
+        didFinish = true
+        let hadOverflow = overflowed
+        lock.unlock()
+        guard shouldFinish else { return }
+
+        if hadOverflow {
+            yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
+            yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
+        } else {
+            let result: ScanTerminalResult = switch status {
+            case 1: .stopped
+            case 3: .failed("The scanner could not complete the scan.")
+            default: .completed
+            }
+            if yield(.finished(generation: generation, result: result)) {
+                yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
+                yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
+            }
+        }
+        continuation.finish()
     }
 }
 

@@ -124,13 +124,30 @@ final class WindowScanModel {
         let activeGeneration = generation
         let stream = source.events(for: activeGeneration, target: targetURL)
         scanTask = Task { [weak self] in
+            var terminalResult: ScanTerminalResult?
+            var receivedTerminalResult = false
             for await event in stream {
                 guard !Task.isCancelled, let self else { return }
+                guard event.generation == activeGeneration else { continue }
+                if case .finished(_, let result) = event {
+                    terminalResult = result
+                    receivedTerminalResult = true
+                    continue
+                }
+                if receivedTerminalResult, case .warning = event {
+                    self.apply(event)
+                    continue
+                }
+                guard !receivedTerminalResult else { continue }
                 self.apply(event)
                 guard self.phase == .scanning else { return }
             }
             guard !Task.isCancelled, let self,
                   self.generation == activeGeneration, self.phase == .scanning else { return }
+            if let terminalResult {
+                self.apply(.finished(generation: activeGeneration, result: terminalResult))
+                return
+            }
             self.warnings.append("Event stream ended before a terminal result.")
             self.phase = .incomplete
             self.markMeasuringRowsPartial()

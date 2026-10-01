@@ -45,6 +45,54 @@ struct WindowScanModelTests {
         #expect(artifacts.map(\.language).sorted() == ["Rust", "Swift"])
     }
 
+    @Test("A selected artifact root is displayed as dot")
+    func rustScannerDisplaysSelectedArtifactRoot() async throws {
+        let parent = FileManager.default.temporaryDirectory
+            .appending(path: "BuildHunter-SelectedRoot-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let selectedRoot = parent.appending(path: ".build", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: selectedRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: parent) }
+
+        let source = RustScanEventSource()
+        let stream = source.events(for: 42, target: selectedRoot)
+        var discoveredPath: String?
+        var terminal: ScanTerminalResult?
+        for await event in stream {
+            switch event {
+            case .discovered(_, let artifact): discoveredPath = artifact.relativePath
+            case .finished(_, let result): terminal = result
+            default: break
+            }
+        }
+
+        #expect(discoveredPath == ".")
+        #expect(terminal == .completed)
+    }
+
+    @Test("Overflow caused by the terminal event makes the scan incomplete")
+    func terminalEnqueueOverflowIsReported() async {
+        let generation: UInt64 = 1
+        let (stream, continuation) = AsyncStream.makeStream(
+            of: ScanEvent.self,
+            bufferingPolicy: .bufferingNewest(2)
+        )
+        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation)
+        bridge.yield(.discovered(generation: generation, artifact: makeArtifact()))
+        bridge.yield(.discovered(
+            generation: generation,
+            artifact: ScanArtifact(id: UUID(), relativePath: "DemoFixture/Beta/.build",
+                                   language: "Swift", kind: .buildOutput)
+        ))
+        bridge.finish(status: 0)
+
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Overflow")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .incomplete)
+        #expect(model.warnings.contains { $0.contains("display buffer") })
+    }
+
     @Test("Terminal event rejects later events from the same generation")
     func terminalEventRejectsLateUpdates() {
         let model = WindowScanModel(source: ControlledScanSource())
@@ -121,6 +169,7 @@ struct WindowScanModelTests {
         let generation = model.generation
         source.yield(.warning(generation: generation, message: "fixture warning"))
         source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
 
         await model.waitForCurrentScan()
 
@@ -269,4 +318,15 @@ private final class ControlledScanSource: ScanEventSource {
         var iterator = terminationEvents.makeAsyncIterator()
         return await iterator.next()
     }
+}
+
+@MainActor
+private struct SingleStreamScanSource: ScanEventSource {
+    let stream: AsyncStream<ScanEvent>
+
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
+        stream
+    }
+
+    func cancel(generation: UInt64) {}
 }

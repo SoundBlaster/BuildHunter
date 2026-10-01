@@ -264,6 +264,15 @@ fn kind_name(code: u32) -> &'static str {
     }
 }
 
+fn relative_path(root: &Path, path: &Path) -> PathBuf {
+    let relative = path.strip_prefix(root).unwrap_or(path);
+    if relative.as_os_str().is_empty() {
+        PathBuf::from(".")
+    } else {
+        relative.to_owned()
+    }
+}
+
 struct Scanner<'a, P, E> {
     root: &'a Path,
     options: ScanOptions,
@@ -286,7 +295,7 @@ where
 
     fn warn(&mut self, path: &Path, error: impl std::fmt::Display) {
         let warning = ScanWarning {
-            relative_path: path.strip_prefix(self.root).unwrap_or(path).to_owned(),
+            relative_path: relative_path(self.root, path),
             message: error.to_string(),
         };
         self.warnings.push(warning.clone());
@@ -348,7 +357,7 @@ where
             self.next_id = self.next_id.saturating_add(1);
             let artifact = Artifact {
                 id,
-                relative_path: path.strip_prefix(self.root).unwrap_or(path).to_owned(),
+                relative_path: relative_path(self.root, path),
                 language,
                 kind,
                 bytes: 0,
@@ -821,6 +830,31 @@ mod tests {
                 .any(|artifact| artifact.relative_path == Path::new("Package/.build"))
         );
         assert_eq!(report.status, ScanStatus::Completed);
+    }
+
+    #[test]
+    fn selected_artifact_root_uses_dot_as_its_relative_path() {
+        let tree = TempTree::new();
+        let selected_root = tree.0.join(".build");
+        fs::create_dir_all(&selected_root).unwrap();
+        let report = scan_with_policy(
+            &selected_root,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| match facts.name() {
+                Some(".build") => CandidateAction::Classify(ArtifactClassificationCode {
+                    language: 1,
+                    kind: 1,
+                }),
+                _ => CandidateAction::Traverse,
+            },
+            |_| {},
+        );
+
+        assert_eq!(report.artifacts.len(), 1);
+        assert_eq!(report.artifacts[0].relative_path, Path::new("."));
     }
 
     #[test]
