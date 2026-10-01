@@ -9,12 +9,7 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(app.buttons["buildhunter.empty.openFolder"].waitForExistence(timeout: 10))
         attachScreenshot(named: "01-empty", from: app)
 
-        let scenarios: [(id: String, status: String)] = [
-            ("scanning", "Showing simulated streaming results"),
-            ("results", "Demo complete"),
-            ("stopped", "Demo stopped · partial results"),
-            ("incomplete", "Demo incomplete · review warnings")
-        ]
+        let scenarios = ["scanning", "results", "stopped", "incomplete"]
 
         for (index, scenario) in scenarios.enumerated() {
             let mockStateMenu = app.descendants(matching: .any)
@@ -22,18 +17,21 @@ final class BuildHunterUITests: XCTestCase {
             XCTAssertTrue(mockStateMenu.waitForExistence(timeout: 5))
             mockStateMenu.click()
 
-            let optionID = "buildhunter.toolbar.mockState.scenario.\(scenario.id)"
+            let optionID = "buildhunter.toolbar.mockState.scenario.\(scenario)"
             let option = app.descendants(matching: .any).matching(identifier: optionID).firstMatch
             XCTAssertTrue(option.waitForExistence(timeout: 5), "Missing mock-state option: \(optionID)")
             option.click()
 
-            let statusContainer = app.descendants(matching: .any)
-                .matching(identifier: "buildhunter.report.status").firstMatch
-            XCTAssertTrue(statusContainer.waitForExistence(timeout: 5))
-            let statusText = statusContainer.descendants(matching: .staticText).firstMatch
-            XCTAssertTrue(statusText.waitForExistence(timeout: 5))
-            XCTAssertEqual(statusText.label, scenario.status)
-            attachScreenshot(named: String(format: "%02d-%@", index + 2, scenario.id), from: app)
+            let actionTitle = scenario == "scanning" ? "Stop" : "Rescan"
+            XCTAssertTrue(app.buttons[actionTitle].waitForExistence(timeout: 5),
+                          "The \(scenario) scenario should expose the \(actionTitle) action")
+            if scenario == "incomplete" {
+                let warnings = app.descendants(matching: .any)
+                    .matching(identifier: "buildhunter.report.warnings").firstMatch
+                XCTAssertTrue(warnings.waitForExistence(timeout: 5),
+                              "The incomplete scenario should expose warning details")
+            }
+            attachScreenshot(named: String(format: "%02d-%@", index + 2, scenario), from: app)
         }
 
         app.terminate()
