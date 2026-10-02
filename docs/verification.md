@@ -10,6 +10,9 @@ cargo build --locked --release
 python3 scripts/test_cli.py target/release/build-hunter
 bash scripts/ci/macos.sh test
 bash scripts/ci/macos.sh release
+python3 scripts/test_performance_report.py
+cargo bench --locked --bench scanner
+bash scripts/ci/macos.sh performance
 ```
 
 Windows uses `target/release/build-hunter.exe`. CLI integration fixtures cover
@@ -43,6 +46,10 @@ These workflows run for every pull request, main push and manual dispatch.
 No path filters suppress checks needed by a PR. GitHub branch protection settings
 are separate from workflow creation; configuring required checks is not implied.
 
+[Performance checks](performance.md) add separate scanner baseline/candidate jobs
+on Ubuntu/macOS and a Release XCTest job for model/policy clock, memory and scaling.
+Reports and raw measurements are published as CI artifacts.
+
 ## TDD and evidence boundaries
 
 For new domain rules, state transitions and integration contracts, add a meaningful
@@ -58,6 +65,41 @@ candidate policy adapters, nested roots, cancellation, and lossless Unix path by
 A Swift integration test exercises classification, streaming, and measured results
 through the real FFI. The current unsigned test run does not prove signed sandbox
 access, Finder integration, clipboard behavior, or App Store readiness.
+
+Audit regression tests additionally cover:
+
+- A failed C policy callback stops traversal immediately and marks any open
+  artifact measurement partial, with a failed terminal event.
+- CLI environment opt-in does not change the measured size of an already accepted
+  outer artifact root: environments inside it are included in both profiles.
+- Partial sizes keep the window report incomplete even without an extra warning.
+- Incomplete and unknown Rust terminal statuses cannot be treated as success.
+- Debug mock states clear the previous real target URL before any rescan.
+
+These tests were first run against the unfixed implementation and reproduced the
+failures. For a local unit-only run while UI automation is unavailable, use a fresh
+result bundle path:
+
+```sh
+xcodebuild test -project macos/BuildHunter.xcodeproj -scheme BuildHunter \
+  -destination 'platform=macOS,arch=arm64' -only-testing:BuildHunterTests \
+  -skipMacroValidation -disableAutomaticPackageResolution \
+  CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES \
+  -resultBundlePath macos/.build/ci/audit-unit.xcresult
+```
+
+Local audit evidence on 2026-10-02: 8 Rust unit tests, 7 CLI integration tests,
+formatting, Clippy and an unsigned arm64 Release build passed. The new regression
+tests reproduced the Rust/CLI failures and three failing Swift test functions
+(one parameterized) before the fixes. The fixed Xcode-hosted unit run built but
+waited in `XCTestDriver._prepareTestConfigurationAndIDESession` before running
+tests and was stopped. Its log and process sample remain under `macos/.build/ci/`.
+
+All 23 Swift unit tests passed in a temporary hostless SwiftPM harness that used
+the same domain/scanning sources and test files, the Xcode-resolved SpecificationCore
+binary and the real Rust static library. SHA-256 comparison verified that the 11
+copied source/test files matched the checkout. This is logic/FFI evidence, separate
+from the project's Xcode-hosted test run and GUI/sandbox evidence.
 
 Unsigned builds do not establish signed sandbox runtime behavior or App Store
 readiness. A separate signed-app check must exercise folder drop/open grants,

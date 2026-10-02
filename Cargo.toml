@@ -10,3 +10,7 @@ name = "build_hunter"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+
+[[bench]]
+name = "scanner"
+harness = false

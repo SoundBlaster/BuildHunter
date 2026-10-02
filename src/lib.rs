@@ -126,6 +126,10 @@ impl ScanControl {
     fn is_failed(&self) -> bool {
         self.failed.load(Ordering::Acquire)
     }
+
+    fn should_stop(&self) -> bool {
+        self.is_cancelled() || self.is_failed()
+    }
 }
 
 impl Default for ScanControl {
@@ -179,7 +183,10 @@ pub fn rust_cli_policy(facts: &CandidateFacts, include_environments: bool) -> Ca
     if facts.is_directory && name == ".git" && !facts.has_artifact_ancestor {
         return CandidateAction::Prune;
     }
-    if facts.own_marker_files & MARKER_PYVENV_CFG != 0 && !include_environments {
+    if facts.own_marker_files & MARKER_PYVENV_CFG != 0
+        && !include_environments
+        && !facts.has_artifact_ancestor
+    {
         return CandidateAction::Prune;
     }
     let classification = match name {
@@ -303,7 +310,7 @@ where
     }
 
     fn walk(&mut self, path: &Path, inside_artifact: bool) -> u64 {
-        if self.control.is_cancelled() {
+        if self.control.should_stop() {
             return 0;
         }
         let metadata = match fs::symlink_metadata(path) {
@@ -375,7 +382,7 @@ where
             match fs::read_dir(path) {
                 Ok(entries) => {
                     for entry in entries {
-                        if self.control.is_cancelled() {
+                        if self.control.should_stop() {
                             break;
                         }
                         match entry {
@@ -391,7 +398,7 @@ where
             }
         }
         if let Some(id) = id {
-            let partial = self.control.is_cancelled() || self.warnings.len() > warning_count;
+            let partial = self.control.should_stop() || self.warnings.len() > warning_count;
             let index = usize::try_from(id - 1).ok();
             if let Some(artifact) = index.and_then(|index| self.artifacts.get_mut(index)) {
                 artifact.bytes = bytes;
@@ -892,6 +899,105 @@ mod tests {
         );
         assert!(completion_was_partial);
         assert_eq!(report.status, ScanStatus::Cancelled);
+    }
+
+    #[derive(Default)]
+    struct FfiObservations {
+        policy_calls: usize,
+        completion_partial: Option<bool>,
+        terminal_status: Option<u32>,
+    }
+
+    unsafe extern "C" fn reject_policy(
+        context: *mut c_void,
+        _facts: *const BHCandidateFacts,
+        _decision: *mut BHCandidateDecision,
+    ) -> i32 {
+        // SAFETY: run_ffi keeps this exclusively borrowed context alive until bh_scan returns.
+        let observations = unsafe { &mut *context.cast::<FfiObservations>() };
+        observations.policy_calls += 1;
+        0
+    }
+
+    unsafe extern "C" fn reject_nested_policy(
+        context: *mut c_void,
+        facts: *const BHCandidateFacts,
+        decision: *mut BHCandidateDecision,
+    ) -> i32 {
+        // SAFETY: bh_scan supplies borrowed facts/decision and run_ffi owns the context.
+        let observations = unsafe { &mut *context.cast::<FfiObservations>() };
+        observations.policy_calls += 1;
+        if unsafe { (*facts).has_artifact_ancestor } != 0 {
+            return 0;
+        }
+        unsafe {
+            *decision = BHCandidateDecision {
+                action: 2,
+                language: 1,
+                kind: 1,
+            };
+        }
+        1
+    }
+
+    unsafe extern "C" fn observe_ffi_event(context: *mut c_void, event: *const BHScanEvent) {
+        // SAFETY: these pointers are valid for this synchronous callback; no payload escapes it.
+        let observations = unsafe { &mut *context.cast::<FfiObservations>() };
+        let event = unsafe { &*event };
+        match event.event_type {
+            2 => observations.completion_partial = Some(event.partial != 0),
+            4 => observations.terminal_status = Some(event.status),
+            _ => {}
+        }
+    }
+
+    fn run_ffi(root: &Path, policy: BHPolicyCallback) -> (i32, FfiObservations) {
+        let control = bh_scan_control_create();
+        let root_bytes = path_bytes(root);
+        let mut observations = FfiObservations::default();
+        // SAFETY: control, path bytes and context outlive the synchronous scan; callbacks borrow
+        // them only on this thread. The handle is destroyed after the scan and callbacks finish.
+        let status = unsafe {
+            let status = bh_scan(
+                control,
+                root_bytes.as_ptr(),
+                root_bytes.len(),
+                1,
+                Some(policy),
+                Some(observe_ffi_event),
+                (&mut observations as *mut FfiObservations).cast(),
+            );
+            bh_scan_control_destroy(control);
+            status
+        };
+        (status, observations)
+    }
+
+    #[test]
+    fn ffi_policy_failure_stops_before_visiting_other_candidates() {
+        let tree = TempTree::new();
+        for index in 0..8 {
+            fs::create_dir_all(tree.0.join(format!("Package{index}/.build"))).unwrap();
+        }
+
+        let (status, observations) = run_ffi(&tree.0, reject_policy);
+
+        assert_eq!(status, 3);
+        assert_eq!(observations.terminal_status, Some(3));
+        assert_eq!(observations.policy_calls, 1);
+    }
+
+    #[test]
+    fn ffi_policy_failure_marks_an_open_artifact_measurement_partial() {
+        let tree = TempTree::new();
+        let root = tree.0.join(".build");
+        fs::create_dir_all(root.join("__pycache__")).unwrap();
+
+        let (status, observations) = run_ffi(&root, reject_nested_policy);
+
+        assert_eq!(status, 3);
+        assert_eq!(observations.terminal_status, Some(3));
+        assert_eq!(observations.completion_partial, Some(true));
     }
 
     #[cfg(all(unix, not(target_os = "macos")))]

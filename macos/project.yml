@@ -62,6 +62,22 @@ targets:
         ARCHS: arm64
         SWIFT_VERSION: "6.0"
         SWIFT_STRICT_CONCURRENCY: complete
+  BuildHunterPerformanceTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/BuildHunterPerformanceTests
+    dependencies:
+      - target: BuildHunter
+      - package: SpecificationCore
+        product: SpecificationCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.performance-tests
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        ARCHS: arm64
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
   BuildHunterUITests:
     type: bundle.ui-testing
     platform: macOS
@@ -89,3 +105,12 @@ schemes:
       targets:
         - BuildHunterTests
         - BuildHunterUITests
+  BuildHunterPerformance:
+    build:
+      targets:
+        BuildHunter: all
+        BuildHunterPerformanceTests: [test]
+    test:
+      config: Release
+      targets:
+        - BuildHunterPerformanceTests

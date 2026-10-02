@@ -1,0 +1,45 @@
+name: Scanner performance
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  scanner:
+    name: Scanner comparison (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-26]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Compare baseline and candidate on the same fixture
+        env:
+          BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: python3 scripts/compare_performance.py --baseline-ref "$BASELINE_REF"
+      - name: Publish job summary
+        if: always()
+        run: |
+          if test -f target/performance/report.md; then
+            cat target/performance/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish raw samples and comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scanner-performance-${{ matrix.os }}
+          path: |
+            target/performance/report.json
+            target/performance/report.md
+          if-no-files-found: warn
+          retention-days: 7
