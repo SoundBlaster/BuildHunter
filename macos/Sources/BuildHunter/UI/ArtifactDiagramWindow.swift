@@ -88,8 +88,9 @@ private struct ArtifactSunburstChart: View {
                         angle: .value("Share of known size", sector.angularRange),
                         innerRadius: .ratio(sector.innerRadius / sector.outerRadius),
                         outerRadius: .ratio(sector.outerRadius),
-                        angularInset: 1
+                        angularInset: 2
                     )
+                    .cornerRadius(4)
                     .foregroundStyle(diagramColor(sector.colorKey))
                     .opacity(hovered == sector.id ? 1 : 0.95 - Double(sector.depth) * 0.15)
                     .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")

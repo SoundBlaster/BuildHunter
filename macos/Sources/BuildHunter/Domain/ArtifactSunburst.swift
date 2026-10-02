@@ -90,9 +90,10 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
         let colorKey: String
         let isPartial: Bool
 
-        var innerRadius: Double { 0.22 + Double(depth) * (ringWidth + 0.016) }
+        var innerRadius: Double { 0.22 + Double(depth) * (ringWidth + Self.ringGap) }
         var outerRadius: Double { innerRadius + ringWidth }
-        private var ringWidth: Double { (1 - 0.22 - 2 * 0.016) / 3 }
+        private static let ringGap = 0.025
+        private var ringWidth: Double { (1 - 0.22 - 2 * Self.ringGap) / 3 }
         var angularRange: Range<Double> { start..<end }
         var nodeID: String? { if case .node(let path) = id { path } else { nil } }
     }
