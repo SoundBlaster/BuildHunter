@@ -15,7 +15,7 @@ final class ArtifactDiagramModel {
     private(set) var filteredChildren: [ArtifactSunburstNode] = []
     var query = "" { didSet { updateChildren() } }
     @ObservationIgnored private var retainedOrder: [String: [String]] = [:]
-    @ObservationIgnored private var colorAnchors: [String: String] = [:]
+    @ObservationIgnored private var expandedFolders: Set<String> = []
     @ObservationIgnored private var lastRevision: UInt64?
     @ObservationIgnored private var sourceID: UUID?
     @ObservationIgnored private var reportID: UUID?
@@ -67,7 +67,7 @@ final class ArtifactDiagramModel {
             focusID = ""
             palette = ArtifactSunburstPalette()
             retainedOrder = [:]
-            colorAnchors = [:]
+            expandedFolders = []
             previewID = nil
             query = ""
         }
@@ -102,28 +102,21 @@ final class ArtifactDiagramModel {
         updateChildren()
     }
 
-    private func inheritLargestChildColor() {
-        guard !focusID.isEmpty else { return }
-        if colorAnchors[focusID] == nil {
-            guard let largest = focus.children.compactMap({ snapshot.nodes[$0] })
+    private func prepareVisibleChildren() {
+        guard !focusID.isEmpty, !expandedFolders.contains(focusID),
+              let largest = focus.children.compactMap({ snapshot.nodes[$0] })
                 .filter({ $0.bytes > 0 })
-                .sorted(by: { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }).first else { return }
-            colorAnchors[focusID] = largest.id
-            // A folder hidden inside Other can become the size leader. Reveal it
-            // on deliberate navigation, never by evicting siblings during a scan.
-            if let previous = retainedOrder[focusID], !previous.contains(largest.id) {
-                retainedOrder[focusID] = [largest.id] + previous.prefix(5)
-            }
-        }
-        var parent = focusID
-        while let child = colorAnchors[parent] {
-            palette.inheritColor(from: parent, to: child)
-            parent = child
+                .max(by: { $0.bytes == $1.bytes ? $0.id > $1.id : $0.bytes < $1.bytes }) else { return }
+        expandedFolders.insert(focusID)
+        // Reveal a late size leader on deliberate navigation, while keeping the
+        // displayed membership fixed during subsequent scan updates.
+        if let previous = retainedOrder[focusID], !previous.contains(largest.id) {
+            retainedOrder[focusID] = [largest.id] + previous.prefix(5)
         }
     }
 
     private func updateLayout() {
-        inheritLargestChildColor()
+        prepareVisibleChildren()
         let updated = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID, retainedOrder: retainedOrder)
         for sector in updated.sectors {
             guard let path = sector.nodeID, path != focusID else { continue }

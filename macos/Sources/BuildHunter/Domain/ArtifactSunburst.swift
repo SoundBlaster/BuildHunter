@@ -183,8 +183,8 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     }
 }
 
-/// Colors belong to paths in a report, never to a ring, rank, or navigation level.
-/// Assign only newly visible folders; keep every previous assignment until the report changes.
+/// Each top-level branch owns one color for the entire report. Descendants use
+/// that same swatch even when navigation hides the branch root from the chart.
 struct ArtifactSunburstPalette: Equatable, Sendable {
     struct Swatch: Hashable, Sendable {
         let hue: Double
@@ -198,48 +198,29 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
     private var sortedHues: [Double] = []
 
     func color(for sector: ArtifactSunburstLayout.Sector) -> Swatch {
-        sector.nodeID.flatMap { colors[$0] } ?? .other
+        sector.nodeID.flatMap { color(for: $0) } ?? .other
     }
 
-    /// The one intentional color transfer: a selected folder's largest child
-    /// carries its color into the next level. Other paths keep their assignments.
-    mutating func inheritColor(from parent: String, to child: String) {
-        if let color = colors[parent], colors[child] == color { return }
-        if colors[parent] == nil {
-            colors[parent] = Swatch(hue: contrastingHue(preferred: Self.preferredHue(for: parent), nearby: []))
-        }
-        colors[child] = colors[parent]
-        sortedHues = Array(Set(colors.values.map(\.hue))).sorted()
+    func color(for path: String) -> Swatch? {
+        colors[Self.branchRoot(for: path)]
     }
 
     mutating func include(_ layout: ArtifactSunburstLayout) {
-        let named = layout.sectors.filter { $0.nodeID != nil }
-        let siblings = Dictionary(grouping: named, by: \.parentID)
-        let rings = Dictionary(grouping: named, by: \.depth)
-        var neighbors: [String: [String]] = [:]
-        for ring in rings.values {
-            let ordered = ring.sorted { $0.start < $1.start }
-            for (index, sector) in ordered.enumerated() {
-                guard let path = sector.nodeID, ordered.count > 1 else { continue }
-                neighbors[path] = [
-                    ordered[(index + ordered.count - 1) % ordered.count].nodeID!,
-                    ordered[(index + 1) % ordered.count].nodeID!
-                ]
+        let paths = layout.sectors.compactMap(\.nodeID).sorted()
+        for path in paths {
+            let branch = Self.branchRoot(for: path)
+            if colors[branch] == nil {
+                let hue = contrastingHue(preferred: Self.preferredHue(for: branch), nearby: sortedHues)
+                colors[branch] = Swatch(hue: hue)
+                sortedHues.insert(hue, at: insertionIndex(for: hue))
             }
+            // Cache visible paths as well, so identities remain directly inspectable.
+            colors[path] = colors[branch]
         }
-        // Ancestors first, then stable path order; byte counts only affect geometry.
-        let ordered = named.sorted {
-            $0.depth == $1.depth ? $0.nodeID! < $1.nodeID! : $0.depth < $1.depth
-        }
-        for sector in ordered {
-            guard let path = sector.nodeID, colors[path] == nil else { continue }
-            let related = (siblings[sector.parentID] ?? []).compactMap(\.nodeID)
-                + [sector.parentID] + (neighbors[path] ?? [])
-            let nearbyHues = related.compactMap { colors[$0]?.hue }
-            let hue = contrastingHue(preferred: Self.preferredHue(for: path), nearby: nearbyHues)
-            colors[path] = Swatch(hue: hue)
-            sortedHues.insert(hue, at: insertionIndex(for: hue))
-        }
+    }
+
+    private static func branchRoot(for path: String) -> String {
+        path.split(separator: "/").first.map(String.init) ?? ""
     }
 
     private func contrastingHue(preferred: Double, nearby: [Double]) -> Double {

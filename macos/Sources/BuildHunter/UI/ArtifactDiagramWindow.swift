@@ -294,7 +294,7 @@ private struct ArtifactDiagramSidebar: View {
             ScrollView {
                 LazyVStack(spacing: 4) {
                     ForEach(model.filteredChildren) { node in
-                        ArtifactDiagramFolderRow(node: node, swatch: model.palette.colors[node.id]) {
+                        ArtifactDiagramFolderRow(node: node, swatch: model.palette.color(for: node.id)) {
                             model.navigate(to: node.id)
                         }
                     }
@@ -407,7 +407,6 @@ private extension ScanPhase {
     palette.include(overview)
     let overviewPalette = palette
     palette.include(focused)
-    palette.inheritColor(from: "Apps", to: "Apps/Beta")
     return HStack(spacing: 24) {
         VStack {
             Text("All artifacts").font(.headline)
@@ -415,7 +414,7 @@ private extension ScanPhase {
                                   isScanning: false, statistics: snapshot.root.statistics) { _ in }
         }
         VStack {
-            Text("Inside Apps — Beta inherits Apps").font(.headline)
+            Text("Inside Apps — one branch, one color").font(.headline)
             ArtifactSunburstChart(layout: focused, palette: palette, bytes: snapshot.nodes["Apps"]!.bytes,
                                   isScanning: false, statistics: snapshot.nodes["Apps"]!.statistics) { _ in }
         }

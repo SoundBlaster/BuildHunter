@@ -168,7 +168,7 @@ struct ArtifactDiagramModelTests {
         #expect(store.model(for: scan.id) == nil)
     }
 
-    @Test("Drilling in transfers the folder color to its largest child only once")
+    @Test("All children retain the branch color while size rankings change")
     func largestChildInheritsColor() async throws {
         let scan = WindowScanModel(source: DiagramIdleSource())
         let diagram = ArtifactDiagramModel()
@@ -194,7 +194,7 @@ struct ArtifactDiagramModelTests {
         diagram.navigate(to: "Apps")
         #expect(diagram.palette.colors["Apps/Large"] == parentColor)
         #expect(diagram.palette.colors["Apps/Small"] == smallColor,
-                "Streaming must not transfer the inherited color to a new size leader")
+                "Streaming must not reassign a branch color when the size leader changes")
     }
 
     @Test("Late discoveries cannot displace or reorder previously visible siblings")
@@ -225,7 +225,7 @@ struct ArtifactDiagramModelTests {
         #expect(diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID) == original)
     }
 
-    @Test("Color inheritance follows a previously explored child when an ancestor is selected later")
+    @Test("A branch shares its color when navigation skips hierarchy levels")
     func inheritanceAcrossSkippedLevels() {
         let rows = [
             ScanRow(id: UUID(), relativePath: "Apps/Large/.build", language: "Swift", kind: .buildOutput, size: .measured(100)),
@@ -236,7 +236,7 @@ struct ArtifactDiagramModelTests {
         diagram.navigate(to: "Apps")
         #expect(diagram.palette.colors["Apps/Large"] == diagram.palette.colors["Apps"])
         #expect(diagram.palette.colors["Apps/Large/.build"] == diagram.palette.colors["Apps"])
-        #expect(diagram.palette.colors["Apps/Small"] != diagram.palette.colors["Apps"])
+        #expect(diagram.palette.colors["Apps/Small"] == diagram.palette.colors["Apps"])
     }
 
     @Test("Hover previews full paths and children without changing navigation, color or the saved filter")

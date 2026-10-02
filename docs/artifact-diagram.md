@@ -37,20 +37,15 @@ consume the sector. Angular shares remain proportional to bytes, with no artific
 minimum size. Very small folders can still form narrow slices; choose them in the
 sidebar to zoom in and compare their children.
 
-Every folder has its own color. When a folder first appears, its hue is chosen
-away from previously used hues, prioritizing contrast with its visible siblings,
-parent, and adjacent sectors. Colors are keyed by the full relative path and
-retained while the diagram window displays that report:
-changing sizes and late discoveries never recolor a folder. The intentional
-exception is navigation: when first entering a folder, its largest measured child
-inherits the selected folder's color. This anchor is remembered for the report,
-including previously explored descendant anchors; a new size leader does not steal
-it during scanning. Ties use path order. If no child has a known positive size,
-anchoring waits for the first positive measurement. Other children retain distinct
-colors. Ring depth does not alter brightness or opacity. **Other**
-is always neutral gray. Starting a new report or reopening the diagram prepares
-a new palette. Color helps orientation, while path labels remain authoritative;
-very dense reports have more folders than easily distinguishable hues.
+Each top-level branch below the scan target has one color. Every descendant in
+that branch uses exactly the same swatch across all rings. The branch key is the
+first component of the report-relative path, independent of the current focus:
+selecting a blue folder opens blue descendants, including its largest child.
+Sibling root branches receive contrasting hues; colors are retained throughout the
+report as measurements and visible folders change. **Other** is neutral gray.
+Starting a new report or reopening the diagram prepares a new palette. Color helps
+orientation, while path labels remain authoritative; very dense reports have more
+branches than easily distinguishable hues.
 
 Updates animate with stable path identities.
 Reduce Motion disables those animations. Accessible sector descriptions include
@@ -78,10 +73,10 @@ path, size, and partial status; the sidebar offers standard buttons for navigati
 ## Verification
 
 Unit tests cover size conservation, ring boundaries, narrow-sector decoration at
-multiple chart sizes, stable identities, per-folder colors through navigation and
-streaming, sibling hue separation, palette reset, large totals,
+multiple chart sizes, stable identities, branch colors through navigation and
+streaming, sibling branch hue separation, palette reset, large totals,
 unknown/partial values, dense reports, navigation, stale scan events, and window
-ownership, inherited color anchors, stable streaming membership, hover restoration,
+ownership, branch color inheritance, stable streaming membership, hover restoration,
 absolute paths, and sorting alongside late measurements. UI tests exercise the
 companion window lifecycle, hover preview, center navigation, column-header sorting,
 and copying a real selected folder's full path. They attach 14 screenshots.

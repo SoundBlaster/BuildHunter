@@ -86,6 +86,27 @@ struct ArtifactSunburstTests {
         }
     }
 
+    @Test("Every descendant keeps the root branch color at every navigation depth")
+    func branchColorInheritance() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: [
+            row("Apps/Alpha/.build", .measured(100)),
+            row("Apps/Beta/target", .measured(200)),
+            row("Tools/Linter/__pycache__", .measured(50))
+        ])
+        var palette = ArtifactSunburstPalette()
+        for focus in ["", "Apps", "Apps/Alpha", "Apps/Alpha/.build", "Tools/Linter", ""] {
+            let layout = ArtifactSunburstLayout(snapshot: snapshot, focusID: focus)
+            palette.include(layout)
+            for sector in layout.sectors {
+                let path = try #require(sector.nodeID)
+                let branch = String(path.split(separator: "/").first!)
+                #expect(palette.color(for: sector) == palette.colors[branch],
+                        "All rings in a branch retain the branch root's color after navigation")
+            }
+            #expect(palette.colors["Apps"] != palette.colors["Tools"])
+        }
+    }
+
     @Test("Seven sibling folders receive separated hues, not repeated palette slots")
     func contrastingSiblingColors() {
         let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: (0..<7).map {
@@ -102,14 +123,14 @@ struct ArtifactSunburstTests {
                         "Sibling hues should be separated by at least about 20 degrees")
             }
         }
-        #expect(Set(palette.colors.values).count == layout.sectors.count,
-                "Every folder has its own swatch, including children")
+        #expect(Set(palette.colors.values).count == 7,
+                "Each top-level branch has one swatch shared by all of its children")
         #expect(palette.colors.values.allSatisfy {
             (0..<1).contains($0.hue) && $0.saturation > 0 && $0.brightness > 0
         })
     }
 
-    @Test("A typical multilevel diagram avoids nearly identical colors across branches")
+    @Test("Root branches contrast while every descendant shares its branch swatch")
     func distinctColorsAcrossBranches() {
         let paths = ["Apps/Alpha/.build", "Apps/Beta/target", "Apps/Gamma/.venv",
                      "Tools/Linter/__pycache__", "Server/target"]
@@ -118,12 +139,13 @@ struct ArtifactSunburstTests {
         }))
         var palette = ArtifactSunburstPalette()
         palette.include(layout)
-        let swatches = Array(palette.colors.values)
+        let swatches = ["Apps", "Tools", "Server"].compactMap { palette.colors[$0] }
+        #expect(Set(palette.colors.values).count == swatches.count)
         for (index, first) in swatches.enumerated() {
             for second in swatches.dropFirst(index + 1) {
                 let difference = abs(first.hue - second.hue)
                 #expect(min(difference, 1 - difference) > 0.025,
-                        "Different paths must not look identical merely because they are on different rings")
+                        "Different top-level branches must remain visually distinct")
             }
         }
     }
