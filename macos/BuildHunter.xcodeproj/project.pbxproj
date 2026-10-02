@@ -12,11 +12,11 @@
 		137A8B6AA561FC700FF81B96 /* ArtifactPolicyContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB1C694C62C93F3693137CA /* ArtifactPolicyContext.swift */; };
 		19BD9AB84B77FE4D7DF09CBD /* IsScannableArtifactCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */; };
 		1C9920F952809D4378379415 /* ArtifactPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */; };
-		20FE88EFDAB69E1C50173980 /* BuildHunter.icon in Resources */ = {isa = PBXBuildFile; fileRef = DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */; };
 		2D32AFF98741BF5F6ABE3259 /* IsOuterArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */; };
 		33F97AD915EA2A1D798C7933 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = CD515261407E62AB7380C8F1 /* SpecificationCore */; };
 		492FF4DC3A0256639F9696D5 /* ClassifyArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */; };
 		702998E2BB6BC35A666F5102 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3C1F39E00DA07B5F110EE12B /* SpecificationCore */; };
+		740FFA4B30704B8700EC8AE6 /* BuildHunter.icon in Resources */ = {isa = PBXBuildFile; fileRef = 740FFA4A30704B8700EC8AE6 /* BuildHunter.icon */; };
 		80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */; };
 		8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */; };
 		91BAFEA4EB4D1D5C975E9049 /* ScanPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */; };
@@ -63,6 +63,7 @@
 		498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifyArtifactRoot.swift; sourceTree = "<group>"; };
 		52F6FF88DD87579E03C9A48D /* BuildHunterFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BuildHunterFFI.h; sourceTree = "<group>"; };
 		6BB1C694C62C93F3693137CA /* ArtifactPolicyContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactPolicyContext.swift; sourceTree = "<group>"; };
+		740FFA4A30704B8700EC8AE6 /* BuildHunter.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = BuildHunter.icon; sourceTree = "<group>"; };
 		7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockScanState.swift; sourceTree = "<group>"; };
 		7D7F949A7C221A08BBD76D8A /* WindowScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowScanModel.swift; sourceTree = "<group>"; };
 		91718F10DAF439B1C6C551A1 /* BuildHunterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -73,7 +74,6 @@
 		D1B58340DBC91862752743D7 /* ScanEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEvent.swift; sourceTree = "<group>"; };
 		D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RustScanEventSource.swift; sourceTree = "<group>"; };
-		DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = BuildHunter.icon; sourceTree = "<group>"; };
 		D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPerformanceTests.swift; sourceTree = "<group>"; };
 		DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -198,7 +198,7 @@
 		AE198AC24E4091FBBE77CD3A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */,
+				740FFA4A30704B8700EC8AE6 /* BuildHunter.icon */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -359,7 +359,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20FE88EFDAB69E1C50173980 /* BuildHunter.icon in Resources */,
+				740FFA4B30704B8700EC8AE6 /* BuildHunter.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,7 +386,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "bash \"${SRCROOT}/../scripts/build-rust-macos.sh\"";
+			shellScript = "export PATH=\"$HOME/.cargo/bin:$PATH\"\nbash \"${SRCROOT}/../scripts/build-rust-macos.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -683,6 +683,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = BuildHunter;
 				CODE_SIGN_ENTITLEMENTS = Sources/BuildHunter/BuildHunter.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
+				FUSE_BUILD_SCRIPT_PHASES = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -690,9 +691,15 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../target/aarch64-apple-darwin/release";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../target/aarch64-apple-darwin/release",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				OTHER_LDFLAGS = "$(inherited) -lbuild_hunter";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lbuild_hunter",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = dev.buildhunter.app;
 				PRODUCT_NAME = BuildHunter;
 				SDKROOT = macosx;
@@ -729,6 +736,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = BuildHunter;
 				CODE_SIGN_ENTITLEMENTS = Sources/BuildHunter/BuildHunter.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
+				FUSE_BUILD_SCRIPT_PHASES = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -736,9 +744,15 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../target/aarch64-apple-darwin/release";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../target/aarch64-apple-darwin/release",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				OTHER_LDFLAGS = "$(inherited) -lbuild_hunter";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lbuild_hunter",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = dev.buildhunter.app;
 				PRODUCT_NAME = BuildHunter;
 				SDKROOT = macosx;
