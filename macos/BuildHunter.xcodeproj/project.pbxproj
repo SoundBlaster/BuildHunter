@@ -12,6 +12,7 @@
 		137A8B6AA561FC700FF81B96 /* ArtifactPolicyContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB1C694C62C93F3693137CA /* ArtifactPolicyContext.swift */; };
 		19BD9AB84B77FE4D7DF09CBD /* IsScannableArtifactCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */; };
 		1C9920F952809D4378379415 /* ArtifactPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */; };
+		20FE88EFDAB69E1C50173980 /* BuildHunter.icon in Resources */ = {isa = PBXBuildFile; fileRef = DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */; };
 		2D32AFF98741BF5F6ABE3259 /* IsOuterArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */; };
 		33F97AD915EA2A1D798C7933 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = CD515261407E62AB7380C8F1 /* SpecificationCore */; };
 		492FF4DC3A0256639F9696D5 /* ClassifyArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */; };
@@ -72,6 +73,7 @@
 		D1B58340DBC91862752743D7 /* ScanEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEvent.swift; sourceTree = "<group>"; };
 		D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RustScanEventSource.swift; sourceTree = "<group>"; };
+		DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = BuildHunter.icon; sourceTree = "<group>"; };
 		D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPerformanceTests.swift; sourceTree = "<group>"; };
 		DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -169,6 +171,7 @@
 		6611DDC5D4168BAFEE5CAE93 = {
 			isa = PBXGroup;
 			children = (
+				AE198AC24E4091FBBE77CD3A /* Resources */,
 				9DB253BCF1E163CA9D16A456 /* Sources */,
 				30A3C791FBB9DD9874D036DA /* Tests */,
 				C60D92D82FB237BAA56C18F1 /* Products */,
@@ -190,6 +193,14 @@
 				381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */,
 			);
 			path = BuildHunterTests;
+			sourceTree = "<group>";
+		};
+		AE198AC24E4091FBBE77CD3A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		C60D92D82FB237BAA56C18F1 /* Products */ = {
@@ -229,6 +240,7 @@
 			buildPhases = (
 				6C047EC0E96D9CB13061B180 /* Build Rust scanner (Apple Silicon) */,
 				F3B82E60971206A6806D544B /* Sources */,
+				7EE8B8DFAFDF51EF1258E42F /* Resources */,
 				A53066ECFA0AC5AA409DB695 /* Frameworks */,
 			);
 			buildRules = (
@@ -341,6 +353,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7EE8B8DFAFDF51EF1258E42F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20FE88EFDAB69E1C50173980 /* BuildHunter.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		6C047EC0E96D9CB13061B180 /* Build Rust scanner (Apple Silicon) */ = {
@@ -657,7 +680,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = BuildHunter;
 				CODE_SIGN_ENTITLEMENTS = Sources/BuildHunter/BuildHunter.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -703,7 +726,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = BuildHunter;
 				CODE_SIGN_ENTITLEMENTS = Sources/BuildHunter/BuildHunter.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
