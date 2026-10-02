@@ -87,7 +87,6 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
         let depth: Int
         let start: Double
         let end: Double
-        let colorKey: String
         let isPartial: Bool
 
         var innerRadius: Double { 0.22 + Double(depth) * (ringWidth + Self.ringGap) }
@@ -124,7 +123,7 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     init(snapshot: ArtifactSunburstSnapshot, focusID: String = "") {
         let focus = snapshot.nodes[focusID] ?? snapshot.root
         var sectors: [Sector] = []
-        func visit(_ parent: ArtifactSunburstNode, depth: Int, start: Double, end: Double, colorKey: String?) {
+        func visit(_ parent: ArtifactSunburstNode, depth: Int, start: Double, end: Double) {
             guard depth < 3, parent.bytes > 0 else { return }
             let positive = parent.children.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
             // At most six named children plus Other per ring; the sidebar retains every child.
@@ -144,12 +143,11 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
             for (index, node) in visible.enumerated() {
                 let upper = remaining.isEmpty && index == visible.count - 1
                     ? end : min(end, cursor + (end - start) * (node.bytes / total))
-                let color = colorKey ?? node.id
                 if upper > cursor {
                     sectors.append(Sector(id: .node(node.id), parentID: parent.id, name: node.name,
                                           bytes: node.bytes, depth: depth, start: cursor, end: upper,
-                                          colorKey: color, isPartial: node.statistics.partialCount > 0))
-                    visit(node, depth: depth + 1, start: cursor, end: upper, colorKey: color)
+                                          isPartial: node.statistics.partialCount > 0))
+                    visit(node, depth: depth + 1, start: cursor, end: upper)
                 }
                 cursor = upper
             }
@@ -157,16 +155,16 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
                 sectors.append(Sector(
                     id: .other(parent.id), parentID: parent.id, name: "Other (\(remaining.count))",
                     bytes: remaining.reduce(0) { $0 + $1.bytes }, depth: depth, start: cursor, end: end,
-                    colorKey: colorKey ?? "", isPartial: remaining.contains { $0.statistics.partialCount > 0 }
+                    isPartial: remaining.contains { $0.statistics.partialCount > 0 }
                 ))
             }
         }
         if focus.children.isEmpty, focus.bytes > 0 {
             sectors.append(Sector(id: .node(focus.id), parentID: focus.parentID ?? "", name: focus.name,
-                                  bytes: focus.bytes, depth: 0, start: 0, end: 1, colorKey: focus.id,
+                                  bytes: focus.bytes, depth: 0, start: 0, end: 1,
                                   isPartial: focus.statistics.partialCount > 0))
         } else {
-            visit(focus, depth: 0, start: 0, end: 1, colorKey: nil)
+            visit(focus, depth: 0, start: 0, end: 1)
         }
         self.sectors = sectors
     }
@@ -175,5 +173,107 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
         sectors.first {
             angle >= $0.start && angle < $0.end && radius >= $0.innerRadius && radius <= $0.outerRadius
         }
+    }
+}
+
+/// Colors belong to paths in a report, never to a ring, rank, or navigation level.
+/// Assign only newly visible folders; keep every previous assignment until the report changes.
+struct ArtifactSunburstPalette: Equatable, Sendable {
+    struct Swatch: Hashable, Sendable {
+        let hue: Double
+        var saturation: Double = 0.72
+        var brightness: Double = 0.88
+
+        static let other = Swatch(hue: 0, saturation: 0, brightness: 0.55)
+    }
+
+    private(set) var colors: [String: Swatch] = [:]
+    private var sortedHues: [Double] = []
+
+    func color(for sector: ArtifactSunburstLayout.Sector) -> Swatch {
+        sector.nodeID.flatMap { colors[$0] } ?? .other
+    }
+
+    mutating func include(_ layout: ArtifactSunburstLayout) {
+        let named = layout.sectors.filter { $0.nodeID != nil }
+        let siblings = Dictionary(grouping: named, by: \.parentID)
+        let rings = Dictionary(grouping: named, by: \.depth)
+        var neighbors: [String: [String]] = [:]
+        for ring in rings.values {
+            let ordered = ring.sorted { $0.start < $1.start }
+            for (index, sector) in ordered.enumerated() {
+                guard let path = sector.nodeID, ordered.count > 1 else { continue }
+                neighbors[path] = [
+                    ordered[(index + ordered.count - 1) % ordered.count].nodeID!,
+                    ordered[(index + 1) % ordered.count].nodeID!
+                ]
+            }
+        }
+        // Ancestors first, then stable path order; byte counts only affect geometry.
+        let ordered = named.sorted {
+            $0.depth == $1.depth ? $0.nodeID! < $1.nodeID! : $0.depth < $1.depth
+        }
+        for sector in ordered {
+            guard let path = sector.nodeID, colors[path] == nil else { continue }
+            let related = (siblings[sector.parentID] ?? []).compactMap(\.nodeID)
+                + [sector.parentID] + (neighbors[path] ?? [])
+            let nearbyHues = related.compactMap { colors[$0]?.hue }
+            let hue = contrastingHue(preferred: Self.preferredHue(for: path), nearby: nearbyHues)
+            colors[path] = Swatch(hue: hue)
+            sortedHues.insert(hue, at: insertionIndex(for: hue))
+        }
+    }
+
+    private func contrastingHue(preferred: Double, nearby: [Double]) -> Double {
+        guard !sortedHues.isEmpty else { return preferred }
+        let candidates = (0..<72).map { step in
+            let hue = (preferred + Double(step) / 72).truncatingRemainder(dividingBy: 1)
+            return (hue: hue, global: nearestDistance(to: hue),
+                    local: nearby.map { Self.distance(hue, $0) }.min() ?? 1)
+        }
+        let greatestDistance = candidates.map { $0.global }.max()!
+        if greatestDistance == 0 {
+            // Even if all sampled hues were used, a gap between them remains.
+            let gaps = sortedHues.indices.map { index in
+                let end = index + 1 < sortedHues.count ? sortedHues[index + 1] : sortedHues[0] + 1
+                return (start: sortedHues[index], width: end - sortedHues[index])
+            }
+            let widest = gaps.max { $0.width < $1.width }!
+            return (widest.start + widest.width / 2).truncatingRemainder(dividingBy: 1)
+        }
+        // First exclude hues close to ANY previous folder, including other rings.
+        // Among the well-separated candidates, prefer contrast with direct neighbors.
+        return candidates.filter { $0.global >= greatestDistance * 0.8 }.max {
+            abs($0.local - $1.local) < 0.000_001 ? $0.global < $1.global : $0.local < $1.local
+        }!.hue
+    }
+
+    private func nearestDistance(to hue: Double) -> Double {
+        let index = insertionIndex(for: hue)
+        let before = sortedHues[(index + sortedHues.count - 1) % sortedHues.count]
+        let after = sortedHues[index % sortedHues.count]
+        return min(Self.distance(hue, before), Self.distance(hue, after))
+    }
+
+    private func insertionIndex(for hue: Double) -> Int {
+        var lower = 0
+        var upper = sortedHues.count
+        while lower < upper {
+            let middle = (lower + upper) / 2
+            if sortedHues[middle] < hue { lower = middle + 1 } else { upper = middle }
+        }
+        return lower
+    }
+
+    private static func preferredHue(for path: String) -> Double {
+        let hash = path.utf8.reduce(UInt64(14_695_981_039_346_656_037)) {
+            ($0 ^ UInt64($1)) &* 1_099_511_628_211
+        }
+        return Double(hash >> 11) / 9_007_199_254_740_992
+    }
+
+    private static func distance(_ first: Double, _ second: Double) -> Double {
+        let difference = abs(first - second)
+        return min(difference, 1 - difference)
     }
 }

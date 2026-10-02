@@ -12,7 +12,7 @@ struct ArtifactDiagramWindow: View {
                           statistics: diagram.snapshot.root.statistics)
             Divider()
             HSplitView {
-                ArtifactSunburstChart(layout: diagram.layout, bytes: diagram.focus.bytes,
+                ArtifactSunburstChart(layout: diagram.layout, palette: diagram.palette, bytes: diagram.focus.bytes,
                                       isScanning: scan.isScanning, statistics: diagram.focus.statistics) { sector in
                     diagram.navigate(to: sector.nodeID ?? sector.parentID)
                 }
@@ -67,6 +67,7 @@ private struct DiagramHeader: View {
 
 private struct ArtifactSunburstChart: View {
     let layout: ArtifactSunburstLayout
+    let palette: ArtifactSunburstPalette
     let bytes: Double
     let isScanning: Bool
     let statistics: ArtifactSizeStatistics
@@ -95,8 +96,7 @@ private struct ArtifactSunburstChart: View {
                             angularInset: CGFloat(decoration.angularInset)
                         )
                         .cornerRadius(CGFloat(decoration.cornerRadius))
-                        .foregroundStyle(diagramColor(sector.colorKey))
-                        .opacity(hovered == sector.id ? 1 : 0.95 - Double(sector.depth) * 0.15)
+                        .foregroundStyle(diagramColor(palette.color(for: sector)))
                         .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")
                         .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
                     }
@@ -247,11 +247,8 @@ private func diagramBytes(_ bytes: Double) -> String {
     return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .binary)
 }
 
-private func diagramColor(_ key: String) -> Color {
-    guard !key.isEmpty else { return .gray }
-    let palette: [Color] = [.indigo, .teal, .orange, .purple, .blue, .pink, .green]
-    let hash = key.utf8.reduce(UInt64(14_695_981_039_346_656_037)) { ($0 ^ UInt64($1)) &* 1_099_511_628_211 }
-    return palette[Int(hash % UInt64(palette.count))]
+private func diagramColor(_ swatch: ArtifactSunburstPalette.Swatch) -> Color {
+    Color(hue: swatch.hue, saturation: swatch.saturation, brightness: swatch.brightness)
 }
 
 private extension ScanPhase {
@@ -283,5 +280,37 @@ private extension ScanPhase {
     let scan = WindowScanModel()
     scan.showMockState(.results)
     return ArtifactDiagramWindow(scan: scan).frame(width: 760, height: 540)
+}
+
+#Preview("Folder color continuity") {
+    let rows = [
+        ("Apps/Alpha/.build", Int64(240_000_000)),
+        ("Apps/Beta/target", Int64(400_000_000)),
+        ("Apps/Gamma/.venv", Int64(160_000_000)),
+        ("Tools/Linter/__pycache__", Int64(180_000_000)),
+        ("Server/target", Int64(320_000_000))
+    ].map { path, bytes in
+        ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(bytes))
+    }
+    let snapshot = ArtifactSunburstSnapshot(rows: rows)
+    let overview = ArtifactSunburstLayout(snapshot: snapshot)
+    let focused = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+    var palette = ArtifactSunburstPalette()
+    palette.include(overview)
+    palette.include(focused)
+    return HStack(spacing: 24) {
+        VStack {
+            Text("All artifacts").font(.headline)
+            ArtifactSunburstChart(layout: overview, palette: palette, bytes: snapshot.root.bytes,
+                                  isScanning: false, statistics: snapshot.root.statistics) { _ in }
+        }
+        VStack {
+            Text("Inside Apps — same folder colors").font(.headline)
+            ArtifactSunburstChart(layout: focused, palette: palette, bytes: snapshot.nodes["Apps"]!.bytes,
+                                  isScanning: false, statistics: snapshot.nodes["Apps"]!.statistics) { _ in }
+        }
+    }
+    .padding(24)
+    .frame(width: 1_060, height: 580)
 }
 #endif

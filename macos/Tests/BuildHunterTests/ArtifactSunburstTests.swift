@@ -56,7 +56,111 @@ struct ArtifactSunburstTests {
             row("A/target", .measured(70)), row("B/.build", .measured(200))
         ]))
         #expect(first.sectors.map(\.id) == second.sectors.map(\.id))
-        #expect(first.sectors.map(\.colorKey) == second.sectors.map(\.colorKey))
+        var firstPalette = ArtifactSunburstPalette()
+        var secondPalette = ArtifactSunburstPalette()
+        firstPalette.include(first)
+        secondPalette.include(second)
+        #expect(firstPalette.colors == secondPalette.colors)
+    }
+
+    @Test("Folder colors survive drilling down, selecting an artifact and returning")
+    func navigationColors() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: [
+            row("Apps/Alpha/.build", .measured(100)),
+            row("Apps/Beta/target", .measured(200)),
+            row("Tools/__pycache__", .measured(50))
+        ])
+        let overview = ArtifactSunburstLayout(snapshot: snapshot)
+        var palette = ArtifactSunburstPalette()
+        palette.include(overview)
+        let originalColors = palette.colors
+        for focus in ["Apps", "Apps/Alpha", "Apps/Alpha/.build", ""] {
+            let focused = ArtifactSunburstLayout(snapshot: snapshot, focusID: focus)
+            palette.include(focused)
+            for sector in focused.sectors {
+                let path = try #require(sector.nodeID)
+                let original = try #require(originalColors[path])
+                #expect(palette.color(for: sector) == original,
+                        "The same folder must keep its color when focus changes to \(focus)")
+            }
+        }
+    }
+
+    @Test("Seven sibling folders receive separated hues, not repeated palette slots")
+    func contrastingSiblingColors() {
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: (0..<7).map {
+            row("Project\($0)/.build", .measured(100))
+        }))
+        var palette = ArtifactSunburstPalette()
+        palette.include(layout)
+        let inner = layout.sectors.filter { $0.depth == 0 }.map { palette.color(for: $0) }
+        #expect(inner.count == 7)
+        for (index, first) in inner.enumerated() {
+            for second in inner.dropFirst(index + 1) {
+                let difference = abs(first.hue - second.hue)
+                #expect(min(difference, 1 - difference) > 0.055,
+                        "Sibling hues should be separated by at least about 20 degrees")
+            }
+        }
+        #expect(Set(palette.colors.values).count == layout.sectors.count,
+                "Every folder has its own swatch, including children")
+        #expect(palette.colors.values.allSatisfy {
+            (0..<1).contains($0.hue) && $0.saturation > 0 && $0.brightness > 0
+        })
+    }
+
+    @Test("A typical multilevel diagram avoids nearly identical colors across branches")
+    func distinctColorsAcrossBranches() {
+        let paths = ["Apps/Alpha/.build", "Apps/Beta/target", "Apps/Gamma/.venv",
+                     "Tools/Linter/__pycache__", "Server/target"]
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: paths.map {
+            row($0, .measured(100))
+        }))
+        var palette = ArtifactSunburstPalette()
+        palette.include(layout)
+        let swatches = Array(palette.colors.values)
+        for (index, first) in swatches.enumerated() {
+            for second in swatches.dropFirst(index + 1) {
+                let difference = abs(first.hue - second.hue)
+                #expect(min(difference, 1 - difference) > 0.025,
+                        "Different paths must not look identical merely because they are on different rings")
+            }
+        }
+    }
+
+    @Test("Late discoveries and top-six membership changes retain assigned colors")
+    func streamingColors() throws {
+        var rows = (0..<9).map { row("Project\($0)/.build", .measured(Int64(100 + $0))) }
+        var palette = ArtifactSunburstPalette()
+        let first = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: rows))
+        palette.include(first)
+        let originalColors = palette.colors
+        rows.append(row("A new first folder/.build", .measured(10_000)))
+        rows[0] = row("Project0/.build", .partial(20_000))
+        let updated = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: Array(rows.reversed())))
+        palette.include(updated)
+        for (path, color) in originalColors { #expect(palette.colors[path] == color) }
+        #expect(palette.colors["Project0"] != nil)
+        let other = try #require(updated.sectors.first { $0.id == .other("") })
+        #expect(palette.color(for: other) == .other)
+    }
+
+    @Test("Other remains neutral at every focus and the selected target gets a real color")
+    func neutralAggregation() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: (0..<9).map {
+            row("Apps/Project\($0)/.build", .measured(100))
+        })
+        var palette = ArtifactSunburstPalette()
+        for focus in ["", "Apps"] {
+            let layout = ArtifactSunburstLayout(snapshot: snapshot, focusID: focus)
+            palette.include(layout)
+            let other = try #require(layout.sectors.first { $0.id == .other("Apps") })
+            #expect(palette.color(for: other) == .other)
+        }
+        let root = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [row(".", .measured(1))]))
+        palette.include(root)
+        let sector = try #require(root.sectors.first)
+        #expect(palette.color(for: sector).saturation > 0)
     }
 
     @Test("A selected artifact root is represented by a full sector")
@@ -81,6 +185,10 @@ struct ArtifactSunburstTests {
         #expect(inner.reduce(0) { $0 + $1.bytes } == 100_000)
         #expect(layout.sectors.count <= 399)
         #expect(snapshot.root.children.count == 10_000)
+        var palette = ArtifactSunburstPalette()
+        palette.include(layout)
+        #expect(palette.colors.count == layout.sectors.filter { $0.nodeID != nil }.count,
+                "Color preparation must stay bounded by the visible sectors")
         let zoomed = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Project9999")
         #expect(zoomed.sectors.first?.id == .node("Project9999/.build"))
         #expect(zoomed.sectors.first?.bytes == 10)
@@ -116,7 +224,7 @@ struct ArtifactSunburstTests {
         let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [
             row("Large/App/.build", .measured(199)), row("Small/App/.build", .measured(1))
         ]))
-        let narrowSectors = layout.sectors.filter { $0.colorKey == "Small" }
+        let narrowSectors = layout.sectors.filter { $0.nodeID == "Small" || $0.nodeID?.hasPrefix("Small/") == true }
         #expect(narrowSectors.count == 3)
         for sector in narrowSectors {
             #expect(abs(sector.end - sector.start - 0.005) < 0.000_001)

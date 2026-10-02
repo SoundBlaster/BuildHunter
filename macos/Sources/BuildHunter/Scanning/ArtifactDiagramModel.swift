@@ -6,6 +6,7 @@ import Observation
 final class ArtifactDiagramModel {
     private(set) var snapshot = ArtifactSunburstSnapshot(rows: [])
     private(set) var layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: []))
+    private(set) var palette = ArtifactSunburstPalette()
     private(set) var focusID = ""
     private(set) var children: [ArtifactSunburstNode] = []
     @ObservationIgnored private var lastRevision: UInt64?
@@ -38,7 +39,10 @@ final class ArtifactDiagramModel {
             worker.cancel()
         }
         guard !Task.isCancelled, scan.generation == currentGeneration else { return }
-        if sourceID != scan.id || reportID != scan.reportID { focusID = "" }
+        if sourceID != scan.id || reportID != scan.reportID {
+            focusID = ""
+            palette = ArtifactSunburstPalette()
+        }
         sourceID = scan.id
         reportID = scan.reportID
         lastRevision = revision
@@ -54,7 +58,9 @@ final class ArtifactDiagramModel {
     }
 
     private func updateLayout() {
-        layout = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID)
+        let updated = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID)
+        palette.include(updated)
+        layout = updated
         children = focus.children.compactMap { snapshot.nodes[$0] }
     }
 }

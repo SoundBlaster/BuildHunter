@@ -121,6 +121,39 @@ struct ArtifactDiagramModelTests {
         scan.stop()
     }
 
+    @Test("Navigation and streaming share one palette; replacing the report discards it")
+    func paletteLifecycle() async throws {
+        let scan = WindowScanModel(source: DiagramIdleSource())
+        let diagram = ArtifactDiagramModel()
+        scan.acceptDemoTarget(named: "First")
+        defer { scan.stop() }
+        let first = artifact("Apps/Alpha/.build")
+        scan.apply(.discovered(generation: scan.generation, artifact: first))
+        scan.apply(.completed(generation: scan.generation, artifactID: first.id, bytes: 100))
+        await diagram.refresh(from: scan)
+        let original = diagram.palette.colors
+        #expect(original.count == 3)
+        diagram.navigate(to: "Apps/Alpha")
+        let selected = try #require(diagram.layout.sectors.first)
+        #expect(diagram.palette.color(for: selected) == original[selected.nodeID!])
+
+        let later = artifact("Apps/Aardvark/target")
+        scan.apply(.discovered(generation: scan.generation, artifact: later))
+        scan.apply(.completed(generation: scan.generation, artifactID: later.id, bytes: 10_000))
+        await diagram.refresh(from: scan)
+        diagram.navigate(to: "")
+        for (path, color) in original { #expect(diagram.palette.colors[path] == color) }
+        #expect(diagram.palette.colors["Apps/Aardvark"] != nil)
+        scan.stop()
+        await diagram.refresh(from: scan)
+        for (path, color) in original { #expect(diagram.palette.colors[path] == color) }
+
+        scan.acceptDemoTarget(named: "Second")
+        await diagram.refresh(from: scan)
+        #expect(diagram.palette.colors.isEmpty)
+        #expect(diagram.focusID.isEmpty)
+    }
+
     @Test("Closing a diagram keeps its owner's scan running")
     func diagramDoesNotCancelScan() {
         let store = ScanWindowStore()

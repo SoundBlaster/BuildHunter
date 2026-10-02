@@ -24,7 +24,17 @@ consume the sector. Angular shares remain proportional to bytes, with no artific
 minimum size. Very small folders can still form narrow slices; choose them in the
 sidebar to zoom in and compare their children.
 
-Updates animate with stable path identities and deterministic branch colors.
+Every folder has its own color. When a folder first appears, its hue is chosen
+away from previously used hues, prioritizing contrast with its visible siblings,
+parent, and adjacent sectors. Colors are keyed by the full relative path and
+retained while the diagram window displays that report:
+drilling down, returning, changing sizes, and entering/leaving the top six never
+recolor a folder. Ring depth does not alter its brightness or opacity. **Other**
+is always neutral gray. Starting a new report or reopening the diagram prepares
+a new palette. Color helps orientation, while path labels remain authoritative;
+very dense reports have more folders than easily distinguishable hues.
+
+Updates animate with stable path identities.
 Reduce Motion disables those animations. Accessible sector descriptions include
 path, size, and partial status; the sidebar offers standard buttons for navigation.
 
@@ -45,7 +55,8 @@ path, size, and partial status; the sidebar offers standard buttons for navigati
 ## Verification
 
 Unit tests cover size conservation, ring boundaries, narrow-sector decoration at
-multiple chart sizes, stable identities, large totals,
+multiple chart sizes, stable identities, per-folder colors through navigation and
+streaming, sibling hue separation, palette reset, large totals,
 unknown/partial values, dense reports, navigation, stale scan events, and window
 ownership. UI tests exercise one companion window, changing mock states, and closing
 the diagram while scanning; they attach completed, scanning, and partial screenshots.

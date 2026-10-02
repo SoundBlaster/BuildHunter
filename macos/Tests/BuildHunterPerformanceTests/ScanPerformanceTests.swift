@@ -22,10 +22,13 @@ final class ScanPerformanceTests: XCTestCase {
             startMeasuring()
             let snapshot = ArtifactSunburstSnapshot(rows: rows)
             let layout = ArtifactSunburstLayout(snapshot: snapshot)
+            var palette = ArtifactSunburstPalette()
+            palette.include(layout)
             stopMeasuring()
             XCTAssertEqual(snapshot.root.statistics.artifactCount, rows.count)
             XCTAssertEqual(snapshot.root.bytes, Double(rows.count * 4_096))
             XCTAssertLessThanOrEqual(layout.sectors.count, 399)
+            XCTAssertLessThanOrEqual(palette.colors.count, layout.sectors.count)
         }
     }
 
