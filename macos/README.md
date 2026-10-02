@@ -10,6 +10,10 @@ Debug builds include a **Mock State** menu in the window toolbar. It displays sy
 
 Generate and open the Xcode project:
 
+Install Rust with rustup first. The Rust pre-build script uses Cargo from `PATH`,
+then checks `${CARGO_HOME:-$HOME/.cargo}/bin/cargo`. This also supports Xcode
+launched from Finder, which does not inherit your shell's Cargo path.
+
 ```sh
 cd macos
 xcodegen generate
