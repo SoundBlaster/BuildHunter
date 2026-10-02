@@ -7,17 +7,22 @@
       "blur-material" : null,
       "layers" : [
         {
-          "glass" : false,
-          "hidden" : false,
-          "image-name" : "BuildHunter-icon-layer.png",
-          "name" : "BuildHunter artwork",
+          "glass" : true,
+          "image-name" : "folder.png",
+          "name" : "folder",
           "position" : {
-            "scale" : 0.92,
+            "scale" : 1,
             "translation-in-points" : [
               0,
-              0
+              351.5
             ]
           }
+        },
+        {
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "BuildHunter.png",
+          "name" : "BuildHunter"
         }
       ],
       "name" : "Artwork",
