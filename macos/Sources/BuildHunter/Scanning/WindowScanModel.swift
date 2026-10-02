@@ -4,6 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class WindowScanModel {
+    let id = UUID()
     private(set) var targetName: String?
     private(set) var targetURL: URL?
     private(set) var rows: [ScanRow] = []
@@ -12,6 +13,8 @@ final class WindowScanModel {
     private(set) var phase: ScanPhase = .idle
     var isScanning: Bool { phase == .scanning }
     var isChoosingFolder = false
+    @ObservationIgnored private(set) var reportRevision: UInt64 = 0
+    @ObservationIgnored private(set) var reportID = UUID()
 
     private let source: any ScanEventSource
     private var scanTask: Task<Void, Never>?
@@ -93,10 +96,12 @@ final class WindowScanModel {
             rowIndices[artifact.id] = rows.count
             rows.append(ScanRow(id: artifact.id, relativePath: artifact.relativePath,
                                 language: artifact.language, kind: artifact.kind, size: .measuring))
+            reportRevision &+= 1
         case .completed(_, let artifactID, let bytes, let partial):
             guard let index = rowIndices[artifactID] else { return }
             guard rows[index].size == .measuring else { return }
             rows[index].size = partial ? .partial(bytes) : .measured(bytes)
+            reportRevision &+= 1
         case .warning(_, let message):
             if !warnings.contains(message) { warnings.append(message) }
         case .finished(_, let result):
@@ -121,9 +126,11 @@ final class WindowScanModel {
     }
 
     private func clearReport() {
+        reportID = UUID()
         rows = []
         rowIndices = [:]
         warnings = []
+        reportRevision &+= 1
     }
 
     private func beginScan() {
@@ -169,5 +176,6 @@ final class WindowScanModel {
             }
             return updated
         }
+        reportRevision &+= 1
     }
 }

@@ -13,6 +13,22 @@ final class ScanPerformanceTests: XCTestCase {
         measureRows(count: 10_000)
     }
 
+    func testPrepare10000ArtifactDiagramRows() async {
+        let rows = (0..<10_000).map { index in
+            ScanRow(id: UUID(), relativePath: "Project\(index)/.build", language: "Swift",
+                    kind: .buildOutput, size: .measured(4_096))
+        }
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: measurementOptions()) {
+            startMeasuring()
+            let snapshot = ArtifactSunburstSnapshot(rows: rows)
+            let layout = ArtifactSunburstLayout(snapshot: snapshot)
+            stopMeasuring()
+            XCTAssertEqual(snapshot.root.statistics.artifactCount, rows.count)
+            XCTAssertEqual(snapshot.root.bytes, Double(rows.count * 4_096))
+            XCTAssertLessThanOrEqual(layout.sectors.count, 399)
+        }
+    }
+
     func testClassify10000Candidates() async {
         let policy = ClassifyArtifactRoot()
         let candidates = (0..<10_000).map { index in

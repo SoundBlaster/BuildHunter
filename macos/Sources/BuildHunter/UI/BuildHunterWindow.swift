@@ -4,9 +4,12 @@ import UniformTypeIdentifiers
 
 struct BuildHunterWindow: View {
     @State private var model: WindowScanModel
+    @Environment(\.openWindow) private var openWindow
+    private let windowStore: ScanWindowStore?
 
-    init(model: WindowScanModel = WindowScanModel()) {
+    init(model: WindowScanModel = WindowScanModel(), windowStore: ScanWindowStore? = nil) {
         _model = State(initialValue: model)
+        self.windowStore = windowStore
     }
 
     var body: some View {
@@ -20,6 +23,15 @@ struct BuildHunterWindow: View {
         }
         .frame(minWidth: 760, minHeight: 460)
         .toolbar {
+            ToolbarItem(placement: .automatic) {
+                VStack {
+                    Button("Diagram") { showDiagram() }
+                        .disabled(windowStore == nil)
+                        .help("Show a live diagram of this scan")
+                        .nestedAccessibilityIdentifier("openDiagram")
+                }
+                .a11yRoot("buildhunter.toolbar")
+            }
 #if DEBUG
             ToolbarItem(placement: .automatic) {
                 VStack {
@@ -47,12 +59,23 @@ struct BuildHunterWindow: View {
             model.accept(target: folder)
             return true
         }
+        .onAppear { windowStore?.register(model) }
         .onDisappear {
             model.stop()
+            windowStore?.scanWindowClosed(model.id)
         }
         .focusedSceneValue(\.buildHunterOpenFolder, OpenFolderRequest {
             model.isChoosingFolder = true
         })
+        .focusedSceneValue(\.buildHunterShowDiagram, ArtifactDiagramRequest {
+            showDiagram()
+        })
+    }
+
+    private func showDiagram() {
+        guard let windowStore else { return }
+        windowStore.prepareDiagram(for: model)
+        openWindow(id: "artifact-diagram", value: model.id)
     }
 
     private var readOnlyBanner: some View {
