@@ -65,6 +65,16 @@ class CLIIntegrationTests(unittest.TestCase):
         self.assertEqual(sum(not r["nested"] for r in report["artifacts"]), 1)
         self.assertEqual(next(r for r in report["artifacts"] if not r["nested"])["kind"], "environment")
 
+    def test_accepted_artifact_includes_nested_environment_contents(self):
+        self.write("app/.build/.venv/pyvenv.cfg")
+        self.write("app/.build/.venv/lib/module.pyc", b"bytecode" * 1024)
+        default_report = self.scan("--apparent")
+        opted_in_report = self.scan("--apparent", "--include-envs")
+
+        self.assertEqual(default_report["total_bytes"], opted_in_report["total_bytes"])
+        self.assertGreaterEqual(default_report["total_bytes"], len(b"bytecode" * 1024))
+        self.assertEqual(sum(not r["nested"] for r in default_report["artifacts"]), 1)
+
     def test_json_escaping_and_symlink_is_not_followed(self):
         # Quotes are illegal in Windows filenames; exercise Unicode everywhere.
         name = "project-é" if sys.platform == "win32" else 'project-"é\t'

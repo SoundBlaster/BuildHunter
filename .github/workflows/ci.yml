@@ -32,3 +32,5 @@ jobs:
       - run: cargo build --locked --release
       - name: CLI integration tests
         run: python scripts/test_cli.py target/release/build-hunter${{ matrix.suffix }}
+      - name: Performance report tests
+        run: python scripts/test_performance_report.py

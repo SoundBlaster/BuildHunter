@@ -15,6 +15,7 @@ final class WindowScanModel {
 
     private let source: any ScanEventSource
     private var scanTask: Task<Void, Never>?
+    @ObservationIgnored private var rowIndices: [UUID: Int] = [:]
 
     init(source: any ScanEventSource = RustScanEventSource()) {
         self.source = source
@@ -34,8 +35,7 @@ final class WindowScanModel {
         generation &+= 1
         targetName = name
         targetURL = url
-        rows = []
-        warnings = []
+        clearReport()
         beginScan()
     }
 
@@ -45,8 +45,8 @@ final class WindowScanModel {
         source.cancel(generation: generation)
         generation &+= 1
         targetName = mockState.targetName
-        rows = []
-        warnings = []
+        targetURL = nil
+        clearReport()
         phase = mockState.targetName == nil ? .idle : .scanning
 
         guard targetName != nil else { return }
@@ -71,8 +71,7 @@ final class WindowScanModel {
         source.cancel(generation: generation)
         scanTask?.cancel()
         generation &+= 1
-        rows = []
-        warnings = []
+        clearReport()
         beginScan()
     }
 
@@ -90,11 +89,12 @@ final class WindowScanModel {
         guard event.generation == generation, phase == .scanning else { return }
         switch event {
         case .discovered(_, let artifact):
-            guard !rows.contains(where: { $0.id == artifact.id }) else { return }
+            guard rowIndices[artifact.id] == nil else { return }
+            rowIndices[artifact.id] = rows.count
             rows.append(ScanRow(id: artifact.id, relativePath: artifact.relativePath,
                                 language: artifact.language, kind: artifact.kind, size: .measuring))
         case .completed(_, let artifactID, let bytes, let partial):
-            guard let index = rows.firstIndex(where: { $0.id == artifactID }) else { return }
+            guard let index = rowIndices[artifactID] else { return }
             guard rows[index].size == .measuring else { return }
             rows[index].size = partial ? .partial(bytes) : .measured(bytes)
         case .warning(_, let message):
@@ -102,8 +102,9 @@ final class WindowScanModel {
         case .finished(_, let result):
             switch result {
             case .completed:
-                let hasUnmeasuredRows = markMeasuringRowsPartial()
-                phase = warnings.isEmpty && !hasUnmeasuredRows ? .completed : .incomplete
+                markMeasuringRowsPartial()
+                let hasPartialRows = rows.contains { if case .partial = $0.size { true } else { false } }
+                phase = warnings.isEmpty && !hasPartialRows ? .completed : .incomplete
             case .stopped:
                 phase = .stopped
                 markMeasuringRowsPartial()
@@ -117,6 +118,12 @@ final class WindowScanModel {
 
     func waitForCurrentScan() async {
         await scanTask?.value
+    }
+
+    private func clearReport() {
+        rows = []
+        rowIndices = [:]
+        warnings = []
     }
 
     private func beginScan() {
@@ -154,17 +161,13 @@ final class WindowScanModel {
         }
     }
 
-    @discardableResult
-    private func markMeasuringRowsPartial() -> Bool {
-        var foundUnmeasuredRows = false
+    private func markMeasuringRowsPartial() {
         rows = rows.map { row in
             var updated = row
             if case .measuring = row.size {
                 updated.size = .partial(nil)
-                foundUnmeasuredRows = true
             }
             return updated
         }
-        return foundUnmeasuredRows
     }
 }

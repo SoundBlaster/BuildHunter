@@ -87,9 +87,14 @@ private final class RustScanJob: @unchecked Sendable {
     }
 }
 
+// Rust calls both callbacks serially on its scan thread. Policies are immutable;
+// completion/overflow flags are locked and AsyncStream.Continuation is Sendable.
 final class RustScanBridgeContext: @unchecked Sendable {
     let generation: UInt64
     let continuation: AsyncStream<ScanEvent>.Continuation
+    let candidatePolicy = IsScannableArtifactCandidate()
+    let outerRootPolicy = IsOuterArtifactRoot()
+    let classificationPolicy = ClassifyArtifactRoot()
     private let lock = NSLock()
     private var overflowed = false
     private var didFinish = false
@@ -189,9 +194,11 @@ final class RustScanBridgeContext: @unchecked Sendable {
             yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
         } else {
             let result: ScanTerminalResult = switch status {
+            case 0: .completed
             case 1: .stopped
+            case 2: .failed("Some paths could not be read; results are incomplete.")
             case 3: .failed("The scanner could not complete the scan.")
-            default: .completed
+            default: .failed("The Rust scanner returned an unknown status \(status).")
             }
             if yield(.finished(generation: generation, result: result)) {
                 yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
@@ -208,7 +215,8 @@ private func buildHunterPolicyCallback(
     _ rawFacts: UnsafePointer<BHCandidateFacts>?,
     _ rawDecision: UnsafeMutablePointer<BHCandidateDecision>?
 ) -> Int32 {
-    guard let rawFacts, let rawDecision else { return 0 }
+    guard let rawContext, let rawFacts, let rawDecision else { return 0 }
+    let bridge = Unmanaged<RustScanBridgeContext>.fromOpaque(rawContext).takeUnretainedValue()
     let facts = rawFacts.pointee
     guard let name = decodeUTF8(facts.node_name, length: facts.node_name_len) else {
         rawDecision.pointee.action = 0
@@ -224,13 +232,13 @@ private func buildHunterPolicyCallback(
         ownMarkerFiles: ownMarkers,
         parentMarkerFiles: parentMarkers
     )
-    guard IsScannableArtifactCandidate().isSatisfiedBy(context) else {
+    guard bridge.candidatePolicy.isSatisfiedBy(context) else {
         rawDecision.pointee.action = 1
         return 1
     }
-    guard IsOuterArtifactRoot().isSatisfiedBy(
+    guard bridge.outerRootPolicy.isSatisfiedBy(
         ArtifactRootContext(hasArtifactAncestor: facts.has_artifact_ancestor != 0)
-    ), let classification = ClassifyArtifactRoot().decide(context) else {
+    ), let classification = bridge.classificationPolicy.decide(context) else {
         rawDecision.pointee.action = 0
         return 1
     }

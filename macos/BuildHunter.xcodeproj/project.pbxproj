@@ -19,6 +19,8 @@
 		702998E2BB6BC35A666F5102 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3C1F39E00DA07B5F110EE12B /* SpecificationCore */; };
 		80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */; };
 		8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */; };
+		91BAFEA4EB4D1D5C975E9049 /* ScanPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */; };
+		A32DE630D03F08E8D52D340E /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2B32CBCE484755F2BBB2D6B2 /* SpecificationCore */; };
 		A44DAE4AC0757409C7DD5BE9 /* BuildHunterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B019A5055F3DE5234638768B /* BuildHunterApp.swift */; };
 		BAF5BA137472C47B6D3DDF79 /* BuildHunterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */; };
 		DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */; };
@@ -28,6 +30,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		255F994C28DF898685A48508 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9C1A674361135609AB0AAEC7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 10FAEFF9C9AA195A9F0B6C04;
+			remoteInfo = BuildHunter;
+		};
 		9A49563CCBBB2D74D7A73D7A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9C1A674361135609AB0AAEC7 /* Project object */;
@@ -62,12 +71,22 @@
 		BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsOuterArtifactRoot.swift; sourceTree = "<group>"; };
 		C404E32AE24EC6E7D5F08472 /* BuildHunter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BuildHunter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B58340DBC91862752743D7 /* ScanEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEvent.swift; sourceTree = "<group>"; };
+		D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RustScanEventSource.swift; sourceTree = "<group>"; };
 		DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = BuildHunter.icon; sourceTree = "<group>"; };
+		D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPerformanceTests.swift; sourceTree = "<group>"; };
 		DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4D1EC40ADCFBD8534D41ACE3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A32DE630D03F08E8D52D340E /* SpecificationCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A53066ECFA0AC5AA409DB695 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -88,6 +107,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0A4DCCD119D00EAF87FAF61E /* BuildHunterPerformanceTests */ = {
+			isa = PBXGroup;
+			children = (
+				D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */,
+			);
+			path = BuildHunterPerformanceTests;
+			sourceTree = "<group>";
+		};
 		1F031D997CB6C458582FF611 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
@@ -114,6 +141,7 @@
 		30A3C791FBB9DD9874D036DA /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				0A4DCCD119D00EAF87FAF61E /* BuildHunterPerformanceTests */,
 				A832EA6096FC9CCAEF056894 /* BuildHunterTests */,
 				5E2DE45DAA1996B25672A58B /* BuildHunterUITests */,
 			);
@@ -179,6 +207,7 @@
 			isa = PBXGroup;
 			children = (
 				C404E32AE24EC6E7D5F08472 /* BuildHunter.app */,
+				D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */,
 				91718F10DAF439B1C6C551A1 /* BuildHunterTests.xctest */,
 				2AF4D0C88B566535118385F4 /* BuildHunterUITests.xctest */,
 			);
@@ -265,6 +294,26 @@
 			productReference = 2AF4D0C88B566535118385F4 /* BuildHunterUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		FE274B4CB09F2FFFC2BD218B /* BuildHunterPerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 39C949DC09DFB0E55B10A8B2 /* Build configuration list for PBXNativeTarget "BuildHunterPerformanceTests" */;
+			buildPhases = (
+				C32AE47D544577AB2FB52DE2 /* Sources */,
+				4D1EC40ADCFBD8534D41ACE3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1B8167E39FEAEAECF55565E0 /* PBXTargetDependency */,
+			);
+			name = BuildHunterPerformanceTests;
+			packageProductDependencies = (
+				2B32CBCE484755F2BBB2D6B2 /* SpecificationCore */,
+			);
+			productName = BuildHunterPerformanceTests;
+			productReference = D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -299,6 +348,7 @@
 			targets = (
 				10FAEFF9C9AA195A9F0B6C04 /* BuildHunter */,
 				1AC73F0779A74ED95608E1E7 /* BuildHunterTests */,
+				FE274B4CB09F2FFFC2BD218B /* BuildHunterPerformanceTests */,
 				97498C516133ADCE5F6328DA /* BuildHunterUITests */,
 			);
 		};
@@ -349,6 +399,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C32AE47D544577AB2FB52DE2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				91BAFEA4EB4D1D5C975E9049 /* ScanPerformanceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D20D5EB0329CCEBC0D651B66 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -379,6 +437,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1B8167E39FEAEAECF55565E0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 10FAEFF9C9AA195A9F0B6C04 /* BuildHunter */;
+			targetProxy = 255F994C28DF898685A48508 /* PBXContainerItemProxy */;
+		};
 		5867103CE25C467885CEC584 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 10FAEFF9C9AA195A9F0B6C04 /* BuildHunter */;
@@ -392,6 +455,26 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		44B933B55C458C1B4D7B7EB6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.buildhunter.performance-tests";
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BuildHunter.app/Contents/MacOS/BuildHunter";
+			};
+			name = Release;
+		};
 		53D4325A68391EA054F6998C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -619,6 +702,26 @@
 			};
 			name = Release;
 		};
+		E2D07E6FA682A5CDBE45DC1E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.buildhunter.performance-tests";
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BuildHunter.app/Contents/MacOS/BuildHunter";
+			};
+			name = Debug;
+		};
 		E9F8EE98843CC66874DE873B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -653,6 +756,15 @@
 			buildConfigurations = (
 				8BEEDCF6E23FD1C11F587C60 /* Debug */,
 				9349BF6555C304BA9D7F8887 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		39C949DC09DFB0E55B10A8B2 /* Build configuration list for PBXNativeTarget "BuildHunterPerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E2D07E6FA682A5CDBE45DC1E /* Debug */,
+				44B933B55C458C1B4D7B7EB6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -706,6 +818,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2B32CBCE484755F2BBB2D6B2 /* SpecificationCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */;
+			productName = SpecificationCore;
+		};
 		350BA0250A13F735F168EA0F /* NestedA11yIDs */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */;

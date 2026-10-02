@@ -1,0 +1,134 @@
+import Foundation
+import XCTest
+@testable import BuildHunter
+
+/// Run separately in Release: fixture construction and validation are outside measurements.
+@MainActor
+final class ScanPerformanceTests: XCTestCase {
+    func testApply1000ArtifactRows() async {
+        measureRows(count: 1_000)
+    }
+
+    func testApply10000ArtifactRows() async {
+        measureRows(count: 10_000)
+    }
+
+    func testClassify10000Candidates() async {
+        let policy = ClassifyArtifactRoot()
+        let candidates = (0..<10_000).map { index in
+            ArtifactPolicyContext(
+                nodeName: index.isMultiple(of: 2) ? ".build" : "target",
+                isDirectory: true, isSymbolicLink: false,
+                ownMarkerFiles: [], parentMarkerFiles: ["Cargo.toml"]
+            )
+        }
+        let options = measurementOptions()
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: options) {
+            var classified = 0
+            startMeasuring()
+            for candidate in candidates {
+                if policy.decide(candidate) != nil { classified += 1 }
+            }
+            stopMeasuring()
+            XCTAssertEqual(classified, candidates.count)
+        }
+    }
+
+    /// A tenfold input increase must not approach quadratic growth. The fixed noise allowance
+    /// protects very short runs; this is a coarse complexity guard, not a frame-time promise.
+    func testEventProcessingScalesWithRowCount() async throws {
+        let smallEvents = events(count: 1_000)
+        let largeEvents = events(count: 10_000)
+        _ = elapsedApplying(smallEvents)
+        _ = elapsedApplying(largeEvents)
+        var small: [Double] = []
+        var large: [Double] = []
+        for iteration in 0..<5 {
+            if iteration.isMultiple(of: 2) {
+                small.append(elapsedApplying(smallEvents))
+                large.append(elapsedApplying(largeEvents))
+            } else {
+                large.append(elapsedApplying(largeEvents))
+                small.append(elapsedApplying(smallEvents))
+            }
+        }
+        let smallMedian = small.sorted()[small.count / 2]
+        let largeMedian = large.sorted()[large.count / 2]
+        let report: [String: Any] = [
+            "small_rows": 1_000, "large_rows": 10_000,
+            "small_seconds": small, "large_seconds": large,
+            "small_median_seconds": smallMedian, "large_median_seconds": largeMedian,
+            "maximum_growth": 20, "noise_allowance_seconds": 0.025
+        ]
+        let data = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys, .prettyPrinted])
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "event-scaling.json"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        XCTAssertLessThanOrEqual(
+            largeMedian, smallMedian * 20 + 0.025,
+            "10,000 rows must scale within 20x the median time for 1,000 rows plus 25 ms of noise."
+        )
+    }
+
+    private func measureRows(count: Int) {
+        let batch = events(count: count)
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: measurementOptions()) {
+            let model = makeModel()
+            startMeasuring()
+            for event in batch { model.apply(event) }
+            stopMeasuring()
+            validate(model, count: count)
+        }
+    }
+
+    private func elapsedApplying(_ batch: [ScanEvent]) -> Double {
+        let model = makeModel()
+        let start = ProcessInfo.processInfo.systemUptime
+        for event in batch { model.apply(event) }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+        validate(model, count: (batch.count - 1) / 2)
+        return elapsed
+    }
+
+    private func validate(_ model: WindowScanModel, count: Int) {
+        XCTAssertEqual(model.rows.count, count)
+        XCTAssertEqual(model.phase, .completed)
+        XCTAssertTrue(model.warnings.isEmpty)
+        XCTAssertTrue(model.rows.allSatisfy { $0.size == .measured(4_096) })
+    }
+
+    private func makeModel() -> WindowScanModel {
+        let model = WindowScanModel(source: PerformanceIdleSource())
+        model.acceptDemoTarget(named: "Performance fixture")
+        return model
+    }
+
+    private func events(count: Int) -> [ScanEvent] {
+        (0..<count).flatMap { index -> [ScanEvent] in
+            let artifact = ScanArtifact(
+                id: UUID(), relativePath: "Project\(index)/.build",
+                language: "Swift", kind: .buildOutput
+            )
+            return [
+                .discovered(generation: 1, artifact: artifact),
+                .completed(generation: 1, artifactID: artifact.id, bytes: 4_096)
+            ]
+        } + [.finished(generation: 1, result: .completed)]
+    }
+
+    private func measurementOptions() -> XCTMeasureOptions {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 5
+        options.invocationOptions = [.manuallyStart, .manuallyStop]
+        return options
+    }
+}
+
+private struct PerformanceIdleSource: ScanEventSource {
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
+        AsyncStream { $0.finish() }
+    }
+
+    func cancel(generation: UInt64) {}
+}

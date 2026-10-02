@@ -33,6 +33,31 @@ jobs:
             macos/.build/ci/ui-screenshots
           if-no-files-found: warn
           retention-days: 7
+  performance:
+    name: macOS performance tests
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Release clock, memory, and scaling tests
+        run: bash scripts/ci/macos.sh performance
+      - name: Publish performance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-performance-evidence
+          path: |
+            macos/.build/ci/performance.xcresult
+            macos/.build/ci/performance-summary.json
+            macos/.build/ci/performance-metrics.json
+            macos/.build/ci/performance-metrics
+            macos/.build/ci/performance-attachments
+            macos/.build/ci/performance.log
+          if-no-files-found: warn
+          retention-days: 7
   release:
     name: macOS Release build
     runs-on: macos-26

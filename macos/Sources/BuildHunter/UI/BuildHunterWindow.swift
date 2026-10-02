@@ -11,7 +11,7 @@ struct BuildHunterWindow: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            simulationBanner
+            readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
             } else {
@@ -55,8 +55,8 @@ struct BuildHunterWindow: View {
         })
     }
 
-    private var simulationBanner: some View {
-            Label {
+    private var readOnlyBanner: some View {
+        Label {
             Text("Read-only scan · artifacts are measured as the folder is traversed.")
                 .font(.callout.weight(.medium))
         } icon: {
@@ -72,7 +72,7 @@ struct BuildHunterWindow: View {
         ContentUnavailableView {
             Label("Choose a project folder", systemImage: "folder.badge.questionmark")
         } description: {
-                Text("Drop a folder here or use File → Open Folder… to scan local build artifacts.")
+            Text("Drop a folder here or use File → Open Folder… to scan local build artifacts.")
         } actions: {
             Button("Open Folder…") { model.isChoosingFolder = true }
                 .keyboardShortcut("o", modifiers: .command)
@@ -121,7 +121,7 @@ struct BuildHunterWindow: View {
             }
             .overlay {
                 if model.rows.isEmpty && model.isScanning {
-                ProgressView("Searching for build artifacts…")
+                    ProgressView("Searching for build artifacts…")
                         .padding()
                         .background(.regularMaterial, in: .rect(cornerRadius: 10))
                 }
@@ -136,7 +136,7 @@ struct BuildHunterWindow: View {
 
     private func sizeDescription(_ state: SizeState) -> String {
         switch state {
-        case .measuring: "Simulating…"
+        case .measuring: "Measuring…"
         case .measured(let bytes): binarySize(bytes)
         case .partial(let bytes): bytes.map { "\(binarySize($0)) partial" } ?? "Partial · size unknown"
         }
