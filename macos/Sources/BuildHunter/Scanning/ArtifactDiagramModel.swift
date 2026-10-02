@@ -9,11 +9,35 @@ final class ArtifactDiagramModel {
     private(set) var palette = ArtifactSunburstPalette()
     private(set) var focusID = ""
     private(set) var children: [ArtifactSunburstNode] = []
+    private(set) var previewID: String?
+    private(set) var targetURL: URL?
+    private(set) var targetName: String?
+    private(set) var filteredChildren: [ArtifactSunburstNode] = []
+    var query = "" { didSet { updateChildren() } }
+    @ObservationIgnored private var retainedOrder: [String: [String]] = [:]
+    @ObservationIgnored private var colorAnchors: [String: String] = [:]
     @ObservationIgnored private var lastRevision: UInt64?
     @ObservationIgnored private var sourceID: UUID?
     @ObservationIgnored private var reportID: UUID?
 
+    init(snapshot: ArtifactSunburstSnapshot = ArtifactSunburstSnapshot(rows: []),
+         targetURL: URL? = nil, targetName: String? = nil) {
+        self.snapshot = snapshot
+        self.targetURL = targetURL
+        self.targetName = targetName
+        updateLayout()
+    }
+
     var focus: ArtifactSunburstNode { snapshot.nodes[focusID] ?? snapshot.root }
+
+    var displayedFolder: ArtifactSunburstNode { previewID.flatMap { snapshot.nodes[$0] } ?? focus }
+    var canNavigateUp: Bool { !focusID.isEmpty }
+    var displayedURL: URL? {
+        targetURL.map { displayedFolder.id.isEmpty ? $0 : $0.appendingPathComponent(displayedFolder.id) }
+    }
+    var displayedPath: String {
+        displayedURL?.path ?? (displayedFolder.id.isEmpty ? targetName ?? "All artifacts" : displayedFolder.id)
+    }
 
     /// Coalesces streaming events while this window exists. Work occurs off the main actor
     /// and never runs from the table's per-event reducer.
@@ -42,25 +66,79 @@ final class ArtifactDiagramModel {
         if sourceID != scan.id || reportID != scan.reportID {
             focusID = ""
             palette = ArtifactSunburstPalette()
+            retainedOrder = [:]
+            colorAnchors = [:]
+            previewID = nil
+            query = ""
         }
+        targetURL = scan.targetURL
+        targetName = scan.targetName
         sourceID = scan.id
         reportID = scan.reportID
         lastRevision = revision
         snapshot = prepared
         if prepared.nodes[focusID] == nil { focusID = "" }
+        if let previewID, prepared.nodes[previewID] == nil { self.previewID = nil }
         updateLayout()
     }
 
     func navigate(to path: String) {
         guard snapshot.nodes[path] != nil else { return }
         focusID = path
+        previewID = nil
+        query = ""
         updateLayout()
     }
 
+    func navigateUp() {
+        guard canNavigateUp else { return }
+        navigate(to: focus.parentID ?? "")
+    }
+
+    func preview(_ path: String?) {
+        let valid = path.flatMap { snapshot.nodes[$0] == nil ? nil : $0 }
+        guard previewID != valid else { return }
+        previewID = valid
+        updateChildren()
+    }
+
+    private func inheritLargestChildColor() {
+        guard !focusID.isEmpty else { return }
+        if colorAnchors[focusID] == nil {
+            guard let largest = focus.children.compactMap({ snapshot.nodes[$0] })
+                .filter({ $0.bytes > 0 })
+                .sorted(by: { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }).first else { return }
+            colorAnchors[focusID] = largest.id
+            // A folder hidden inside Other can become the size leader. Reveal it
+            // on deliberate navigation, never by evicting siblings during a scan.
+            if let previous = retainedOrder[focusID], !previous.contains(largest.id) {
+                retainedOrder[focusID] = [largest.id] + previous.prefix(5)
+            }
+        }
+        var parent = focusID
+        while let child = colorAnchors[parent] {
+            palette.inheritColor(from: parent, to: child)
+            parent = child
+        }
+    }
+
     private func updateLayout() {
-        let updated = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID)
+        inheritLargestChildColor()
+        let updated = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID, retainedOrder: retainedOrder)
+        for sector in updated.sectors {
+            guard let path = sector.nodeID, path != focusID else { continue }
+            if !(retainedOrder[sector.parentID] ?? []).contains(path) {
+                retainedOrder[sector.parentID, default: []].append(path)
+            }
+        }
         palette.include(updated)
         layout = updated
-        children = focus.children.compactMap { snapshot.nodes[$0] }
+        updateChildren()
+    }
+
+    private func updateChildren() {
+        children = displayedFolder.children.compactMap { snapshot.nodes[$0] }
+        filteredChildren = query.isEmpty || previewID != nil ? children
+            : children.filter { $0.name.localizedStandardContains(query) }
     }
 }

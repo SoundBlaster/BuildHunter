@@ -179,3 +179,37 @@ final class WindowScanModel {
         reportRevision &+= 1
     }
 }
+
+/// Coalesces sorting outside the event reducer and outside SwiftUI body evaluation.
+@MainActor
+@Observable
+final class ScanTableModel {
+    private(set) var rows: [ScanRow] = []
+    var sortOrder: [ScanRowComparator] = [.init(column: .path)]
+    @ObservationIgnored private var lastRevision: UInt64?
+    @ObservationIgnored private var sourceID: UUID?
+    @ObservationIgnored private var appliedOrder: [ScanRowComparator] = []
+
+    func follow(_ scan: WindowScanModel) async {
+        while !Task.isCancelled {
+            await refresh(from: scan)
+            do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
+        }
+    }
+
+    func refresh(from scan: WindowScanModel) async {
+        guard !Task.isCancelled else { return }
+        let revision = scan.reportRevision
+        let order = sortOrder
+        guard sourceID != scan.id || lastRevision != revision || appliedOrder != order else { return }
+        let generation = scan.generation
+        let input = scan.rows
+        let worker = Task.detached(priority: .userInitiated) { ScanRowComparator.sorted(input, by: order) }
+        let sorted = await withTaskCancellationHandler { await worker.value } onCancel: { worker.cancel() }
+        guard !Task.isCancelled, generation == scan.generation, order == sortOrder else { return }
+        rows = sorted
+        lastRevision = revision
+        sourceID = scan.id
+        appliedOrder = order
+    }
+}

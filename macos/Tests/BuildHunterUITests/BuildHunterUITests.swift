@@ -109,6 +109,100 @@ final class BuildHunterUITests: XCTestCase {
                       "Closing the companion diagram must not stop its scan")
     }
 
+    func testDiagramHoverPreviewAndCenterNavigation() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("results", in: scanWindow, app: app)
+        scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
+        let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
+        XCTAssertTrue(diagram.waitForExistence(timeout: 10))
+        let focus = diagram.staticTexts["buildhunter.diagram.focus"]
+        expectValue("Demo Workspace", of: focus)
+        let chart = diagram.descendants(matching: .any).matching(identifier: "buildhunter.diagram.chart").firstMatch
+        XCTAssertTrue(chart.waitForExistence(timeout: 5))
+        // The completed fixture's Packages sector spans this point in the inner ring.
+        chart.coordinate(withNormalizedOffset: CGVector(dx: 0.66, dy: 0.5)).hover()
+        expectValue("Packages", of: focus)
+        XCTAssertTrue(diagram.buttons["buildhunter.diagram.folders.folder.Packages/Core"].exists)
+        attachScreenshot(named: "diagram-hover-preview", from: app)
+        diagram.staticTexts["buildhunter.diagram.target"].hover()
+        expectValue("Demo Workspace", of: focus)
+        let packages = diagram.buttons["buildhunter.diagram.folders.folder.Packages"]
+        XCTAssertTrue(packages.waitForExistence(timeout: 5))
+        packages.hover()
+        attachScreenshot(named: "diagram-folder-hover", from: app)
+        packages.click()
+        expectValue("Packages", of: focus)
+        let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
+        XCTAssertTrue(center.waitForExistence(timeout: 5))
+        XCTAssertTrue(center.isEnabled)
+        center.click()
+        expectValue("Demo Workspace", of: focus)
+        XCTAssertFalse(center.isEnabled)
+        // Synthetic reports deliberately have no filesystem URL to copy.
+        XCTAssertFalse(diagram.buttons["buildhunter.diagram.copyPath"].isEnabled)
+    }
+
+    func testTableHeadersSortRowsInBothDirections() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let window = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("results", in: window, app: app)
+        let table = window.tables.firstMatch
+        XCTAssertTrue(table.waitForExistence(timeout: 5))
+        let firstPath = table.tableRows.element(boundBy: 0).staticTexts.element(boundBy: 0)
+        expectValue("Packages/Core/.build", of: firstPath)
+        let pathHeader = table.buttons["Path"]
+        XCTAssertTrue(pathHeader.waitForExistence(timeout: 5))
+        pathHeader.click()
+        expectValue("Tools/Indexer/target", of: firstPath)
+        pathHeader.click()
+        expectValue("Packages/Core/.build", of: firstPath)
+        table.buttons["Size"].click()
+        expectValue("Services/API/.pytest_cache", of: firstPath)
+        table.buttons["Size"].click()
+        expectValue("Packages/Core/.build", of: firstPath)
+        table.buttons["Language"].click()
+        expectValue("Services/API/.pytest_cache", of: firstPath)
+        attachScreenshot(named: "report-sorted-columns-and-footer", from: app)
+    }
+
+    func testFullFolderPathCanBeCopiedAfterOpeningARealTarget() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BuildHunter UI \(UUID().uuidString)", isDirectory: true)
+            .resolvingSymlinksInPath()
+        let cache = root.appendingPathComponent("Package/.build", isDirectory: true)
+        try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: true)
+        try Data(repeating: 65, count: 4_096).write(to: cache.appendingPathComponent("fixture.o"))
+        defer { try? FileManager.default.removeItem(at: root) }
+        let app = launchWindow()
+        defer { app.terminate() }
+        app.buttons["buildhunter.empty.openFolder"].click()
+        let open = app.descendants(matching: .any).matching(identifier: "OpenButton").firstMatch
+        XCTAssertTrue(open.waitForExistence(timeout: 5))
+        app.typeKey("g", modifierFlags: [.command, .shift])
+        app.typeText(root.path)
+        app.typeKey(.return, modifierFlags: [])
+        open.click()
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        expectValue("Scan complete", of: scanWindow.staticTexts["buildhunter.report.status"])
+        scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
+        let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
+        XCTAssertTrue(diagram.waitForExistence(timeout: 10))
+        let focus = diagram.staticTexts["buildhunter.diagram.focus"]
+        expectValue(root.path, of: focus)
+        diagram.buttons["buildhunter.diagram.folders.folder.Package"].click()
+        let expected = root.appendingPathComponent("Package").path
+        expectValue(expected, of: focus)
+        diagram.buttons["buildhunter.diagram.copyPath"].click()
+        let filter = diagram.textFields["buildhunter.diagram.filter"]
+        filter.click()
+        app.typeKey("v", modifierFlags: .command)
+        XCTAssertEqual(filter.value as? String, expected)
+        attachScreenshot(named: "diagram-full-path-copy", from: app)
+    }
+
     private func selectMockState(_ state: String, in window: XCUIElement, app: XCUIApplication) {
         activateWindow(titled: "BuildHunter", in: app)
         let menu = window.descendants(matching: .any)

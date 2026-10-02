@@ -11,12 +11,25 @@ as lower bounds. Source files and unreported folders do not contribute. Measurin
 unknown, and zero-byte artifacts remain in the counts and folder list without
 invented sector area. The footer explains these limits.
 
-Select a sector or a folder in the sidebar to explore it. **Up** and **All artifacts**
-return to ancestors. The sidebar supports filtering and shows all immediate children.
-To keep dense reports usable, the chart displays at most three levels and seven
-sectors per parent: six largest children plus **Other** when needed. Other preserves
-the remaining size; select it to show its parent's complete, filterable folder list.
-The diagram stops at the artifact roots, just like the table.
+Select a sector or a folder in the sidebar to explore it. **Up**, the chart center,
+and **All artifacts** return to ancestors. The center does nothing at the target root.
+Hovering a sector shows its folder name beside the cursor and temporarily previews
+that folder's children in the sidebar. Leaving the chart restores the committed
+folder and its filter; hovering never navigates or changes colors. Sidebar rows have
+an explicit hover highlight. The heading shows the absolute filesystem path with a
+copy button immediately after it; synthetic mock reports have no path to copy.
+
+The chart displays at most three levels. On first display, a dense sibling group
+uses six largest children plus **Other**. Already visible children retain their
+slots and order during streaming; newly measured folders append into free slots.
+If all seven children were already visible before an eighth arrived, retain all
+seven plus Other (at most eight sectors per parent). Later large arrivals stay in
+Other instead of ejecting a visible folder. On deliberate navigation, the selected
+folder's largest child is made visible if it was previously grouped. Other preserves
+all remaining bytes; select it to see the complete, filterable folder list.
+Sizes and angle widths continue updating, so boundaries can move, but sibling order
+and membership do not reshuffle with each measurement. The diagram stops at the
+artifact roots, just like the table.
 
 Ring thickness depends only on hierarchy depth. Gaps and corner radii shrink for
 narrow sectors according to their width at the inner edge, so decoration does not
@@ -28,8 +41,13 @@ Every folder has its own color. When a folder first appears, its hue is chosen
 away from previously used hues, prioritizing contrast with its visible siblings,
 parent, and adjacent sectors. Colors are keyed by the full relative path and
 retained while the diagram window displays that report:
-drilling down, returning, changing sizes, and entering/leaving the top six never
-recolor a folder. Ring depth does not alter its brightness or opacity. **Other**
+changing sizes and late discoveries never recolor a folder. The intentional
+exception is navigation: when first entering a folder, its largest measured child
+inherits the selected folder's color. This anchor is remembered for the report,
+including previously explored descendant anchors; a new size leader does not steal
+it during scanning. Ties use path order. If no child has a known positive size,
+anchoring waits for the first positive measurement. Other children retain distinct
+colors. Ring depth does not alter brightness or opacity. **Other**
 is always neutral gray. Starting a new report or reopening the diagram prepares
 a new palette. Color helps orientation, while path labels remain authoritative;
 very dense reports have more folders than easily distinguishable hues.
@@ -48,6 +66,11 @@ path, size, and partial status; the sidebar offers standard buttons for navigati
 - A revision counter avoids rebuilding an unchanged report. A separate report
   identity resets navigation after target replacement/rescan, while Stop retains
   the selected folder. Generation checks reject an obsolete in-flight snapshot.
+- `ScanTableModel` coalesces a separate, sorted table projection outside the main
+  actor. All four column headers support ascending/descending order; Size compares
+  numeric byte counts and keeps unknown sizes last in either direction. Path and
+  identity break ties, and the scanner's row indices remain untouched. This uses
+  SwiftUI's [native table sorting](https://developer.apple.com/documentation/swiftui/table).
 - Closing the diagram cancels its update task and leaves scanning active. Closing
   the scan window stops its scan; an open diagram retains the final partial report.
   Closing both releases the session. Reports and window targets are not restored.
@@ -58,9 +81,12 @@ Unit tests cover size conservation, ring boundaries, narrow-sector decoration at
 multiple chart sizes, stable identities, per-folder colors through navigation and
 streaming, sibling hue separation, palette reset, large totals,
 unknown/partial values, dense reports, navigation, stale scan events, and window
-ownership. UI tests exercise one companion window, changing mock states, and closing
-the diagram while scanning; they attach completed, scanning, and partial screenshots.
-A Release performance test measures snapshot/layout preparation for 10,000 rows.
+ownership, inherited color anchors, stable streaming membership, hover restoration,
+absolute paths, and sorting alongside late measurements. UI tests exercise the
+companion window lifecycle, hover preview, center navigation, column-header sorting,
+and copying a real selected folder's full path. They attach 14 screenshots.
+A Release performance test measures snapshot/layout/palette preparation and table
+sorting for 10,000 rows.
 These checks do not establish animation frame rate or signed sandbox runtime behavior.
 
 The explicit angle ranges and nested-radius construction follow the technique

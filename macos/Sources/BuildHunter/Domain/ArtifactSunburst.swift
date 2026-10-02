@@ -120,21 +120,28 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
 
     let sectors: [Sector]
 
-    init(snapshot: ArtifactSunburstSnapshot, focusID: String = "") {
+    init(snapshot: ArtifactSunburstSnapshot, focusID: String = "", retainedOrder: [String: [String]] = [:]) {
         let focus = snapshot.nodes[focusID] ?? snapshot.root
         var sectors: [Sector] = []
         func visit(_ parent: ArtifactSunburstNode, depth: Int, start: Double, end: Double) {
             guard depth < 3, parent.bytes > 0 else { return }
             let positive = parent.children.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
-            // At most six named children plus Other per ring; the sidebar retains every child.
+            // Keep existing slots in discovery order. A late, larger measurement must
+            // not eject a visible folder or move it across its siblings.
+            let previousIDs = retainedOrder[parent.id] ?? []
+            let previousSet = Set(previousIDs)
+            let existing = previousIDs.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
+            let newNodes = positive.filter { !previousSet.contains($0.id) }
             let visible: [ArtifactSunburstNode]
             let remaining: [ArtifactSunburstNode]
             if positive.count > 7 {
-                let ranked = positive.sorted { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }
-                visible = Array(ranked.prefix(6)).sorted { $0.id < $1.id }
-                remaining = Array(ranked.dropFirst(6))
+                let ranked = newNodes.sorted { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }
+                let added = Array(ranked.prefix(max(0, 6 - existing.count))).sorted { $0.id < $1.id }
+                visible = existing + added
+                let visibleIDs = Set(visible.map(\.id))
+                remaining = positive.filter { !visibleIDs.contains($0.id) }
             } else {
-                visible = positive
+                visible = existing + newNodes
                 remaining = []
             }
             let total = positive.reduce(0) { $0 + $1.bytes }
@@ -192,6 +199,17 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
 
     func color(for sector: ArtifactSunburstLayout.Sector) -> Swatch {
         sector.nodeID.flatMap { colors[$0] } ?? .other
+    }
+
+    /// The one intentional color transfer: a selected folder's largest child
+    /// carries its color into the next level. Other paths keep their assignments.
+    mutating func inheritColor(from parent: String, to child: String) {
+        if let color = colors[parent], colors[child] == color { return }
+        if colors[parent] == nil {
+            colors[parent] = Swatch(hue: contrastingHue(preferred: Self.preferredHue(for: parent), nearby: []))
+        }
+        colors[child] = colors[parent]
+        sortedHues = Array(Set(colors.values.map(\.hue))).sorted()
     }
 
     mutating func include(_ layout: ArtifactSunburstLayout) {

@@ -132,37 +132,12 @@ struct BuildHunterWindow: View {
                 .foregroundStyle(.orange)
                 .nestedAccessibilityIdentifier("warnings")
             }
-            Table(model.rows) {
-                TableColumn("Path", value: \.relativePath)
-                    .width(min: 240, ideal: 360)
-                TableColumn("Size") { row in Text(sizeDescription(row.size)) }
-                    .width(min: 100, ideal: 125)
-                TableColumn("Language", value: \.language)
-                    .width(min: 90, ideal: 120)
-                TableColumn("Kind") { row in Text(row.kind.rawValue) }
-                    .width(min: 110, ideal: 150)
-            }
-            .overlay {
-                if model.rows.isEmpty && model.isScanning {
-                    ProgressView("Searching for build artifacts…")
-                        .padding()
-                        .background(.regularMaterial, in: .rect(cornerRadius: 10))
-                }
-            }
-            Text("BuildHunter only reads files and folders. It never deletes artifacts.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            ArtifactReportTable(scan: model)
+            ScanReportFooter()
+
         }
         .padding(18)
         .a11yRoot("buildhunter.report")
-    }
-
-    private func sizeDescription(_ state: SizeState) -> String {
-        switch state {
-        case .measuring: "Measuring…"
-        case .measured(let bytes): binarySize(bytes)
-        case .partial(let bytes): bytes.map { "\(binarySize($0)) partial" } ?? "Partial · size unknown"
-        }
     }
 
     private var statusDescription: String {
@@ -175,12 +150,68 @@ struct BuildHunterWindow: View {
         }
     }
 
-    private func binarySize(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .binary
-        return formatter.string(fromByteCount: bytes)
+}
+
+private struct ArtifactReportTable: View {
+    let scan: WindowScanModel
+    @State private var model = ScanTableModel()
+
+    var body: some View {
+        Table(model.rows, sortOrder: $model.sortOrder) {
+            TableColumn("Path", sortUsing: ScanRowComparator(column: .path)) { row in
+                Text(row.relativePath)
+            }
+            .width(min: 240, ideal: 360)
+            TableColumn("Size", sortUsing: ScanRowComparator(column: .size)) { row in
+                Text(sizeDescription(row.size)).monospacedDigit()
+            }
+            .width(min: 100, ideal: 125)
+            TableColumn("Language", sortUsing: ScanRowComparator(column: .language)) { row in
+                Text(row.language)
+            }
+            .width(min: 90, ideal: 120)
+            TableColumn("Kind", sortUsing: ScanRowComparator(column: .kind)) { row in
+                Text(row.kind.rawValue)
+            }
+            .width(min: 110, ideal: 150)
+        }
+        .nestedAccessibilityIdentifier("table")
+        .overlay {
+            if scan.rows.isEmpty && scan.isScanning {
+                ProgressView("Searching for build artifacts…")
+                    .padding()
+                    .background(.regularMaterial, in: .rect(cornerRadius: 10))
+            }
+        }
+        .task { await model.follow(scan) }
     }
 
+    private func sizeDescription(_ state: SizeState) -> String {
+        switch state {
+        case .measuring: "Measuring…"
+        case .measured(let bytes): ByteCountFormatter.string(fromByteCount: bytes, countStyle: .binary)
+        case .partial(let bytes): bytes.map {
+            "\(ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary)) partial"
+        } ?? "Partial · size unknown"
+        }
+    }
+}
+
+private struct ScanReportFooter: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider()
+            HStack(alignment: .firstTextBaseline) {
+                Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .nestedAccessibilityIdentifier("readOnlyStatus")
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
+            .padding(.top, 6)
+        }
+    }
 }
 
 #Preview("Empty window") {

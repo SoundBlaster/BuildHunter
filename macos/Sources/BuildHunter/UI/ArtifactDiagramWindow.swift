@@ -1,10 +1,16 @@
+import AppKit
 import SwiftUI
 import Charts
 import NestedA11yIDs
 
 struct ArtifactDiagramWindow: View {
     let scan: WindowScanModel
-    @State private var diagram = ArtifactDiagramModel()
+    @State private var diagram: ArtifactDiagramModel
+
+    init(scan: WindowScanModel, diagram: ArtifactDiagramModel = ArtifactDiagramModel()) {
+        self.scan = scan
+        _diagram = State(initialValue: diagram)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -13,7 +19,11 @@ struct ArtifactDiagramWindow: View {
             Divider()
             HSplitView {
                 ArtifactSunburstChart(layout: diagram.layout, palette: diagram.palette, bytes: diagram.focus.bytes,
-                                      isScanning: scan.isScanning, statistics: diagram.focus.statistics) { sector in
+                                      isScanning: scan.isScanning, statistics: diagram.focus.statistics,
+                                      focusID: diagram.focusID, reportID: scan.reportID,
+                                      canNavigateUp: diagram.canNavigateUp,
+                                      goUp: { diagram.navigateUp() },
+                                      hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
                     diagram.navigate(to: sector.nodeID ?? sector.parentID)
                 }
                 .padding(24)
@@ -71,9 +81,15 @@ private struct ArtifactSunburstChart: View {
     let bytes: Double
     let isScanning: Bool
     let statistics: ArtifactSizeStatistics
+    var focusID = ""
+    var reportID: UUID?
+    var canNavigateUp = false
+    var goUp: () -> Void = {}
+    var hover: (ArtifactSunburstLayout.Sector?) -> Void = { _ in }
     let select: (ArtifactSunburstLayout.Sector) -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovered: ArtifactSunburstLayout.Sector.ID?
+    @State private var pointer = CGPoint.zero
 
     var body: some View {
         VStack(spacing: 12) {
@@ -103,37 +119,55 @@ private struct ArtifactSunburstChart: View {
                     .chartLegend(.hidden)
                     .chartOverlay { proxy in
                         GeometryReader { geometry in
-                            Rectangle().fill(.clear).contentShape(Rectangle())
-                                .onContinuousHover { phase in
-                                    switch phase {
-                                    case .active(let location):
-                                        hovered = hit(location, proxy: proxy, geometry: geometry)?.id
-                                    case .ended:
-                                        hovered = nil
-                                    }
-                                }
-                                .onTapGesture { location in
-                                    if let sector = hit(location, proxy: proxy, geometry: geometry) {
-                                        select(sector)
-                                    }
-                                }
-                        }
-                    }
-                    .chartBackground { proxy in
-                        GeometryReader { geometry in
                             if let anchor = proxy.plotFrame {
                                 let frame = geometry[anchor]
-                                VStack(spacing: 3) {
-                                    Text("Known size").font(.caption2).foregroundStyle(.secondary)
-                                    Text(diagramBytes(bytes))
-                                        .font(.headline)
-                                        .minimumScaleFactor(0.6)
-                                        .lineLimit(1)
-                                        .contentTransition(reduceMotion ? .identity : .numericText())
-                                        .nestedAccessibilityIdentifier("total")
+                                ZStack(alignment: .topLeading) {
+                                    Rectangle().fill(.clear).contentShape(Rectangle())
+                                        .onContinuousHover { phase in
+                                            switch phase {
+                                            case .active(let location):
+                                                pointer = location
+                                                setHover(hit(location, proxy: proxy, geometry: geometry))
+                                            case .ended:
+                                                setHover(nil)
+                                            }
+                                        }
+                                        .onTapGesture { location in
+                                            if let sector = hit(location, proxy: proxy, geometry: geometry) {
+                                                setHover(nil)
+                                                select(sector)
+                                            }
+                                        }
+                                    Button(action: goUp) {
+                                        VStack(spacing: 3) {
+                                            Text(canNavigateUp ? "Up · Known size" : "Known size")
+                                                .font(.caption2).foregroundStyle(.secondary)
+                                            Text(diagramBytes(bytes))
+                                                .foregroundStyle(Color.primary)
+                                                .font(.headline)
+                                                .minimumScaleFactor(0.6)
+                                                .lineLimit(1)
+                                                .contentTransition(reduceMotion ? .identity : .numericText())
+                                                .nestedAccessibilityIdentifier("total")
+                                        }
+                                        .frame(width: min(frame.width, frame.height) * 0.21,
+                                               height: min(frame.width, frame.height) * 0.21)
+                                        .contentShape(Circle())
+                                    }
+                                    .buttonStyle(DiagramCenterButtonStyle())
+                                    .disabled(!canNavigateUp)
+                                    .accessibilityLabel(canNavigateUp ? "Go to parent folder" : "All artifacts")
+                                    .help(canNavigateUp ? "Go to parent folder" : "All artifacts")
+                                    .nestedAccessibilityIdentifier("centerUp")
+                                    .position(x: frame.midX, y: frame.midY)
+                                    .onHover { if $0 { setHover(nil) } }
+
+                                    if let sector = layout.sectors.first(where: { $0.id == hovered }) {
+                                        DiagramTooltip(name: sector.name, pointer: pointer, bounds: geometry.size)
+                                            .allowsHitTesting(false)
+                                            .accessibilityHidden(true)
+                                    }
                                 }
-                                .frame(width: min(frame.width, frame.height) * 0.21)
-                                .position(x: frame.midX, y: frame.midY)
                             }
                         }
                     }
@@ -151,6 +185,18 @@ private struct ArtifactSunburstChart: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+        .onChange(of: focusID) { setHover(nil) }
+        .onChange(of: reportID) { setHover(nil) }
+        .onChange(of: layout.sectors) {
+            if !layout.sectors.contains(where: { $0.id == hovered }) { setHover(nil) }
+        }
+        .onDisappear { setHover(nil) }
+    }
+
+    private func setHover(_ sector: ArtifactSunburstLayout.Sector?) {
+        guard hovered != sector?.id else { return }
+        hovered = sector?.id
+        hover(sector)
     }
 
     private var hoverDescription: String {
@@ -173,62 +219,91 @@ private struct ArtifactSunburstChart: View {
     }
 }
 
+private struct DiagramCenterButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        // Disabling Up at the root must not dim the report's central total.
+        configuration.label.opacity(configuration.isPressed ? 0.7 : 1)
+    }
+}
+
+private struct DiagramTooltip: View {
+    let name: String
+    let pointer: CGPoint
+    let bounds: CGSize
+    @State private var size = CGSize(width: 160, height: 36)
+
+    var body: some View {
+        Text(name)
+            .font(.callout.weight(.medium))
+            .lineLimit(2)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .frame(maxWidth: min(240, bounds.width))
+            .fixedSize(horizontal: false, vertical: true)
+            .background(.regularMaterial, in: .rect(cornerRadius: 8))
+            .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .position(x: min(max(size.width / 2, pointer.x + 14 + size.width / 2), bounds.width - size.width / 2),
+                      y: pointer.y + size.height + 20 < bounds.height
+                        ? pointer.y + 16 + size.height / 2 : max(size.height / 2, pointer.y - 12 - size.height / 2))
+    }
+}
+
 private struct ArtifactDiagramSidebar: View {
-    let model: ArtifactDiagramModel
-    @State private var query = ""
+    @Bindable var model: ArtifactDiagramModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Button("All artifacts") { model.navigate(to: "") }
-                    .disabled(model.focusID.isEmpty)
+                    .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("showAll")
-                Button("Up") { model.navigate(to: model.focus.parentID ?? "") }
-                    .disabled(model.focusID.isEmpty)
+                Button("Up") { model.navigateUp() }
+                    .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("up")
             }
-            Text(model.focusID.isEmpty ? "All artifacts" : model.focusID)
-                .font(.headline)
-                .textSelection(.enabled)
-                .nestedAccessibilityIdentifier("focus")
-            Text("\(diagramBytes(model.focus.bytes)) known · \(model.focus.statistics.artifactCount) artifacts")
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(model.displayedPath)
+                    .font(.headline)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .nestedAccessibilityIdentifier("focus")
+                Button("Copy path", systemImage: "doc.on.doc") {
+                    guard let path = model.displayedURL?.path else { return }
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(path, forType: .string)
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .disabled(model.displayedURL == nil)
+                .help("Copy full path")
+                .nestedAccessibilityIdentifier("copyPath")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Text("\(diagramBytes(model.displayedFolder.bytes)) known · \(model.displayedFolder.statistics.artifactCount) artifacts")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            if let artifact = model.focus.artifact {
+            if let artifact = model.displayedFolder.artifact {
                 Text("\(artifact.language) · \(artifact.kind.rawValue)")
                 Text(sizeDescription(artifact.size)).foregroundStyle(.secondary)
             }
-            TextField("Filter folders", text: $query)
+            TextField("Filter folders", text: $model.query)
                 .textFieldStyle(.roundedBorder)
                 .nestedAccessibilityIdentifier("filter")
-            List(filteredChildren) { node in
-                Button {
-                    model.navigate(to: node.id)
-                    query = ""
-                } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(node.name).lineLimit(1).truncationMode(.middle)
-                        Text("\(diagramBytes(node.bytes)) · \(node.statistics.artifactCount) artifacts")
-                            .font(.caption).foregroundStyle(.secondary)
-                        if node.statistics.measuringCount > 0 || node.statistics.partialCount > 0 {
-                            Text("\(node.statistics.measuringCount) measuring · \(node.statistics.partialCount) partial")
-                                .font(.caption2).foregroundStyle(.secondary)
+            ScrollView {
+                LazyVStack(spacing: 4) {
+                    ForEach(model.filteredChildren) { node in
+                        ArtifactDiagramFolderRow(node: node, swatch: model.palette.colors[node.id]) {
+                            model.navigate(to: node.id)
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("\(node.id), \(diagramBytes(node.bytes)) known")
             }
-            .listStyle(.plain)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .nestedAccessibilityIdentifier("folders")
         }
         .padding(16)
-        .onChange(of: model.focusID) { query = "" }
-    }
-
-    private var filteredChildren: [ArtifactSunburstNode] {
-        query.isEmpty ? model.children : model.children.filter { $0.name.localizedStandardContains(query) }
     }
 
     private func sizeDescription(_ state: SizeState) -> String {
@@ -237,6 +312,39 @@ private struct ArtifactDiagramSidebar: View {
         case .measured(let bytes): diagramBytes(Double(bytes))
         case .partial(let bytes): bytes.map { "\(diagramBytes(Double($0))) partial" } ?? "Partial · size unknown"
         }
+    }
+}
+
+private struct ArtifactDiagramFolderRow: View {
+    let node: ArtifactSunburstNode
+    let swatch: ArtifactSunburstPalette.Swatch?
+    let select: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: select) {
+            HStack(alignment: .top, spacing: 8) {
+                Circle().fill(diagramColor(swatch ?? .other)).frame(width: 8, height: 8).padding(.top, 4)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(node.name).lineLimit(1).truncationMode(.middle)
+                    Text("\(diagramBytes(node.bytes)) · \(node.statistics.artifactCount) artifacts")
+                        .font(.caption).foregroundStyle(.secondary)
+                    if node.statistics.measuringCount > 0 || node.statistics.partialCount > 0 {
+                        Text("\(node.statistics.measuringCount) measuring · \(node.statistics.partialCount) partial")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.accentColor.opacity(isHovered ? 0.16 : 0), in: .rect(cornerRadius: 6))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .accessibilityLabel("\(node.id), \(diagramBytes(node.bytes)) known")
+        .nestedAccessibilityIdentifier("folder.\(node.id)")
     }
 }
 
@@ -297,20 +405,39 @@ private extension ScanPhase {
     let focused = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
     var palette = ArtifactSunburstPalette()
     palette.include(overview)
+    let overviewPalette = palette
     palette.include(focused)
+    palette.inheritColor(from: "Apps", to: "Apps/Beta")
     return HStack(spacing: 24) {
         VStack {
             Text("All artifacts").font(.headline)
-            ArtifactSunburstChart(layout: overview, palette: palette, bytes: snapshot.root.bytes,
+            ArtifactSunburstChart(layout: overview, palette: overviewPalette, bytes: snapshot.root.bytes,
                                   isScanning: false, statistics: snapshot.root.statistics) { _ in }
         }
         VStack {
-            Text("Inside Apps — same folder colors").font(.headline)
+            Text("Inside Apps — Beta inherits Apps").font(.headline)
             ArtifactSunburstChart(layout: focused, palette: palette, bytes: snapshot.nodes["Apps"]!.bytes,
                                   isScanning: false, statistics: snapshot.nodes["Apps"]!.statistics) { _ in }
         }
     }
     .padding(24)
     .frame(width: 1_060, height: 580)
+}
+#Preview("Folder navigation and full path") {
+    let scan = WindowScanModel(source: DiagramPreviewSource())
+    scan.accept(target: URL(fileURLWithPath: "/Users/egor/Development/GitHub", isDirectory: true))
+    for (artifact, bytes) in MockScanState.results.completedArtifacts {
+        scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+        scan.apply(.completed(generation: scan.generation, artifactID: artifact.id, bytes: bytes))
+    }
+    scan.apply(.finished(generation: scan.generation, result: .completed))
+    let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: scan.rows),
+                                       targetURL: scan.targetURL, targetName: scan.targetName)
+    return ArtifactDiagramWindow(scan: scan, diagram: diagram).frame(width: 1_060, height: 740)
+}
+
+private struct DiagramPreviewSource: ScanEventSource {
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> { AsyncStream { _ in } }
+    func cancel(generation: UInt64) {}
 }
 #endif
