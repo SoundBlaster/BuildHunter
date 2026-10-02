@@ -86,3 +86,8 @@ index, a hostless Release harness passed all four performance tests and 24 unit 
 the existing Xcode Debug SpecificationCore binary; CI uses the full Release scheme.
 The Rust comparison against `origin/main` passed on the local Mac. These measurements
 describe model/engine work and do not prove table frame rate or signed sandbox behavior.
+
+Native macOS CI at `ccd234b` passed all four Release performance tests. Its scaling
+medians were 1.18 ms for 1,000 rows and 12.39 ms for 10,000 rows on an Apple Silicon
+runner. The same-host Rust comparisons passed on both Ubuntu and macOS. These are
+recorded observations for that run, not portable absolute timing limits.

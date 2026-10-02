@@ -3,8 +3,8 @@ import XCTest
 @MainActor
 final class BuildHunterUITests: XCTestCase {
     func testMockStatesAndCaptureScreenshots() throws {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchWindow()
+        defer { app.terminate() }
 
         XCTAssertTrue(app.buttons["buildhunter.empty.openFolder"].waitForExistence(timeout: 10))
         attachScreenshot(named: "01-empty", from: app)
@@ -43,13 +43,11 @@ final class BuildHunterUITests: XCTestCase {
             }
             attachScreenshot(named: String(format: "%02d-%@", index + 2, scenario), from: app)
         }
-
-        app.terminate()
     }
 
     func testOpenFolderPresentsAndDismissesPicker() {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchWindow()
+        defer { app.terminate() }
 
         let openFolder = app.buttons["buildhunter.empty.openFolder"]
         XCTAssertTrue(openFolder.waitForExistence(timeout: 10))
@@ -62,7 +60,20 @@ final class BuildHunterUITests: XCTestCase {
         cancel.click()
 
         XCTAssertTrue(openFolder.waitForExistence(timeout: 5), "Cancel should return to the empty window")
-        app.terminate()
+    }
+
+    private func launchWindow() -> XCUIApplication {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+
+        // Relaunch can leave a macOS multiwindow app running without a window.
+        if !app.windows.firstMatch.waitForExistence(timeout: 5) {
+            app.typeKey("n", modifierFlags: .command)
+        }
+        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 5),
+                      "A BuildHunter window must exist before testing its controls")
+        return app
     }
 
     private func attachScreenshot(named name: String, from app: XCUIApplication) {
