@@ -24,26 +24,28 @@ enum MockScanState: String, CaseIterable, Identifiable {
         self == .empty ? nil : "Demo Workspace"
     }
 
-    var artifacts: [DemoArtifact] {
+    var artifacts: [ScanArtifact] {
         guard self != .empty else { return [] }
         return [
-            DemoArtifact(id: Self.swiftID, relativePath: "Packages/Core/.build",
-                         simulatedBytes: 1_610_612_736, language: "Swift", kind: .buildOutput),
-            DemoArtifact(id: Self.rustID, relativePath: "Tools/Indexer/target",
-                         simulatedBytes: 822_083_584, language: "Rust", kind: .buildOutput),
-            DemoArtifact(id: Self.pythonID, relativePath: "Services/API/.pytest_cache",
-                         simulatedBytes: 12_582_912, language: "Python", kind: .cache)
+            ScanArtifact(id: Self.swiftID, relativePath: "Packages/Core/.build",
+                         language: "Swift", kind: .buildOutput),
+            ScanArtifact(id: Self.rustID, relativePath: "Tools/Indexer/target",
+                         language: "Rust", kind: .buildOutput),
+            ScanArtifact(id: Self.pythonID, relativePath: "Services/API/.pytest_cache",
+                         language: "Python", kind: .cache)
         ]
     }
 
-    var completedArtifacts: [(DemoArtifact, Int64)] {
+    var completedArtifacts: [(ScanArtifact, Int64)] {
+        let sizes: [Int64] = [1_610_612_736, 822_083_584, 12_582_912]
+        let samples = Array(zip(artifacts, sizes))
         switch self {
         case .results:
-            return artifacts.map { ($0, $0.simulatedBytes) }
+            return samples
         case .stopped:
-            return artifacts.first.map { [($0, $0.simulatedBytes)] } ?? []
+            return Array(samples.prefix(1))
         case .incomplete:
-            return artifacts.prefix(2).map { ($0, $0.simulatedBytes) }
+            return Array(samples.prefix(2))
         case .empty, .scanning:
             return []
         }

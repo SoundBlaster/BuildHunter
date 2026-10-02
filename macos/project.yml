@@ -29,11 +29,23 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
         INFOPLIST_KEY_NSPrincipalClass: NSApplication
         SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/BuildHunter/Bridge/BuildHunterFFI.h
+        LIBRARY_SEARCH_PATHS: "$(inherited) $(SRCROOT)/../target/aarch64-apple-darwin/release"
+        OTHER_LDFLAGS: "$(inherited) -lbuild_hunter"
     dependencies:
       - package: SpecificationCore
         product: SpecificationCore
       - package: NestedA11yIDs
         product: NestedA11yIDs
+    preBuildScripts:
+      - name: Build Rust scanner (Apple Silicon)
+        script: bash "${SRCROOT}/../scripts/build-rust-macos.sh"
+        inputFiles:
+          - "$(SRCROOT)/../Cargo.toml"
+          - "$(SRCROOT)/../Cargo.lock"
+          - "$(SRCROOT)/../src/lib.rs"
+        outputFiles:
+          - "$(SRCROOT)/../target/aarch64-apple-darwin/release/libbuild_hunter.a"
   BuildHunterTests:
     type: bundle.unit-test
     platform: macOS

@@ -1,6 +1,6 @@
 # ADR 0001 Архитектура BuildHunter для macOS
 
-Дата: 2026-10-01. Статус: принято направление архитектуры по интервью; FFI и streaming contracts требуют реализации и verification. Это не свидетельство готовности macOS приложения.
+Дата: 2026-10-02. Статус: архитектурное направление реализовано; unsigned builds and tests проверены. Signed sandbox runtime и Store readiness остаются отдельными gates.
 
 ## Контекст
 
@@ -70,7 +70,9 @@ FFI contract обязан определить:
 - единицы размера и encoding paths, без предположения, что все Unix paths валидны в UTF-8;
 - bounded buffering и backpressure, не создающие deadlock при Stop.
 
-Конкретные C signatures пока не приняты. Для invalid UTF-8 paths нужно либо сохранить lossless identity отдельно от display string, либо явно объявлять unsupported entry с warning; нельзя молча использовать lossy string для Reveal/Copy как точный original path.
+Реализованные C signatures и payload layout описаны в `macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h` и совпадают с экспортами `src/lib.rs`. Callback payloads borrowed только на время вызова. Rust сохраняет исходные Unix path bytes; Swift показывает warning для invalid UTF-8 path, чьё отображаемое имя может быть lossy. Не использовать такое имя как точный path для будущих Reveal/Copy actions.
+
+Swift `AsyncStream` bounded до 2048 событий. Если очередь переполнена, source сохраняет terminal outcome как incomplete и показывает warning; progress events не генерируются. Поскольку callback синхронный, Rust worker не ждёт UI и Stop не блокируется backpressure.
 
 ## Sandbox и доступ
 
@@ -98,8 +100,8 @@ Read-only sandbox scan, drag/drop grants и Finder integration должны бы
 
 Стоимость: FFI ownership/threading, отдельный CLI policy adapter, policy parity fixtures и сборка Rust arm64 library вместе с Xcode app. In-process Rust fault может завершить GUI; isolation не обеспечивается этим решением.
 
-1. Decision tables/tests: classification, overlap/precedence, no-match, `.git`, symlink, environments и outer-root aggregation.
-2. Bridge harness: memory lifetime, terminal events, stop/replacement races, invalid paths, bounded buffers; ни error, ни panic не пересекают ABI.
+1. Decision tables/tests: Rust and SpecificationCore classification, nested roots, CLI environment opt-in и cancellation частично покрыты тестами; расширить `.git`/symlink/error fixtures по мере runtime work.
+2. Bridge harness: FFI streaming и measured rows проверены Swift unit integration test; cancellation изолирован Rust core тестом. Дополнительно проверить signed sandbox lifecycle и доступ после replace/close.
 3. Window tests: независимые scans, stale events, partial results, closing/replacing target.
 4. Signed sandbox runtime: настоящие drop/open grants, permissions/read errors, Finder/clipboard и отсутствие writes.
 5. Release: arm64/macOS 26 archive, resolved SPM inputs, signing и App Store readiness. Store submission — отдельный gate.
@@ -112,3 +114,5 @@ Read-only sandbox scan, drag/drop grants и Finder integration должны бы
 - [SpecificationCore](https://github.com/SoundBlaster/SpecificationCore), local manifest и skills `specification-patterns`/`specificationcore`: rules, typed outcomes и разделение policy/effects.
 
 Apple documentation обосновывает ограничения платформы. In-process Rust, policy callback seam и buffering — архитектурные решения проекта, а не требования Apple или уже проверенные свойства implementation.
+
+Unsigned evidence на 2026-10-02: Rust tests, Clippy, CLI integration, arm64 static-library build, Xcode app build и 18 Swift unit tests прошли. Полный UI test run завис на локальном XCTest UI runner и был остановлен; screenshot/UI test evidence для этой интеграционной ветки не получено. Ни один из этих checks не подтверждает signed user-selected folder access, Finder/clipboard behavior или App Store acceptance.

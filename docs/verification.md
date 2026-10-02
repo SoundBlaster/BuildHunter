@@ -34,7 +34,7 @@ requires moving the prior result bundle aside or using a clean output directory.
 - **macOS CI / macOS unit and UI tests:** unsigned arm64 app/test compilation and
   execution on macOS 26 with Xcode 26.6. UI tests query NestedA11yIDs identifiers,
   exercise all Debug mock states, and attach screenshots to `.xcresult`; the
-  script exports and counts the six scenario/picker screenshots. The workflow
+  script exports and counts the seven scenario/picker screenshots. The workflow
   publishes the bundle, screenshots, summary and log.
 - **macOS CI / macOS Release build:** independent unsigned Release compilation;
   publishes the log.
@@ -52,10 +52,12 @@ Use injected event sources and explicit continuations for asynchronous tests,
 without timing sleeps or dependence on the live filesystem unless testing that
 boundary. Policy tests exercise supported outcomes, overlaps/priority and no-match.
 
-The first skeleton's scanner is simulated. Its unit tests establish rule/model
-behavior, not real Rust traversal, measurement, Finder integration or sandbox access.
-Future FFI tests must cover callback/buffer ownership, cancellation races, event
-termination, errors and nested roots before enabling the real scanner.
+The default GUI scan now uses the Rust static library through C callbacks; Debug
+mock states remain available for deterministic UI testing. Rust core tests cover
+candidate policy adapters, nested roots, cancellation, and lossless Unix path bytes.
+A Swift integration test exercises classification, streaming, and measured results
+through the real FFI. The current unsigned test run does not prove signed sandbox
+access, Finder integration, clipboard behavior, or App Store readiness.
 
 Unsigned builds do not establish signed sandbox runtime behavior or App Store
 readiness. A separate signed-app check must exercise folder drop/open grants,

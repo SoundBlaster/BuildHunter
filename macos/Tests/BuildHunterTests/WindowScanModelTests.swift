@@ -7,12 +7,90 @@ import Testing
 struct WindowScanModelTests {
     @Test("Demo source completes without manufacturing access warnings")
     func demoCompletesNormally() async {
-        let model = WindowScanModel()
+        let model = WindowScanModel(source: DemoScanSource())
         model.acceptDemoTarget(named: "Demo")
         await model.waitForCurrentScan()
         #expect(model.rows.count == 3)
         #expect(model.phase == .completed)
         #expect(model.warnings.isEmpty)
+    }
+
+    @Test("Rust FFI scans selected folders and applies SpecificationCore classification")
+    func rustScannerStreamsMeasuredArtifacts() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appending(path: "BuildHunter-Rust-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let swiftBuild = root.appending(path: "Package/.build", directoryHint: .isDirectory)
+        let nestedCache = swiftBuild.appending(path: "__pycache__", directoryHint: .isDirectory)
+        let rustTarget = root.appending(path: "Service/target", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: nestedCache, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: rustTarget, withIntermediateDirectories: true)
+        try Data("let fixture = true".utf8).write(to: swiftBuild.appending(path: "output.o"))
+        try Data("[package]".utf8).write(to: root.appending(path: "Service/Cargo.toml"))
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let source = RustScanEventSource()
+        let stream = source.events(for: 41, target: root)
+        var artifacts: [ScanArtifact] = []
+        var terminal: ScanTerminalResult?
+        for await event in stream {
+            switch event {
+            case .discovered(_, let artifact): artifacts.append(artifact)
+            case .finished(_, let result): terminal = result
+            default: break
+            }
+        }
+
+        #expect(terminal == .completed)
+        #expect(artifacts.map(\.relativePath).sorted() == ["Package/.build", "Service/target"])
+        #expect(artifacts.map(\.language).sorted() == ["Rust", "Swift"])
+    }
+
+    @Test("A selected artifact root is displayed as dot")
+    func rustScannerDisplaysSelectedArtifactRoot() async throws {
+        let parent = FileManager.default.temporaryDirectory
+            .appending(path: "BuildHunter-SelectedRoot-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let selectedRoot = parent.appending(path: ".build", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: selectedRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: parent) }
+
+        let source = RustScanEventSource()
+        let stream = source.events(for: 42, target: selectedRoot)
+        var discoveredPath: String?
+        var terminal: ScanTerminalResult?
+        for await event in stream {
+            switch event {
+            case .discovered(_, let artifact): discoveredPath = artifact.relativePath
+            case .finished(_, let result): terminal = result
+            default: break
+            }
+        }
+
+        #expect(discoveredPath == ".")
+        #expect(terminal == .completed)
+    }
+
+    @Test("Overflow caused by the terminal event makes the scan incomplete")
+    func terminalEnqueueOverflowIsReported() async {
+        let generation: UInt64 = 1
+        let (stream, continuation) = AsyncStream.makeStream(
+            of: ScanEvent.self,
+            bufferingPolicy: .bufferingNewest(2)
+        )
+        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation)
+        bridge.yield(.discovered(generation: generation, artifact: makeArtifact()))
+        bridge.yield(.discovered(
+            generation: generation,
+            artifact: ScanArtifact(id: UUID(), relativePath: "DemoFixture/Beta/.build",
+                                   language: "Swift", kind: .buildOutput)
+        ))
+        bridge.finish(status: 0)
+
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Overflow")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .incomplete)
+        #expect(model.warnings.contains { $0.contains("display buffer") })
     }
 
     @Test("Terminal event rejects later events from the same generation")
@@ -23,12 +101,12 @@ struct WindowScanModelTests {
         let artifact = makeArtifact()
 
         model.apply(.discovered(generation: generation, artifact: artifact))
-        model.apply(.completed(generation: generation, artifactID: artifact.id, simulatedBytes: 20))
+        model.apply(.completed(generation: generation, artifactID: artifact.id, bytes: 20))
         model.apply(.finished(generation: generation, result: .completed))
         model.apply(.warning(generation: generation, message: "late warning"))
-        model.apply(.completed(generation: generation, artifactID: artifact.id, simulatedBytes: 99))
+        model.apply(.completed(generation: generation, artifactID: artifact.id, bytes: 99))
 
-        #expect(model.rows[0].size == .simulated(20))
+        #expect(model.rows[0].size == .measured(20))
         #expect(model.warnings.isEmpty)
         #expect(model.phase == .completed)
     }
@@ -72,14 +150,14 @@ struct WindowScanModelTests {
         let generation = model.generation
         let artifact = makeArtifact()
         source.yield(.discovered(generation: generation, artifact: artifact))
-        source.yield(.completed(generation: generation, artifactID: artifact.id, simulatedBytes: 20))
+        source.yield(.completed(generation: generation, artifactID: artifact.id, bytes: 20))
         source.yield(.finished(generation: generation, result: .completed))
         source.finish(generation: generation)
 
         await model.waitForCurrentScan()
 
         #expect(model.rows == [ScanRow(id: artifact.id, relativePath: artifact.relativePath,
-                                      language: artifact.language, kind: artifact.kind, size: .simulated(20))])
+                                      language: artifact.language, kind: artifact.kind, size: .measured(20))])
         #expect(model.phase == .completed)
     }
 
@@ -91,6 +169,7 @@ struct WindowScanModelTests {
         let generation = model.generation
         source.yield(.warning(generation: generation, message: "fixture warning"))
         source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
 
         await model.waitForCurrentScan()
 
@@ -105,7 +184,7 @@ struct WindowScanModelTests {
         let generation = model.generation
         let artifact = makeArtifact()
 
-        model.apply(.completed(generation: generation, artifactID: artifact.id, simulatedBytes: 20))
+        model.apply(.completed(generation: generation, artifactID: artifact.id, bytes: 20))
         model.apply(.discovered(generation: generation, artifact: artifact))
         model.apply(.discovered(generation: generation, artifact: artifact))
 
@@ -184,12 +263,12 @@ struct WindowScanModelTests {
 
         model.showMockState(.results)
         #expect(model.phase == .completed)
-        #expect(model.rows.allSatisfy { if case .simulated = $0.size { true } else { false } })
+        #expect(model.rows.allSatisfy { if case .measured = $0.size { true } else { false } })
 
         model.showMockState(.stopped)
         #expect(model.phase == .stopped)
         #expect(model.rows.filter { $0.size == .partial(nil) }.count == 2)
-        #expect(model.rows.filter { if case .simulated = $0.size { true } else { false } }.count == 1)
+        #expect(model.rows.filter { if case .measured = $0.size { true } else { false } }.count == 1)
 
         model.showMockState(.incomplete)
         #expect(model.phase == .incomplete)
@@ -198,9 +277,9 @@ struct WindowScanModelTests {
     }
 #endif
 
-    private func makeArtifact() -> DemoArtifact {
-        DemoArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000001")!,
-                     relativePath: "DemoFixture/Alpha/.build", simulatedBytes: 20,
+    private func makeArtifact() -> ScanArtifact {
+        ScanArtifact(id: UUID(uuidString: "A0000000-0000-4000-8000-000000000001")!,
+                     relativePath: "DemoFixture/Alpha/.build",
                      language: "Swift", kind: .buildOutput)
     }
 }
@@ -215,7 +294,7 @@ private final class ControlledScanSource: ScanEventSource {
         (terminationEvents, terminationContinuation) = AsyncStream.makeStream(of: UInt64.self)
     }
 
-    func events(for generation: UInt64) -> AsyncStream<ScanEvent> {
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
         let (stream, continuation) = AsyncStream.makeStream(of: ScanEvent.self)
         continuations[generation] = continuation
         let terminationContinuation = self.terminationContinuation
@@ -224,6 +303,8 @@ private final class ControlledScanSource: ScanEventSource {
         }
         return stream
     }
+
+    func cancel(generation: UInt64) {}
 
     func yield(_ event: ScanEvent) {
         continuations[event.generation]?.yield(event)
@@ -237,4 +318,15 @@ private final class ControlledScanSource: ScanEventSource {
         var iterator = terminationEvents.makeAsyncIterator()
         return await iterator.next()
     }
+}
+
+@MainActor
+private struct SingleStreamScanSource: ScanEventSource {
+    let stream: AsyncStream<ScanEvent>
+
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
+        stream
+    }
+
+    func cancel(generation: UInt64) {}
 }

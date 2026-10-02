@@ -16,6 +16,7 @@
 		33F97AD915EA2A1D798C7933 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = CD515261407E62AB7380C8F1 /* SpecificationCore */; };
 		492FF4DC3A0256639F9696D5 /* ClassifyArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */; };
 		702998E2BB6BC35A666F5102 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3C1F39E00DA07B5F110EE12B /* SpecificationCore */; };
+		80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */; };
 		8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */; };
 		A44DAE4AC0757409C7DD5BE9 /* BuildHunterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B019A5055F3DE5234638768B /* BuildHunterApp.swift */; };
 		BAF5BA137472C47B6D3DDF79 /* BuildHunterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */; };
@@ -50,6 +51,7 @@
 		381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowScanModelTests.swift; sourceTree = "<group>"; };
 		468C96DD92C2663CDF234F16 /* BuildHunter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BuildHunter.entitlements; sourceTree = "<group>"; };
 		498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifyArtifactRoot.swift; sourceTree = "<group>"; };
+		52F6FF88DD87579E03C9A48D /* BuildHunterFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BuildHunterFFI.h; sourceTree = "<group>"; };
 		6BB1C694C62C93F3693137CA /* ArtifactPolicyContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactPolicyContext.swift; sourceTree = "<group>"; };
 		7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockScanState.swift; sourceTree = "<group>"; };
 		7D7F949A7C221A08BBD76D8A /* WindowScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowScanModel.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 		BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsOuterArtifactRoot.swift; sourceTree = "<group>"; };
 		C404E32AE24EC6E7D5F08472 /* BuildHunter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BuildHunter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B58340DBC91862752743D7 /* ScanEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEvent.swift; sourceTree = "<group>"; };
+		D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RustScanEventSource.swift; sourceTree = "<group>"; };
 		DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,6 +102,7 @@
 			children = (
 				ADEADEDFC0CAEC86E7E0EDDA /* DemoScanSource.swift */,
 				7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */,
+				D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */,
 				D1B58340DBC91862752743D7 /* ScanEvent.swift */,
 				7D7F949A7C221A08BBD76D8A /* WindowScanModel.swift */,
 			);
@@ -118,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				468C96DD92C2663CDF234F16 /* BuildHunter.entitlements */,
+				E59345404206CB6FA8164664 /* Bridge */,
 				1F031D997CB6C458582FF611 /* Domain */,
 				2C3CB4E8311D48946994FF7B /* Scanning */,
 				E72FB6420C3CBE590D70D66D /* UI */,
@@ -169,6 +174,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		E59345404206CB6FA8164664 /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				52F6FF88DD87579E03C9A48D /* BuildHunterFFI.h */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
 		E72FB6420C3CBE590D70D66D /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -185,6 +198,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D4CF4F09B3A470CB8B3FED63 /* Build configuration list for PBXNativeTarget "BuildHunter" */;
 			buildPhases = (
+				6C047EC0E96D9CB13061B180 /* Build Rust scanner (Apple Silicon) */,
 				F3B82E60971206A6806D544B /* Sources */,
 				A53066ECFA0AC5AA409DB695 /* Frameworks */,
 			);
@@ -278,6 +292,31 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		6C047EC0E96D9CB13061B180 /* Build Rust scanner (Apple Silicon) */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../Cargo.toml",
+				"$(SRCROOT)/../Cargo.lock",
+				"$(SRCROOT)/../src/lib.rs",
+			);
+			name = "Build Rust scanner (Apple Silicon)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/../target/aarch64-apple-darwin/release/libbuild_hunter.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "bash \"${SRCROOT}/../scripts/build-rust-macos.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		51A4FE2BCB6DB093978386A5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -308,6 +347,7 @@
 				2D32AFF98741BF5F6ABE3259 /* IsOuterArtifactRoot.swift in Sources */,
 				19BD9AB84B77FE4D7DF09CBD /* IsScannableArtifactCandidate.swift in Sources */,
 				8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */,
+				80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */,
 				E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */,
 				122D646DB6D67209C1050792 /* WindowScanModel.swift in Sources */,
 			);
@@ -544,10 +584,13 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../target/aarch64-apple-darwin/release";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				OTHER_LDFLAGS = "$(inherited) -lbuild_hunter";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.buildhunter.app;
 				PRODUCT_NAME = BuildHunter;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Sources/BuildHunter/Bridge/BuildHunterFFI.h;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 			};
@@ -567,10 +610,13 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../target/aarch64-apple-darwin/release";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				OTHER_LDFLAGS = "$(inherited) -lbuild_hunter";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.buildhunter.app;
 				PRODUCT_NAME = BuildHunter;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Sources/BuildHunter/Bridge/BuildHunterFFI.h;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 			};
