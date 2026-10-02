@@ -82,20 +82,24 @@ final class BuildHunterUITests: XCTestCase {
         attachScreenshot(named: "diagram-results", from: app)
 
         // The value-based WindowGroup must reuse this report's companion window.
+        activateWindow(titled: "BuildHunter", in: app)
         scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
         XCTAssertEqual(app.windows.count, 2)
         selectMockState("scanning", in: scanWindow, app: app)
+        activateWindow(titled: "Demo Workspace — Artifact Diagram", in: app)
         expectValue("Scanning · live updates", of: status)
         XCTAssertTrue(diagram.staticTexts["Waiting for sizes"].waitForExistence(timeout: 5))
         attachScreenshot(named: "diagram-scanning", from: app)
 
         selectMockState("stopped", in: scanWindow, app: app)
+        activateWindow(titled: "Demo Workspace — Artifact Diagram", in: app)
         expectValue("Scan stopped · partial results", of: status)
         XCTAssertTrue(diagram.descendants(matching: .any)
             .matching(identifier: "buildhunter.diagram.chart").firstMatch.waitForExistence(timeout: 5))
         attachScreenshot(named: "diagram-partial", from: app)
 
         selectMockState("scanning", in: scanWindow, app: app)
+        activateWindow(titled: "Demo Workspace — Artifact Diagram", in: app)
         expectValue("Scanning · live updates", of: status)
         diagram.buttons[XCUIIdentifierCloseWindow].click()
         XCTAssertTrue(diagram.waitForNonExistence(timeout: 5))
@@ -104,6 +108,7 @@ final class BuildHunterUITests: XCTestCase {
     }
 
     private func selectMockState(_ state: String, in window: XCUIElement, app: XCUIApplication) {
+        activateWindow(titled: "BuildHunter", in: app)
         let menu = window.descendants(matching: .any)
             .matching(identifier: "buildhunter.toolbar.mockState").firstMatch
         XCTAssertTrue(menu.waitForExistence(timeout: 5))
@@ -112,6 +117,15 @@ final class BuildHunterUITests: XCTestCase {
             .matching(identifier: "buildhunter.toolbar.mockState.scenario.\(state)").firstMatch
         XCTAssertTrue(option.waitForExistence(timeout: 5))
         option.click()
+    }
+
+    private func activateWindow(titled title: String, in app: XCUIApplication) {
+        // The companion window can cover the toolbar. Select the owner via the
+        // native Window menu before interacting with its controls.
+        app.menuBars.menuBarItems["Window"].click()
+        let item = app.menuItems[title]
+        XCTAssertTrue(item.waitForExistence(timeout: 5))
+        item.click()
     }
 
     private func expectValue(_ text: String, of element: XCUIElement,
