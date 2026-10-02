@@ -88,7 +88,9 @@ final class BuildHunterUITests: XCTestCase {
         selectMockState("scanning", in: scanWindow, app: app)
         activateWindow(titled: "Demo Workspace — Artifact Diagram", in: app)
         expectValue("Scanning · live updates", of: status)
-        XCTAssertTrue(diagram.staticTexts["Waiting for sizes"].waitForExistence(timeout: 5))
+        let emptyStatus = diagram.staticTexts["buildhunter.diagram.emptyStatus"]
+        XCTAssertTrue(emptyStatus.waitForExistence(timeout: 5))
+        expectValue("Waiting for sizes", of: emptyStatus)
         attachScreenshot(named: "diagram-scanning", from: app)
 
         selectMockState("stopped", in: scanWindow, app: app)
@@ -122,8 +124,9 @@ final class BuildHunterUITests: XCTestCase {
     private func activateWindow(titled title: String, in app: XCUIApplication) {
         // The companion window can cover the toolbar. Select the owner via the
         // native Window menu before interacting with its controls.
-        app.menuBars.menuBarItems["Window"].click()
-        let item = app.menuItems[title]
+        let windowMenu = app.menuBars.menuBarItems["Window"]
+        windowMenu.click()
+        let item = windowMenu.menuItems[title]
         XCTAssertTrue(item.waitForExistence(timeout: 5))
         item.click()
     }

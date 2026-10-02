@@ -79,6 +79,7 @@ private struct ArtifactSunburstChart: View {
             if layout.sectors.isEmpty {
                 ContentUnavailableView {
                     Text(isScanning ? "Waiting for sizes" : "No measured size to display")
+                        .nestedAccessibilityIdentifier("emptyStatus")
                 } description: {
                     Text("The diagram updates as the scan measures artifacts.")
                 }
