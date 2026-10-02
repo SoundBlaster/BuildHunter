@@ -18,6 +18,12 @@ sectors per parent: six largest children plus **Other** when needed. Other prese
 the remaining size; select it to show its parent's complete, filterable folder list.
 The diagram stops at the artifact roots, just like the table.
 
+Ring thickness depends only on hierarchy depth. Gaps and corner radii shrink for
+narrow sectors according to their width at the inner edge, so decoration does not
+consume the sector. Angular shares remain proportional to bytes, with no artificial
+minimum size. Very small folders can still form narrow slices; choose them in the
+sidebar to zoom in and compare their children.
+
 Updates animate with stable path identities and deterministic branch colors.
 Reduce Motion disables those animations. Accessible sector descriptions include
 path, size, and partial status; the sidebar offers standard buttons for navigation.
@@ -38,7 +44,8 @@ path, size, and partial status; the sidebar offers standard buttons for navigati
 
 ## Verification
 
-Unit tests cover size conservation, ring boundaries, stable identities, large totals,
+Unit tests cover size conservation, ring boundaries, narrow-sector decoration at
+multiple chart sizes, stable identities, large totals,
 unknown/partial values, dense reports, navigation, stale scan events, and window
 ownership. UI tests exercise one companion window, changing mock states, and closing
 the diagram while scanning; they attach completed, scanning, and partial screenshots.

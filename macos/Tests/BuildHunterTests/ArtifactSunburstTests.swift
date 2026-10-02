@@ -111,6 +111,51 @@ struct ArtifactSunburstTests {
         #expect(layout.sector(angle: 0.5, radius: 1.1) == nil)
     }
 
+    @Test("Narrow sectors retain room for their fill after gaps and rounding", arguments: [160.0, 300.0, 500.0])
+    func narrowSectorDecoration(plotRadius: Double) {
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [
+            row("Large/App/.build", .measured(199)), row("Small/App/.build", .measured(1))
+        ]))
+        let narrowSectors = layout.sectors.filter { $0.colorKey == "Small" }
+        #expect(narrowSectors.count == 3)
+        for sector in narrowSectors {
+            #expect(abs(sector.end - sector.start - 0.005) < 0.000_001)
+            let innerEdgeWidth = 2 * plotRadius * sector.innerRadius * sin(.pi * (sector.end - sector.start))
+            let decoration = sector.decoration(plotRadius: plotRadius)
+            #expect(decoration.angularInset >= 0 && decoration.cornerRadius >= 0)
+            #expect(2 * (decoration.angularInset + decoration.cornerRadius) < innerEdgeWidth)
+        }
+    }
+
+    @Test("Wide sectors keep the requested gap and corner radius")
+    func wideSectorDecoration() throws {
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [
+            row("A/.build", .measured(1)), row("B/.build", .measured(1))
+        ]))
+        let sector = try #require(layout.sectors.first)
+        #expect(sector.decoration(plotRadius: 160).angularInset == 2)
+        #expect(sector.decoration(plotRadius: 160).cornerRadius == 4)
+    }
+
+    @Test("Rendered radii preserve equal ring thickness, gaps and hit regions")
+    func renderedRingBoundaries() {
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [
+            row("App/Core/.build", .measured(1))
+        ]))
+        var previousOuter: Double?
+        for sector in layout.sectors {
+            let renderedInner = sector.outerRadius * sector.innerRadiusRelativeToOuter
+            #expect(abs(renderedInner - sector.innerRadius) < 0.000_001)
+            #expect(abs(sector.outerRadius - renderedInner - (0.73 / 3)) < 0.000_001)
+            if let previousOuter {
+                #expect(abs(renderedInner - previousOuter - 0.025) < 0.000_001)
+                #expect(layout.sector(angle: 0.5, radius: (renderedInner + previousOuter) / 2) == nil)
+            }
+            #expect(layout.sector(angle: 0.5, radius: (renderedInner + sector.outerRadius) / 2)?.id == sector.id)
+            previousOuter = sector.outerRadius
+        }
+    }
+
     private func row(_ path: String, _ size: SizeState) -> ScanRow {
         ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: size)
     }

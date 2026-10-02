@@ -92,10 +92,31 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
 
         var innerRadius: Double { 0.22 + Double(depth) * (ringWidth + Self.ringGap) }
         var outerRadius: Double { innerRadius + ringWidth }
+        // SectorMark resolves its inner ratio against the sector's outer radius.
+        var innerRadiusRelativeToOuter: Double { innerRadius / outerRadius }
         private static let ringGap = 0.025
         private var ringWidth: Double { (1 - 0.22 - 2 * Self.ringGap) / 3 }
         var angularRange: Range<Double> { start..<end }
         var nodeID: String? { if case .node(let path) = id { path } else { nil } }
+
+        struct Decoration: Equatable, Sendable {
+            let angularInset: Double
+            let cornerRadius: Double
+        }
+
+        func decoration(plotRadius: Double) -> Decoration {
+            guard plotRadius.isFinite, plotRadius > 0 else {
+                return Decoration(angularInset: 0, cornerRadius: 0)
+            }
+            // Bound decoration at the narrowest (inner) edge. Keeping each inset
+            // and corner below one eighth of that width leaves room for the fill,
+            // even when a folder occupies only a fraction of a percent.
+            let halfAngle = .pi * min(0.5, max(0, end - start))
+            let innerEdgeWidth = 2 * innerRadius * plotRadius * sin(halfAngle)
+            let thickness = (outerRadius - innerRadius) * plotRadius
+            let allowance = min(innerEdgeWidth / 8, thickness / 4)
+            return Decoration(angularInset: min(2, allowance), cornerRadius: min(4, allowance))
+        }
     }
 
     let sectors: [Sector]

@@ -84,59 +84,63 @@ private struct ArtifactSunburstChart: View {
                     Text("The diagram updates as the scan measures artifacts.")
                 }
             } else {
-                Chart(layout.sectors) { sector in
-                    SectorMark(
-                        angle: .value("Share of known size", sector.angularRange),
-                        innerRadius: .ratio(sector.innerRadius / sector.outerRadius),
-                        outerRadius: .ratio(sector.outerRadius),
-                        angularInset: 2
-                    )
-                    .cornerRadius(4)
-                    .foregroundStyle(diagramColor(sector.colorKey))
-                    .opacity(hovered == sector.id ? 1 : 0.95 - Double(sector.depth) * 0.15)
-                    .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")
-                    .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
-                }
-                .chartLegend(.hidden)
-                .chartOverlay { proxy in
-                    GeometryReader { geometry in
-                        Rectangle().fill(.clear).contentShape(Rectangle())
-                            .onContinuousHover { phase in
-                                switch phase {
-                                case .active(let location):
-                                    hovered = hit(location, proxy: proxy, geometry: geometry)?.id
-                                case .ended:
-                                    hovered = nil
-                                }
-                            }
-                            .onTapGesture { location in
-                                if let sector = hit(location, proxy: proxy, geometry: geometry) {
-                                    select(sector)
-                                }
-                            }
+                GeometryReader { chartGeometry in
+                    let plotRadius = min(chartGeometry.size.width, chartGeometry.size.height) / 2
+                    Chart(layout.sectors) { sector in
+                        let decoration = sector.decoration(plotRadius: plotRadius)
+                        SectorMark(
+                            angle: .value("Share of known size", sector.angularRange),
+                            innerRadius: .ratio(sector.innerRadiusRelativeToOuter),
+                            outerRadius: .ratio(sector.outerRadius),
+                            angularInset: CGFloat(decoration.angularInset)
+                        )
+                        .cornerRadius(CGFloat(decoration.cornerRadius))
+                        .foregroundStyle(diagramColor(sector.colorKey))
+                        .opacity(hovered == sector.id ? 1 : 0.95 - Double(sector.depth) * 0.15)
+                        .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")
+                        .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
                     }
-                }
-                .chartBackground { proxy in
-                    GeometryReader { geometry in
-                        if let anchor = proxy.plotFrame {
-                            let frame = geometry[anchor]
-                            VStack(spacing: 3) {
-                                Text("Known size").font(.caption2).foregroundStyle(.secondary)
-                                Text(diagramBytes(bytes))
-                                    .font(.headline)
-                                    .minimumScaleFactor(0.6)
-                                    .lineLimit(1)
-                                    .contentTransition(reduceMotion ? .identity : .numericText())
-                                    .nestedAccessibilityIdentifier("total")
-                            }
-                            .frame(width: min(frame.width, frame.height) * 0.21)
-                            .position(x: frame.midX, y: frame.midY)
+                    .chartLegend(.hidden)
+                    .chartOverlay { proxy in
+                        GeometryReader { geometry in
+                            Rectangle().fill(.clear).contentShape(Rectangle())
+                                .onContinuousHover { phase in
+                                    switch phase {
+                                    case .active(let location):
+                                        hovered = hit(location, proxy: proxy, geometry: geometry)?.id
+                                    case .ended:
+                                        hovered = nil
+                                    }
+                                }
+                                .onTapGesture { location in
+                                    if let sector = hit(location, proxy: proxy, geometry: geometry) {
+                                        select(sector)
+                                    }
+                                }
                         }
                     }
+                    .chartBackground { proxy in
+                        GeometryReader { geometry in
+                            if let anchor = proxy.plotFrame {
+                                let frame = geometry[anchor]
+                                VStack(spacing: 3) {
+                                    Text("Known size").font(.caption2).foregroundStyle(.secondary)
+                                    Text(diagramBytes(bytes))
+                                        .font(.headline)
+                                        .minimumScaleFactor(0.6)
+                                        .lineLimit(1)
+                                        .contentTransition(reduceMotion ? .identity : .numericText())
+                                        .nestedAccessibilityIdentifier("total")
+                                }
+                                .frame(width: min(frame.width, frame.height) * 0.21)
+                                .position(x: frame.midX, y: frame.midY)
+                            }
+                        }
+                    }
+                    .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: layout.sectors)
+                    .nestedAccessibilityIdentifier("chart")
                 }
                 .aspectRatio(1, contentMode: .fit)
-                .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: layout.sectors)
-                .nestedAccessibilityIdentifier("chart")
             }
             Text(hoverDescription)
                 .font(.caption)
@@ -273,5 +277,11 @@ private extension ScanPhase {
     let scan = WindowScanModel()
     scan.showMockState(.stopped)
     return ArtifactDiagramWindow(scan: scan).frame(width: 1_000, height: 700)
+}
+
+#Preview("Compact artifact diagram") {
+    let scan = WindowScanModel()
+    scan.showMockState(.results)
+    return ArtifactDiagramWindow(scan: scan).frame(width: 760, height: 540)
 }
 #endif
