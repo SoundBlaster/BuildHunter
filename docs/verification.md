@@ -10,6 +10,9 @@ cargo build --locked --release
 python3 scripts/test_cli.py target/release/build-hunter
 bash scripts/ci/macos.sh test
 bash scripts/ci/macos.sh release
+python3 scripts/test_performance_report.py
+cargo bench --locked --bench scanner
+bash scripts/ci/macos.sh performance
 ```
 
 Windows uses `target/release/build-hunter.exe`. CLI integration fixtures cover
@@ -42,6 +45,10 @@ requires moving the prior result bundle aside or using a clean output directory.
 These workflows run for every pull request, main push and manual dispatch.
 No path filters suppress checks needed by a PR. GitHub branch protection settings
 are separate from workflow creation; configuring required checks is not implied.
+
+[Performance checks](performance.md) add separate scanner baseline/candidate jobs
+on Ubuntu/macOS and a Release XCTest job for model/policy clock, memory and scaling.
+Reports and raw measurements are published as CI artifacts.
 
 ## TDD and evidence boundaries
 

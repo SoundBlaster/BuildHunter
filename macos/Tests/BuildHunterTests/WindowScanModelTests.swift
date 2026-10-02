@@ -244,6 +244,27 @@ struct WindowScanModelTests {
         #expect(model.phase == .scanning)
     }
 
+    @Test("Artifact IDs can be reused after rescan or target replacement", arguments: [false, true])
+    func reusedArtifactIDAfterRestart(replacingTarget: Bool) {
+        let model = WindowScanModel(source: ControlledScanSource())
+        let artifact = makeArtifact()
+        model.acceptDemoTarget(named: "First")
+        model.apply(.discovered(generation: model.generation, artifact: artifact))
+        model.apply(.completed(generation: model.generation, artifactID: artifact.id, bytes: 20))
+
+        if replacingTarget {
+            model.acceptDemoTarget(named: "Second")
+        } else {
+            model.rescan()
+        }
+        model.apply(.discovered(generation: model.generation, artifact: artifact))
+        model.apply(.completed(generation: model.generation, artifactID: artifact.id, bytes: 40))
+
+        #expect(model.rows.count == 1)
+        #expect(model.rows.first?.size == .measured(40))
+        model.stop()
+    }
+
     @Test("Replacing a target cancels its stream and isolates the new report")
     func replacementCancelsOldGeneration() async {
         let source = ControlledScanSource()
