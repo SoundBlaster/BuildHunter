@@ -74,9 +74,9 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(diagram.waitForExistence(timeout: 10))
         let count = diagram.staticTexts["buildhunter.diagram.count"]
         XCTAssertTrue(count.waitForExistence(timeout: 5))
-        expectLabel("3 artifacts", of: count)
+        expectValue("3 artifacts", of: count)
         let status = diagram.staticTexts["buildhunter.diagram.status"]
-        expectLabel("Scan complete", of: status)
+        expectValue("Scan complete", of: status)
         XCTAssertTrue(diagram.descendants(matching: .any)
             .matching(identifier: "buildhunter.diagram.chart").firstMatch.waitForExistence(timeout: 5))
         attachScreenshot(named: "diagram-results", from: app)
@@ -85,18 +85,18 @@ final class BuildHunterUITests: XCTestCase {
         scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
         XCTAssertEqual(app.windows.count, 2)
         selectMockState("scanning", in: scanWindow, app: app)
-        expectLabel("Scanning · live updates", of: status)
+        expectValue("Scanning · live updates", of: status)
         XCTAssertTrue(diagram.staticTexts["Waiting for sizes"].waitForExistence(timeout: 5))
         attachScreenshot(named: "diagram-scanning", from: app)
 
         selectMockState("stopped", in: scanWindow, app: app)
-        expectLabel("Scan stopped · partial results", of: status)
+        expectValue("Scan stopped · partial results", of: status)
         XCTAssertTrue(diagram.descendants(matching: .any)
             .matching(identifier: "buildhunter.diagram.chart").firstMatch.waitForExistence(timeout: 5))
         attachScreenshot(named: "diagram-partial", from: app)
 
         selectMockState("scanning", in: scanWindow, app: app)
-        expectLabel("Scanning · live updates", of: status)
+        expectValue("Scanning · live updates", of: status)
         diagram.buttons[XCUIIdentifierCloseWindow].click()
         XCTAssertTrue(diagram.waitForNonExistence(timeout: 5))
         XCTAssertTrue(scanWindow.buttons["Stop"].exists,
@@ -114,10 +114,13 @@ final class BuildHunterUITests: XCTestCase {
         option.click()
     }
 
-    private func expectLabel(_ label: String, of element: XCUIElement) {
-        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", label),
+    private func expectValue(_ text: String, of element: XCUIElement,
+                             file: StaticString = #filePath, line: UInt = #line) {
+        // SwiftUI Text exposes its content as AXValue on macOS, not AXTitle/label.
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", text),
                                                     object: element)
-        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed,
+                       "Expected static text value: \(text)", file: file, line: line)
     }
 
     private func launchWindow() -> XCUIApplication {
