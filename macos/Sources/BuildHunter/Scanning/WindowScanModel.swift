@@ -45,6 +45,7 @@ final class WindowScanModel {
         source.cancel(generation: generation)
         generation &+= 1
         targetName = mockState.targetName
+        targetURL = nil
         rows = []
         warnings = []
         phase = mockState.targetName == nil ? .idle : .scanning
@@ -102,8 +103,9 @@ final class WindowScanModel {
         case .finished(_, let result):
             switch result {
             case .completed:
-                let hasUnmeasuredRows = markMeasuringRowsPartial()
-                phase = warnings.isEmpty && !hasUnmeasuredRows ? .completed : .incomplete
+                markMeasuringRowsPartial()
+                let hasPartialRows = rows.contains { if case .partial = $0.size { true } else { false } }
+                phase = warnings.isEmpty && !hasPartialRows ? .completed : .incomplete
             case .stopped:
                 phase = .stopped
                 markMeasuringRowsPartial()
@@ -154,17 +156,13 @@ final class WindowScanModel {
         }
     }
 
-    @discardableResult
-    private func markMeasuringRowsPartial() -> Bool {
-        var foundUnmeasuredRows = false
+    private func markMeasuringRowsPartial() {
         rows = rows.map { row in
             var updated = row
             if case .measuring = row.size {
                 updated.size = .partial(nil)
-                foundUnmeasuredRows = true
             }
             return updated
         }
-        return foundUnmeasuredRows
     }
 }

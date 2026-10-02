@@ -177,6 +177,38 @@ struct WindowScanModelTests {
         #expect(model.warnings == ["fixture warning"])
     }
 
+    @Test("A partial measurement keeps the report incomplete even without a warning")
+    func partialMeasurementMarksReportIncomplete() async {
+        let source = ControlledScanSource()
+        let model = WindowScanModel(source: source)
+        model.acceptDemoTarget(named: "Partial")
+        let generation = model.generation
+        let artifact = makeArtifact()
+        source.yield(.discovered(generation: generation, artifact: artifact))
+        source.yield(.completed(generation: generation, artifactID: artifact.id, bytes: 20, partial: true))
+        source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
+
+        await model.waitForCurrentScan()
+
+        #expect(model.rows.first?.size == .partial(20))
+        #expect(model.phase == .incomplete)
+    }
+
+    @Test("Incomplete or unknown Rust terminal statuses cannot report success", arguments: [2, 99])
+    func unsuccessfulRustStatusMarksReportIncomplete(status: UInt32) async {
+        let (stream, continuation) = AsyncStream.makeStream(of: ScanEvent.self)
+        let bridge = RustScanBridgeContext(generation: 1, continuation: continuation)
+        bridge.finish(status: status)
+
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Incomplete")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .incomplete)
+        #expect(!model.warnings.isEmpty)
+    }
+
     @Test("Duplicate and out-of-order events do not duplicate rows or invent a size")
     func duplicateAndOutOfOrderEventsAreSafe() {
         let model = WindowScanModel(source: ControlledScanSource())
@@ -247,6 +279,20 @@ struct WindowScanModelTests {
     }
 
 #if DEBUG
+    @Test("Mock scenarios discard the previous real target and never rescan that folder")
+    func mockScenarioClearsRealTarget() {
+        let source = ControlledScanSource()
+        let model = WindowScanModel(source: source)
+        model.accept(target: URL(fileURLWithPath: "/real/project", isDirectory: true))
+
+        model.showMockState(.results)
+        #expect(model.targetURL == nil)
+
+        model.rescan()
+        #expect(source.lastTarget == nil)
+        model.stop()
+    }
+
     @Test("Debug mock scenarios render empty, streaming, completed, stopped, and incomplete states")
     func mockScenarios() {
         let model = WindowScanModel(source: ControlledScanSource())
@@ -286,6 +332,7 @@ struct WindowScanModelTests {
 
 @MainActor
 private final class ControlledScanSource: ScanEventSource {
+    private(set) var lastTarget: URL?
     private var continuations: [UInt64: AsyncStream<ScanEvent>.Continuation] = [:]
     private let terminationEvents: AsyncStream<UInt64>
     private let terminationContinuation: AsyncStream<UInt64>.Continuation
@@ -295,6 +342,7 @@ private final class ControlledScanSource: ScanEventSource {
     }
 
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
+        lastTarget = target
         let (stream, continuation) = AsyncStream.makeStream(of: ScanEvent.self)
         continuations[generation] = continuation
         let terminationContinuation = self.terminationContinuation
