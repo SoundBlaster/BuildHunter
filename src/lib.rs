@@ -599,6 +599,16 @@ impl WorkQueue {
 
 struct CloseOnDrop<'a>(&'a WorkQueue);
 
+struct CloseOnPanic<'a>(&'a WorkQueue);
+
+impl Drop for CloseOnPanic<'_> {
+    fn drop(&mut self) {
+        if std::thread::panicking() {
+            self.0.close();
+        }
+    }
+}
+
 impl Drop for CloseOnDrop<'_> {
     fn drop(&mut self) {
         self.0.close();
@@ -611,6 +621,9 @@ fn run_worker(
     control: &ScanControl,
     probes: &Probes,
 ) {
+    // A panicking worker would never send its pending messages; closing the queue lets the
+    // other workers exit, which disconnects the channel and releases the caller.
+    let _close = CloseOnPanic(queue);
     while let Some(task) = queue.pop() {
         let listing = list_directory(&task.path, control, probes);
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
@@ -643,9 +656,10 @@ fn run_worker(
             let directory = probes.metadata(&task.path);
             let mut measured = Vec::with_capacity(files.len());
             for file in files {
-                // A stopped scan needs no sizes; return promptly so the scan can end.
+                // A stopped scan needs no more sizes, but the caller may be waiting for this
+                // message, so the partial result is still sent.
                 if control.should_stop() {
-                    return;
+                    break;
                 }
                 measured.push(file.map(|file| probes.metadata(&file)));
             }
@@ -819,6 +833,10 @@ where
                 break;
             };
             self.outstanding -= 1;
+            // Messages after a stop may be partial; open artifacts are completed below.
+            if self.control.should_stop() {
+                break;
+            }
             match message {
                 WorkerMessage::Listed {
                     node,
@@ -2003,6 +2021,51 @@ mod tests {
             events.last(),
             Some(ScanEvent::Finished(ScanStatus::Completed))
         ));
+    }
+
+    #[test]
+    fn external_cancel_while_a_worker_measures_still_returns() {
+        let tree = TempTree::new();
+        let build = tree.0.join(".build");
+        fs::create_dir_all(&build).unwrap();
+        for index in 0..8_000 {
+            fs::write(build.join(format!("object-{index}.o")), b"").unwrap();
+        }
+        let root = tree.0.clone();
+        let control = std::sync::Arc::new(ScanControl::new());
+        let (discovered, discovery) = std::sync::mpsc::channel();
+        let (finished, result) = std::sync::mpsc::channel();
+        let canceller = control.clone();
+        std::thread::spawn(move || {
+            if discovery.recv().is_ok() {
+                // Cancel while the worker reads sizes and the caller waits for them.
+                std::thread::sleep(std::time::Duration::from_millis(1));
+                canceller.cancel();
+            }
+        });
+        let scanner = control.clone();
+        std::thread::spawn(move || {
+            let report = scan_with_policy(
+                &root,
+                ScanOptions {
+                    apparent_size: true,
+                },
+                &scanner,
+                |facts| rust_cli_policy(facts, false),
+                |event| {
+                    if matches!(event, ScanEvent::ArtifactDiscovered(_)) {
+                        let _ = discovered.send(());
+                    }
+                },
+            );
+            let _ = finished.send(report);
+        });
+
+        let report = result
+            .recv_timeout(std::time::Duration::from_secs(20))
+            .expect("a cancelled scan returns instead of waiting for unsent sizes");
+        assert_eq!(report.status, ScanStatus::Cancelled);
+        assert!(report.artifacts.iter().all(|artifact| artifact.partial));
     }
 
     #[test]
