@@ -33,7 +33,8 @@ struct ArtifactDiagramWindow: View {
                     .frame(minWidth: 240, idealWidth: 280, maxWidth: 380, maxHeight: .infinity)
             }
             WindowStatusBar {
-                Text("Area shows known artifact sizes. Partial sizes are lower bounds; unmeasured artifacts have no sector yet.")
+                Label("Area shows known artifact sizes. Partial sizes are lower bounds; unmeasured artifacts have no sector yet.",
+                      systemImage: "chart.pie.fill")
             }
         }
         .frame(minWidth: 760, minHeight: 540)
@@ -51,9 +52,12 @@ private struct DiagramHeader: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(targetName ?? "Choose a folder in the scan window")
-                    .font(.title2.weight(.semibold))
-                    .nestedAccessibilityIdentifier("target")
+                HStack(alignment: .firstTextBaseline, spacing: 7) {
+                    Image(systemName: "folder.fill").accessibilityHidden(true)
+                    Text(targetName ?? "Choose a folder in the scan window")
+                        .nestedAccessibilityIdentifier("target")
+                }
+                .font(.title2.weight(.semibold))
                 Text(phase.diagramDescription)
                     .foregroundStyle(.secondary)
                     .nestedAccessibilityIdentifier("status")
@@ -110,6 +114,7 @@ private struct ArtifactSunburstChart: View {
                         )
                         .cornerRadius(CGFloat(decoration.cornerRadius))
                         .foregroundStyle(diagramColor(palette.color(for: sector)))
+                        .opacity(max(0.7, 1 - Double(sector.depth) * 0.14))
                         .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")
                         .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
                     }
@@ -128,8 +133,12 @@ private struct ArtifactSunburstChart: View {
                                         }
                                     Button(action: goUp) {
                                         VStack(spacing: 3) {
-                                            Text(canNavigateUp ? "Up · Known size" : "Known size")
-                                                .font(.caption2).foregroundStyle(.secondary)
+                                            HStack(spacing: 3) {
+                                                Image(systemName: canNavigateUp ? "arrow.up.circle" : "square.stack.3d.up.fill")
+                                                    .accessibilityHidden(true)
+                                                Text(canNavigateUp ? "Up · Known size" : "Known size")
+                                            }
+                                            .font(.caption2).foregroundStyle(.secondary)
                                             Text(diagramBytes(bytes))
                                                 .foregroundStyle(Color.primary)
                                                 .font(.headline)
@@ -254,20 +263,23 @@ private struct ArtifactDiagramSidebar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Button("All artifacts") { model.navigate(to: "") }
+                Button("All artifacts", systemImage: "square.stack.3d.up.fill") { model.navigate(to: "") }
                     .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("showAll")
-                Button("Up") { model.navigateUp() }
+                Button("Up", systemImage: "arrow.up.circle") { model.navigateUp() }
                     .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("up")
             }
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(model.displayedPath)
-                    .font(.headline)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .nestedAccessibilityIdentifier("focus")
-                Button("Copy path", systemImage: "doc.on.doc") {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "folder.fill").accessibilityHidden(true)
+                    Text(model.displayedPath)
+                        .font(.headline)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .nestedAccessibilityIdentifier("focus")
+                }
+                Button("Copy path", systemImage: "document.on.document") {
                     guard let path = model.displayedURL?.path else { return }
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(path, forType: .string)
@@ -323,7 +335,10 @@ private struct ArtifactDiagramFolderRow: View {
     var body: some View {
         Button(action: select) {
             HStack(alignment: .top, spacing: 8) {
-                Circle().fill(diagramColor(swatch ?? .other)).frame(width: 8, height: 8).padding(.top, 4)
+                Image(systemName: "folder.fill")
+                    .foregroundStyle(diagramColor(swatch ?? .other))
+                    .padding(.top, 1)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(node.name).lineLimit(1).truncationMode(.middle)
                     Text("\(diagramBytes(node.bytes)) · \(node.statistics.artifactCount) artifacts")

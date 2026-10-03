@@ -27,7 +27,7 @@ struct BuildHunterWindow: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 VStack {
-                    Button("Diagram") { showDiagram() }
+                    Button("Diagram", systemImage: "chart.pie.fill") { showDiagram() }
                         .disabled(windowStore == nil)
                         .help("Show a live diagram of this scan")
                         .nestedAccessibilityIdentifier("openDiagram")
@@ -85,7 +85,7 @@ struct BuildHunterWindow: View {
             Text("Read-only scan · artifacts are measured as the folder is traversed.")
                 .font(.callout.weight(.medium))
         } icon: {
-            Image(systemName: "exclamationmark.triangle.fill")
+            Image(systemName: "eye.fill")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 18)
@@ -99,7 +99,7 @@ struct BuildHunterWindow: View {
         } description: {
             Text("Drop a folder here or use File → Open Folder… to scan local build artifacts.")
         } actions: {
-            Button("Open Folder…") { model.isChoosingFolder = true }
+            Button("Open Folder…", systemImage: "folder.fill") { model.isChoosingFolder = true }
                 .keyboardShortcut("o", modifiers: .command)
                 .nestedAccessibilityIdentifier("openFolder")
         }
@@ -111,18 +111,25 @@ struct BuildHunterWindow: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("\(targetName)")
-                        .font(.title2.weight(.semibold))
-                        .nestedAccessibilityIdentifier("target")
-                    Text(statusDescription)
-                        .foregroundStyle(.secondary)
-                        .nestedAccessibilityIdentifier("status")
+                    HStack(alignment: .firstTextBaseline, spacing: 7) {
+                        Image(systemName: "folder.fill").accessibilityHidden(true)
+                        Text("\(targetName)")
+                            .nestedAccessibilityIdentifier("target")
+                    }
+                    .font(.title2.weight(.semibold))
+                    Label {
+                        Text(statusDescription)
+                            .nestedAccessibilityIdentifier("status")
+                    } icon: {
+                        Image(systemName: statusSymbolName).accessibilityHidden(true)
+                    }
+                    .foregroundStyle(.secondary)
                 }
                 Spacer()
                 if model.isScanning {
-                    Button("Stop") { model.stop() }
+                    Button("Stop", systemImage: "stop.circle.fill") { model.stop() }
                 } else if model.phase != .idle {
-                    Button("Rescan") { model.rescan() }
+                    Button("Rescan", systemImage: "arrow.clockwise") { model.rescan() }
                 }
             }
             if !model.warnings.isEmpty {
@@ -147,6 +154,16 @@ struct BuildHunterWindow: View {
         case .completed: "Scan complete"
         case .stopped: "Scan stopped · partial results"
         case .incomplete: "Scan incomplete · review warnings"
+        }
+    }
+
+    private var statusSymbolName: String {
+        switch model.phase {
+        case .idle: "folder.fill"
+        case .scanning: "hourglass"
+        case .completed: "checkmark.circle.fill"
+        case .stopped: "ellipsis.circle"
+        case .incomplete: "exclamationmark.circle.fill"
         }
     }
 
@@ -233,8 +250,12 @@ struct WindowStatusBar<Content: View>: View {
 private struct ScanReportFooter: View {
     var body: some View {
         WindowStatusBar {
-            Text("BuildHunter only reads files and folders. It never deletes artifacts.")
-                .nestedAccessibilityIdentifier("readOnlyStatus")
+            Label {
+                Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+                    .nestedAccessibilityIdentifier("readOnlyStatus")
+            } icon: {
+                Image(systemName: "eye.fill").accessibilityHidden(true)
+            }
         }
     }
 }
