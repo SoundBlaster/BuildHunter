@@ -252,9 +252,9 @@ struct ArtifactSunburstTests {
         }
     }
 
-    @Test("Late discoveries and top-six membership changes retain assigned colors")
+    @Test("Late discoveries and visible membership changes retain assigned colors")
     func streamingColors() throws {
-        var rows = (0..<9).map { row("Project\($0)/.build", .measured(Int64(100 + $0))) }
+        var rows = (0..<14).map { row("Project\($0)/.build", .measured(Int64(100 + $0))) }
         var palette = ArtifactSunburstPalette()
         let first = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: rows))
         palette.include(first)
@@ -271,7 +271,7 @@ struct ArtifactSunburstTests {
 
     @Test("Other remains neutral at every focus and the selected target gets a real color")
     func neutralAggregation() throws {
-        let snapshot = ArtifactSunburstSnapshot(rows: (0..<9).map {
+        let snapshot = ArtifactSunburstSnapshot(rows: (0..<14).map {
             row("Apps/Project\($0)/.build", .measured(100))
         })
         var palette = ArtifactSunburstPalette()
@@ -297,6 +297,21 @@ struct ArtifactSunburstTests {
         #expect(layout.sectors.first?.end == 1)
     }
 
+    @Test("Twelve siblings remain individually visible; the thirteenth is grouped without losing bytes")
+    func expandedSectorLimit() {
+        let rows = (0..<13).map { row("Project\($0)/.build", .measured(100)) }
+        let twelve = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: Array(rows.prefix(12))))
+        let twelveRoots = twelve.sectors.filter { $0.depth == 0 }
+        #expect(twelveRoots.count == 12)
+        #expect(twelveRoots.allSatisfy { $0.nodeID != nil })
+        let thirteen = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: rows))
+        let roots = thirteen.sectors.filter { $0.depth == 0 }
+        #expect(roots.compactMap(\.nodeID).count == 12)
+        #expect(roots.first { $0.id == .other("") }?.bytes == 100)
+        #expect(roots.reduce(0) { $0 + $1.bytes } == 1_300)
+        #expect(roots.allSatisfy { $0.end - $0.start >= ArtifactSunburstLayout.minimumSectorAngle - 1e-12 })
+    }
+
     @Test("Dense reports remain bounded without losing sizes or folder navigation")
     func denseReport() {
         let snapshot = ArtifactSunburstSnapshot(rows: (0..<10_000).map {
@@ -304,7 +319,7 @@ struct ArtifactSunburstTests {
         })
         let layout = ArtifactSunburstLayout(snapshot: snapshot)
         let inner = layout.sectors.filter { $0.depth == 0 }
-        #expect(inner.count == 7)
+        #expect(inner.count == 13)
         #expect(inner.contains { $0.id == .other("") })
         #expect(inner.reduce(0) { $0 + $1.bytes } == 100_000)
         #expect(layout.sectors.count <= 399)

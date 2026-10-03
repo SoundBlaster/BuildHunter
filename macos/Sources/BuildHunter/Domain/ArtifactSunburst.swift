@@ -77,6 +77,7 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
 struct ArtifactSunburstLayout: Equatable, Sendable {
     /// One sixtieth of a complete turn (six degrees).
     static let minimumSectorAngle = 1.0 / 60.0
+    static let maximumVisibleChildren = 12
 
     struct Sector: Identifiable, Equatable, Sendable {
         enum ID: Hashable, Sendable {
@@ -137,9 +138,9 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
             let newNodes = positive.filter { !previousSet.contains($0.id) }
             let selectedVisible: [ArtifactSunburstNode]
             let selectedRemaining: [ArtifactSunburstNode]
-            if positive.count > 7 {
+            if positive.count > Self.maximumVisibleChildren {
                 let ranked = newNodes.sorted { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }
-                let added = Array(ranked.prefix(max(0, 6 - existing.count))).sorted { $0.id < $1.id }
+                let added = Array(ranked.prefix(max(0, Self.maximumVisibleChildren - existing.count))).sorted { $0.id < $1.id }
                 selectedVisible = existing + added
                 let visibleIDs = Set(selectedVisible.map(\.id))
                 selectedRemaining = positive.filter { !visibleIDs.contains($0.id) }

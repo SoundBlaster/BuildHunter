@@ -142,7 +142,7 @@ final class ArtifactDiagramModel {
         // Reveal a late size leader on deliberate navigation, while keeping the
         // displayed membership fixed during subsequent scan updates.
         if let previous = retainedOrder[focusID], !previous.contains(largest.id) {
-            retainedOrder[focusID] = [largest.id] + previous.prefix(5)
+            retainedOrder[focusID] = [largest.id] + previous.prefix(ArtifactSunburstLayout.maximumVisibleChildren - 1)
         }
     }
 

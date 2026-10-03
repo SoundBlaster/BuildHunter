@@ -255,7 +255,7 @@ struct ArtifactDiagramModelTests {
         let diagram = ArtifactDiagramModel()
         scan.acceptDemoTarget(named: "Fixture")
         defer { scan.stop() }
-        for (index, path) in ["Zebra", "Middle", "Beta", "Delta", "Echo", "Foxtrot", "Golf"].enumerated() {
+        for (index, path) in ["Zebra", "Middle", "Beta", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliet", "Kilo", "Lima"].enumerated() {
             let entry = artifact("\(path)/.build")
             scan.apply(.discovered(generation: scan.generation, artifact: entry))
             scan.apply(.completed(generation: scan.generation, artifactID: entry.id, bytes: Int64(index + 1)))
@@ -270,7 +270,7 @@ struct ArtifactDiagramModelTests {
         scan.apply(.completed(generation: scan.generation, artifactID: late.id, bytes: 1_000_000))
         await diagram.refresh(from: scan)
         #expect(diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID) == original)
-        #expect(diagram.layout.sectors.filter { $0.depth == 0 }.reduce(0) { $0 + $1.bytes } == 1_000_028)
+        #expect(diagram.layout.sectors.filter { $0.depth == 0 }.reduce(0) { $0 + $1.bytes } == 1_000_078)
         for (path, color) in colors { #expect(diagram.palette.colors[path] == color) }
         diagram.navigate(to: "Middle")
         diagram.navigate(to: "")

@@ -22,11 +22,11 @@ the absolute filesystem path with a copy button immediately after it; synthetic 
 reports have no path to copy.
 
 The chart displays at most three levels. On first display, a dense sibling group
-uses six largest children plus **Other**. Already visible children retain their
-slots and order during streaming; newly measured folders append into free slots.
-If all seven children were already visible before an eighth arrived, retain all
-seven plus Other (at most eight sectors per parent). Later large arrivals stay in
-Other instead of ejecting a visible folder. On deliberate navigation, the selected
+shows up to twelve individual children plus **Other** (at most thirteen sectors
+per parent), subject to the six-degree floor inside the parent interval. On first
+display, the twelve largest children are selected. Already visible children retain
+their slots and order during streaming; newly measured folders append into free
+slots. Later large arrivals stay in Other instead of ejecting a visible folder. On deliberate navigation, the selected
 folder's largest child is made visible if it was previously grouped. Other preserves
 all remaining bytes; select it to see the complete, filterable folder list.
 Sizes and angle widths continue updating, so boundaries can move, but sibling order
