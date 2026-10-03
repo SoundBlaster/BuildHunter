@@ -631,17 +631,22 @@ where
                         if self.control.should_stop() {
                             break;
                         }
-                        let child = entry.and_then(|entry| {
-                            let file_type = entry.file_type()?;
-                            Ok((entry.path(), file_type))
-                        });
-                        match child {
-                            Ok((child, file_type)) => {
+                        let entry = match entry {
+                            Ok(entry) => entry,
+                            Err(error) => {
+                                self.warn(path, error);
+                                continue;
+                            }
+                        };
+                        let child = entry.path();
+                        // Without d_type the type needs a lookup that can fail for the child.
+                        match entry.file_type() {
+                            Ok(file_type) => {
                                 let child_bytes =
                                     self.walk(&child, Some(file_type), artifact_ancestor);
                                 bytes = bytes.saturating_add(child_bytes);
                             }
-                            Err(error) => self.warn(path, error),
+                            Err(error) => self.warn(&child, error),
                         }
                     }
                 }
