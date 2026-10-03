@@ -199,9 +199,10 @@ private struct ArtifactSunburstChart: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .frame(height: 34)
-            Text("\(statistics.unavailableCount) unavailable · \(statistics.zeroCount) zero bytes")
+            Text(sizeNotes)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .frame(minHeight: 16)
         }
         .onChange(of: focusID) { setHover(nil) }
         .onChange(of: reportID) { setHover(nil) }
@@ -209,6 +210,19 @@ private struct ArtifactSunburstChart: View {
             if !layout.sectors.contains(where: { $0.id == hovered }) { setHover(nil) }
         }
         .onDisappear { setHover(nil) }
+    }
+
+    private var sizeNotes: String {
+        var notes: [String] = []
+        if statistics.unavailableCount > 0 {
+            let count = statistics.unavailableCount
+            notes.append("\(count) \(count == 1 ? "artifact" : "artifacts") with unknown size")
+        }
+        if statistics.zeroCount > 0 {
+            let count = statistics.zeroCount
+            notes.append("\(count) \(count == 1 ? "artifact" : "artifacts") with size 0 B")
+        }
+        return notes.joined(separator: " · ")
     }
 
     private func setHover(_ sector: ArtifactSunburstLayout.Sector?) {
