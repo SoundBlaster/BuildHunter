@@ -533,17 +533,18 @@ where
         self.emit(&ScanEvent::Warning(warning));
     }
 
-    /// `file_type` comes from the parent's directory entry. Metadata is read only for nodes
-    /// whose bytes are counted, so source trees outside artifacts cost one readdir per folder.
-    fn walk(&mut self, path: &Path, file_type: Option<fs::FileType>, inside_artifact: bool) -> u64 {
+    /// `entry` carries the node's type and its parent's marker files from the parent's
+    /// listing. Metadata is read only for nodes whose bytes are counted, so source trees
+    /// outside artifacts cost one readdir per folder.
+    fn walk(&mut self, path: &Path, entry: Option<ListedEntry>, inside_artifact: bool) -> u64 {
         if self.control.should_stop() {
             return 0;
         }
         let mut metadata = None;
-        let file_type = match file_type {
-            Some(file_type) => file_type,
+        let (file_type, parent_listing_markers) = match entry {
+            Some(entry) => (entry.file_type, Some(entry.parent_markers)),
             None => match node_metadata(path) {
-                Ok(value) => metadata.insert(value).file_type(),
+                Ok(value) => (metadata.insert(value).file_type(), None),
                 Err(error) => {
                     self.warn(path, error);
                     return 0;
@@ -553,16 +554,20 @@ where
         let is_symlink = file_type.is_symlink();
         let is_directory = file_type.is_dir();
         let node_name = path.file_name().map(os_str_bytes).unwrap_or_default();
-        // Marker probes are restricted to candidates; checking siblings for every path would
-        // dominate traversal cost on large source trees.
-        let own_markers = if is_directory && path.join("pyvenv.cfg").is_file() {
-            MARKER_PYVENV_CFG
+        // The directory is listed before the policy runs: its own markers come from that
+        // listing, and it closes before recursion so open handles do not grow with depth.
+        let listing = if is_directory {
+            self.list_directory(path)
         } else {
-            0
+            Listing::default()
         };
+        let own_markers = listing.markers & MARKER_PYVENV_CFG;
         let parent_markers =
             if is_directory && matches!(node_name.as_ref(), b"target" | b"build" | b"dist") {
-                path.parent().map(marker_flags).unwrap_or_default()
+                // Only the selected root has no parent listing.
+                parent_listing_markers
+                    .unwrap_or_else(|| path.parent().map(marker_flags).unwrap_or_default())
+                    & !MARKER_PYVENV_CFG
             } else {
                 0
             };
@@ -624,34 +629,18 @@ where
                 metadata_bytes(&metadata, self.options.apparent_size)
             });
         }
-        if is_directory {
-            match fs::read_dir(path) {
-                Ok(entries) => {
-                    for entry in entries {
-                        if self.control.should_stop() {
-                            break;
-                        }
-                        let entry = match entry {
-                            Ok(entry) => entry,
-                            Err(error) => {
-                                self.warn(path, error);
-                                continue;
-                            }
-                        };
-                        let child = entry.path();
-                        // Without d_type the type needs a lookup that can fail for the child.
-                        match entry.file_type() {
-                            Ok(file_type) => {
-                                let child_bytes =
-                                    self.walk(&child, Some(file_type), artifact_ancestor);
-                                bytes = bytes.saturating_add(child_bytes);
-                            }
-                            Err(error) => self.warn(&child, error),
-                        }
-                    }
-                }
-                Err(error) => self.warn(path, error),
+        for (error_path, error) in listing.errors {
+            self.warn(&error_path, error);
+        }
+        for (child, file_type) in listing.children {
+            if self.control.should_stop() {
+                break;
             }
+            let entry = ListedEntry {
+                file_type,
+                parent_markers: listing.markers,
+            };
+            bytes = bytes.saturating_add(self.walk(&child, Some(entry), artifact_ancestor));
         }
         if let Some(id) = id {
             let partial = self.control.should_stop() || self.warnings.len() > warning_count;
@@ -664,6 +653,70 @@ where
         }
         bytes
     }
+
+    fn list_directory(&self, path: &Path) -> Listing {
+        let mut listing = Listing::default();
+        let entries = match fs::read_dir(path) {
+            Ok(entries) => entries,
+            Err(error) => {
+                listing.errors.push((path.to_owned(), error));
+                return listing;
+            }
+        };
+        for entry in entries {
+            if self.control.should_stop() {
+                break;
+            }
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(error) => {
+                    listing.errors.push((path.to_owned(), error));
+                    continue;
+                }
+            };
+            let child = entry.path();
+            // Without d_type the type needs a lookup that can fail for the child.
+            match entry.file_type() {
+                Ok(file_type) => {
+                    let marker = child.file_name().map_or(0, marker_flag);
+                    // A marker must be a file; only a symlinked marker needs resolving.
+                    if marker != 0
+                        && (file_type.is_file()
+                            || (file_type.is_symlink() && marker_is_file(&child)))
+                    {
+                        listing.markers |= marker;
+                    }
+                    listing.children.push((child, file_type));
+                }
+                Err(error) => listing.errors.push((child, error)),
+            }
+        }
+        listing
+    }
+}
+
+struct ListedEntry {
+    file_type: fs::FileType,
+    parent_markers: u32,
+}
+
+#[derive(Default)]
+struct Listing {
+    children: Vec<(PathBuf, fs::FileType)>,
+    markers: u32,
+    /// Each error names the path it concerns: the listed directory or one child.
+    errors: Vec<(PathBuf, std::io::Error)>,
+}
+
+fn marker_flag(name: &OsStr) -> u32 {
+    match os_str_bytes(name).as_ref() {
+        b"Cargo.toml" => MARKER_CARGO_TOML,
+        b"pyproject.toml" => MARKER_PYPROJECT_TOML,
+        b"setup.py" => MARKER_SETUP_PY,
+        b"setup.cfg" => MARKER_SETUP_CFG,
+        b"pyvenv.cfg" => MARKER_PYVENV_CFG,
+        _ => 0,
+    }
 }
 
 #[cfg(test)]
@@ -672,6 +725,7 @@ mod probe_counts {
 
     thread_local! {
         pub static METADATA: Cell<usize> = const { Cell::new(0) };
+        pub static MARKER_PROBES: Cell<usize> = const { Cell::new(0) };
     }
 }
 
@@ -679,6 +733,12 @@ fn node_metadata(path: &Path) -> std::io::Result<fs::Metadata> {
     #[cfg(test)]
     probe_counts::METADATA.with(|count| count.set(count.get() + 1));
     fs::symlink_metadata(path)
+}
+
+fn marker_is_file(path: &Path) -> bool {
+    #[cfg(test)]
+    probe_counts::MARKER_PROBES.with(|count| count.set(count.get() + 1));
+    path.is_file()
 }
 
 fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
@@ -697,16 +757,16 @@ fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
 
 fn marker_flags(path: &Path) -> u32 {
     let mut flags = 0;
-    if path.join("Cargo.toml").is_file() {
+    if marker_is_file(&path.join("Cargo.toml")) {
         flags |= MARKER_CARGO_TOML;
     }
-    if path.join("pyproject.toml").is_file() {
+    if marker_is_file(&path.join("pyproject.toml")) {
         flags |= MARKER_PYPROJECT_TOML;
     }
-    if path.join("setup.py").is_file() {
+    if marker_is_file(&path.join("setup.py")) {
         flags |= MARKER_SETUP_PY;
     }
-    if path.join("setup.cfg").is_file() {
+    if marker_is_file(&path.join("setup.cfg")) {
         flags |= MARKER_SETUP_CFG;
     }
     flags
@@ -1498,6 +1558,87 @@ mod tests {
                 + fs::metadata(build.join("debug/object.o")).unwrap().len()
                 + fs::metadata(build.join("manifest")).unwrap().len()
         );
+    }
+
+    fn marker_probes_during(scan: impl FnOnce()) -> usize {
+        let before = probe_counts::MARKER_PROBES.with(|count| count.get());
+        scan();
+        probe_counts::MARKER_PROBES.with(|count| count.get()) - before
+    }
+
+    fn artifact_paths(root: &Path, include_environments: bool) -> (Vec<PathBuf>, usize) {
+        let mut report = None;
+        let probes = marker_probes_during(|| {
+            report = Some(scan_with_policy(
+                root,
+                ScanOptions {
+                    apparent_size: true,
+                },
+                &ScanControl::new(),
+                |facts| rust_cli_policy(facts, include_environments),
+                |_| {},
+            ));
+        });
+        let mut paths: Vec<_> = report
+            .unwrap()
+            .artifacts
+            .into_iter()
+            .map(|artifact| artifact.relative_path)
+            .collect();
+        paths.sort();
+        (paths, probes)
+    }
+
+    #[test]
+    fn markers_come_from_directory_listings_without_extra_probes() {
+        let tree = TempTree::new();
+        for module in 0..16 {
+            fs::create_dir_all(tree.0.join(format!("app/Sources/module-{module}"))).unwrap();
+        }
+        fs::create_dir_all(tree.0.join("service/target/debug")).unwrap();
+        fs::write(tree.0.join("service/Cargo.toml"), b"[package]").unwrap();
+        fs::create_dir_all(tree.0.join("tool/dist")).unwrap();
+        fs::write(tree.0.join("tool/setup.cfg"), b"[metadata]").unwrap();
+        fs::create_dir_all(tree.0.join("plain/build")).unwrap();
+        fs::create_dir_all(tree.0.join(".venv/lib")).unwrap();
+        fs::write(tree.0.join(".venv/pyvenv.cfg"), b"home = /usr").unwrap();
+        fs::create_dir_all(tree.0.join("venv/pyvenv.cfg")).unwrap();
+
+        let (excluded, probes) = artifact_paths(&tree.0, false);
+        assert_eq!(probes, 0);
+        assert_eq!(
+            excluded,
+            [PathBuf::from("service/target"), PathBuf::from("tool/dist")]
+        );
+
+        let (included, probes) = artifact_paths(&tree.0, true);
+        assert_eq!(probes, 0);
+        assert_eq!(
+            included,
+            [
+                PathBuf::from(".venv"),
+                PathBuf::from("service/target"),
+                PathBuf::from("tool/dist")
+            ]
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_markers_count_when_they_resolve_to_files() {
+        let tree = TempTree::new();
+        fs::create_dir_all(tree.0.join("shared")).unwrap();
+        fs::write(tree.0.join("shared/Cargo.toml"), b"[package]").unwrap();
+        fs::create_dir_all(tree.0.join("linked/target")).unwrap();
+        std::os::unix::fs::symlink("../shared/Cargo.toml", tree.0.join("linked/Cargo.toml"))
+            .unwrap();
+        fs::create_dir_all(tree.0.join("dangling/target")).unwrap();
+        std::os::unix::fs::symlink("missing.toml", tree.0.join("dangling/Cargo.toml")).unwrap();
+
+        let (paths, probes) = artifact_paths(&tree.0, false);
+
+        assert_eq!(paths, [PathBuf::from("linked/target")]);
+        assert_eq!(probes, 2, "only symlinked markers are resolved");
     }
 
     #[test]
