@@ -1,5 +1,5 @@
 use build_hunter::{ScanControl, ScanOptions, rust_cli_policy, scan_with_policy};
-use std::{env, fs, path::PathBuf, process, time::Instant};
+use std::{collections::BTreeSet, env, fs, path::PathBuf, process, time::Instant};
 
 fn human(bytes: u64) -> String {
     let mut size = bytes as f64;
@@ -28,20 +28,95 @@ fn quoted(value: &str) -> String {
     out
 }
 
+fn parse_exclusion(value: &str, excluded: &mut BTreeSet<&'static str>) -> Result<(), String> {
+    if value.is_empty() {
+        return Err("--exclude requires a non-empty filter ID or language alias".to_owned());
+    }
+    for id in value.split(',') {
+        if id.is_empty() {
+            return Err("--exclude contains an empty filter ID".to_owned());
+        }
+        match id {
+            "swift" | "rust" | "python" => {
+                let group = match id {
+                    "swift" => "Swift",
+                    "rust" => "Rust",
+                    _ => "Python",
+                };
+                excluded.extend(
+                    build_hunter::SEARCH_FILTER_CATALOG
+                        .iter()
+                        .filter(|descriptor| descriptor.group == group)
+                        .map(|descriptor| descriptor.id),
+                );
+            }
+            _ => {
+                if let Some(descriptor) = build_hunter::SEARCH_FILTER_CATALOG
+                    .iter()
+                    .find(|descriptor| descriptor.id == id)
+                {
+                    excluded.insert(descriptor.id);
+                } else {
+                    return Err(format!("Unknown exclusion filter: {id}"));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn print_filter_catalog(json: bool) {
+    if json {
+        println!("{}", build_hunter::search_filter_catalog_json());
+        return;
+    }
+    for descriptor in build_hunter::SEARCH_FILTER_CATALOG {
+        println!(
+            "{}\t{}\t{}",
+            descriptor.id, descriptor.group, descriptor.title
+        );
+    }
+}
+
 fn main() {
     let mut language = "all".to_owned();
     let mut environments = false;
     let mut apparent = false;
     let mut json = false;
+    let mut list_filters = false;
+    let mut exclusions = BTreeSet::new();
     let mut root = None;
     let mut args = env::args_os().skip(1);
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
                 println!(
-                    "build-hunter [PATH] [--language all|swift|rust|python] [--json] [--apparent] [--include-envs]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
+                    "build-hunter [PATH] [--language all|swift|rust|python] [--exclude ID[,ID...]] [--list-filters] [--json] [--apparent] [--include-envs]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\nExclusions select recognized roots; nested artifacts remain discoverable.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
                 );
                 return;
+            }
+            Some("--list-filters") => list_filters = true,
+            Some("--exclude") => {
+                let value = args.next().and_then(|value| value.into_string().ok());
+                let Some(value) = value else {
+                    eprintln!("--exclude requires a non-empty filter ID or language alias");
+                    process::exit(2);
+                };
+                if value.starts_with('-') {
+                    eprintln!("--exclude requires a non-empty filter ID or language alias");
+                    process::exit(2);
+                }
+                if let Err(error) = parse_exclusion(&value, &mut exclusions) {
+                    eprintln!("{error}");
+                    process::exit(2);
+                }
+            }
+            Some(value) if value.starts_with("--exclude=") => {
+                let value = &value["--exclude=".len()..];
+                if let Err(error) = parse_exclusion(value, &mut exclusions) {
+                    eprintln!("{error}");
+                    process::exit(2);
+                }
             }
             Some("--language") => {
                 language = args
@@ -63,6 +138,10 @@ fn main() {
         eprintln!("Invalid --language; use all, swift, rust or python");
         process::exit(2);
     }
+    if list_filters {
+        print_filter_catalog(json);
+        return;
+    }
     let root = match fs::canonicalize(root.unwrap_or_else(|| PathBuf::from("."))) {
         Ok(path) if path.is_dir() => path,
         _ => {
@@ -82,14 +161,16 @@ fn main() {
             let action = rust_cli_policy(facts, environments);
             match action {
                 build_hunter::CandidateAction::Classify(classification)
-                    if language != "all"
+                    if (language != "all"
                         && classification.language
                             != match language.as_str() {
                                 "swift" => 1,
                                 "rust" => 2,
                                 "python" => 3,
                                 _ => 0,
-                            } =>
+                            })
+                        || build_hunter::filter_id_for_candidate(facts, environments)
+                            .is_some_and(|id| exclusions.contains(id)) =>
                 {
                     build_hunter::CandidateAction::Traverse
                 }

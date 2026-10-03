@@ -2,6 +2,39 @@ import XCTest
 
 @MainActor
 final class BuildHunterUITests: XCTestCase {
+    func testSettingsWindowPersistsSearchSelection() {
+        let suite = "BuildHunter.SettingsUITests.\(UUID().uuidString)"
+        var app = launchWindow(settingsSuite: suite)
+        openSettings(app)
+        let filterID = "buildhunter.settings.search.filter.swift.build"
+        let swiftFilter = app.switches[filterID]
+        XCTAssertTrue(swiftFilter.waitForExistence(timeout: 5), "The application menu must open the native Settings window")
+        XCTAssertEqual((swiftFilter.value as? NSNumber)?.intValue, 1)
+        swiftFilter.click()
+        XCTAssertEqual((swiftFilter.value as? NSNumber)?.intValue, 0)
+        attachScreenshot(named: "settings-search-exclusions", from: app)
+        app.terminate()
+
+        app = launchWindow(settingsSuite: suite)
+        defer { app.terminate() }
+        openSettings(app)
+        let persisted = app.switches[filterID]
+        XCTAssertTrue(persisted.waitForExistence(timeout: 5))
+        XCTAssertEqual((persisted.value as? NSNumber)?.intValue, 0, "Search exclusions must persist across application launches")
+        let enableAll = app.buttons["buildhunter.settings.search.enableAll"]
+        XCTAssertTrue(enableAll.waitForExistence(timeout: 5))
+        enableAll.click()
+        XCTAssertEqual((persisted.value as? NSNumber)?.intValue, 1)
+    }
+
+    private func openSettings(_ app: XCUIApplication) {
+        app.activate()
+        app.menuBars.menuBarItems["BuildHunter"].click()
+        let menuItem = app.menuItems["Settings…"]
+        XCTAssertTrue(menuItem.waitForExistence(timeout: 5))
+        menuItem.click()
+    }
+
     func testMockStatesAndCaptureScreenshots() throws {
         let app = launchWindow()
         defer { app.terminate() }
@@ -295,9 +328,10 @@ final class BuildHunterUITests: XCTestCase {
                        "Expected absolute fixture path: \(path); got \(element.value ?? "nil")", file: file, line: line)
     }
 
-    private func launchWindow() -> XCUIApplication {
+    private func launchWindow(settingsSuite: String = "BuildHunter.UITests.\(UUID().uuidString)") -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchEnvironment["BUILDHUNTER_SETTINGS_SUITE"] = settingsSuite
         // Register cleanup before asserting, so a failed launch cannot leave
         // a windowless process behind for the next test.
         addTeardownBlock { app.terminate() }

@@ -14,13 +14,17 @@
 		137A8B6AA561FC700FF81B96 /* ArtifactPolicyContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB1C694C62C93F3693137CA /* ArtifactPolicyContext.swift */; };
 		19BD9AB84B77FE4D7DF09CBD /* IsScannableArtifactCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */; };
 		1C9920F952809D4378379415 /* ArtifactPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */; };
+		2B9BC3EB581C5067D5379DA7 /* SearchSettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */; };
 		2D32AFF98741BF5F6ABE3259 /* IsOuterArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */; };
 		33F97AD915EA2A1D798C7933 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = CD515261407E62AB7380C8F1 /* SpecificationCore */; };
+		39A1C057EC0F4EBA0BB42DDE /* SearchFilterIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E20EAE29A9A554531B8A41 /* SearchFilterIntegrationTests.swift */; };
+		408B063A95E7BD973C0302C0 /* SearchFilterSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B057B0645AC397544AEED89 /* SearchFilterSettingsTests.swift */; };
 		492FF4DC3A0256639F9696D5 /* ClassifyArtifactRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */; };
 		5E7E76D2BF16CF6D32936F92 /* ArtifactSunburst.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */; };
 		65AC18A80291901B9EE798FD /* ArtifactDiagramModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB9B8170CF5287EF2881E029 /* ArtifactDiagramModelTests.swift */; };
 		702998E2BB6BC35A666F5102 /* SpecificationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3C1F39E00DA07B5F110EE12B /* SpecificationCore */; };
 		740FFA4B30704B8700EC8AE6 /* BuildHunter.icon in Resources */ = {isa = PBXBuildFile; fileRef = 740FFA4A30704B8700EC8AE6 /* BuildHunter.icon */; };
+		75D5EA75D01F77A33BD58A99 /* SearchFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96A652CD95C091C5F5990CC2 /* SearchFilters.swift */; };
 		80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */; };
 		8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */; };
 		91BAFEA4EB4D1D5C975E9049 /* ScanPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */; };
@@ -68,6 +72,8 @@
 		468C96DD92C2663CDF234F16 /* BuildHunter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BuildHunter.entitlements; sourceTree = "<group>"; };
 		498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifyArtifactRoot.swift; sourceTree = "<group>"; };
 		52F6FF88DD87579E03C9A48D /* BuildHunterFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BuildHunterFFI.h; sourceTree = "<group>"; };
+		5B057B0645AC397544AEED89 /* SearchFilterSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilterSettingsTests.swift; sourceTree = "<group>"; };
+		65E20EAE29A9A554531B8A41 /* SearchFilterIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilterIntegrationTests.swift; sourceTree = "<group>"; };
 		6BB1C694C62C93F3693137CA /* ArtifactPolicyContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactPolicyContext.swift; sourceTree = "<group>"; };
 		6C0150F72170B48E6C0BCF83 /* ArtifactDiagramModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiagramModel.swift; sourceTree = "<group>"; };
 		740FFA4A30704B8700EC8AE6 /* BuildHunter.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = BuildHunter.icon; sourceTree = "<group>"; };
@@ -75,6 +81,7 @@
 		7D7F949A7C221A08BBD76D8A /* WindowScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowScanModel.swift; sourceTree = "<group>"; };
 		91718F10DAF439B1C6C551A1 /* BuildHunterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		95843E8BD5AD3180718D17BB /* ArtifactSunburstTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburstTests.swift; sourceTree = "<group>"; };
+		96A652CD95C091C5F5990CC2 /* SearchFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilters.swift; sourceTree = "<group>"; };
 		ADEADEDFC0CAEC86E7E0EDDA /* DemoScanSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoScanSource.swift; sourceTree = "<group>"; };
 		B019A5055F3DE5234638768B /* BuildHunterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterApp.swift; sourceTree = "<group>"; };
 		BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsOuterArtifactRoot.swift; sourceTree = "<group>"; };
@@ -88,6 +95,7 @@
 		F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiagramWindow.swift; sourceTree = "<group>"; };
 		F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWindowStore.swift; sourceTree = "<group>"; };
 		FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburst.swift; sourceTree = "<group>"; };
+		FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +143,7 @@
 				498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */,
 				BC611A3C171769286015BD27 /* IsOuterArtifactRoot.swift */,
 				0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */,
+				96A652CD95C091C5F5990CC2 /* SearchFilters.swift */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -207,6 +216,8 @@
 				CB9B8170CF5287EF2881E029 /* ArtifactDiagramModelTests.swift */,
 				1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */,
 				95843E8BD5AD3180718D17BB /* ArtifactSunburstTests.swift */,
+				65E20EAE29A9A554531B8A41 /* SearchFilterIntegrationTests.swift */,
+				5B057B0645AC397544AEED89 /* SearchFilterSettingsTests.swift */,
 				381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */,
 			);
 			path = BuildHunterTests;
@@ -245,6 +256,7 @@
 				F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */,
 				B019A5055F3DE5234638768B /* BuildHunterApp.swift */,
 				DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */,
+				FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -432,6 +444,8 @@
 				65AC18A80291901B9EE798FD /* ArtifactDiagramModelTests.swift in Sources */,
 				1C9920F952809D4378379415 /* ArtifactPolicyTests.swift in Sources */,
 				030D8A083791B92C0E600782 /* ArtifactSunburstTests.swift in Sources */,
+				39A1C057EC0F4EBA0BB42DDE /* SearchFilterIntegrationTests.swift in Sources */,
+				408B063A95E7BD973C0302C0 /* SearchFilterSettingsTests.swift in Sources */,
 				FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -454,6 +468,8 @@
 				80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */,
 				E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */,
 				EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */,
+				75D5EA75D01F77A33BD58A99 /* SearchFilters.swift in Sources */,
+				2B9BC3EB581C5067D5379DA7 /* SearchSettingsWindow.swift in Sources */,
 				122D646DB6D67209C1050792 /* WindowScanModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

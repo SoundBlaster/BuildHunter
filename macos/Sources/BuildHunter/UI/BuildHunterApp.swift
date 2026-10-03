@@ -15,6 +15,10 @@ struct BuildHunterApp: App {
             ArtifactDiagramCommands()
         }
 
+        Settings {
+            SearchSettingsWindow()
+        }
+
         WindowGroup("Artifact Diagram", id: "artifact-diagram", for: UUID.self) { $scanID in
             if let scanID, let model = windows.model(for: scanID) {
                 ArtifactDiagramWindow(scan: model)

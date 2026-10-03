@@ -16,7 +16,16 @@ build-hunter . --language python
 build-hunter . --language rust --json > report.json
 build-hunter . --include-envs
 build-hunter . --apparent
+build-hunter --list-filters
+build-hunter . --exclude swift.build --exclude python.pytest-cache,python.ruff-cache
+build-hunter . --exclude rust --json
 ```
+
+Фильтры поиска описаны в [Search settings](docs/search-settings.md). Без `--exclude`
+сохраняется прежний набор поиска, включая opt-in виртуальных окружений CLI.
+`--exclude` принимает стабильные ID из `--list-filters`, список через запятую или
+имя языка (`swift`, `rust`, `python`); параметр можно повторять. `--language`
+по-прежнему выбирает язык, исключения дополнительно ограничивают результаты.
 
 После стандартного `cargo install` executable находится в `~/.cargo/bin`.
 Также можно сразу запускать `target/release/build-hunter` из папки проекта.

@@ -1,8 +1,11 @@
 use std::{
-    ffi::{OsStr, c_void},
+    ffi::{OsStr, c_char, c_void},
     fs,
     path::{Path, PathBuf},
-    sync::atomic::{AtomicBool, Ordering},
+    sync::{
+        OnceLock,
+        atomic::{AtomicBool, Ordering},
+    },
 };
 
 #[cfg(unix)]
@@ -13,6 +16,226 @@ pub const MARKER_PYPROJECT_TOML: u32 = 1 << 1;
 pub const MARKER_SETUP_PY: u32 = 1 << 2;
 pub const MARKER_SETUP_CFG: u32 = 1 << 3;
 pub const MARKER_PYVENV_CFG: u32 = 1 << 4;
+
+/// Stable metadata describing one user-selectable search exclusion.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SearchFilterDescriptor {
+    pub id: &'static str,
+    pub title: &'static str,
+    pub group: &'static str,
+    pub node_names: &'static [&'static str],
+    pub suffixes: &'static [&'static str],
+    pub requires_venv_marker: bool,
+}
+
+/// Canonical catalog used by Rust callers, the CLI, and the C bridge.
+pub const SEARCH_FILTER_CATALOG: &[SearchFilterDescriptor] = &[
+    SearchFilterDescriptor {
+        id: "swift.build",
+        title: "Swift build output",
+        group: "Swift",
+        node_names: &[".build"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "rust.target",
+        title: "Rust target directory",
+        group: "Rust",
+        node_names: &["target"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.bytecode",
+        title: "Python bytecode",
+        group: "Python",
+        node_names: &["__pycache__"],
+        suffixes: &[".pyc", ".pyo"],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.pytest-cache",
+        title: "pytest cache",
+        group: "Python",
+        node_names: &[".pytest_cache"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.mypy-cache",
+        title: "mypy cache",
+        group: "Python",
+        node_names: &[".mypy_cache"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.ruff-cache",
+        title: "Ruff cache",
+        group: "Python",
+        node_names: &[".ruff_cache"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.pytype-cache",
+        title: "pytype cache",
+        group: "Python",
+        node_names: &[".pytype"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.build",
+        title: "Python build directory",
+        group: "Python",
+        node_names: &["build"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.dist",
+        title: "Python distribution directory",
+        group: "Python",
+        node_names: &["dist"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.egg-info",
+        title: "Python package metadata",
+        group: "Python",
+        node_names: &[],
+        suffixes: &[".egg-info"],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.environment",
+        title: "Python virtual environment",
+        group: "Python",
+        node_names: &[".venv", "venv"],
+        suffixes: &[],
+        requires_venv_marker: true,
+    },
+    SearchFilterDescriptor {
+        id: "python.tox",
+        title: "tox environment",
+        group: "Python",
+        node_names: &[".tox"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+    SearchFilterDescriptor {
+        id: "python.nox",
+        title: "nox environment",
+        group: "Python",
+        node_names: &[".nox"],
+        suffixes: &[],
+        requires_venv_marker: false,
+    },
+];
+
+static FILTER_CATALOG_JSON: OnceLock<Box<[u8]>> = OnceLock::new();
+
+fn filter_catalog_bytes() -> &'static [u8] {
+    FILTER_CATALOG_JSON.get_or_init(|| {
+        let mut json = String::from("[");
+        for (index, descriptor) in SEARCH_FILTER_CATALOG.iter().enumerate() {
+            if index != 0 {
+                json.push(',');
+            }
+            json.push_str("{\"id\":");
+            json.push_str(&json_string(descriptor.id));
+            json.push_str(",\"title\":");
+            json.push_str(&json_string(descriptor.title));
+            json.push_str(",\"group\":");
+            json.push_str(&json_string(descriptor.group));
+            json.push_str(",\"nodeNames\":");
+            json.push_str(&json_string_array(descriptor.node_names));
+            json.push_str(",\"suffixes\":");
+            json.push_str(&json_string_array(descriptor.suffixes));
+            json.push_str(",\"requiresVenvMarker\":");
+            json.push_str(if descriptor.requires_venv_marker {
+                "true"
+            } else {
+                "false"
+            });
+            json.push('}');
+        }
+        json.push(']');
+        let mut bytes = json.into_bytes();
+        bytes.push(0);
+        bytes.into_boxed_slice()
+    })
+}
+
+/// Return the canonical filter catalog as JSON. Its backing storage lives for the process.
+pub fn search_filter_catalog_json() -> &'static str {
+    let bytes = filter_catalog_bytes();
+    let text = &bytes[..bytes.len() - 1];
+    // Generated JSON is UTF-8 because all catalog strings are Rust string literals.
+    std::str::from_utf8(text).expect("filter catalog JSON is UTF-8")
+}
+
+/// C ABI view of [`search_filter_catalog_json`]. The returned pointer is permanent and NUL-terminated.
+#[unsafe(no_mangle)]
+pub extern "C" fn bh_search_filter_catalog_json() -> *const c_char {
+    filter_catalog_bytes().as_ptr().cast()
+}
+
+/// Identify the stable catalog ID for a candidate that the existing CLI policy classifies.
+pub fn filter_id_for_candidate(
+    facts: &CandidateFacts,
+    include_environments: bool,
+) -> Option<&'static str> {
+    let CandidateAction::Classify(classification) = rust_cli_policy(facts, include_environments)
+    else {
+        return None;
+    };
+    SEARCH_FILTER_CATALOG
+        .iter()
+        .find(|descriptor| {
+            let group_code = language_code(descriptor.group);
+            if classification.language != group_code {
+                return false;
+            }
+            let Some(name) = facts.name() else {
+                return false;
+            };
+            descriptor.node_names.contains(&name)
+                || descriptor
+                    .suffixes
+                    .iter()
+                    .any(|suffix| name.ends_with(suffix))
+        })
+        .map(|descriptor| descriptor.id)
+}
+
+fn json_string(value: &str) -> String {
+    let mut result = String::from("\"");
+    for ch in value.chars() {
+        match ch {
+            '"' => result.push_str("\\\""),
+            '\\' => result.push_str("\\\\"),
+            ch if ch < ' ' => result.push_str(&format!("\\u{:04x}", ch as u32)),
+            ch => result.push(ch),
+        }
+    }
+    result.push('"');
+    result
+}
+
+fn json_string_array(values: &[&str]) -> String {
+    format!(
+        "[{}]",
+        values
+            .iter()
+            .map(|value| json_string(value))
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ScanOptions {
@@ -1086,5 +1309,160 @@ mod tests {
             rust_cli_policy(&facts, false),
             CandidateAction::Classify(_)
         ));
+    }
+
+    fn facts(name: &str, is_directory: bool, parent_marker_files: u32) -> CandidateFacts {
+        CandidateFacts {
+            node_name: name.as_bytes().to_vec(),
+            is_directory,
+            is_symbolic_link: false,
+            has_artifact_ancestor: false,
+            own_marker_files: 0,
+            parent_marker_files,
+        }
+    }
+
+    #[test]
+    fn filter_catalog_is_generated_from_public_descriptors_and_has_stable_ffi_storage() {
+        let json = search_filter_catalog_json();
+        assert!(json.starts_with("[{\"id\":\"swift.build\""));
+        assert!(json.contains("\"id\":\"python.bytecode\",\"title\":\"Python bytecode\",\"group\":\"Python\",\"nodeNames\":[\"__pycache__\"],\"suffixes\":[\".pyc\",\".pyo\"],\"requiresVenvMarker\":false"));
+        assert!(json.contains("\"id\":\"python.environment\""));
+        let pointer = bh_search_filter_catalog_json();
+        assert_eq!(pointer, bh_search_filter_catalog_json());
+        // SAFETY: the exported catalog pointer is documented to remain valid for this process.
+        let ffi_json = unsafe { std::ffi::CStr::from_ptr(pointer) }
+            .to_str()
+            .unwrap();
+        assert_eq!(ffi_json, json);
+        assert_eq!(SEARCH_FILTER_CATALOG.len(), 13);
+    }
+
+    #[test]
+    fn filter_ids_are_individual_and_keep_existing_classification_eligibility() {
+        assert_eq!(
+            filter_id_for_candidate(&facts(".build", true, 0), false),
+            Some("swift.build")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts("target", true, MARKER_CARGO_TOML), false),
+            Some("rust.target")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts("target", true, 0), false),
+            None
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts(".pytest_cache", true, 0), false),
+            Some("python.pytest-cache")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts(".mypy_cache", true, 0), false),
+            Some("python.mypy-cache")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts(".ruff_cache", true, 0), false),
+            Some("python.ruff-cache")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts(".pytype", true, 0), false),
+            Some("python.pytype-cache")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts(".tox", true, 0), false),
+            Some("python.tox")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts(".nox", true, 0), false),
+            Some("python.nox")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts("wheel.egg-info", true, 0), false),
+            Some("python.egg-info")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts("module.pyc", false, 0), false),
+            Some("python.bytecode")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts("build", true, MARKER_PYPROJECT_TOML), false),
+            Some("python.build")
+        );
+        assert_eq!(
+            filter_id_for_candidate(&facts("dist", true, MARKER_PYPROJECT_TOML), false),
+            Some("python.dist")
+        );
+
+        let mut environment = facts(".venv", true, 0);
+        environment.own_marker_files = MARKER_PYVENV_CFG;
+        assert_eq!(filter_id_for_candidate(&environment, false), None);
+        assert_eq!(
+            filter_id_for_candidate(&environment, true),
+            Some("python.environment")
+        );
+    }
+
+    #[test]
+    fn excluding_roots_traverses_them_and_keeps_subtree_measurement_whole() {
+        let tree = TempTree::new();
+        fs::create_dir_all(tree.0.join(".pytest_cache/inner/.build")).unwrap();
+        fs::write(tree.0.join(".pytest_cache/inner/.build/object"), b"swift").unwrap();
+        fs::create_dir_all(tree.0.join("app/.build/__pycache__")).unwrap();
+        fs::write(
+            tree.0.join("app/.build/__pycache__/module.pyc"),
+            b"bytecode",
+        )
+        .unwrap();
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |candidate| {
+                let action = rust_cli_policy(candidate, false);
+                match action {
+                    CandidateAction::Classify(_)
+                        if matches!(
+                            filter_id_for_candidate(candidate, false),
+                            Some("python.pytest-cache" | "python.bytecode")
+                        ) =>
+                    {
+                        CandidateAction::Traverse
+                    }
+                    other => other,
+                }
+            },
+            |_| {},
+        );
+
+        assert!(
+            report
+                .artifacts
+                .iter()
+                .any(|artifact| artifact.relative_path == Path::new(".pytest_cache/inner/.build"))
+        );
+        assert!(
+            !report
+                .artifacts
+                .iter()
+                .any(|artifact| artifact.kind == "cache" || artifact.kind == "bytecode")
+        );
+        let accepted_build = report
+            .artifacts
+            .iter()
+            .find(|artifact| artifact.relative_path == Path::new("app/.build"))
+            .unwrap();
+        assert_eq!(
+            accepted_build.bytes,
+            fs::metadata(tree.0.join("app/.build")).unwrap().len()
+                + fs::metadata(tree.0.join("app/.build/__pycache__"))
+                    .unwrap()
+                    .len()
+                + fs::metadata(tree.0.join("app/.build/__pycache__/module.pyc"))
+                    .unwrap()
+                    .len()
+        );
+        assert!(report.total_bytes() >= b"bytecode".len() as u64);
     }
 }
