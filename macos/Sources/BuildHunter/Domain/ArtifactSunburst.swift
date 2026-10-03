@@ -32,14 +32,37 @@ struct ArtifactSizeStatistics: Equatable, Sendable {
     }
 }
 
+/// An exact sum of non-negative `Int64` sizes. 128 bits cannot overflow for any report, so
+/// adding and removing sizes in any order gives the same total as summing them once.
+struct ByteTotal: Equatable, Sendable {
+    private var high: UInt64 = 0
+    private var low: UInt64 = 0
+
+    mutating func add(_ bytes: UInt64) {
+        let (sum, carry) = low.addingReportingOverflow(bytes)
+        low = sum
+        if carry { high &+= 1 }
+    }
+
+    mutating func subtract(_ bytes: UInt64) {
+        let (difference, borrow) = low.subtractingReportingOverflow(bytes)
+        low = difference
+        if borrow { high &-= 1 }
+    }
+
+    var value: Double { Double(high) * 0x1p64 + Double(low) }
+}
+
 struct ArtifactSunburstNode: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
     let parentID: String?
     var children: [String] = []
-    var bytes: Double = 0
+    var total = ByteTotal()
     var statistics = ArtifactSizeStatistics()
     var artifact: ScanRow?
+
+    var bytes: Double { total.value }
 }
 
 /// A projection of report rows, not another filesystem traversal. Directory nodes aggregate
@@ -59,23 +82,23 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
         self.nodes = nodes
     }
 
-    /// Equivalent to `init(rows:)` when `rows` extends `previousRows`, which is how a report
-    /// grows: rows are appended and only their sizes change. Only changed rows walk their
-    /// ancestors; byte totals stay exact because sizes are integers far below 2^53.
-    init(rows: [ScanRow], updating previous: ArtifactSunburstSnapshot, from previousRows: [ScanRow]) {
+    /// Equivalent to `init(rows:)` when `rows` extends the rows behind `previous`, which is how
+    /// a report grows: rows are appended and only their sizes change. `previousSizes` holds
+    /// those rows' sizes in order; only changed rows walk their ancestors.
+    init(rows: [ScanRow], updating previous: ArtifactSunburstSnapshot, previousSizes: [SizeState]) {
         var nodes = previous.nodes
-        for (old, row) in zip(previousRows, rows) where old.size != row.size {
-            let delta = Self.bytes(row.size) - Self.bytes(old.size)
+        for (old, row) in zip(previousSizes, rows) where old != row.size {
             var path: String? = Self.leafPath(row.relativePath)
             while let current = path {
-                nodes[current]!.bytes += delta
-                nodes[current]!.statistics.exclude(old.size)
+                nodes[current]!.total.subtract(Self.bytes(old))
+                nodes[current]!.total.add(Self.bytes(row.size))
+                nodes[current]!.statistics.exclude(old)
                 nodes[current]!.statistics.include(row.size)
                 path = nodes[current]!.parentID
             }
             nodes[Self.leafPath(row.relativePath)]!.artifact = row
         }
-        for row in rows.dropFirst(previousRows.count) {
+        for row in rows.dropFirst(previousSizes.count) {
             Self.insert(row, into: &nodes, keepingChildrenSorted: true)
         }
         self.nodes = nodes
@@ -85,10 +108,10 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
         relativePath == "." ? "" : relativePath.split(separator: "/").joined(separator: "/")
     }
 
-    private static func bytes(_ size: SizeState) -> Double {
+    private static func bytes(_ size: SizeState) -> UInt64 {
         switch size {
         case .measured(let value), .partial(.some(let value)):
-            Double(max(0, value))
+            UInt64(max(0, value))
         case .measuring, .partial(nil):
             0
         }
@@ -121,7 +144,7 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
         }
         let bytes = bytes(row.size)
         for path in ancestors {
-            nodes[path]!.bytes += bytes
+            nodes[path]!.total.add(bytes)
             nodes[path]!.statistics.include(row.size)
         }
         nodes[parent]!.artifact = row

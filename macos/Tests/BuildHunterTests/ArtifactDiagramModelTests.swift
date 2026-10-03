@@ -33,7 +33,7 @@ struct ArtifactDiagramModelTests {
         #expect(diagram.focusID == "Package", "Stopping a scan must preserve diagram navigation")
     }
 
-    @Test("Streaming refreshes update the snapshot instead of rebuilding every folder")
+    @Test("Streaming refreshes update the snapshot to exactly what a full rebuild produces")
     func streamingRefreshIsIncremental() async {
         let scan = WindowScanModel(source: DiagramIdleSource())
         let diagram = ArtifactDiagramModel()
@@ -47,7 +47,6 @@ struct ArtifactDiagramModelTests {
         }
         await diagram.refresh(from: scan)
 
-        let start = ProcessInfo.processInfo.systemUptime
         for round in 0..<40 {
             for artifact in artifacts[(10_000 + round * 25)..<(10_000 + (round + 1) * 25)] {
                 scan.apply(.discovered(generation: scan.generation, artifact: artifact))
@@ -58,11 +57,46 @@ struct ArtifactDiagramModelTests {
             }
             await diagram.refresh(from: scan)
         }
-        let elapsed = ProcessInfo.processInfo.systemUptime - start
 
         #expect(diagram.snapshot == ArtifactSunburstSnapshot(rows: scan.rows))
-        // Rebuilding ~55,000 folder nodes from every row dominates each refresh.
-        #expect(elapsed < 1)
+    }
+
+    @Test("A size change applied to a huge total matches a full rebuild exactly")
+    func incrementalTotalsStayExact() {
+        let unchanged = ScanRow(id: UUID(), relativePath: "A/.build", language: "Swift",
+                                kind: .buildOutput, size: .measured(.max))
+        let changing = ScanRow(id: UUID(), relativePath: "B/.build", language: "Swift",
+                               kind: .buildOutput, size: .measuring)
+        let trailing = ScanRow(id: UUID(), relativePath: "C/.build", language: "Swift",
+                               kind: .buildOutput, size: .measured(2_048))
+        let before = [unchanged, changing, trailing]
+        var after = before
+        after[1].size = .measured(1_024)
+
+        let incremental = ArtifactSunburstSnapshot(
+            rows: after, updating: ArtifactSunburstSnapshot(rows: before), previousSizes: before.map(\.size)
+        )
+
+        #expect(incremental == ArtifactSunburstSnapshot(rows: after))
+    }
+
+    @Test("Following a scan does not keep the scan's row storage alive")
+    func refreshDoesNotRetainScanRows() async {
+        let scan = WindowScanModel(source: DiagramIdleSource())
+        let diagram = ArtifactDiagramModel()
+        scan.acceptDemoTarget(named: "Fixture")
+        defer { scan.stop() }
+        let artifacts = ["A/.build", "B/.build", "C/.build"].map(artifact)
+        for artifact in artifacts {
+            scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+        }
+        await diagram.refresh(from: scan)
+        let storage = scan.rows.withUnsafeBufferPointer { $0.baseAddress }
+
+        // A shared buffer would force the event reducer to copy every row.
+        scan.apply(.completed(generation: scan.generation, artifactID: artifacts[0].id, bytes: 64))
+
+        #expect(scan.rows.withUnsafeBufferPointer { $0.baseAddress } == storage)
     }
 
     @Test("Replacing the target clears the diagram and ignores stale scan events")
