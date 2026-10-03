@@ -63,14 +63,18 @@ testability only for this invocation; normal Release builds retain their own set
 
 - Clock and physical-memory metrics for applying discovery/completion events for
   1,000 and 10,000 rows, including the terminal transition.
-- Clock and physical-memory metrics for classifying 10,000 Swift/Rust candidates
-  through the reused SpecificationCore decision policy.
+- Clock and physical-memory metrics for classifying 10,000 Swift/Rust directory and
+  Python bytecode file candidates through the reused SpecificationCore decision policy.
 - Clock and physical-memory metrics for preparing a sunburst snapshot and bounded
   layout from 10,000 artifact rows. Fixture generation is excluded; the resulting
   count, byte total, and sector bound are checked after measurement.
+- An interleaved comparison of one streaming table refresh (25 new rows merged into
+  10,000 sorted rows) with a full localized re-sort; the merge must be at least 5x faster.
 - A five-sample, interleaved scaling check: 10,000 rows must take no more than
   `20 × median(1,000 rows) + 25 ms`. This allows a tenfold input increase plus a
   coarse noise budget and rejects the observed quadratic ID lookup behavior.
+- The same interleaved scaling gate for deduplicating 1,000 and 10,000 distinct warnings;
+  a linear scan of the warning list grows a hundredfold and fails it.
 
 XCTest clock/memory metrics are recorded for inspection; no machine-specific
 Xcode baseline is committed for them. The explicit scaling assertion is the CI gate.
@@ -79,7 +83,7 @@ on average. Rescan, target replacement and mock changes clear it with the report
 
 The macOS performance job publishes `performance.xcresult`, a summary, native metrics
 as JSON/CSV, the `event-scaling.json` attachment and the log under `macos/.build/ci/`.
-The script requires all five performance tests to pass. Unit tests protect duplicate,
+The script requires every discovered performance test to pass (at least the original five). Unit tests protect duplicate,
 out-of-order, stale events and reuse of an artifact ID after restart.
 
 Local TDD evidence on 2026-10-02: the original model failed the scaling check

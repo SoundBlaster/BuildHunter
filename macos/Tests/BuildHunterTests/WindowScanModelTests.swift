@@ -69,46 +69,27 @@ struct WindowScanModelTests {
         #expect(terminal == .completed)
     }
 
-    @Test("Overflow caused by the terminal event makes the scan incomplete")
-    func terminalEnqueueOverflowIsReported() async {
-        let generation: UInt64 = 1
-        let (stream, continuation) = AsyncStream.makeStream(
-            of: ScanEvent.self,
-            bufferingPolicy: .bufferingNewest(2)
-        )
-        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation,
-                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
-        bridge.yield(.discovered(generation: generation, artifact: makeArtifact()))
-        bridge.yield(.discovered(
-            generation: generation,
-            artifact: ScanArtifact(id: UUID(), relativePath: "DemoFixture/Beta/.build",
-                                   language: "Swift", kind: .buildOutput)
-        ))
-        bridge.finish(status: 0)
-
-        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
-        model.acceptDemoTarget(named: "Overflow")
-        await model.waitForCurrentScan()
-
-        #expect(model.phase == .incomplete)
-        #expect(model.warnings.contains { $0.contains("display buffer") })
-    }
-
-    @Test("Rust events are not dropped while the main actor is busy")
-    func rustEventsSurviveABusyConsumer() async {
-        let generation: UInt64 = 1
-        let (stream, continuation) = RustScanEventSource.makeEventStream()
-        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation,
-                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
-        // The scanner can outrun the consumer by thousands of events before it reads any.
-        let artifacts = (0..<5_000).map { index in
+    @Test("Rust events wait for buffer space instead of being dropped")
+    func rustEventsApplyBackpressure() async throws {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let artifacts = (0..<1_000).map { index in
             ScanArtifact(id: UUID(), relativePath: "Project\(index)/.build", language: "Swift", kind: .buildOutput)
         }
-        for artifact in artifacts {
-            bridge.yield(.discovered(generation: generation, artifact: artifact))
-            bridge.yield(.completed(generation: generation, artifactID: artifact.id, bytes: 4_096))
-        }
-        bridge.finish(status: 0)
+        let producer = ProducerProbe()
+        // The Rust scanner calls back on its own thread and can outrun the consumer.
+        Thread {
+            for artifact in artifacts {
+                channel.send(.discovered(generation: 1, artifact: artifact))
+                channel.send(.completed(generation: 1, artifactID: artifact.id, bytes: 4_096))
+            }
+            channel.send(.finished(generation: 1, result: .completed))
+            channel.finish()
+            producer.markFinished()
+        }.start()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(channel.bufferedCount == 8, "the producer waits once the buffer is full")
+        #expect(!producer.isFinished)
 
         let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
         model.acceptDemoTarget(named: "Busy consumer")
@@ -120,40 +101,56 @@ struct WindowScanModelTests {
         #expect(model.phase == .completed)
     }
 
-    @Test("Many distinct warnings are deduplicated in linear time")
-    func manyWarningsApplyInLinearTime() {
+    @Test("Abandoning the event stream wakes a producer blocked on a full buffer")
+    func abandonedStreamReleasesTheProducer() async throws {
+        let channel = ScanEventChannel(capacity: 2)
+        let producer = ProducerProbe()
+        var stream: AsyncStream<ScanEvent>? = channel.makeStream(onClose: { producer.markClosed() })
+        Thread {
+            var accepted = 0
+            for index in 0..<10 where channel.send(.warning(generation: 1, message: "\(index)")) {
+                accepted += 1
+            }
+            producer.markFinished(accepted: accepted)
+        }.start()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(!producer.isFinished)
+        #expect(stream != nil)
+
+        stream = nil
+        for _ in 0..<200 where !producer.isFinished {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+        #expect(producer.isFinished)
+        #expect(producer.isClosed)
+        #expect(producer.accepted == 2)
+    }
+
+    @Test("Repeated warnings keep their first-seen order without duplicates")
+    func repeatedWarningsAreDeduplicatedInOrder() {
         let model = WindowScanModel(source: ControlledScanSource())
         model.acceptDemoTarget(named: "Unreadable home")
         let generation = model.generation
-        // A home-folder scan can report thousands of unreadable paths.
-        let messages = (0..<20_000).map { "Library/Private/\($0): Permission denied" }
+        let messages = (0..<1_000).map { "Library/Private/\($0): Permission denied" }
 
-        let start = ProcessInfo.processInfo.systemUptime
-        for message in messages + messages {
+        for message in messages + messages.reversed() {
             model.apply(.warning(generation: generation, message: message))
         }
-        let elapsed = ProcessInfo.processInfo.systemUptime - start
 
         #expect(model.warnings == messages)
-        // Quadratic membership checks take seconds here; a set takes milliseconds.
-        #expect(elapsed < 1)
+        model.rescan()
+        model.apply(.warning(generation: model.generation, message: messages[0]))
+        #expect(model.warnings == [messages[0]], "a new report forgets earlier warnings")
     }
 
-    @Test("Rust artifact IDs map to stable UUIDs without string formatting")
+    @Test("Rust artifact IDs map to the same stable UUIDs, built from bytes")
     func stableIDsAreBuiltFromBytes() {
         #expect(stableID(0).uuidString == "00000000-0000-4000-8000-000000000000")
         #expect(stableID(0xABCDEF).uuidString == "00000000-0000-4000-8000-000000ABCDEF")
         #expect(stableID(0xFFFF_FFFF_FFFF).uuidString == "00000000-0000-4000-8000-FFFFFFFFFFFF")
-        #expect(stableID(0x1_0000_0000_0001) == stableID(1))
-
-        // Two IDs are built per artifact on the scan thread.
-        let start = ProcessInfo.processInfo.systemUptime
-        var distinct = Set<UUID>()
-        for value in 0..<UInt64(200_000) { distinct.insert(stableID(value)) }
-        let elapsed = ProcessInfo.processInfo.systemUptime - start
-
-        #expect(distinct.count == 200_000)
-        #expect(elapsed < 0.15)
+        #expect(stableID(0x1_0000_0000_0001) == stableID(1), "only the low 48 bits are kept")
+        #expect(Set((0..<UInt64(10_000)).map(stableID)).count == 10_000)
     }
 
     @Test("Terminal event rejects later events from the same generation")
@@ -260,8 +257,9 @@ struct WindowScanModelTests {
 
     @Test("Incomplete or unknown Rust terminal statuses cannot report success", arguments: [2, 99])
     func unsuccessfulRustStatusMarksReportIncomplete(status: UInt32) async {
-        let (stream, continuation) = AsyncStream.makeStream(of: ScanEvent.self)
-        let bridge = RustScanBridgeContext(generation: 1, continuation: continuation,
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel,
                                            filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
         bridge.finish(status: status)
 
@@ -453,6 +451,28 @@ private final class ControlledScanSource: ScanEventSource {
     }
 }
 
+private final class ProducerProbe: @unchecked Sendable {
+    private let lock = NSLock()
+    private var finished = false
+    private var closed = false
+    private var acceptedCount = 0
+
+    var isFinished: Bool { lock.withLock { finished } }
+    var isClosed: Bool { lock.withLock { closed } }
+    var accepted: Int { lock.withLock { acceptedCount } }
+
+    func markFinished(accepted: Int = 0) {
+        lock.withLock {
+            finished = true
+            acceptedCount = accepted
+        }
+    }
+
+    func markClosed() {
+        lock.withLock { closed = true }
+    }
+}
+
 @MainActor
 private struct SingleStreamScanSource: ScanEventSource {
     let stream: AsyncStream<ScanEvent>
@@ -492,7 +512,7 @@ struct ScanTableModelTests {
                 == ScanRowComparator.sorted(rows, by: [.init(column: .kind)]))
     }
 
-    @Test("Streaming refreshes merge new rows instead of re-sorting the whole report")
+    @Test("Streaming refreshes merge new rows into the same order as a full sort")
     func streamingRefreshIsIncremental() async {
         let scan = WindowScanModel(source: TableIdleSource())
         let table = ScanTableModel()
@@ -507,7 +527,6 @@ struct ScanTableModelTests {
         }
         await table.refresh(from: scan)
 
-        let start = ProcessInfo.processInfo.systemUptime
         for round in 0..<40 {
             for artifact in artifacts[(10_000 + round * 25)..<(10_000 + (round + 1) * 25)] {
                 scan.apply(.discovered(generation: scan.generation, artifact: artifact))
@@ -517,11 +536,8 @@ struct ScanTableModelTests {
             }
             await table.refresh(from: scan)
         }
-        let elapsed = ProcessInfo.processInfo.systemUptime - start
 
         #expect(table.rows == ScanRowComparator.sorted(scan.rows, by: table.sortOrder))
-        // Re-sorting 11,000 paths with localized comparison on every refresh dominates.
-        #expect(elapsed < 0.5)
     }
 
     @Test("Sorting during discovery does not break the scanner's row index or late measurements")
