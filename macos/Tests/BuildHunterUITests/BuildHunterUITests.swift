@@ -151,8 +151,8 @@ final class BuildHunterUITests: XCTestCase {
         defer { app.terminate() }
         let window = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         selectMockState("results", in: window, app: app)
-        // SwiftUI Table exposes an AXOutline on macOS, with each row combining
-        // its cells into one accessibility label.
+        // SwiftUI Table exposes an AXOutline on macOS. Read the Path cell
+        // within its first row rather than relying on a combined row label.
         let table = window.outlines.firstMatch
         XCTAssertTrue(table.waitForExistence(timeout: 5))
         let firstRow = table.outlineRows.element(boundBy: 0)
@@ -197,10 +197,11 @@ final class BuildHunterUITests: XCTestCase {
         let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
         XCTAssertTrue(diagram.waitForExistence(timeout: 10))
         let focus = diagram.staticTexts["buildhunter.diagram.focus"]
-        expectValue(selectedRoot.path, of: focus)
+        expectFilesystemPath(selectedRoot.path, of: focus)
         diagram.buttons["buildhunter.diagram.folders.folder.Package"].click()
-        let expected = selectedRoot.appendingPathComponent("Package").path
-        expectValue(expected, of: focus)
+        expectFilesystemPath(selectedRoot.appendingPathComponent("Package").path, of: focus)
+        // Copy must preserve exactly the absolute path shown by the app.
+        let expected = try XCTUnwrap(focus.value as? String)
         diagram.buttons["buildhunter.diagram.copyPath"].click()
         let filter = diagram.textFields["buildhunter.diagram.filter"]
         filter.click()
@@ -242,23 +243,55 @@ final class BuildHunterUITests: XCTestCase {
 
     private func expectRowPath(_ path: String, of row: XCUIElement,
                                file: StaticString = #filePath, line: UInt = #line) {
-        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label BEGINSWITH %@", path),
-                                                    object: row)
+        let cell = row.descendants(matching: .any).matching(
+            NSPredicate(format: "value == %@ OR label BEGINSWITH %@", path, path)
+        ).firstMatch
+        XCTAssertTrue(cell.waitForExistence(timeout: 5),
+                      "Expected first row Path cell: \(path); got \(row.debugDescription)", file: file, line: line)
+    }
+
+    private func expectFilesystemPath(_ path: String, of element: XCUIElement,
+                                      file: StaticString = #filePath, line: UInt = #line) {
+        // NSOpenPanel may return either spelling of macOS's /var symlink.
+        // Both are absolute paths to the same fixture; compare the text shown
+        // exactly when checking the Copy action below.
+        let alternate = path.hasPrefix("/private/var/")
+            ? String(path.dropFirst("/private".count))
+            : (path.hasPrefix("/var/") ? "/private" + path : path)
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@ OR value == %@", path, alternate), object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed,
-                       "Expected first row path: \(path); got \(row.debugDescription)", file: file, line: line)
+                       "Expected absolute fixture path: \(path); got \(element.value ?? "nil")", file: file, line: line)
     }
 
     private func launchWindow() -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
+        // Register cleanup before asserting, so a failed launch cannot leave
+        // a windowless process behind for the next test.
+        addTeardownBlock { app.terminate() }
         app.launch()
+        app.activate()
 
         // Relaunch can leave a macOS multiwindow app running without a window.
+        // Invoke the actual menu command: a keyboard shortcut can be consumed
+        // by another app or a global shortcut on the developer's desktop.
         if !app.windows.firstMatch.waitForExistence(timeout: 5) {
-            app.typeKey("n", modifierFlags: .command)
+            app.menuBars.menuBarItems["File"].click()
+            let newWindow = app.menuItems["New BuildHunter Window"]
+            XCTAssertTrue(newWindow.waitForExistence(timeout: 5))
+            newWindow.click()
         }
-        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 5),
-                      "A BuildHunter window must exist before testing its controls")
+        let hasWindow = app.windows.firstMatch.waitForExistence(timeout: 5)
+        if !hasWindow {
+            attachScreenshot(named: "launch-missing-window", from: app)
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "launch-accessibility-hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+        }
+        XCTAssertTrue(hasWindow,
+                      "A BuildHunter window must exist before testing its controls; app state: \(app.state)")
         return app
     }
 
