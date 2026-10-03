@@ -63,8 +63,8 @@ testability only for this invocation; normal Release builds retain their own set
 
 - Clock and physical-memory metrics for applying discovery/completion events for
   1,000 and 10,000 rows, including the terminal transition.
-- Clock and physical-memory metrics for classifying 10,000 Swift/Rust candidates
-  through the reused SpecificationCore decision policy.
+- Clock and physical-memory metrics for classifying 10,000 Swift/Rust directory and
+  Python bytecode file candidates through the reused SpecificationCore decision policy.
 - Clock and physical-memory metrics for preparing a sunburst snapshot and bounded
   layout from 10,000 artifact rows. Fixture generation is excluded; the resulting
   count, byte total, and sector bound are checked after measurement.

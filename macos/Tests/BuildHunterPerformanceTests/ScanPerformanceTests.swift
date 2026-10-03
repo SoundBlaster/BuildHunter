@@ -38,12 +38,19 @@ final class ScanPerformanceTests: XCTestCase {
 
     func testClassify10000Candidates() async {
         let policy = ClassifyArtifactRoot()
+        // Directories and standalone bytecode files; file checks must stay string work.
         let candidates = (0..<10_000).map { index in
-            ArtifactPolicyContext(
-                nodeName: index.isMultiple(of: 2) ? ".build" : "target",
-                isDirectory: true, isSymbolicLink: false,
-                ownMarkerFiles: [], parentMarkerFiles: ["Cargo.toml"]
-            )
+            switch index % 3 {
+            case 0:
+                ArtifactPolicyContext(nodeName: ".build", isDirectory: true, isSymbolicLink: false,
+                                      ownMarkerFiles: [], parentMarkerFiles: [])
+            case 1:
+                ArtifactPolicyContext(nodeName: "target", isDirectory: true, isSymbolicLink: false,
+                                      ownMarkerFiles: [], parentMarkerFiles: ["Cargo.toml"])
+            default:
+                ArtifactPolicyContext(nodeName: "module\(index).cpython-312.pyc", isDirectory: false,
+                                      isSymbolicLink: false, ownMarkerFiles: [], parentMarkerFiles: [])
+            }
         }
         let options = measurementOptions()
         measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: options) {
