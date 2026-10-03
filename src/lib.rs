@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     ffi::{OsStr, c_char, c_void},
     fs,
     path::{Path, PathBuf},
@@ -378,7 +379,7 @@ pub fn scan_with_policy(
         warnings: Vec::new(),
         next_id: 1,
     };
-    scanner.walk(root, false);
+    scanner.walk(root, None, false);
     let status = if control.is_failed() {
         ScanStatus::Failed
     } else if control.is_cancelled() {
@@ -532,19 +533,25 @@ where
         self.emit(&ScanEvent::Warning(warning));
     }
 
-    fn walk(&mut self, path: &Path, inside_artifact: bool) -> u64 {
+    /// `file_type` comes from the parent's directory entry. Metadata is read only for nodes
+    /// whose bytes are counted, so source trees outside artifacts cost one readdir per folder.
+    fn walk(&mut self, path: &Path, file_type: Option<fs::FileType>, inside_artifact: bool) -> u64 {
         if self.control.should_stop() {
             return 0;
         }
-        let metadata = match fs::symlink_metadata(path) {
-            Ok(metadata) => metadata,
-            Err(error) => {
-                self.warn(path, error);
-                return 0;
-            }
+        let mut metadata = None;
+        let file_type = match file_type {
+            Some(file_type) => file_type,
+            None => match node_metadata(path) {
+                Ok(value) => metadata.insert(value).file_type(),
+                Err(error) => {
+                    self.warn(path, error);
+                    return 0;
+                }
+            },
         };
-        let is_symlink = metadata.file_type().is_symlink();
-        let is_directory = metadata.is_dir();
+        let is_symlink = file_type.is_symlink();
+        let is_directory = file_type.is_dir();
         let node_name = path.file_name().map(os_str_bytes).unwrap_or_default();
         // Marker probes are restricted to candidates; checking siblings for every path would
         // dominate traversal cost on large source trees.
@@ -554,7 +561,7 @@ where
             0
         };
         let parent_markers =
-            if is_directory && matches!(node_name.as_slice(), b"target" | b"build" | b"dist") {
+            if is_directory && matches!(node_name.as_ref(), b"target" | b"build" | b"dist") {
                 path.parent().map(marker_flags).unwrap_or_default()
             } else {
                 0
@@ -562,7 +569,7 @@ where
         let query_policy = is_symlink || is_policy_candidate(&node_name, is_directory, own_markers);
         let action = if query_policy {
             (self.policy)(&CandidateFacts {
-                node_name: node_name.clone(),
+                node_name: node_name.into_owned(),
                 is_directory,
                 is_symbolic_link: is_symlink,
                 has_artifact_ancestor: inside_artifact,
@@ -600,7 +607,23 @@ where
         });
         let artifact_ancestor = inside_artifact || id.is_some();
         let warning_count = self.warnings.len();
-        let mut bytes = metadata_bytes(&metadata, self.options.apparent_size);
+        // Bytes outside artifacts are never reported, so they are neither read nor summed.
+        let mut bytes = 0;
+        if artifact_ancestor {
+            let metadata = match metadata {
+                Some(metadata) => Some(metadata),
+                None => match node_metadata(path) {
+                    Ok(metadata) => Some(metadata),
+                    Err(error) => {
+                        self.warn(path, error);
+                        None
+                    }
+                },
+            };
+            bytes = metadata.map_or(0, |metadata| {
+                metadata_bytes(&metadata, self.options.apparent_size)
+            });
+        }
         if is_directory {
             match fs::read_dir(path) {
                 Ok(entries) => {
@@ -608,10 +631,15 @@ where
                         if self.control.should_stop() {
                             break;
                         }
-                        match entry {
-                            Ok(entry) => {
-                                bytes = bytes
-                                    .saturating_add(self.walk(&entry.path(), artifact_ancestor));
+                        let child = entry.and_then(|entry| {
+                            let file_type = entry.file_type()?;
+                            Ok((entry.path(), file_type))
+                        });
+                        match child {
+                            Ok((child, file_type)) => {
+                                let child_bytes =
+                                    self.walk(&child, Some(file_type), artifact_ancestor);
+                                bytes = bytes.saturating_add(child_bytes);
                             }
                             Err(error) => self.warn(path, error),
                         }
@@ -633,14 +661,32 @@ where
     }
 }
 
-fn os_str_bytes(value: &OsStr) -> Vec<u8> {
+#[cfg(test)]
+mod probe_counts {
+    use std::cell::Cell;
+
+    thread_local! {
+        pub static METADATA: Cell<usize> = const { Cell::new(0) };
+    }
+}
+
+fn node_metadata(path: &Path) -> std::io::Result<fs::Metadata> {
+    #[cfg(test)]
+    probe_counts::METADATA.with(|count| count.set(count.get() + 1));
+    fs::symlink_metadata(path)
+}
+
+fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
     #[cfg(unix)]
     {
-        value.as_bytes().to_vec()
+        Cow::Borrowed(value.as_bytes())
     }
     #[cfg(not(unix))]
     {
-        value.to_string_lossy().as_bytes().to_vec()
+        match value.to_string_lossy() {
+            Cow::Borrowed(text) => Cow::Borrowed(text.as_bytes()),
+            Cow::Owned(text) => Cow::Owned(text.into_bytes()),
+        }
     }
 }
 
@@ -1399,6 +1445,53 @@ mod tests {
         assert_eq!(
             filter_id_for_candidate(&environment, true),
             Some("python.environment")
+        );
+    }
+
+    fn metadata_calls_during(scan: impl FnOnce()) -> usize {
+        let before = probe_counts::METADATA.with(|count| count.get());
+        scan();
+        probe_counts::METADATA.with(|count| count.get()) - before
+    }
+
+    #[test]
+    fn nodes_outside_artifacts_are_typed_without_metadata_calls() {
+        let tree = TempTree::new();
+        for module in 0..4 {
+            let sources = tree.0.join(format!("Sources/module-{module}"));
+            fs::create_dir_all(&sources).unwrap();
+            for file in 0..16 {
+                fs::write(sources.join(format!("file-{file}.swift")), b"source").unwrap();
+            }
+        }
+        fs::create_dir_all(tree.0.join(".build/debug")).unwrap();
+        fs::write(tree.0.join(".build/debug/object.o"), b"object").unwrap();
+        fs::write(tree.0.join(".build/manifest"), b"manifest").unwrap();
+        let mut report = None;
+
+        let calls = metadata_calls_during(|| {
+            report = Some(scan_with_policy(
+                &tree.0,
+                ScanOptions {
+                    apparent_size: true,
+                },
+                &ScanControl::new(),
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            ));
+        });
+
+        // The selected root, then `.build`, `debug`, `object.o` and `manifest` are measured.
+        assert_eq!(calls, 5);
+        let report = report.unwrap();
+        assert_eq!(report.artifacts.len(), 1);
+        let build = tree.0.join(".build");
+        assert_eq!(
+            report.artifacts[0].bytes,
+            fs::metadata(&build).unwrap().len()
+                + fs::metadata(build.join("debug")).unwrap().len()
+                + fs::metadata(build.join("debug/object.o")).unwrap().len()
+                + fs::metadata(build.join("manifest")).unwrap().len()
         );
     }
 
