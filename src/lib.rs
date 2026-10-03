@@ -629,8 +629,8 @@ where
                 metadata_bytes(&metadata, self.options.apparent_size)
             });
         }
-        for error in listing.errors {
-            self.warn(path, error);
+        for (error_path, error) in listing.errors {
+            self.warn(&error_path, error);
         }
         for (child, file_type) in listing.children {
             if self.control.should_stop() {
@@ -659,7 +659,7 @@ where
         let entries = match fs::read_dir(path) {
             Ok(entries) => entries,
             Err(error) => {
-                listing.errors.push(error);
+                listing.errors.push((path.to_owned(), error));
                 return listing;
             }
         };
@@ -667,13 +667,17 @@ where
             if self.control.should_stop() {
                 break;
             }
-            let entry = entry.and_then(|entry| {
-                let file_type = entry.file_type()?;
-                Ok((entry, file_type))
-            });
-            match entry {
-                Ok((entry, file_type)) => {
-                    let child = entry.path();
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(error) => {
+                    listing.errors.push((path.to_owned(), error));
+                    continue;
+                }
+            };
+            let child = entry.path();
+            // Without d_type the type needs a lookup that can fail for the child.
+            match entry.file_type() {
+                Ok(file_type) => {
                     let marker = child.file_name().map_or(0, marker_flag);
                     // A marker must be a file; only a symlinked marker needs resolving.
                     if marker != 0
@@ -684,7 +688,7 @@ where
                     }
                     listing.children.push((child, file_type));
                 }
-                Err(error) => listing.errors.push(error),
+                Err(error) => listing.errors.push((child, error)),
             }
         }
         listing
@@ -700,7 +704,8 @@ struct ListedEntry {
 struct Listing {
     children: Vec<(PathBuf, fs::FileType)>,
     markers: u32,
-    errors: Vec<std::io::Error>,
+    /// Each error names the path it concerns: the listed directory or one child.
+    errors: Vec<(PathBuf, std::io::Error)>,
 }
 
 fn marker_flag(name: &OsStr) -> u32 {

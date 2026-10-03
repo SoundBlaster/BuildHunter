@@ -40,18 +40,14 @@ struct ArtifactPolicyTests {
                 ArtifactClassification(kind: .cache, language: "Python"))
     }
 
-    @Test("Bytecode file classification never touches the file system")
-    func bytecodeClassificationIsPureStringWork() {
-        // URL(fileURLWithPath:) stats a relative path to infer a directory hint, about
-        // 17 µs per name; a scan policy callback must stay pure string work.
-        let candidates = (0..<20_000).map { facts("module\($0).cpython-312.pyc", directory: false) }
-
-        let start = ProcessInfo.processInfo.systemUptime
-        let classified = candidates.filter { policy.decide($0) != nil }.count
-        let elapsed = ProcessInfo.processInfo.systemUptime - start
-
-        #expect(classified == candidates.count)
-        #expect(elapsed < 0.15)
+    @Test("Bytecode files are recognized by suffix, as the Rust CLI and filter catalog do")
+    func bytecodeFilesMatchBySuffix() {
+        let bytecode = ArtifactClassification(kind: .cache, language: "Python")
+        #expect(policy.decide(facts("module.cpython-312.pyc", directory: false)) == bytecode)
+        #expect(policy.decide(facts("module.opt-1.pyo", directory: false)) == bytecode)
+        #expect(policy.decide(facts(".pyc", directory: false)) == bytecode)
+        #expect(policy.decide(facts("module.pyc.bak", directory: false)) == nil)
+        #expect(policy.decide(facts("notes.PYC", directory: false)) == nil)
     }
 
     @Test("Parent markers are required for Rust and Python build directories")

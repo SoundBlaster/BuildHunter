@@ -38,12 +38,19 @@ final class ScanPerformanceTests: XCTestCase {
 
     func testClassify10000Candidates() async {
         let policy = ClassifyArtifactRoot()
+        // Directories and standalone bytecode files; file checks must stay string work.
         let candidates = (0..<10_000).map { index in
-            ArtifactPolicyContext(
-                nodeName: index.isMultiple(of: 2) ? ".build" : "target",
-                isDirectory: true, isSymbolicLink: false,
-                ownMarkerFiles: [], parentMarkerFiles: ["Cargo.toml"]
-            )
+            switch index % 3 {
+            case 0:
+                ArtifactPolicyContext(nodeName: ".build", isDirectory: true, isSymbolicLink: false,
+                                      ownMarkerFiles: [], parentMarkerFiles: [])
+            case 1:
+                ArtifactPolicyContext(nodeName: "target", isDirectory: true, isSymbolicLink: false,
+                                      ownMarkerFiles: [], parentMarkerFiles: ["Cargo.toml"])
+            default:
+                ArtifactPolicyContext(nodeName: "module\(index).cpython-312.pyc", isDirectory: false,
+                                      isSymbolicLink: false, ownMarkerFiles: [], parentMarkerFiles: [])
+            }
         }
         let options = measurementOptions()
         measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: options) {
@@ -143,6 +150,59 @@ final class ScanPerformanceTests: XCTestCase {
         XCTAssertLessThanOrEqual(
             largeMedian, smallMedian * 20 + 0.025,
             "10,000 rows must scale within 20x the median time for 1,000 rows plus 25 ms of noise."
+        )
+    }
+
+    /// Deduplicating 10,000 distinct warnings must stay near-linear: a membership scan of the
+    /// warning list grows a hundredfold for a tenfold input.
+    func testWarningProcessingScalesWithCount() async throws {
+        let small = (0..<1_000).map { ScanEvent.warning(generation: 1, message: "Private/\($0): Permission denied") }
+        let large = (0..<10_000).map { ScanEvent.warning(generation: 1, message: "Private/\($0): Permission denied") }
+        try assertScalesNearLinearly(name: "warning-scaling.json", smallCount: 1_000, largeCount: 10_000) { isLarge in
+            let events = isLarge ? large : small
+            let model = makeModel()
+            let start = ProcessInfo.processInfo.systemUptime
+            for event in events { model.apply(event) }
+            let elapsed = ProcessInfo.processInfo.systemUptime - start
+            XCTAssertEqual(model.warnings.count, events.count)
+            return elapsed
+        }
+    }
+
+    /// Five interleaved samples per size after a warm-up; the large median may grow at most
+    /// 20x the small one plus 25 ms of noise, as in the event-scaling gate.
+    private func assertScalesNearLinearly(
+        name: String, smallCount: Int, largeCount: Int, sample: (_ isLarge: Bool) -> Double
+    ) throws {
+        _ = sample(false)
+        _ = sample(true)
+        var small: [Double] = []
+        var large: [Double] = []
+        for iteration in 0..<5 {
+            if iteration.isMultiple(of: 2) {
+                small.append(sample(false))
+                large.append(sample(true))
+            } else {
+                large.append(sample(true))
+                small.append(sample(false))
+            }
+        }
+        let smallMedian = small.sorted()[small.count / 2]
+        let largeMedian = large.sorted()[large.count / 2]
+        let report: [String: Any] = [
+            "small_count": smallCount, "large_count": largeCount,
+            "small_seconds": small, "large_seconds": large,
+            "small_median_seconds": smallMedian, "large_median_seconds": largeMedian,
+            "maximum_growth": 20, "noise_allowance_seconds": 0.025
+        ]
+        let data = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys, .prettyPrinted])
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        XCTAssertLessThanOrEqual(
+            largeMedian, smallMedian * 20 + 0.025,
+            "\(largeCount) items must scale within 20x the median time for \(smallCount) plus 25 ms of noise."
         )
     }
 
