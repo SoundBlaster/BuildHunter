@@ -74,7 +74,9 @@ class CLIIntegrationTests(unittest.TestCase):
         self.write("swift/.build/__pycache__/module.pyc", b"bytecode")
 
         individual = self.scan("--exclude", "python.pytest-cache,python.bytecode")
-        paths = {Path(row["path"]).relative_to(self.root).as_posix() for row in individual["artifacts"]}
+        # The CLI reports paths under its canonical root, which has a \\?\ prefix on Windows.
+        root = Path(individual["root"])
+        paths = {Path(row["path"]).relative_to(root).as_posix() for row in individual["artifacts"]}
         self.assertIn("python/.pytest_cache/nested/.build", paths)
         self.assertNotIn("python/.pytest_cache", paths)
         self.assertNotIn("swift/.build/__pycache__", paths)
