@@ -310,6 +310,8 @@ pub struct ScanReport {
     pub artifacts: Vec<Artifact>,
     pub warnings: Vec<ScanWarning>,
     pub status: ScanStatus,
+    #[cfg(test)]
+    pub probes: ProbeCounts,
 }
 
 impl ScanReport {
@@ -362,6 +364,11 @@ impl Default for ScanControl {
     }
 }
 
+/// Upper bound on listing threads; directory listing stops scaling past a few cores.
+const MAX_SCAN_WORKERS: usize = 8;
+
+/// Scans `root`. Worker threads list directories and read the metadata of measured files;
+/// `policy` and `emit` run only on the calling thread, one call at a time.
 pub fn scan_with_policy(
     root: &Path,
     options: ScanOptions,
@@ -369,31 +376,56 @@ pub fn scan_with_policy(
     mut policy: impl FnMut(&CandidateFacts) -> CandidateAction,
     mut emit: impl FnMut(&ScanEvent),
 ) -> ScanReport {
-    let mut scanner = Scanner {
-        root,
-        options,
-        control,
-        policy: &mut policy,
-        emit: &mut emit,
-        artifacts: Vec::new(),
-        warnings: Vec::new(),
-        next_id: 1,
-    };
-    scanner.walk(root, None, false);
+    let probes = Probes::default();
+    let queue = WorkQueue::default();
+    let workers = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(MAX_SCAN_WORKERS);
+    let (sender, receiver) = std::sync::mpsc::channel();
+    let (artifacts, warnings) = std::thread::scope(|scope| {
+        // Closing on every exit, including a panicking callback, lets the workers finish.
+        let _close = CloseOnDrop(&queue);
+        for _ in 0..workers {
+            let sender = sender.clone();
+            let (queue, probes) = (&queue, &probes);
+            scope.spawn(move || run_worker(queue, &sender, control, probes));
+        }
+        drop(sender);
+        let mut scanner = Scanner {
+            root,
+            options,
+            control,
+            policy: &mut policy,
+            emit: &mut emit,
+            probes: &probes,
+            queue: &queue,
+            receiver,
+            artifacts: Vec::new(),
+            progress: Vec::new(),
+            warnings: Vec::new(),
+            nodes: Vec::new(),
+            awaiting: std::collections::HashMap::new(),
+            outstanding: 0,
+        };
+        scanner.run();
+        (scanner.artifacts, scanner.warnings)
+    });
     let status = if control.is_failed() {
         ScanStatus::Failed
     } else if control.is_cancelled() {
         ScanStatus::Cancelled
-    } else if scanner.warnings.is_empty() {
+    } else if warnings.is_empty() {
         ScanStatus::Completed
     } else {
         ScanStatus::Incomplete
     };
-    scanner.emit(&ScanEvent::Finished(status));
+    emit(&ScanEvent::Finished(status));
     ScanReport {
-        artifacts: scanner.artifacts,
-        warnings: scanner.warnings,
+        artifacts,
+        warnings,
         status,
+        #[cfg(test)]
+        probes: probes.counts(),
     }
 }
 
@@ -504,15 +536,234 @@ fn relative_path(root: &Path, path: &Path) -> PathBuf {
     }
 }
 
+struct ListTask {
+    node: usize,
+    path: PathBuf,
+    parent_markers: u32,
+    /// The directory lies inside an artifact, so its own and its files' sizes are counted.
+    measure: bool,
+}
+
+enum WorkerMessage {
+    /// Sent before any metadata is read, so discovery does not wait for measurement.
+    Listed {
+        node: usize,
+        listing: Listing,
+        measuring: bool,
+    },
+    /// Follows `Listed` when `measuring`; `files` is aligned with the listing's children.
+    Measured {
+        node: usize,
+        directory: std::io::Result<fs::Metadata>,
+        files: Vec<Option<std::io::Result<fs::Metadata>>>,
+    },
+}
+
+#[derive(Default)]
+struct WorkQueue {
+    state: std::sync::Mutex<QueueState>,
+    ready: std::sync::Condvar,
+}
+
+#[derive(Default)]
+struct QueueState {
+    tasks: Vec<ListTask>,
+    closed: bool,
+}
+
+impl WorkQueue {
+    fn push(&self, task: ListTask) {
+        self.state.lock().unwrap().tasks.push(task);
+        self.ready.notify_one();
+    }
+
+    /// Last in, first out: depth-first order completes artifacts early and bounds the queue.
+    fn pop(&self) -> Option<ListTask> {
+        let mut state = self.state.lock().unwrap();
+        loop {
+            if state.closed {
+                return None;
+            }
+            if let Some(task) = state.tasks.pop() {
+                return Some(task);
+            }
+            state = self.ready.wait(state).unwrap();
+        }
+    }
+
+    fn close(&self) {
+        self.state.lock().unwrap().closed = true;
+        self.ready.notify_all();
+    }
+}
+
+struct CloseOnDrop<'a>(&'a WorkQueue);
+
+impl Drop for CloseOnDrop<'_> {
+    fn drop(&mut self) {
+        self.0.close();
+    }
+}
+
+fn run_worker(
+    queue: &WorkQueue,
+    results: &std::sync::mpsc::Sender<WorkerMessage>,
+    control: &ScanControl,
+    probes: &Probes,
+) {
+    while let Some(task) = queue.pop() {
+        let listing = list_directory(&task.path, control, probes);
+        let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
+        // Speculatively measure likely artifact roots; the coordinator reads anything missed.
+        let measuring =
+            task.measure || may_classify_directory(&name, listing.markers, task.parent_markers);
+        let files: Vec<_> = if measuring {
+            listing
+                .children
+                .iter()
+                .map(|(child, file_type)| {
+                    (!file_type.is_dir() && !file_type.is_symlink()).then(|| child.clone())
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let node = task.node;
+        if results
+            .send(WorkerMessage::Listed {
+                node,
+                listing,
+                measuring,
+            })
+            .is_err()
+        {
+            return;
+        }
+        if measuring {
+            let directory = probes.metadata(&task.path);
+            let mut measured = Vec::with_capacity(files.len());
+            for file in files {
+                // A stopped scan needs no sizes; return promptly so the scan can end.
+                if control.should_stop() {
+                    return;
+                }
+                measured.push(file.map(|file| probes.metadata(&file)));
+            }
+            let files = measured;
+            let message = WorkerMessage::Measured {
+                node,
+                directory,
+                files,
+            };
+            if results.send(message).is_err() {
+                return;
+            }
+        }
+    }
+}
+
+/// Mirrors the built-in policies closely enough to prefetch sizes; results never depend on it.
+fn may_classify_directory(name: &[u8], markers: u32, parent_markers: u32) -> bool {
+    if markers & MARKER_PYVENV_CFG != 0 {
+        return true;
+    }
+    match name {
+        b".git" => false,
+        b"target" => parent_markers & MARKER_CARGO_TOML != 0,
+        b"build" | b"dist" => {
+            parent_markers & (MARKER_PYPROJECT_TOML | MARKER_SETUP_PY | MARKER_SETUP_CFG) != 0
+        }
+        _ => is_policy_candidate(name, true, 0),
+    }
+}
+
+fn list_directory(path: &Path, control: &ScanControl, probes: &Probes) -> Listing {
+    let mut listing = Listing::default();
+    let entries = match probes.read_dir(path) {
+        Ok(entries) => entries,
+        Err(error) => {
+            listing.errors.push(error);
+            return listing;
+        }
+    };
+    for entry in entries {
+        if control.should_stop() {
+            break;
+        }
+        let entry = entry.and_then(|entry| {
+            let file_type = entry.file_type()?;
+            Ok((entry, file_type))
+        });
+        match entry {
+            Ok((entry, file_type)) => {
+                let child = entry.path();
+                let marker = child.file_name().map_or(0, marker_flag);
+                // A marker must be a file; only a symlinked marker needs resolving.
+                if marker != 0
+                    && (file_type.is_file()
+                        || (file_type.is_symlink() && probes.marker_is_file(&child)))
+                {
+                    listing.markers |= marker;
+                }
+                listing.children.push((child, file_type));
+            }
+            Err(error) => listing.errors.push(error),
+        }
+    }
+    listing
+}
+
+/// A directory waiting for its listing. `chain` holds the artifacts strictly above it.
+struct DirNode {
+    path: PathBuf,
+    /// `None` only for the selected root, which has no parent listing.
+    parent_markers: Option<u32>,
+    chain: Vec<u64>,
+    root_metadata: Option<fs::Metadata>,
+}
+
+/// A listed directory whose sizes are still being read. `chain` includes the directory
+/// itself when it is an artifact; `parent_len` is the length of the chain above it.
+struct PendingMeasure {
+    path: PathBuf,
+    chain: Vec<u64>,
+    parent_len: usize,
+    root_metadata: Option<fs::Metadata>,
+    files: Vec<FileSlot>,
+}
+
+struct FileSlot {
+    index: usize,
+    path: PathBuf,
+    artifact: Option<u64>,
+}
+
+#[derive(Default)]
+struct ArtifactProgress {
+    bytes: u64,
+    /// Directories below the artifact root that are queued but not yet finished.
+    pending: usize,
+    partial: bool,
+    root_finished: bool,
+    completed: bool,
+}
+
 struct Scanner<'a, P, E> {
     root: &'a Path,
     options: ScanOptions,
     control: &'a ScanControl,
     policy: &'a mut P,
     emit: &'a mut E,
+    probes: &'a Probes,
+    queue: &'a WorkQueue,
+    receiver: std::sync::mpsc::Receiver<WorkerMessage>,
     artifacts: Vec<Artifact>,
+    progress: Vec<ArtifactProgress>,
     warnings: Vec<ScanWarning>,
-    next_id: u64,
+    nodes: Vec<Option<DirNode>>,
+    /// `None` marks a speculative measurement nobody needs.
+    awaiting: std::collections::HashMap<usize, Option<PendingMeasure>>,
+    outstanding: usize,
 }
 
 impl<P, E> Scanner<'_, P, E>
@@ -524,176 +775,326 @@ where
         (self.emit)(event);
     }
 
-    fn warn(&mut self, path: &Path, error: impl std::fmt::Display) {
+    fn warn(&mut self, path: &Path, error: impl std::fmt::Display, chain: &[u64]) {
         let warning = ScanWarning {
             relative_path: relative_path(self.root, path),
             message: error.to_string(),
         };
         self.warnings.push(warning.clone());
         self.emit(&ScanEvent::Warning(warning));
+        for id in chain {
+            self.progress[Self::index(*id)].partial = true;
+        }
     }
 
-    /// `entry` carries the node's type and its parent's marker files from the parent's
-    /// listing. Metadata is read only for nodes whose bytes are counted, so source trees
-    /// outside artifacts cost one readdir per folder.
-    fn walk(&mut self, path: &Path, entry: Option<ListedEntry>, inside_artifact: bool) -> u64 {
-        if self.control.should_stop() {
-            return 0;
-        }
-        let mut metadata = None;
-        let (file_type, parent_listing_markers) = match entry {
-            Some(entry) => (entry.file_type, Some(entry.parent_markers)),
-            None => match node_metadata(path) {
-                Ok(value) => (metadata.insert(value).file_type(), None),
-                Err(error) => {
-                    self.warn(path, error);
-                    return 0;
+    fn index(id: u64) -> usize {
+        usize::try_from(id - 1).expect("artifact IDs fit in memory")
+    }
+
+    fn run(&mut self) {
+        let root = self.root;
+        match self.probes.metadata(root) {
+            Err(error) => self.warn(root, error, &[]),
+            Ok(metadata) if metadata.is_dir() => {
+                self.enqueue(
+                    DirNode {
+                        path: root.to_owned(),
+                        parent_markers: None,
+                        chain: Vec::new(),
+                        root_metadata: Some(metadata),
+                    },
+                    0,
+                );
+            }
+            Ok(metadata) => {
+                // A selected file or symlink is its own candidate, measured if classified.
+                let file_type = metadata.file_type();
+                if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
+                    self.measure_file(&slot, Some(Ok(metadata)), &[]);
                 }
-            },
-        };
-        let is_symlink = file_type.is_symlink();
-        let is_directory = file_type.is_dir();
-        let node_name = path.file_name().map(os_str_bytes).unwrap_or_default();
-        // The directory is listed before the policy runs: its own markers come from that
-        // listing, and it closes before recursion so open handles do not grow with depth.
-        let listing = if is_directory {
-            self.list_directory(path)
-        } else {
-            Listing::default()
-        };
-        let own_markers = listing.markers & MARKER_PYVENV_CFG;
-        let parent_markers =
-            if is_directory && matches!(node_name.as_ref(), b"target" | b"build" | b"dist") {
-                // Only the selected root has no parent listing.
-                parent_listing_markers
-                    .unwrap_or_else(|| path.parent().map(marker_flags).unwrap_or_default())
-                    & !MARKER_PYVENV_CFG
-            } else {
-                0
+            }
+        }
+        while self.outstanding > 0 && !self.control.should_stop() {
+            let Ok(message) = self.receiver.recv() else {
+                break;
             };
-        let query_policy = is_symlink || is_policy_candidate(&node_name, is_directory, own_markers);
-        let action = if query_policy {
+            self.outstanding -= 1;
+            match message {
+                WorkerMessage::Listed {
+                    node,
+                    listing,
+                    measuring,
+                } => self.process_listing(node, listing, measuring),
+                WorkerMessage::Measured {
+                    node,
+                    directory,
+                    files,
+                } => {
+                    if let Some(Some(pending)) = self.awaiting.remove(&node) {
+                        self.finish_measure(pending, Some(directory), files);
+                    }
+                }
+            }
+        }
+        // Stopping leaves open artifacts; report them innermost first, as partial.
+        for index in (0..self.progress.len()).rev() {
+            if !self.progress[index].completed {
+                self.progress[index].partial = true;
+                self.complete(index as u64 + 1);
+            }
+        }
+    }
+
+    fn enqueue(&mut self, node: DirNode, parent_markers: u32) {
+        let task = ListTask {
+            node: self.nodes.len(),
+            path: node.path.clone(),
+            parent_markers,
+            measure: !node.chain.is_empty(),
+        };
+        self.nodes.push(Some(node));
+        self.outstanding += 1;
+        self.queue.push(task);
+    }
+
+    fn discover(&mut self, path: &Path, nested: bool, language: u32, kind: u32) -> u64 {
+        let id = self.artifacts.len() as u64 + 1;
+        let artifact = Artifact {
+            id,
+            relative_path: relative_path(self.root, path),
+            language: language_name(language),
+            kind: kind_name(kind),
+            bytes: 0,
+            nested,
+            partial: false,
+        };
+        self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
+        self.artifacts.push(artifact);
+        self.progress.push(ArtifactProgress::default());
+        id
+    }
+
+    fn complete(&mut self, id: u64) {
+        let index = Self::index(id);
+        let progress = &mut self.progress[index];
+        progress.completed = true;
+        let bytes = progress.bytes;
+        let partial = progress.partial || self.control.should_stop();
+        self.artifacts[index].bytes = bytes;
+        self.artifacts[index].partial = partial;
+        self.emit(&ScanEvent::ArtifactCompleted { id, bytes, partial });
+    }
+
+    /// Runs the policy for a non-directory entry. Returns a slot when its size is needed.
+    fn visit_file(
+        &mut self,
+        path: PathBuf,
+        file_type: fs::FileType,
+        index: usize,
+        chain: &[u64],
+    ) -> Option<FileSlot> {
+        let is_symlink = file_type.is_symlink();
+        let name = path.file_name().map(os_str_bytes).unwrap_or_default();
+        let action = if is_symlink || is_policy_candidate(&name, false, 0) {
             (self.policy)(&CandidateFacts {
-                node_name: node_name.into_owned(),
-                is_directory,
+                node_name: name.into_owned(),
+                is_directory: false,
                 is_symbolic_link: is_symlink,
-                has_artifact_ancestor: inside_artifact,
+                has_artifact_ancestor: !chain.is_empty(),
+                own_marker_files: 0,
+                parent_marker_files: 0,
+            })
+        } else {
+            CandidateAction::Traverse
+        };
+        if is_symlink || action == CandidateAction::Prune || self.control.should_stop() {
+            return None;
+        }
+        let artifact = match action {
+            CandidateAction::Classify(code) => {
+                Some(self.discover(&path, !chain.is_empty(), code.language, code.kind))
+            }
+            CandidateAction::Traverse | CandidateAction::Prune => None,
+        };
+        (!chain.is_empty() || artifact.is_some()).then_some(FileSlot {
+            index,
+            path,
+            artifact,
+        })
+    }
+
+    /// Adds a file's size to `chain` and completes the file's own artifact, if any.
+    fn measure_file(
+        &mut self,
+        slot: &FileSlot,
+        metadata: Option<std::io::Result<fs::Metadata>>,
+        chain: &[u64],
+    ) {
+        let metadata = metadata.unwrap_or_else(|| self.probes.metadata(&slot.path));
+        let bytes = match metadata {
+            Ok(metadata) => metadata_bytes(&metadata, self.options.apparent_size),
+            Err(error) => {
+                let mut affected = chain.to_vec();
+                affected.extend(slot.artifact);
+                self.warn(&slot.path, error, &affected);
+                0
+            }
+        };
+        for id in chain {
+            let progress = &mut self.progress[Self::index(*id)];
+            progress.bytes = progress.bytes.saturating_add(bytes);
+        }
+        if let Some(id) = slot.artifact {
+            self.progress[Self::index(id)].bytes = bytes;
+            self.complete(id);
+        }
+    }
+
+    fn process_listing(&mut self, node: usize, listing: Listing, measuring: bool) {
+        if measuring {
+            self.outstanding += 1;
+        }
+        let DirNode {
+            path,
+            parent_markers,
+            mut chain,
+            root_metadata,
+        } = self.nodes[node]
+            .take()
+            .expect("each directory is listed once");
+        let parent_len = chain.len();
+        let name = path.file_name().map(os_str_bytes).unwrap_or_default();
+        let own_markers = listing.markers & MARKER_PYVENV_CFG;
+        let parent_markers = if matches!(name.as_ref(), b"target" | b"build" | b"dist") {
+            parent_markers.unwrap_or_else(|| {
+                path.parent()
+                    .map(|parent| marker_flags(parent, self.probes))
+                    .unwrap_or_default()
+            }) & !MARKER_PYVENV_CFG
+        } else {
+            0
+        };
+        let action = if is_policy_candidate(&name, true, own_markers) {
+            (self.policy)(&CandidateFacts {
+                node_name: name.into_owned(),
+                is_directory: true,
+                is_symbolic_link: false,
+                has_artifact_ancestor: parent_len > 0,
                 own_marker_files: own_markers,
                 parent_marker_files: parent_markers,
             })
         } else {
             CandidateAction::Traverse
         };
-        if is_symlink || action == CandidateAction::Prune {
-            return 0;
+        if self.control.should_stop() {
+            return;
         }
-
-        let classification = match action {
-            CandidateAction::Classify(code) => {
-                Some((language_name(code.language), kind_name(code.kind)))
+        if action == CandidateAction::Prune {
+            if measuring {
+                self.awaiting.insert(node, None);
             }
-            CandidateAction::Traverse | CandidateAction::Prune => None,
-        };
-        let id = classification.map(|(language, kind)| {
-            let id = self.next_id;
-            self.next_id = self.next_id.saturating_add(1);
-            let artifact = Artifact {
-                id,
-                relative_path: relative_path(self.root, path),
-                language,
-                kind,
-                bytes: 0,
-                nested: inside_artifact,
-                partial: false,
-            };
-            self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
-            self.artifacts.push(artifact);
-            id
-        });
-        let artifact_ancestor = inside_artifact || id.is_some();
-        let warning_count = self.warnings.len();
-        // Bytes outside artifacts are never reported, so they are neither read nor summed.
-        let mut bytes = 0;
-        if artifact_ancestor {
-            let metadata = match metadata {
-                Some(metadata) => Some(metadata),
-                None => match node_metadata(path) {
-                    Ok(metadata) => Some(metadata),
-                    Err(error) => {
-                        self.warn(path, error);
-                        None
-                    }
-                },
-            };
-            bytes = metadata.map_or(0, |metadata| {
-                metadata_bytes(&metadata, self.options.apparent_size)
-            });
+            self.finish_directory(&chain, parent_len);
+            return;
+        }
+        if let CandidateAction::Classify(code) = action {
+            let id = self.discover(&path, parent_len > 0, code.language, code.kind);
+            chain.push(id);
         }
         for error in listing.errors {
-            self.warn(path, error);
+            self.warn(&path, error, &chain);
         }
-        for (child, file_type) in listing.children {
+        let mut files = Vec::new();
+        for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
             if self.control.should_stop() {
-                break;
+                return;
             }
-            let entry = ListedEntry {
-                file_type,
-                parent_markers: listing.markers,
-            };
-            bytes = bytes.saturating_add(self.walk(&child, Some(entry), artifact_ancestor));
-        }
-        if let Some(id) = id {
-            let partial = self.control.should_stop() || self.warnings.len() > warning_count;
-            let index = usize::try_from(id - 1).ok();
-            if let Some(artifact) = index.and_then(|index| self.artifacts.get_mut(index)) {
-                artifact.bytes = bytes;
-                artifact.partial = partial;
-            }
-            self.emit(&ScanEvent::ArtifactCompleted { id, bytes, partial });
-        }
-        bytes
-    }
-
-    fn list_directory(&self, path: &Path) -> Listing {
-        let mut listing = Listing::default();
-        let entries = match fs::read_dir(path) {
-            Ok(entries) => entries,
-            Err(error) => {
-                listing.errors.push(error);
-                return listing;
-            }
-        };
-        for entry in entries {
-            if self.control.should_stop() {
-                break;
-            }
-            let entry = entry.and_then(|entry| {
-                let file_type = entry.file_type()?;
-                Ok((entry, file_type))
-            });
-            match entry {
-                Ok((entry, file_type)) => {
-                    let child = entry.path();
-                    let marker = child.file_name().map_or(0, marker_flag);
-                    // A marker must be a file; only a symlinked marker needs resolving.
-                    if marker != 0
-                        && (file_type.is_file()
-                            || (file_type.is_symlink() && marker_is_file(&child)))
-                    {
-                        listing.markers |= marker;
-                    }
-                    listing.children.push((child, file_type));
+            if file_type.is_dir() {
+                for id in &chain {
+                    self.progress[Self::index(*id)].pending += 1;
                 }
-                Err(error) => listing.errors.push(error),
+                let child_node = DirNode {
+                    path: child,
+                    parent_markers: Some(listing.markers),
+                    chain: chain.clone(),
+                    root_metadata: None,
+                };
+                self.enqueue(child_node, listing.markers);
+            } else if let Some(slot) = self.visit_file(child, file_type, index, &chain) {
+                files.push(slot);
             }
         }
-        listing
+        let pending = PendingMeasure {
+            path,
+            chain,
+            parent_len,
+            root_metadata,
+            files,
+        };
+        if pending.chain.is_empty() && pending.files.is_empty() {
+            if measuring {
+                self.awaiting.insert(node, None);
+            }
+            self.finish_directory(&pending.chain, parent_len);
+        } else if measuring {
+            self.awaiting.insert(node, Some(pending));
+        } else {
+            self.finish_measure(pending, None, Vec::new());
+        }
     }
-}
 
-struct ListedEntry {
-    file_type: fs::FileType,
-    parent_markers: u32,
+    /// Sizes from a worker are used when present; anything missing is read here.
+    fn finish_measure(
+        &mut self,
+        pending: PendingMeasure,
+        directory: Option<std::io::Result<fs::Metadata>>,
+        mut files: Vec<Option<std::io::Result<fs::Metadata>>>,
+    ) {
+        let PendingMeasure {
+            path,
+            chain,
+            parent_len,
+            root_metadata,
+            files: slots,
+        } = pending;
+        if !chain.is_empty() {
+            let metadata = match root_metadata {
+                Some(metadata) => Ok(metadata),
+                None => directory.unwrap_or_else(|| self.probes.metadata(&path)),
+            };
+            match metadata {
+                Ok(metadata) => {
+                    let bytes = metadata_bytes(&metadata, self.options.apparent_size);
+                    for id in &chain {
+                        let progress = &mut self.progress[Self::index(*id)];
+                        progress.bytes = progress.bytes.saturating_add(bytes);
+                    }
+                }
+                Err(error) => self.warn(&path, error, &chain),
+            }
+        }
+        for slot in &slots {
+            let metadata = files.get_mut(slot.index).and_then(Option::take);
+            self.measure_file(slot, metadata, &chain);
+        }
+        self.finish_directory(&chain, parent_len);
+    }
+
+    /// Marks a directory finished in every artifact above it and completes any artifact
+    /// whose subtree has no queued directories left, innermost first.
+    fn finish_directory(&mut self, chain: &[u64], parent_len: usize) {
+        for id in &chain[..parent_len] {
+            self.progress[Self::index(*id)].pending -= 1;
+        }
+        if let Some(id) = chain.get(parent_len) {
+            self.progress[Self::index(*id)].root_finished = true;
+        }
+        for id in chain.iter().rev() {
+            let progress = &self.progress[Self::index(*id)];
+            if progress.root_finished && progress.pending == 0 && !progress.completed {
+                self.complete(*id);
+            }
+        }
+    }
 }
 
 #[derive(Default)]
@@ -714,26 +1115,58 @@ fn marker_flag(name: &OsStr) -> u32 {
     }
 }
 
-#[cfg(test)]
-mod probe_counts {
-    use std::cell::Cell;
+/// Filesystem probes. Tests read per-scan counts, which also cover worker threads.
+#[derive(Default)]
+struct Probes {
+    #[cfg(test)]
+    metadata: std::sync::atomic::AtomicUsize,
+    #[cfg(test)]
+    marker_probes: std::sync::atomic::AtomicUsize,
+    #[cfg(test)]
+    listing_threads: std::sync::Mutex<Vec<std::thread::ThreadId>>,
+}
 
-    thread_local! {
-        pub static METADATA: Cell<usize> = const { Cell::new(0) };
-        pub static MARKER_PROBES: Cell<usize> = const { Cell::new(0) };
+impl Probes {
+    fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
+        #[cfg(test)]
+        self.metadata.fetch_add(1, Ordering::Relaxed);
+        fs::symlink_metadata(path)
+    }
+
+    fn marker_is_file(&self, path: &Path) -> bool {
+        #[cfg(test)]
+        self.marker_probes.fetch_add(1, Ordering::Relaxed);
+        path.is_file()
+    }
+
+    fn read_dir(&self, path: &Path) -> std::io::Result<fs::ReadDir> {
+        #[cfg(test)]
+        {
+            let thread = std::thread::current().id();
+            let mut threads = self.listing_threads.lock().unwrap();
+            if !threads.contains(&thread) {
+                threads.push(thread);
+            }
+        }
+        fs::read_dir(path)
+    }
+
+    #[cfg(test)]
+    fn counts(&self) -> ProbeCounts {
+        ProbeCounts {
+            metadata: self.metadata.load(Ordering::Relaxed),
+            marker_probes: self.marker_probes.load(Ordering::Relaxed),
+            listing_threads: self.listing_threads.lock().unwrap().clone(),
+        }
     }
 }
 
-fn node_metadata(path: &Path) -> std::io::Result<fs::Metadata> {
-    #[cfg(test)]
-    probe_counts::METADATA.with(|count| count.set(count.get() + 1));
-    fs::symlink_metadata(path)
-}
-
-fn marker_is_file(path: &Path) -> bool {
-    #[cfg(test)]
-    probe_counts::MARKER_PROBES.with(|count| count.set(count.get() + 1));
-    path.is_file()
+#[cfg(test)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ProbeCounts {
+    pub metadata: usize,
+    pub marker_probes: usize,
+    pub listing_threads: Vec<std::thread::ThreadId>,
 }
 
 fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
@@ -750,18 +1183,18 @@ fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
     }
 }
 
-fn marker_flags(path: &Path) -> u32 {
+fn marker_flags(path: &Path, probes: &Probes) -> u32 {
     let mut flags = 0;
-    if marker_is_file(&path.join("Cargo.toml")) {
+    if probes.marker_is_file(&path.join("Cargo.toml")) {
         flags |= MARKER_CARGO_TOML;
     }
-    if marker_is_file(&path.join("pyproject.toml")) {
+    if probes.marker_is_file(&path.join("pyproject.toml")) {
         flags |= MARKER_PYPROJECT_TOML;
     }
-    if marker_is_file(&path.join("setup.py")) {
+    if probes.marker_is_file(&path.join("setup.py")) {
         flags |= MARKER_SETUP_PY;
     }
-    if marker_is_file(&path.join("setup.cfg")) {
+    if probes.marker_is_file(&path.join("setup.cfg")) {
         flags |= MARKER_SETUP_CFG;
     }
     flags
@@ -1508,10 +1941,68 @@ mod tests {
         );
     }
 
-    fn metadata_calls_during(scan: impl FnOnce()) -> usize {
-        let before = probe_counts::METADATA.with(|count| count.get());
-        scan();
-        probe_counts::METADATA.with(|count| count.get()) - before
+    #[test]
+    fn directories_are_listed_off_the_calling_thread_and_callbacks_stay_on_it() {
+        let tree = TempTree::new();
+        for project in 0..32 {
+            fs::create_dir_all(tree.0.join(format!("project-{project}/.build/debug"))).unwrap();
+            fs::write(
+                tree.0.join(format!("project-{project}/.build/debug/o")),
+                b"o",
+            )
+            .unwrap();
+            fs::create_dir_all(tree.0.join(format!("project-{project}/Sources/App"))).unwrap();
+        }
+        let caller = std::thread::current().id();
+        let mut callback_threads = std::collections::HashSet::new();
+        let mut events = Vec::new();
+
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| {
+                callback_threads.insert(std::thread::current().id());
+                rust_cli_policy(facts, false)
+            },
+            |event| {
+                assert_eq!(std::thread::current().id(), caller);
+                events.push(event.clone());
+            },
+        );
+
+        assert_eq!(callback_threads, std::collections::HashSet::from([caller]));
+        assert!(!report.probes.listing_threads.is_empty());
+        assert!(
+            !report.probes.listing_threads.contains(&caller),
+            "directory listings run on scanner workers"
+        );
+        assert_eq!(report.artifacts.len(), 32);
+        assert_eq!(report.status, ScanStatus::Completed);
+        for artifact in &report.artifacts {
+            let discovered = events
+                .iter()
+                .position(|event| matches!(event, ScanEvent::ArtifactDiscovered(found) if found.id == artifact.id))
+                .unwrap();
+            let completed = events
+                .iter()
+                .position(|event| matches!(event, ScanEvent::ArtifactCompleted { id, .. } if *id == artifact.id))
+                .unwrap();
+            assert!(discovered < completed);
+            let build = tree.0.join(&artifact.relative_path);
+            assert_eq!(
+                artifact.bytes,
+                fs::metadata(&build).unwrap().len()
+                    + fs::metadata(build.join("debug")).unwrap().len()
+                    + fs::metadata(build.join("debug/o")).unwrap().len()
+            );
+        }
+        assert!(matches!(
+            events.last(),
+            Some(ScanEvent::Finished(ScanStatus::Completed))
+        ));
     }
 
     #[test]
@@ -1527,23 +2018,18 @@ mod tests {
         fs::create_dir_all(tree.0.join(".build/debug")).unwrap();
         fs::write(tree.0.join(".build/debug/object.o"), b"object").unwrap();
         fs::write(tree.0.join(".build/manifest"), b"manifest").unwrap();
-        let mut report = None;
-
-        let calls = metadata_calls_during(|| {
-            report = Some(scan_with_policy(
-                &tree.0,
-                ScanOptions {
-                    apparent_size: true,
-                },
-                &ScanControl::new(),
-                |facts| rust_cli_policy(facts, false),
-                |_| {},
-            ));
-        });
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+        );
 
         // The selected root, then `.build`, `debug`, `object.o` and `manifest` are measured.
-        assert_eq!(calls, 5);
-        let report = report.unwrap();
+        assert_eq!(report.probes.metadata, 5);
         assert_eq!(report.artifacts.len(), 1);
         let build = tree.0.join(".build");
         assert_eq!(
@@ -1555,27 +2041,18 @@ mod tests {
         );
     }
 
-    fn marker_probes_during(scan: impl FnOnce()) -> usize {
-        let before = probe_counts::MARKER_PROBES.with(|count| count.get());
-        scan();
-        probe_counts::MARKER_PROBES.with(|count| count.get()) - before
-    }
-
     fn artifact_paths(root: &Path, include_environments: bool) -> (Vec<PathBuf>, usize) {
-        let mut report = None;
-        let probes = marker_probes_during(|| {
-            report = Some(scan_with_policy(
-                root,
-                ScanOptions {
-                    apparent_size: true,
-                },
-                &ScanControl::new(),
-                |facts| rust_cli_policy(facts, include_environments),
-                |_| {},
-            ));
-        });
+        let report = scan_with_policy(
+            root,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, include_environments),
+            |_| {},
+        );
+        let probes = report.probes.marker_probes;
         let mut paths: Vec<_> = report
-            .unwrap()
             .artifacts
             .into_iter()
             .map(|artifact| artifact.relative_path)

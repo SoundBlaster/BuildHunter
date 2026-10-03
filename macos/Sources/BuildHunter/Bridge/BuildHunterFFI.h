@@ -45,6 +45,8 @@ typedef void (*BHEventCallback)(void *context, const BHScanEvent *event);
  * Terminal status / bh_scan result: 0 complete, 1 cancelled, 2 incomplete, 3 failed.
  * Callbacks run serially on the calling thread; all payload pointers are borrowed
  * until the callback returns. Keep the callback context alive until bh_scan returns.
+ * bh_scan reads the file system on internal worker threads, joined before it returns;
+ * event order between unrelated subtrees and artifact IDs may differ between runs.
  */
 /* Canonical extensible filter catalog. Returned UTF-8 JSON is NUL-terminated,
  * immutable and valid for the lifetime of the process; callers must not free it. */
