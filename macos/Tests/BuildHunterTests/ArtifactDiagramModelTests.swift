@@ -33,6 +33,38 @@ struct ArtifactDiagramModelTests {
         #expect(diagram.focusID == "Package", "Stopping a scan must preserve diagram navigation")
     }
 
+    @Test("Streaming refreshes update the snapshot instead of rebuilding every folder")
+    func streamingRefreshIsIncremental() async {
+        let scan = WindowScanModel(source: DiagramIdleSource())
+        let diagram = ArtifactDiagramModel()
+        scan.acceptDemoTarget(named: "Fixture")
+        defer { scan.stop() }
+        let artifacts = (0..<11_000).shuffled().map { index in
+            artifact("Projects/group\(index % 97)/Project\(index)/Sources/.build")
+        }
+        for artifact in artifacts.prefix(10_000) {
+            scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+        }
+        await diagram.refresh(from: scan)
+
+        let start = ProcessInfo.processInfo.systemUptime
+        for round in 0..<40 {
+            for artifact in artifacts[(10_000 + round * 25)..<(10_000 + (round + 1) * 25)] {
+                scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+            }
+            for artifact in artifacts[(round * 25)..<((round + 1) * 25)] {
+                scan.apply(.completed(generation: scan.generation, artifactID: artifact.id,
+                                      bytes: Int64(round * 4_096), partial: round.isMultiple(of: 3)))
+            }
+            await diagram.refresh(from: scan)
+        }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+
+        #expect(diagram.snapshot == ArtifactSunburstSnapshot(rows: scan.rows))
+        // Rebuilding ~55,000 folder nodes from every row dominates each refresh.
+        #expect(elapsed < 1)
+    }
+
     @Test("Replacing the target clears the diagram and ignores stale scan events")
     func replacement() async {
         let scan = WindowScanModel(source: DiagramIdleSource())

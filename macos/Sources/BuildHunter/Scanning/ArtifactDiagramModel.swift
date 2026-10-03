@@ -20,6 +20,7 @@ final class ArtifactDiagramModel {
     @ObservationIgnored private var lastRevision: UInt64?
     @ObservationIgnored private var sourceID: UUID?
     @ObservationIgnored private var reportID: UUID?
+    @ObservationIgnored private var snapshotRows: [ScanRow] = []
 
     init(snapshot: ArtifactSunburstSnapshot = ArtifactSunburstSnapshot(rows: []),
          targetURL: URL? = nil, targetName: String? = nil) {
@@ -55,8 +56,16 @@ final class ArtifactDiagramModel {
         guard sourceID != scan.id || lastRevision != revision else { return }
         let currentGeneration = scan.generation
         let rows = scan.rows
+        // A growing report extends the rows behind the current snapshot; update it in place.
+        let extendsSnapshot = sourceID == scan.id && reportID == scan.reportID
+            && snapshotRows.count <= rows.count
+        let previous = extendsSnapshot ? (snapshot, snapshotRows) : nil
         let worker = Task.detached(priority: .userInitiated) {
-            ArtifactSunburstSnapshot(rows: rows)
+            if let (snapshot, previousRows) = previous {
+                ArtifactSunburstSnapshot(rows: rows, updating: snapshot, from: previousRows)
+            } else {
+                ArtifactSunburstSnapshot(rows: rows)
+            }
         }
         let prepared = await withTaskCancellationHandler {
             await worker.value
@@ -79,6 +88,7 @@ final class ArtifactDiagramModel {
         reportID = scan.reportID
         lastRevision = revision
         snapshot = prepared
+        snapshotRows = rows
         if prepared.nodes[focusID] == nil { focusID = "" }
         if let previewID, prepared.nodes[previewID] == nil { self.previewID = nil }
         updateLayout()
