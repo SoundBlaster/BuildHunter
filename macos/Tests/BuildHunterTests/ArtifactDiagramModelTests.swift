@@ -121,7 +121,7 @@ struct ArtifactDiagramModelTests {
         scan.stop()
     }
 
-    @Test("Navigation and streaming share one palette; replacing the report discards it")
+    @Test("Navigation restores saved palettes; replacing the report discards them")
     func paletteLifecycle() async throws {
         let scan = WindowScanModel(source: DiagramIdleSource())
         let diagram = ArtifactDiagramModel()
@@ -168,7 +168,7 @@ struct ArtifactDiagramModelTests {
         #expect(store.model(for: scan.id) == nil)
     }
 
-    @Test("All children retain the branch color while size rankings change")
+    @Test("Only the largest child inherits the entered folder color; other branches get distinct colors")
     func largestChildInheritsColor() async throws {
         let scan = WindowScanModel(source: DiagramIdleSource())
         let diagram = ArtifactDiagramModel()
@@ -180,21 +180,73 @@ struct ArtifactDiagramModelTests {
             scan.apply(.completed(generation: scan.generation, artifactID: entry.id, bytes: bytes))
         }
         await diagram.refresh(from: scan)
-        let parentColor = try #require(diagram.palette.colors["Apps"])
-        let smallColor = diagram.palette.colors["Apps/Small"]
+        let overview = diagram.palette
+        let parentColor = try #require(overview.color(for: "Apps"))
         diagram.navigate(to: "Apps")
-        #expect(diagram.palette.colors["Apps/Large"] == parentColor)
-        #expect(diagram.palette.colors["Apps/Small"] == smallColor)
+        #expect(diagram.palette.color(for: "Apps/Large") == parentColor)
+        let smallColor = try #require(diagram.palette.color(for: "Apps/Small"))
+        #expect(smallColor != parentColor)
+        #expect(diagram.palette.color(for: "Apps/Small/.build") == smallColor)
 
         let late = artifact("Apps/Small/.venv")
         scan.apply(.discovered(generation: scan.generation, artifact: late))
         scan.apply(.completed(generation: scan.generation, artifactID: late.id, bytes: 1_000))
         await diagram.refresh(from: scan)
+        #expect(diagram.palette.color(for: "Apps/Large") == parentColor)
+        #expect(diagram.palette.color(for: "Apps/Small/.venv") == smallColor)
         diagram.navigate(to: "")
+        for (path, color) in overview.colors { #expect(diagram.palette.color(for: path) == color) }
         diagram.navigate(to: "Apps")
-        #expect(diagram.palette.colors["Apps/Large"] == parentColor)
-        #expect(diagram.palette.colors["Apps/Small"] == smallColor,
-                "Streaming must not reassign a branch color when the size leader changes")
+        #expect(diagram.palette.color(for: "Apps/Small") == parentColor,
+                "A deliberate new entry uses the largest child at that moment")
+        #expect(diagram.palette.color(for: "Apps/Large") != parentColor)
+    }
+
+    @Test("Every entered level repeats the largest-child inheritance rule")
+    func recursiveColorScopes() throws {
+        let rows = [("Apps/Alpha/A/.build", 50), ("Apps/Alpha/B/target", 10),
+                    ("Apps/Beta/.venv", 100), ("Apps/Gamma/.build", 20)].map { path, bytes in
+            ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(Int64(bytes)))
+        }
+        let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: rows))
+        let overview = diagram.palette
+        diagram.navigate(to: "Apps")
+        let apps = diagram.palette
+        let parent = try #require(overview.color(for: "Apps"))
+        #expect(apps.color(for: "Apps/Beta") == parent)
+        let alpha = try #require(apps.color(for: "Apps/Alpha"))
+        let gamma = try #require(apps.color(for: "Apps/Gamma"))
+        #expect(Set([alpha, gamma, parent]).count == 3)
+        diagram.navigate(to: "Apps/Alpha")
+        #expect(diagram.palette.color(for: "Apps/Alpha/A") == alpha)
+        #expect(diagram.palette.color(for: "Apps/Alpha/A/.build") == alpha)
+        #expect(diagram.palette.color(for: "Apps/Alpha/B") != alpha)
+        #expect(diagram.palette.color(for: "Apps/Alpha/B/target") == diagram.palette.color(for: "Apps/Alpha/B"))
+        diagram.navigateUp()
+        #expect(diagram.palette == apps)
+        diagram.navigateUp()
+        #expect(diagram.palette == overview)
+    }
+
+    @Test("Entering the same folder from different levels preserves the color actually clicked")
+    func skippedLevelEntryColors() throws {
+        let rows = [("Apps/Alpha/A/.build", 50), ("Apps/Alpha/B/target", 10),
+                    ("Apps/Beta/.venv", 100)].map { path, bytes in
+            ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(Int64(bytes)))
+        }
+        let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: rows))
+        let original = try #require(diagram.palette.color(for: "Apps/Alpha"))
+        diagram.navigate(to: "Apps/Alpha")
+        #expect(diagram.palette.color(for: "Apps/Alpha/A") == original)
+        let directEntry = diagram.palette
+        diagram.navigateUp()
+        let recolored = try #require(diagram.palette.color(for: "Apps/Alpha"))
+        #expect(recolored != original)
+        diagram.navigate(to: "Apps/Alpha")
+        #expect(diagram.palette.color(for: "Apps/Alpha/A") == recolored)
+        diagram.navigate(to: "")
+        diagram.navigate(to: "Apps/Alpha")
+        #expect(diagram.palette == directEntry)
     }
 
     @Test("Late discoveries cannot displace or reorder previously visible siblings")
@@ -223,20 +275,6 @@ struct ArtifactDiagramModelTests {
         diagram.navigate(to: "Middle")
         diagram.navigate(to: "")
         #expect(diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID) == original)
-    }
-
-    @Test("A branch shares its color when navigation skips hierarchy levels")
-    func inheritanceAcrossSkippedLevels() {
-        let rows = [
-            ScanRow(id: UUID(), relativePath: "Apps/Large/.build", language: "Swift", kind: .buildOutput, size: .measured(100)),
-            ScanRow(id: UUID(), relativePath: "Apps/Small/target", language: "Rust", kind: .buildOutput, size: .measured(10))
-        ]
-        let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: rows))
-        diagram.navigate(to: "Apps/Large")
-        diagram.navigate(to: "Apps")
-        #expect(diagram.palette.colors["Apps/Large"] == diagram.palette.colors["Apps"])
-        #expect(diagram.palette.colors["Apps/Large/.build"] == diagram.palette.colors["Apps"])
-        #expect(diagram.palette.colors["Apps/Small"] == diagram.palette.colors["Apps"])
     }
 
     @Test("Hover previews full paths and children without changing navigation, color or the saved filter")

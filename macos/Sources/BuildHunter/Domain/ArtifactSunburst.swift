@@ -183,8 +183,8 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     }
 }
 
-/// Each top-level branch owns one color for the entire report. Descendants use
-/// that same swatch even when navigation hides the branch root from the chart.
+/// A palette belongs to one navigation scope. Its immediate branches have distinct
+/// colors, shared by their descendants; the largest branch inherits the entry color.
 struct ArtifactSunburstPalette: Equatable, Sendable {
     struct Swatch: Hashable, Sendable {
         let hue: Double
@@ -194,21 +194,48 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
         static let other = Swatch(hue: 0, saturation: 0, brightness: 0.55)
     }
 
+    struct Scope: Hashable, Sendable {
+        var focusID = ""
+        var inheritedColor: Swatch?
+    }
+
+    let scope: Scope
     private(set) var colors: [String: Swatch] = [:]
+    private(set) var inheritedBranchID: String?
     private var sortedHues: [Double] = []
+
+    init(scope: Scope = Scope()) {
+        self.scope = scope
+        // A folder reached through the sidebar may not have had a visible sector.
+        // Give it a deterministic entry color, then apply the same inheritance rule.
+        if let color = scope.inheritedColor ?? (scope.focusID.isEmpty ? nil : Swatch(hue: Self.preferredHue(for: scope.focusID))) {
+            colors[scope.focusID] = color
+            sortedHues = [color.hue]
+        }
+    }
 
     func color(for sector: ArtifactSunburstLayout.Sector) -> Swatch {
         sector.nodeID.flatMap { color(for: $0) } ?? .other
     }
 
     func color(for path: String) -> Swatch? {
-        colors[Self.branchRoot(for: path)]
+        branchRoot(for: path).flatMap { colors[$0] }
     }
 
     mutating func include(_ layout: ArtifactSunburstLayout) {
+        if inheritedBranchID == nil, let entryColor = colors[scope.focusID] {
+            let children = layout.sectors.compactMap { sector -> (path: String, bytes: Double)? in
+                guard sector.depth == 0, let path = sector.nodeID, path != scope.focusID else { return nil }
+                return (path, sector.bytes)
+            }
+            if let largest = children.max(by: { $0.bytes == $1.bytes ? $0.path > $1.path : $0.bytes < $1.bytes }) {
+                inheritedBranchID = largest.path
+                colors[largest.path] = entryColor
+            }
+        }
         let paths = layout.sectors.compactMap(\.nodeID).sorted()
         for path in paths {
-            let branch = Self.branchRoot(for: path)
+            guard let branch = branchRoot(for: path) else { continue }
             if colors[branch] == nil {
                 let hue = contrastingHue(preferred: Self.preferredHue(for: branch), nearby: sortedHues)
                 colors[branch] = Swatch(hue: hue)
@@ -219,8 +246,11 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
         }
     }
 
-    private static func branchRoot(for path: String) -> String {
-        path.split(separator: "/").first.map(String.init) ?? ""
+    private func branchRoot(for path: String) -> String? {
+        if path == scope.focusID { return path }
+        let prefix = scope.focusID.isEmpty ? "" : scope.focusID + "/"
+        guard path.hasPrefix(prefix) else { return nil }
+        return path.dropFirst(prefix.count).split(separator: "/").first.map { prefix + $0 }
     }
 
     private func contrastingHue(preferred: Double, nearby: [Double]) -> Double {

@@ -401,12 +401,12 @@ private extension ScanPhase {
         ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(bytes))
     }
     let snapshot = ArtifactSunburstSnapshot(rows: rows)
-    let overview = ArtifactSunburstLayout(snapshot: snapshot)
-    let focused = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
-    var palette = ArtifactSunburstPalette()
-    palette.include(overview)
-    let overviewPalette = palette
-    palette.include(focused)
+    let model = ArtifactDiagramModel(snapshot: snapshot)
+    let overview = model.layout
+    let overviewPalette = model.palette
+    model.navigate(to: "Apps")
+    let focused = model.layout
+    let palette = model.palette
     return HStack(spacing: 24) {
         VStack {
             Text("All artifacts").font(.headline)
@@ -414,7 +414,7 @@ private extension ScanPhase {
                                   isScanning: false, statistics: snapshot.root.statistics) { _ in }
         }
         VStack {
-            Text("Inside Apps — one branch, one color").font(.headline)
+            Text("Inside Apps — Beta keeps the parent color").font(.headline)
             ArtifactSunburstChart(layout: focused, palette: palette, bytes: snapshot.nodes["Apps"]!.bytes,
                                   isScanning: false, statistics: snapshot.nodes["Apps"]!.statistics) { _ in }
         }

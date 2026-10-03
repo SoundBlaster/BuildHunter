@@ -37,15 +37,21 @@ consume the sector. Angular shares remain proportional to bytes, with no artific
 minimum size. Very small folders can still form narrow slices; choose them in the
 sidebar to zoom in and compare their children.
 
-Each top-level branch below the scan target has one color. Every descendant in
-that branch uses exactly the same swatch across all rings. The branch key is the
-first component of the report-relative path, independent of the current focus:
-selecting a blue folder opens blue descendants, including its largest child.
-Sibling root branches receive contrasting hues; colors are retained throughout the
-report as measurements and visible folders change. **Other** is neutral gray.
-Starting a new report or reopening the diagram prepares a new palette. Color helps
-orientation, while path labels remain authoritative; very dense reports have more
-branches than easily distinguishable hues.
+At each displayed level, immediate child branches receive contrasting colors;
+every descendant shares its branch's swatch across all visible rings. Entering a
+folder starts a new palette: **only its largest child inherits the color of the
+folder selected**, and the other child branches receive contrasting hues. The same
+rule repeats at every deeper level. A tie uses the relative path; an unmeasured
+folder waits for its first positive child size before choosing the inheritor.
+
+The palette is saved for that folder and entry color. Going Up restores the
+previous view; streamed measurements do not transfer its colors to a new size
+leader. A deliberate new descent chooses the largest child at that moment and
+reuses the saved palette when that inheritor is unchanged. Directly selecting an outer-ring folder carries the color actually clicked, even
+if that folder was previously entered through a differently colored parent view.
+**Other** stays neutral gray. A new report or a reopened diagram starts fresh.
+Color helps orientation, while path labels remain authoritative; very dense reports
+have more branches than easily distinguishable hues.
 
 Updates animate with stable path identities.
 Reduce Motion disables those animations. Accessible sector descriptions include

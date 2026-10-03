@@ -15,7 +15,8 @@ final class ArtifactDiagramModel {
     private(set) var filteredChildren: [ArtifactSunburstNode] = []
     var query = "" { didSet { updateChildren() } }
     @ObservationIgnored private var retainedOrder: [String: [String]] = [:]
-    @ObservationIgnored private var expandedFolders: Set<String> = []
+    @ObservationIgnored private var palettes: [ArtifactSunburstPalette.Scope: ArtifactSunburstPalette] = [:]
+    @ObservationIgnored private var lastScopes: [String: ArtifactSunburstPalette.Scope] = [:]
     @ObservationIgnored private var lastRevision: UInt64?
     @ObservationIgnored private var sourceID: UUID?
     @ObservationIgnored private var reportID: UUID?
@@ -67,7 +68,8 @@ final class ArtifactDiagramModel {
             focusID = ""
             palette = ArtifactSunburstPalette()
             retainedOrder = [:]
-            expandedFolders = []
+            palettes = [:]
+            lastScopes = [:]
             previewID = nil
             query = ""
         }
@@ -83,7 +85,24 @@ final class ArtifactDiagramModel {
     }
 
     func navigate(to path: String) {
-        guard snapshot.nodes[path] != nil else { return }
+        guard let destination = snapshot.nodes[path] else { return }
+        let returning = path.isEmpty || focusID.hasPrefix(path + "/")
+        let scope: ArtifactSunburstPalette.Scope
+        if path == focusID {
+            scope = palette.scope
+        } else if returning, let previous = lastScopes[path] {
+            scope = previous
+        } else {
+            scope = .init(focusID: path, inheritedColor: palette.color(for: path) ?? ancestorColor(for: path))
+        }
+        var nextPalette = palettes[scope] ?? ArtifactSunburstPalette(scope: scope)
+        // A new descent chooses today's largest child. Streaming and Up preserve
+        // the existing viewport; they must not swap its colors as sizes arrive.
+        if !returning, path != focusID, let inheritor = nextPalette.inheritedBranchID,
+           inheritor != largestChild(in: destination)?.id {
+            nextPalette = ArtifactSunburstPalette(scope: scope)
+        }
+        palette = nextPalette
         focusID = path
         previewID = nil
         query = ""
@@ -102,12 +121,24 @@ final class ArtifactDiagramModel {
         updateChildren()
     }
 
+    private func ancestorColor(for path: String) -> ArtifactSunburstPalette.Swatch? {
+        var ancestor = snapshot.nodes[path]?.parentID
+        while let parent = ancestor {
+            if let scope = lastScopes[parent], let color = palettes[scope]?.color(for: path) { return color }
+            ancestor = snapshot.nodes[parent]?.parentID
+        }
+        return nil
+    }
+
+    private func largestChild(in folder: ArtifactSunburstNode) -> ArtifactSunburstNode? {
+        folder.children.compactMap { snapshot.nodes[$0] }
+            .filter { $0.bytes > 0 }
+            .max { $0.bytes == $1.bytes ? $0.id > $1.id : $0.bytes < $1.bytes }
+    }
+
     private func prepareVisibleChildren() {
-        guard !focusID.isEmpty, !expandedFolders.contains(focusID),
-              let largest = focus.children.compactMap({ snapshot.nodes[$0] })
-                .filter({ $0.bytes > 0 })
-                .max(by: { $0.bytes == $1.bytes ? $0.id > $1.id : $0.bytes < $1.bytes }) else { return }
-        expandedFolders.insert(focusID)
+        guard !focusID.isEmpty, palette.inheritedBranchID == nil,
+              let largest = largestChild(in: focus) else { return }
         // Reveal a late size leader on deliberate navigation, while keeping the
         // displayed membership fixed during subsequent scan updates.
         if let previous = retainedOrder[focusID], !previous.contains(largest.id) {
@@ -125,6 +156,8 @@ final class ArtifactDiagramModel {
             }
         }
         palette.include(updated)
+        palettes[palette.scope] = palette
+        lastScopes[focusID] = palette.scope
         layout = updated
         updateChildren()
     }

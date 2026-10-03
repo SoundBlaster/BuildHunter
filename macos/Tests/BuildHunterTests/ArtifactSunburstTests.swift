@@ -63,48 +63,45 @@ struct ArtifactSunburstTests {
         #expect(firstPalette.colors == secondPalette.colors)
     }
 
-    @Test("Folder colors survive drilling down, selecting an artifact and returning")
-    func navigationColors() throws {
-        let snapshot = ArtifactSunburstSnapshot(rows: [
-            row("Apps/Alpha/.build", .measured(100)),
-            row("Apps/Beta/target", .measured(200)),
-            row("Tools/__pycache__", .measured(50))
-        ])
-        let overview = ArtifactSunburstLayout(snapshot: snapshot)
-        var palette = ArtifactSunburstPalette()
-        palette.include(overview)
-        let originalColors = palette.colors
-        for focus in ["Apps", "Apps/Alpha", "Apps/Alpha/.build", ""] {
-            let focused = ArtifactSunburstLayout(snapshot: snapshot, focusID: focus)
-            palette.include(focused)
-            for sector in focused.sectors {
-                let path = try #require(sector.nodeID)
-                let original = try #require(originalColors[path])
-                #expect(palette.color(for: sector) == original,
-                        "The same folder must keep its color when focus changes to \(focus)")
-            }
-        }
+    @Test("An entered artifact leaf preserves its incoming color")
+    func leafEntryColor() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: [row("Apps/.build", .measured(100))])
+        let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)
+        var palette = ArtifactSunburstPalette(scope: .init(focusID: "Apps/.build", inheritedColor: incoming))
+        let layout = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps/.build")
+        palette.include(layout)
+        let sector = try #require(layout.sectors.first)
+        #expect(palette.color(for: sector) == incoming)
+        #expect(palette.inheritedBranchID == nil)
     }
 
-    @Test("Every descendant keeps the root branch color at every navigation depth")
-    func branchColorInheritance() throws {
-        let snapshot = ArtifactSunburstSnapshot(rows: [
-            row("Apps/Alpha/.build", .measured(100)),
-            row("Apps/Beta/target", .measured(200)),
-            row("Tools/Linter/__pycache__", .measured(50))
+    @Test("An unmeasured folder assigns its entry color only after a positive size arrives")
+    func delayedInheritance() {
+        let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)
+        var palette = ArtifactSunburstPalette(scope: .init(focusID: "Apps", inheritedColor: incoming))
+        let pending = ArtifactSunburstSnapshot(rows: [
+            row("Apps/Zero/.build", .measured(0)), row("Apps/Unknown/target", .measuring)
         ])
-        var palette = ArtifactSunburstPalette()
-        for focus in ["", "Apps", "Apps/Alpha", "Apps/Alpha/.build", "Tools/Linter", ""] {
-            let layout = ArtifactSunburstLayout(snapshot: snapshot, focusID: focus)
-            palette.include(layout)
-            for sector in layout.sectors {
-                let path = try #require(sector.nodeID)
-                let branch = String(path.split(separator: "/").first!)
-                #expect(palette.color(for: sector) == palette.colors[branch],
-                        "All rings in a branch retain the branch root's color after navigation")
-            }
-            #expect(palette.colors["Apps"] != palette.colors["Tools"])
-        }
+        palette.include(ArtifactSunburstLayout(snapshot: pending, focusID: "Apps"))
+        #expect(palette.inheritedBranchID == nil)
+        let measured = ArtifactSunburstSnapshot(rows: [
+            row("Apps/Zero/.build", .measured(0)), row("Apps/Unknown/target", .partial(10))
+        ])
+        palette.include(ArtifactSunburstLayout(snapshot: measured, focusID: "Apps"))
+        #expect(palette.color(for: "Apps/Unknown") == incoming)
+        #expect(palette.color(for: "Apps/Unknown/target") == incoming)
+        #expect(palette.color(for: "Apps/Zero") == nil)
+    }
+
+    @Test("Equal largest children use the same path tie-break regardless of discovery order", arguments: [false, true])
+    func inheritedColorTie(reverse: Bool) {
+        let rows = [row("Apps/Alpha/.build", .measured(100)), row("Apps/Beta/target", .measured(100))]
+        let snapshot = ArtifactSunburstSnapshot(rows: reverse ? Array(rows.reversed()) : rows)
+        let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)
+        var palette = ArtifactSunburstPalette(scope: .init(focusID: "Apps", inheritedColor: incoming))
+        palette.include(ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps"))
+        #expect(palette.color(for: "Apps/Alpha") == incoming)
+        #expect(palette.color(for: "Apps/Beta") != incoming)
     }
 
     @Test("Seven sibling folders receive separated hues, not repeated palette slots")
