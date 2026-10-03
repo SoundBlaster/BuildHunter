@@ -127,6 +127,23 @@ struct WindowScanModelTests {
         #expect(producer.accepted == 2)
     }
 
+    @Test("Repeated warnings keep their first-seen order without duplicates")
+    func repeatedWarningsAreDeduplicatedInOrder() {
+        let model = WindowScanModel(source: ControlledScanSource())
+        model.acceptDemoTarget(named: "Unreadable home")
+        let generation = model.generation
+        let messages = (0..<1_000).map { "Library/Private/\($0): Permission denied" }
+
+        for message in messages + messages.reversed() {
+            model.apply(.warning(generation: generation, message: message))
+        }
+
+        #expect(model.warnings == messages)
+        model.rescan()
+        model.apply(.warning(generation: model.generation, message: messages[0]))
+        #expect(model.warnings == [messages[0]], "a new report forgets earlier warnings")
+    }
+
     @Test("Terminal event rejects later events from the same generation")
     func terminalEventRejectsLateUpdates() {
         let model = WindowScanModel(source: ControlledScanSource())
