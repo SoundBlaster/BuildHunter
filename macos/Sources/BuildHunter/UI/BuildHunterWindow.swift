@@ -159,19 +159,19 @@ private struct ArtifactReportTable: View {
     var body: some View {
         Table(model.rows, sortOrder: $model.sortOrder) {
             TableColumn("Path", sortUsing: ScanRowComparator(column: .path)) { row in
-                Text(row.relativePath)
+                ArtifactReportCell(text: row.relativePath)
             }
             .width(min: 240, ideal: 360)
             TableColumn("Size", sortUsing: ScanRowComparator(column: .size)) { row in
-                Text(sizeDescription(row.size)).monospacedDigit()
+                ArtifactReportCell(text: sizeDescription(row.size)).monospacedDigit()
             }
             .width(min: 100, ideal: 125)
             TableColumn("Language", sortUsing: ScanRowComparator(column: .language)) { row in
-                Text(row.language)
+                ArtifactReportCell(text: row.language)
             }
             .width(min: 90, ideal: 120)
             TableColumn("Kind", sortUsing: ScanRowComparator(column: .kind)) { row in
-                Text(row.kind.rawValue)
+                ArtifactReportCell(text: row.kind.rawValue)
             }
             .width(min: 110, ideal: 150)
         }
@@ -194,6 +194,19 @@ private struct ArtifactReportTable: View {
             "\(ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary)) partial"
         } ?? "Partial · size unknown"
         }
+    }
+}
+
+private struct ArtifactReportCell: View {
+    let text: String
+    @State private var isHovered = false
+
+    var body: some View {
+        Text(text)
+            .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
+            .background(Color.accentColor.opacity(isHovered ? 0.16 : 0), in: .rect(cornerRadius: 4))
+            .contentShape(Rectangle())
+            .onHover { isHovered = $0 }
     }
 }
 

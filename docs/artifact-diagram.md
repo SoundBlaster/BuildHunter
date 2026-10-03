@@ -16,8 +16,9 @@ and **All artifacts** return to ancestors. The center does nothing at the target
 Hovering a sector shows its folder name beside the cursor and temporarily previews
 that folder's children in the sidebar. Leaving the chart restores the committed
 folder and its filter; hovering never navigates or changes colors. Sidebar rows have
-an explicit hover highlight. The heading shows the absolute filesystem path with a
-copy button immediately after it; synthetic mock reports have no path to copy.
+an explicit hover highlight, as do cells in the main report table. The heading shows
+the absolute filesystem path with a copy button immediately after it; synthetic mock
+reports have no path to copy.
 
 The chart displays at most three levels. On first display, a dense sibling group
 uses six largest children plus **Other**. Already visible children retain their

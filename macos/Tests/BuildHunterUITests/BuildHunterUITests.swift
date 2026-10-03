@@ -155,7 +155,7 @@ final class BuildHunterUITests: XCTestCase {
         // its cells into one accessibility label.
         let table = window.outlines.firstMatch
         XCTAssertTrue(table.waitForExistence(timeout: 5))
-        let firstRow = table.tableRows.element(boundBy: 0)
+        let firstRow = table.outlineRows.element(boundBy: 0)
         expectRowPath("Packages/Core/.build", of: firstRow)
         let pathHeader = table.buttons["Path"]
         XCTAssertTrue(pathHeader.waitForExistence(timeout: 5))
@@ -169,24 +169,26 @@ final class BuildHunterUITests: XCTestCase {
         expectRowPath("Packages/Core/.build", of: firstRow)
         table.buttons["Language"].click()
         expectRowPath("Services/API/.pytest_cache", of: firstRow)
+        firstRow.hover()
         attachScreenshot(named: "report-sorted-columns-and-footer", from: app)
     }
 
     func testFullFolderPathCanBeCopiedAfterOpeningARealTarget() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("BuildHunter UI \(UUID().uuidString)", isDirectory: true)
-            .resolvingSymlinksInPath()
         let cache = root.appendingPathComponent("Package/.build", isDirectory: true)
         try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: true)
         try Data(repeating: 65, count: 4_096).write(to: cache.appendingPathComponent("fixture.o"))
         defer { try? FileManager.default.removeItem(at: root) }
+        // realpath can resolve /var -> /private/var only after the fixture exists.
+        let selectedRoot = root.resolvingSymlinksInPath()
         let app = launchWindow()
         defer { app.terminate() }
         app.buttons["buildhunter.empty.openFolder"].click()
         let open = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch
         XCTAssertTrue(open.waitForExistence(timeout: 5))
         app.typeKey("g", modifierFlags: [.command, .shift])
-        app.typeText(root.path)
+        app.typeText(selectedRoot.path)
         app.typeKey(.return, modifierFlags: [])
         open.click()
         let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
@@ -195,9 +197,9 @@ final class BuildHunterUITests: XCTestCase {
         let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
         XCTAssertTrue(diagram.waitForExistence(timeout: 10))
         let focus = diagram.staticTexts["buildhunter.diagram.focus"]
-        expectValue(root.path, of: focus)
+        expectValue(selectedRoot.path, of: focus)
         diagram.buttons["buildhunter.diagram.folders.folder.Package"].click()
-        let expected = root.appendingPathComponent("Package").path
+        let expected = selectedRoot.appendingPathComponent("Package").path
         expectValue(expected, of: focus)
         diagram.buttons["buildhunter.diagram.copyPath"].click()
         let filter = diagram.textFields["buildhunter.diagram.filter"]

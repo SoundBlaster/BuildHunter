@@ -123,15 +123,6 @@ private struct ArtifactSunburstChart: View {
                                 let frame = geometry[anchor]
                                 ZStack(alignment: .topLeading) {
                                     Rectangle().fill(.clear).contentShape(Rectangle())
-                                        .onContinuousHover { phase in
-                                            switch phase {
-                                            case .active(let location):
-                                                pointer = location
-                                                setHover(hit(location, proxy: proxy, geometry: geometry))
-                                            case .ended:
-                                                setHover(nil)
-                                            }
-                                        }
                                         .onTapGesture { location in
                                             if let sector = hit(location, proxy: proxy, geometry: geometry) {
                                                 setHover(nil)
@@ -160,12 +151,23 @@ private struct ArtifactSunburstChart: View {
                                     .help(canNavigateUp ? "Go to parent folder" : "All artifacts")
                                     .nestedAccessibilityIdentifier("centerUp")
                                     .position(x: frame.midX, y: frame.midY)
-                                    .onHover { if $0 { setHover(nil) } }
 
                                     if let sector = layout.sectors.first(where: { $0.id == hovered }) {
                                         DiagramTooltip(name: sector.name, pointer: pointer, bounds: geometry.size)
                                             .allowsHitTesting(false)
                                             .accessibilityHidden(true)
+                                    }
+                                }
+                                // Track the entire overlay, including the center button.
+                                // Attaching hover after that button's .position expands
+                                // its tracking region across the plot and masks the rings.
+                                .onContinuousHover { phase in
+                                    switch phase {
+                                    case .active(let location):
+                                        pointer = location
+                                        setHover(hit(location, proxy: proxy, geometry: geometry))
+                                    case .ended:
+                                        setHover(nil)
                                     }
                                 }
                             }
