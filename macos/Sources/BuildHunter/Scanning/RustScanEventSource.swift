@@ -422,6 +422,10 @@ private func artifactKind(_ code: UInt32) -> ArtifactKind {
     }
 }
 
-private func stableID(_ value: UInt64) -> UUID {
-    UUID(uuidString: String(format: "00000000-0000-4000-8000-%012llx", value & 0x0000_FFFF_FFFF_FFFF))!
+/// Maps a Rust artifact ID to `00000000-0000-4000-8000-<low 48 bits>` from bytes; formatting
+/// and parsing a UUID string cost about a microsecond per event on the scan thread.
+func stableID(_ value: UInt64) -> UUID {
+    func byte(_ shift: UInt64) -> UInt8 { UInt8(truncatingIfNeeded: value >> shift) }
+    return UUID(uuid: (0, 0, 0, 0, 0, 0, 0x40, 0, 0x80, 0,
+                       byte(40), byte(32), byte(24), byte(16), byte(8), byte(0)))
 }

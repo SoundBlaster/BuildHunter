@@ -144,6 +144,15 @@ struct WindowScanModelTests {
         #expect(model.warnings == [messages[0]], "a new report forgets earlier warnings")
     }
 
+    @Test("Rust artifact IDs map to the same stable UUIDs, built from bytes")
+    func stableIDsAreBuiltFromBytes() {
+        #expect(stableID(0).uuidString == "00000000-0000-4000-8000-000000000000")
+        #expect(stableID(0xABCDEF).uuidString == "00000000-0000-4000-8000-000000ABCDEF")
+        #expect(stableID(0xFFFF_FFFF_FFFF).uuidString == "00000000-0000-4000-8000-FFFFFFFFFFFF")
+        #expect(stableID(0x1_0000_0000_0001) == stableID(1), "only the low 48 bits are kept")
+        #expect(Set((0..<UInt64(10_000)).map(stableID)).count == 10_000)
+    }
+
     @Test("Terminal event rejects later events from the same generation")
     func terminalEventRejectsLateUpdates() {
         let model = WindowScanModel(source: ControlledScanSource())
