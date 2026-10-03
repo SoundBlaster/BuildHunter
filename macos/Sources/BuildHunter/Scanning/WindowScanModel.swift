@@ -195,7 +195,9 @@ final class ScanTableModel {
     var sortOrder: [ScanRowComparator] = [.init(column: .path)]
     @ObservationIgnored private var lastRevision: UInt64?
     @ObservationIgnored private var sourceID: UUID?
+    @ObservationIgnored private var reportID: UUID?
     @ObservationIgnored private var appliedOrder: [ScanRowComparator] = []
+    @ObservationIgnored private var sortedIndices: [Int] = []
 
     func follow(_ scan: WindowScanModel) async {
         while !Task.isCancelled {
@@ -211,12 +213,57 @@ final class ScanTableModel {
         guard sourceID != scan.id || lastRevision != revision || appliedOrder != order else { return }
         let generation = scan.generation
         let input = scan.rows
-        let worker = Task.detached(priority: .userInitiated) { ScanRowComparator.sorted(input, by: order) }
-        let sorted = await withTaskCancellationHandler { await worker.value } onCancel: { worker.cancel() }
+        // Within one report rows are only appended and only their sizes change, so unless
+        // size orders the table, the previous order stays valid for the rows it covers.
+        let canMerge = sourceID == scan.id && reportID == scan.reportID && appliedOrder == order
+            && !order.contains { $0.column == .size } && sortedIndices.count <= input.count
+        let previous = canMerge ? sortedIndices : nil
+        let worker = Task.detached(priority: .userInitiated) {
+            ScanTableProjection(input, by: order, extending: previous)
+        }
+        let projection = await withTaskCancellationHandler { await worker.value } onCancel: { worker.cancel() }
         guard !Task.isCancelled, generation == scan.generation, order == sortOrder else { return }
-        rows = sorted
+        rows = projection.rows
+        sortedIndices = projection.sortedIndices
         lastRevision = revision
         sourceID = scan.id
+        reportID = scan.reportID
         appliedOrder = order
+    }
+}
+
+/// Sorted positions refer to the scanner's append-only row array.
+struct ScanTableProjection: Sendable {
+    let sortedIndices: [Int]
+    let rows: [ScanRow]
+
+    init(_ input: [ScanRow], by order: [ScanRowComparator], extending previous: [Int]?) {
+        let precedes = { (left: Int, right: Int) in
+            ScanRowComparator.areInIncreasingOrder(input[left], input[right], by: order)
+        }
+        guard let previous else {
+            sortedIndices = input.indices.sorted(by: precedes)
+            rows = sortedIndices.map { input[$0] }
+            return
+        }
+        // Only the newly discovered suffix is sorted; each new row is binary-searched into
+        // the remaining part of the previous order, which the comparator totally orders.
+        var merged: [Int] = []
+        merged.reserveCapacity(input.count)
+        var lower = previous.startIndex
+        for index in (previous.count..<input.count).sorted(by: precedes) {
+            var low = lower
+            var high = previous.endIndex
+            while low < high {
+                let middle = (low + high) / 2
+                if precedes(previous[middle], index) { low = middle + 1 } else { high = middle }
+            }
+            merged.append(contentsOf: previous[lower..<low])
+            merged.append(index)
+            lower = low
+        }
+        merged.append(contentsOf: previous[lower...])
+        sortedIndices = merged
+        rows = merged.map { input[$0] }
     }
 }
