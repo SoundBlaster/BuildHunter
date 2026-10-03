@@ -32,12 +32,9 @@ struct ArtifactDiagramWindow: View {
                 ArtifactDiagramSidebar(model: diagram)
                     .frame(minWidth: 240, idealWidth: 280, maxWidth: 380, maxHeight: .infinity)
             }
-            Divider()
-            Text("Area shows known artifact sizes. Partial sizes are lower bounds; unmeasured artifacts have no sector yet.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
+            WindowStatusBar {
+                Text("Area shows known artifact sizes. Partial sizes are lower bounds; unmeasured artifacts have no sector yet.")
+            }
         }
         .frame(minWidth: 760, minHeight: 540)
         .navigationTitle("\(scan.targetName ?? "BuildHunter") — Artifact Diagram")

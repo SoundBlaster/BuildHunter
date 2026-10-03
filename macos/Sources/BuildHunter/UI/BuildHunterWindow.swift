@@ -17,6 +17,8 @@ struct BuildHunterWindow: View {
             readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
+                ScanReportFooter()
+                    .a11yRoot("buildhunter.report")
             } else {
                 emptyState
             }
@@ -133,8 +135,6 @@ struct BuildHunterWindow: View {
                 .nestedAccessibilityIdentifier("warnings")
             }
             ArtifactReportTable(scan: model)
-            ScanReportFooter()
-
         }
         .padding(18)
         .a11yRoot("buildhunter.report")
@@ -210,19 +210,31 @@ private struct ArtifactReportCell: View {
     }
 }
 
-private struct ScanReportFooter: View {
+/// Shared bottom chrome keeps both scan and diagram windows aligned.
+struct WindowStatusBar<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack(alignment: .firstTextBaseline) {
-                Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                content()
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .nestedAccessibilityIdentifier("readOnlyStatus")
+                    .lineLimit(1)
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
-            .padding(.top, 6)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 38, maxHeight: 38, alignment: .leading)
+        }
+    }
+}
+
+private struct ScanReportFooter: View {
+    var body: some View {
+        WindowStatusBar {
+            Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+                .nestedAccessibilityIdentifier("readOnlyStatus")
         }
     }
 }
