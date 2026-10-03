@@ -9,11 +9,15 @@ final class RustScanEventSource: ScanEventSource {
         self.settings = settings
     }
 
+    /// The scanner outruns a main actor that is busy rendering. A bounded buffer dropped
+    /// events and failed the whole report, so buffering is unbounded: it holds at most the
+    /// artifacts and warnings the report keeps anyway, and it drains as the model applies them.
+    nonisolated static func makeEventStream() -> (AsyncStream<ScanEvent>, AsyncStream<ScanEvent>.Continuation) {
+        AsyncStream.makeStream(of: ScanEvent.self, bufferingPolicy: .unbounded)
+    }
+
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
-        let (stream, continuation) = AsyncStream.makeStream(
-            of: ScanEvent.self,
-            bufferingPolicy: .bufferingNewest(2_048)
-        )
+        let (stream, continuation) = Self.makeEventStream()
         guard let target else {
             continuation.yield(.finished(generation: generation, result: .failed("No folder is selected.")))
             continuation.finish()

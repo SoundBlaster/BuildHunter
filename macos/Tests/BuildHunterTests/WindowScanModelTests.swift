@@ -94,6 +94,32 @@ struct WindowScanModelTests {
         #expect(model.warnings.contains { $0.contains("display buffer") })
     }
 
+    @Test("Rust events are not dropped while the main actor is busy")
+    func rustEventsSurviveABusyConsumer() async {
+        let generation: UInt64 = 1
+        let (stream, continuation) = RustScanEventSource.makeEventStream()
+        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation,
+                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
+        // The scanner can outrun the consumer by thousands of events before it reads any.
+        let artifacts = (0..<5_000).map { index in
+            ScanArtifact(id: UUID(), relativePath: "Project\(index)/.build", language: "Swift", kind: .buildOutput)
+        }
+        for artifact in artifacts {
+            bridge.yield(.discovered(generation: generation, artifact: artifact))
+            bridge.yield(.completed(generation: generation, artifactID: artifact.id, bytes: 4_096))
+        }
+        bridge.finish(status: 0)
+
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Busy consumer")
+        await model.waitForCurrentScan()
+
+        #expect(model.rows.count == artifacts.count)
+        #expect(model.rows.allSatisfy { $0.size == .measured(4_096) })
+        #expect(model.warnings.isEmpty)
+        #expect(model.phase == .completed)
+    }
+
     @Test("Terminal event rejects later events from the same generation")
     func terminalEventRejectsLateUpdates() {
         let model = WindowScanModel(source: ControlledScanSource())
