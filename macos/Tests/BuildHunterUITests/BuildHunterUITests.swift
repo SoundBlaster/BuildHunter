@@ -121,8 +121,12 @@ final class BuildHunterUITests: XCTestCase {
         expectValue("Demo Workspace", of: focus)
         let chart = diagram.descendants(matching: .any).matching(identifier: "buildhunter.diagram.chart").firstMatch
         XCTAssertTrue(chart.waitForExistence(timeout: 5))
-        // The completed fixture's Packages sector spans this point in the inner ring.
-        chart.coordinate(withNormalizedOffset: CGVector(dx: 0.66, dy: 0.5)).hover()
+        let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
+        XCTAssertTrue(center.waitForExistence(timeout: 5))
+        // Anchor to the actual center overlay: the chart's accessibility bounds can
+        // include only its marks, rather than the complete square plot frame.
+        // The fixture's Packages sector occupies the right side of the inner ring.
+        center.coordinate(withNormalizedOffset: CGVector(dx: 1.25, dy: 0.5)).hover()
         expectValue("Packages", of: focus)
         XCTAssertTrue(diagram.buttons["buildhunter.diagram.folders.folder.Packages/Core"].exists)
         attachScreenshot(named: "diagram-hover-preview", from: app)
@@ -134,8 +138,6 @@ final class BuildHunterUITests: XCTestCase {
         attachScreenshot(named: "diagram-folder-hover", from: app)
         packages.click()
         expectValue("Packages", of: focus)
-        let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
-        XCTAssertTrue(center.waitForExistence(timeout: 5))
         XCTAssertTrue(center.isEnabled)
         center.click()
         expectValue("Demo Workspace", of: focus)
@@ -149,22 +151,24 @@ final class BuildHunterUITests: XCTestCase {
         defer { app.terminate() }
         let window = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         selectMockState("results", in: window, app: app)
-        let table = window.tables.firstMatch
+        // SwiftUI Table exposes an AXOutline on macOS, with each row combining
+        // its cells into one accessibility label.
+        let table = window.outlines.firstMatch
         XCTAssertTrue(table.waitForExistence(timeout: 5))
-        let firstPath = table.tableRows.element(boundBy: 0).staticTexts.element(boundBy: 0)
-        expectValue("Packages/Core/.build", of: firstPath)
+        let firstRow = table.tableRows.element(boundBy: 0)
+        expectRowPath("Packages/Core/.build", of: firstRow)
         let pathHeader = table.buttons["Path"]
         XCTAssertTrue(pathHeader.waitForExistence(timeout: 5))
         pathHeader.click()
-        expectValue("Tools/Indexer/target", of: firstPath)
+        expectRowPath("Tools/Indexer/target", of: firstRow)
         pathHeader.click()
-        expectValue("Packages/Core/.build", of: firstPath)
+        expectRowPath("Packages/Core/.build", of: firstRow)
         table.buttons["Size"].click()
-        expectValue("Services/API/.pytest_cache", of: firstPath)
+        expectRowPath("Services/API/.pytest_cache", of: firstRow)
         table.buttons["Size"].click()
-        expectValue("Packages/Core/.build", of: firstPath)
+        expectRowPath("Packages/Core/.build", of: firstRow)
         table.buttons["Language"].click()
-        expectValue("Services/API/.pytest_cache", of: firstPath)
+        expectRowPath("Services/API/.pytest_cache", of: firstRow)
         attachScreenshot(named: "report-sorted-columns-and-footer", from: app)
     }
 
@@ -179,7 +183,7 @@ final class BuildHunterUITests: XCTestCase {
         let app = launchWindow()
         defer { app.terminate() }
         app.buttons["buildhunter.empty.openFolder"].click()
-        let open = app.descendants(matching: .any).matching(identifier: "OpenButton").firstMatch
+        let open = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch
         XCTAssertTrue(open.waitForExistence(timeout: 5))
         app.typeKey("g", modifierFlags: [.command, .shift])
         app.typeText(root.path)
@@ -232,6 +236,14 @@ final class BuildHunterUITests: XCTestCase {
                                                     object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed,
                        "Expected static text value: \(text)", file: file, line: line)
+    }
+
+    private func expectRowPath(_ path: String, of row: XCUIElement,
+                               file: StaticString = #filePath, line: UInt = #line) {
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label BEGINSWITH %@", path),
+                                                    object: row)
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed,
+                       "Expected first row path: \(path); got \(row.debugDescription)", file: file, line: line)
     }
 
     private func launchWindow() -> XCUIApplication {
