@@ -69,46 +69,27 @@ struct WindowScanModelTests {
         #expect(terminal == .completed)
     }
 
-    @Test("Overflow caused by the terminal event makes the scan incomplete")
-    func terminalEnqueueOverflowIsReported() async {
-        let generation: UInt64 = 1
-        let (stream, continuation) = AsyncStream.makeStream(
-            of: ScanEvent.self,
-            bufferingPolicy: .bufferingNewest(2)
-        )
-        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation,
-                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
-        bridge.yield(.discovered(generation: generation, artifact: makeArtifact()))
-        bridge.yield(.discovered(
-            generation: generation,
-            artifact: ScanArtifact(id: UUID(), relativePath: "DemoFixture/Beta/.build",
-                                   language: "Swift", kind: .buildOutput)
-        ))
-        bridge.finish(status: 0)
-
-        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
-        model.acceptDemoTarget(named: "Overflow")
-        await model.waitForCurrentScan()
-
-        #expect(model.phase == .incomplete)
-        #expect(model.warnings.contains { $0.contains("display buffer") })
-    }
-
-    @Test("Rust events are not dropped while the main actor is busy")
-    func rustEventsSurviveABusyConsumer() async {
-        let generation: UInt64 = 1
-        let (stream, continuation) = RustScanEventSource.makeEventStream()
-        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation,
-                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
-        // The scanner can outrun the consumer by thousands of events before it reads any.
-        let artifacts = (0..<5_000).map { index in
+    @Test("Rust events wait for buffer space instead of being dropped")
+    func rustEventsApplyBackpressure() async throws {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let artifacts = (0..<1_000).map { index in
             ScanArtifact(id: UUID(), relativePath: "Project\(index)/.build", language: "Swift", kind: .buildOutput)
         }
-        for artifact in artifacts {
-            bridge.yield(.discovered(generation: generation, artifact: artifact))
-            bridge.yield(.completed(generation: generation, artifactID: artifact.id, bytes: 4_096))
-        }
-        bridge.finish(status: 0)
+        let producer = ProducerProbe()
+        // The Rust scanner calls back on its own thread and can outrun the consumer.
+        Thread {
+            for artifact in artifacts {
+                channel.send(.discovered(generation: 1, artifact: artifact))
+                channel.send(.completed(generation: 1, artifactID: artifact.id, bytes: 4_096))
+            }
+            channel.send(.finished(generation: 1, result: .completed))
+            channel.finish()
+            producer.markFinished()
+        }.start()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(channel.bufferedCount == 8, "the producer waits once the buffer is full")
+        #expect(!producer.isFinished)
 
         let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
         model.acceptDemoTarget(named: "Busy consumer")
@@ -118,6 +99,32 @@ struct WindowScanModelTests {
         #expect(model.rows.allSatisfy { $0.size == .measured(4_096) })
         #expect(model.warnings.isEmpty)
         #expect(model.phase == .completed)
+    }
+
+    @Test("Abandoning the event stream wakes a producer blocked on a full buffer")
+    func abandonedStreamReleasesTheProducer() async throws {
+        let channel = ScanEventChannel(capacity: 2)
+        let producer = ProducerProbe()
+        var stream: AsyncStream<ScanEvent>? = channel.makeStream(onClose: { producer.markClosed() })
+        Thread {
+            var accepted = 0
+            for index in 0..<10 where channel.send(.warning(generation: 1, message: "\(index)")) {
+                accepted += 1
+            }
+            producer.markFinished(accepted: accepted)
+        }.start()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(!producer.isFinished)
+        #expect(stream != nil)
+
+        stream = nil
+        for _ in 0..<200 where !producer.isFinished {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+        #expect(producer.isFinished)
+        #expect(producer.isClosed)
+        #expect(producer.accepted == 2)
     }
 
     @Test("Terminal event rejects later events from the same generation")
@@ -224,8 +231,9 @@ struct WindowScanModelTests {
 
     @Test("Incomplete or unknown Rust terminal statuses cannot report success", arguments: [2, 99])
     func unsuccessfulRustStatusMarksReportIncomplete(status: UInt32) async {
-        let (stream, continuation) = AsyncStream.makeStream(of: ScanEvent.self)
-        let bridge = RustScanBridgeContext(generation: 1, continuation: continuation,
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel,
                                            filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
         bridge.finish(status: status)
 
@@ -414,6 +422,28 @@ private final class ControlledScanSource: ScanEventSource {
     func nextTermination() async -> UInt64? {
         var iterator = terminationEvents.makeAsyncIterator()
         return await iterator.next()
+    }
+}
+
+private final class ProducerProbe: @unchecked Sendable {
+    private let lock = NSLock()
+    private var finished = false
+    private var closed = false
+    private var acceptedCount = 0
+
+    var isFinished: Bool { lock.withLock { finished } }
+    var isClosed: Bool { lock.withLock { closed } }
+    var accepted: Int { lock.withLock { acceptedCount } }
+
+    func markFinished(accepted: Int = 0) {
+        lock.withLock {
+            finished = true
+            acceptedCount = accepted
+        }
+    }
+
+    func markClosed() {
+        lock.withLock { closed = true }
     }
 }
 
