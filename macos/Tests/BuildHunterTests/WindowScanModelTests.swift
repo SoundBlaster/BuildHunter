@@ -475,6 +475,38 @@ struct ScanTableModelTests {
                 == ScanRowComparator.sorted(rows, by: [.init(column: .kind)]))
     }
 
+    @Test("Streaming refreshes merge new rows instead of re-sorting the whole report")
+    func streamingRefreshIsIncremental() async {
+        let scan = WindowScanModel(source: TableIdleSource())
+        let table = ScanTableModel()
+        scan.acceptDemoTarget(named: "Fixture")
+        defer { scan.stop() }
+        let artifacts = (0..<11_000).shuffled().map { index in
+            ScanArtifact(id: UUID(), relativePath: "Projects/group\(index % 97)/Project\(index)/.build",
+                         language: index.isMultiple(of: 3) ? "Rust" : "Swift", kind: .buildOutput)
+        }
+        for artifact in artifacts.prefix(10_000) {
+            scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+        }
+        await table.refresh(from: scan)
+
+        let start = ProcessInfo.processInfo.systemUptime
+        for round in 0..<40 {
+            for artifact in artifacts[(10_000 + round * 25)..<(10_000 + (round + 1) * 25)] {
+                scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+            }
+            for artifact in artifacts[(round * 25)..<((round + 1) * 25)] {
+                scan.apply(.completed(generation: scan.generation, artifactID: artifact.id, bytes: Int64(round)))
+            }
+            await table.refresh(from: scan)
+        }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+
+        #expect(table.rows == ScanRowComparator.sorted(scan.rows, by: table.sortOrder))
+        // Re-sorting 11,000 paths with localized comparison on every refresh dominates.
+        #expect(elapsed < 0.5)
+    }
+
     @Test("Sorting during discovery does not break the scanner's row index or late measurements")
     func streamingSort() async {
         let scan = WindowScanModel(source: TableIdleSource())
