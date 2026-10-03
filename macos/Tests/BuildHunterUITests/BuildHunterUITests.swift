@@ -159,15 +159,15 @@ final class BuildHunterUITests: XCTestCase {
         expectRowPath("Packages/Core/.build", of: firstRow)
         let pathHeader = table.buttons["Path"]
         XCTAssertTrue(pathHeader.waitForExistence(timeout: 5))
-        pathHeader.click()
+        clickTableHeader(pathHeader)
         expectRowPath("Tools/Indexer/target", of: firstRow)
-        pathHeader.click()
+        clickTableHeader(pathHeader)
         expectRowPath("Packages/Core/.build", of: firstRow)
-        table.buttons["Size"].click()
+        clickTableHeader(table.buttons["Size"])
         expectRowPath("Services/API/.pytest_cache", of: firstRow)
-        table.buttons["Size"].click()
+        clickTableHeader(table.buttons["Size"])
         expectRowPath("Packages/Core/.build", of: firstRow)
-        table.buttons["Language"].click()
+        clickTableHeader(table.buttons["Language"])
         expectRowPath("Services/API/.pytest_cache", of: firstRow)
         firstRow.hover()
         attachScreenshot(named: "report-sorted-columns-and-footer", from: app)
@@ -239,6 +239,14 @@ final class BuildHunterUITests: XCTestCase {
                                                     object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed,
                        "Expected static text value: \(text)", file: file, line: line)
+    }
+
+    private func clickTableHeader(_ header: XCUIElement) {
+        // SwiftUI Table's AX button can be marked not hittable on macOS 26
+        // even while visibly laid out. Clicking its center avoids XCTest's
+        // incorrect automatic ScrollView repositioning of the header.
+        XCTAssertTrue(header.waitForExistence(timeout: 5))
+        header.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
     }
 
     private func expectRowPath(_ path: String, of row: XCUIElement,
