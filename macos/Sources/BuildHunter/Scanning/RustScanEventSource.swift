@@ -9,31 +9,32 @@ final class RustScanEventSource: ScanEventSource {
         self.settings = settings
     }
 
+    /// Undelivered events held for the model. When it is full the scan thread waits instead
+    /// of dropping events, so memory stays bounded and the report stays complete.
+    nonisolated static let eventCapacity = 4_096
+
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
-        let (stream, continuation) = AsyncStream.makeStream(
-            of: ScanEvent.self,
-            bufferingPolicy: .bufferingNewest(2_048)
-        )
+        let channel = ScanEventChannel(capacity: Self.eventCapacity)
         guard let target else {
-            continuation.yield(.finished(generation: generation, result: .failed("No folder is selected.")))
-            continuation.finish()
-            return stream
+            channel.send(.finished(generation: generation, result: .failed("No folder is selected.")))
+            channel.finish()
+            return channel.makeStream(onClose: {})
         }
         guard let control = bh_scan_control_create() else {
-            continuation.yield(.finished(generation: generation, result: .failed("Could not start the Rust scanner.")))
-            continuation.finish()
-            return stream
+            channel.send(.finished(generation: generation, result: .failed("Could not start the Rust scanner.")))
+            channel.finish()
+            return channel.makeStream(onClose: {})
         }
 
-        let job = RustScanJob(control: control)
+        let job = RustScanJob(control: control, channel: channel)
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
-        let context = RustScanBridgeContext(generation: generation, continuation: continuation,
+        let context = RustScanBridgeContext(generation: generation, channel: channel,
                                            filters: settings.snapshot)
         let retainedContext = Unmanaged.passRetained(context).toOpaque()
         let rootBytes = Data(target.path.utf8)
         let startedSecurityScope = target.startAccessingSecurityScopedResource()
-        continuation.onTermination = { @Sendable _ in job.cancel() }
+        let stream = channel.makeStream(onClose: { job.cancel() })
 
         Task.detached(priority: .userInitiated) {
             let result = rootBytes.withUnsafeBytes { rawBuffer -> Int32 in
@@ -71,17 +72,21 @@ final class RustScanEventSource: ScanEventSource {
 private final class RustScanJob: @unchecked Sendable {
     private let lock = NSLock()
     private var control: UnsafeMutableRawPointer?
+    private let channel: ScanEventChannel
 
-    init(control: UnsafeMutableRawPointer) {
+    init(control: UnsafeMutableRawPointer, channel: ScanEventChannel) {
         self.control = control
+        self.channel = channel
     }
 
+    /// Stops the scan and wakes its thread if it is waiting for buffer space.
     func cancel() {
         lock.lock()
-        defer { lock.unlock() }
         if let control {
             bh_scan_control_cancel(control)
         }
+        lock.unlock()
+        channel.close()
     }
 
     func finish() {
@@ -94,58 +99,155 @@ private final class RustScanJob: @unchecked Sendable {
     }
 }
 
-// Rust calls both callbacks serially on its scan thread. Policies are immutable;
-// completion/overflow flags are locked and AsyncStream.Continuation is Sendable.
+/// A single-producer, single-consumer event queue with blocking backpressure. The Rust scan
+/// thread waits in `send` while `capacity` events are undelivered. Closing the queue, which
+/// happens on Stop, cancellation or when the stream is abandoned, discards pending events and
+/// wakes the producer, so Stop never waits for the consumer.
+final class ScanEventChannel: @unchecked Sendable {
+    private let condition = NSCondition()
+    private let capacity: Int
+    private var events: [ScanEvent] = []
+    private var head = 0
+    private var waiter: CheckedContinuation<ScanEvent?, Never>?
+    private var finished = false
+    private var closed = false
+
+    init(capacity: Int) {
+        precondition(capacity > 0)
+        self.capacity = capacity
+    }
+
+    var bufferedCount: Int { condition.withLock { events.count - head } }
+
+    /// Blocks while the buffer is full. Returns `false` once the queue is closed.
+    @discardableResult
+    func send(_ event: ScanEvent) -> Bool {
+        condition.lock()
+        while !closed, waiter == nil, events.count - head >= capacity {
+            condition.wait()
+        }
+        guard !closed else {
+            condition.unlock()
+            return false
+        }
+        let waiter = self.waiter
+        if waiter == nil {
+            events.append(event)
+        } else {
+            self.waiter = nil
+        }
+        condition.unlock()
+        waiter?.resume(returning: event)
+        return true
+    }
+
+    /// Ends the stream after the buffered events are delivered.
+    func finish() {
+        condition.lock()
+        finished = true
+        let waiter = self.waiter
+        self.waiter = nil
+        condition.unlock()
+        waiter?.resume(returning: nil)
+    }
+
+    /// Ends the stream now and releases a waiting producer.
+    func close() {
+        condition.lock()
+        closed = true
+        events.removeAll()
+        head = 0
+        let waiter = self.waiter
+        self.waiter = nil
+        condition.broadcast()
+        condition.unlock()
+        waiter?.resume(returning: nil)
+    }
+
+    func next() async -> ScanEvent? {
+        await withCheckedContinuation { continuation in
+            condition.lock()
+            if head < events.count {
+                let event = events[head]
+                head += 1
+                if head == events.count {
+                    events.removeAll(keepingCapacity: true)
+                    head = 0
+                }
+                condition.signal()
+                condition.unlock()
+                continuation.resume(returning: event)
+            } else if finished || closed {
+                condition.unlock()
+                continuation.resume(returning: nil)
+            } else {
+                waiter = continuation
+                condition.unlock()
+            }
+        }
+    }
+
+    /// The stream closes the queue and calls `onClose` when it is cancelled or released.
+    func makeStream(onClose: @escaping @Sendable () -> Void) -> AsyncStream<ScanEvent> {
+        let lifetime = ScanEventStreamLifetime(channel: self, onClose: onClose)
+        return AsyncStream(unfolding: { await lifetime.channel.next() },
+                           onCancel: { lifetime.close() })
+    }
+}
+
+private final class ScanEventStreamLifetime: Sendable {
+    let channel: ScanEventChannel
+    private let onClose: @Sendable () -> Void
+
+    init(channel: ScanEventChannel, onClose: @escaping @Sendable () -> Void) {
+        self.channel = channel
+        self.onClose = onClose
+    }
+
+    func close() {
+        channel.close()
+        onClose()
+    }
+
+    deinit {
+        close()
+    }
+}
+
+// Rust calls both callbacks serially on its scan thread. Policies are immutable and the
+// completion flag is locked; the channel is safe to use from that thread.
 final class RustScanBridgeContext: @unchecked Sendable {
     let generation: UInt64
-    let continuation: AsyncStream<ScanEvent>.Continuation
+    let channel: ScanEventChannel
     let candidatePolicy = IsScannableArtifactCandidate()
     let outerRootPolicy = IsOuterArtifactRoot()
     let classificationPolicy = ClassifyArtifactRoot()
     let filters: SearchFilterSnapshot
     private let lock = NSLock()
-    private var overflowed = false
     private var didFinish = false
 
-    init(generation: UInt64, continuation: AsyncStream<ScanEvent>.Continuation, filters: SearchFilterSnapshot) {
+    init(generation: UInt64, channel: ScanEventChannel, filters: SearchFilterSnapshot) {
         self.generation = generation
-        self.continuation = continuation
+        self.channel = channel
         self.filters = filters
     }
 
-    @discardableResult
-    func yield(_ event: ScanEvent) -> Bool {
-        switch continuation.yield(event) {
-        case .dropped:
-            lock.lock()
-            overflowed = true
-            lock.unlock()
-            return true
-        case .enqueued, .terminated:
-            return false
-        @unknown default:
-            return false
-        }
+    func yield(_ event: ScanEvent) {
+        channel.send(event)
     }
 
     func finishIfRustReturnedUnexpectedly(status: Int32) {
         lock.lock()
         let shouldFinish = !didFinish
         didFinish = true
-        let hadOverflow = overflowed
         lock.unlock()
 
         if shouldFinish {
-            if hadOverflow {
-                yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
-                yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
-            } else {
-                let message = status == 0 ? "The scanner ended without a terminal event." : "The Rust scanner stopped with status \(status)."
-                yield(.warning(generation: generation, message: message))
-                yield(.finished(generation: generation, result: .failed(message)))
-            }
+            let message = status == 0 ? "The scanner ended without a terminal event." : "The Rust scanner stopped with status \(status)."
+            yield(.warning(generation: generation, message: message))
+            yield(.finished(generation: generation, result: .failed(message)))
         }
-        continuation.finish()
+        channel.finish()
     }
 
     func handle(_ event: UnsafePointer<BHScanEvent>) {
@@ -194,27 +296,18 @@ final class RustScanBridgeContext: @unchecked Sendable {
         lock.lock()
         let shouldFinish = !didFinish
         didFinish = true
-        let hadOverflow = overflowed
         lock.unlock()
         guard shouldFinish else { return }
 
-        if hadOverflow {
-            yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
-            yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
-        } else {
-            let result: ScanTerminalResult = switch status {
-            case 0: .completed
-            case 1: .stopped
-            case 2: .failed("Some paths could not be read; results are incomplete.")
-            case 3: .failed("The scanner could not complete the scan.")
-            default: .failed("The Rust scanner returned an unknown status \(status).")
-            }
-            if yield(.finished(generation: generation, result: result)) {
-                yield(.warning(generation: generation, message: "Some scan events exceeded the display buffer; results are incomplete."))
-                yield(.finished(generation: generation, result: .failed("The display buffer filled before the scan completed.")))
-            }
+        let result: ScanTerminalResult = switch status {
+        case 0: .completed
+        case 1: .stopped
+        case 2: .failed("Some paths could not be read; results are incomplete.")
+        case 3: .failed("The scanner could not complete the scan.")
+        default: .failed("The Rust scanner returned an unknown status \(status).")
         }
-        continuation.finish()
+        yield(.finished(generation: generation, result: result))
+        channel.finish()
     }
 }
 
