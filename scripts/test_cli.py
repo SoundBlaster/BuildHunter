@@ -65,6 +65,44 @@ class CLIIntegrationTests(unittest.TestCase):
         self.assertEqual(sum(not r["nested"] for r in report["artifacts"]), 1)
         self.assertEqual(next(r for r in report["artifacts"] if not r["nested"])["kind"], "environment")
 
+    def test_individual_and_language_exclusions_preserve_nested_discovery(self):
+        self.write("rust/Cargo.toml")
+        self.write("rust/target/object")
+        self.write("python/pyproject.toml")
+        self.write("python/.pytest_cache/store")
+        self.write("python/.pytest_cache/nested/.build/object")
+        self.write("swift/.build/__pycache__/module.pyc", b"bytecode")
+
+        individual = self.scan("--exclude", "python.pytest-cache,python.bytecode")
+        # The CLI reports paths under its canonical root, which has a \\?\ prefix on Windows.
+        root = Path(individual["root"])
+        paths = {Path(row["path"]).relative_to(root).as_posix() for row in individual["artifacts"]}
+        self.assertIn("python/.pytest_cache/nested/.build", paths)
+        self.assertNotIn("python/.pytest_cache", paths)
+        self.assertNotIn("swift/.build/__pycache__", paths)
+        self.assertTrue(any(path.endswith("swift/.build") for path in paths))
+
+        python_only = self.scan("--exclude", "python")
+        self.assertEqual({row["language"] for row in python_only["artifacts"]}, {"swift", "rust"})
+
+        mixed_aliases = self.scan("--exclude", "swift,rust")
+        self.assertEqual({row["language"] for row in mixed_aliases["artifacts"]}, {"python"})
+
+    def test_list_filters_uses_canonical_json_catalog(self):
+        result = subprocess.run([str(BINARY), "--list-filters", "--json"], capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        catalog = json.loads(result.stdout)
+        self.assertEqual(catalog[0]["id"], "swift.build")
+        self.assertEqual(catalog[1]["id"], "rust.target")
+        bytecode = next(item for item in catalog if item["id"] == "python.bytecode")
+        self.assertEqual(bytecode["nodeNames"], ["__pycache__"])
+        self.assertEqual(bytecode["suffixes"], [".pyc", ".pyo"])
+        environment = next(item for item in catalog if item["id"] == "python.environment")
+        self.assertIs(environment["requiresVenvMarker"], True)
+        plain = subprocess.run([str(BINARY), "--list-filters"], capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(plain.returncode, 0, plain.stderr)
+        self.assertIn("python.mypy-cache", plain.stdout)
+
     def test_accepted_artifact_includes_nested_environment_contents(self):
         self.write("app/.build/.venv/pyvenv.cfg")
         self.write("app/.build/.venv/lib/module.pyc", b"bytecode" * 1024)
@@ -89,6 +127,9 @@ class CLIIntegrationTests(unittest.TestCase):
     def test_invalid_arguments_and_empty_directory(self):
         self.assertEqual(self.scan()["total_bytes"], 0)
         for args in (["--language", "unknown"], ["--unknown"], [str(self.root / "missing")]):
+            result = subprocess.run([str(BINARY), *args], capture_output=True, text=True, encoding="utf-8")
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        for args in (["--exclude"], ["--exclude", ""], ["--exclude", ","], ["--exclude", "swift,"], ["--exclude", "unknown.id"], ["--exclude", "--json"]):
             result = subprocess.run([str(BINARY), *args], capture_output=True, text=True, encoding="utf-8")
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
 

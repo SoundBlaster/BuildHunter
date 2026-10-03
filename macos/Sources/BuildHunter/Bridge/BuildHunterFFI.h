@@ -46,6 +46,10 @@ typedef void (*BHEventCallback)(void *context, const BHScanEvent *event);
  * Callbacks run serially on the calling thread; all payload pointers are borrowed
  * until the callback returns. Keep the callback context alive until bh_scan returns.
  */
+/* Canonical extensible filter catalog. Returned UTF-8 JSON is NUL-terminated,
+ * immutable and valid for the lifetime of the process; callers must not free it. */
+const char *bh_search_filter_catalog_json(void);
+
 void *bh_scan_control_create(void);
 /* Cancellation is thread-safe. Destroy the control only after bh_scan returns;
  * serialize destruction with cancellation so no caller uses a destroyed handle.
