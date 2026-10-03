@@ -123,6 +123,7 @@ private struct ArtifactSunburstChart: View {
                         GeometryReader { geometry in
                             if let anchor = proxy.plotFrame {
                                 let frame = geometry[anchor]
+                                let centerDiameter = min(frame.width, frame.height) * 0.21
                                 ZStack(alignment: .topLeading) {
                                     Rectangle().fill(.clear).contentShape(Rectangle())
                                         .onTapGesture { location in
@@ -138,17 +139,19 @@ private struct ArtifactSunburstChart: View {
                                                     .accessibilityHidden(true)
                                                 Text(canNavigateUp ? "Up · Known size" : "Known size")
                                             }
-                                            .font(.caption2).foregroundStyle(.secondary)
+                                            .font(.system(size: min(11, centerDiameter * 0.12)))
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.5)
+                                            .foregroundStyle(.secondary)
                                             Text(diagramBytes(bytes))
                                                 .foregroundStyle(Color.primary)
-                                                .font(.headline)
-                                                .minimumScaleFactor(0.6)
+                                                .font(.system(size: min(17, centerDiameter * 0.19), weight: .semibold))
+                                                .minimumScaleFactor(0.5)
                                                 .lineLimit(1)
                                                 .contentTransition(reduceMotion ? .identity : .numericText())
                                                 .nestedAccessibilityIdentifier("total")
                                         }
-                                        .frame(width: min(frame.width, frame.height) * 0.21,
-                                               height: min(frame.width, frame.height) * 0.21)
+                                        .frame(width: centerDiameter, height: centerDiameter)
                                         .contentShape(Circle())
                                     }
                                     .buttonStyle(DiagramCenterButtonStyle())
@@ -248,10 +251,13 @@ private struct DiagramTooltip: View {
         Text(name)
             .font(.callout.weight(.medium))
             .lineLimit(2)
+            .minimumScaleFactor(0.75)
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
-            .frame(maxWidth: min(240, bounds.width))
-            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: max(1, min(240, bounds.width - 16)))
+            // Ask for the capped ideal size instead of stretching short names
+            // to the full maximum width. Long names wrap within the plot.
+            .fixedSize(horizontal: true, vertical: true)
             .background(.regularMaterial, in: .rect(cornerRadius: 8))
             .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
@@ -475,3 +481,28 @@ private struct DiagramPreviewSource: ScanEventSource {
     func cancel(generation: UInt64) {}
 }
 #endif
+
+#Preview("Compact center and tooltips") {
+    HStack(spacing: 12) {
+        ForEach([false, true], id: \.self) { navigatesUp in
+            let snapshot = ArtifactSunburstSnapshot(rows: [
+                ScanRow(id: UUID(), relativePath: "Package/target", language: "Rust", kind: .buildOutput,
+                        size: .measured(421_108_121))
+            ])
+            let model = ArtifactDiagramModel(snapshot: snapshot)
+            ArtifactSunburstChart(layout: model.layout, palette: model.palette, bytes: snapshot.root.bytes,
+                                 isScanning: false, statistics: snapshot.root.statistics,
+                                 canNavigateUp: navigatesUp) { _ in }
+                .frame(width: 180, height: 280)
+        }
+    }
+    .overlay(alignment: .topLeading) {
+        ZStack(alignment: .topLeading) {
+            DiagramTooltip(name: "Development", pointer: CGPoint(x: 25, y: 20), bounds: CGSize(width: 372, height: 280))
+            DiagramTooltip(name: "A very long folder name that must wrap inside a compact window",
+                           pointer: CGPoint(x: 370, y: 220), bounds: CGSize(width: 372, height: 280))
+        }
+    }
+    .padding(16)
+    .frame(width: 404, height: 312)
+}
