@@ -84,6 +84,29 @@ final class ScanPerformanceTests: XCTestCase {
         }
     }
 
+    /// A streaming diagram refresh with 25 new rows and 25 measured rows on top of 10,000
+    /// must stay well below rebuilding every folder node from every row.
+    func testIncrementalDiagramSnapshotBeatsFullRebuild() async throws {
+        let rows = (0..<10_025).map { index in
+            ScanRow(id: UUID(), relativePath: "Projects/group\(index % 97)/Project\(index)/Sources/.build",
+                    language: "Swift", kind: .buildOutput, size: .measuring)
+        }
+        let existing = Array(rows.prefix(10_000))
+        let previous = ArtifactSunburstSnapshot(rows: existing)
+        var updated = rows
+        for index in 0..<25 { updated[index].size = .measured(4_096) }
+        let expected = ArtifactSunburstSnapshot(rows: updated)
+        try assertFaster(name: "diagram-refresh.json", factor: 3) { incremental in
+            let start = ProcessInfo.processInfo.systemUptime
+            let snapshot = incremental
+                ? ArtifactSunburstSnapshot(rows: updated, updating: previous, previousSizes: existing.map(\.size))
+                : ArtifactSunburstSnapshot(rows: updated)
+            let elapsed = ProcessInfo.processInfo.systemUptime - start
+            XCTAssertEqual(snapshot, expected)
+            return elapsed
+        }
+    }
+
     /// Interleaved medians of five samples after a warm-up: the candidate must take at most
     /// `1 / factor` of the baseline. A ratio in one process tolerates slow runners.
     private func assertFaster(name: String, factor: Double, sample: (_ candidate: Bool) -> Double) throws {
