@@ -76,7 +76,8 @@ struct WindowScanModelTests {
             of: ScanEvent.self,
             bufferingPolicy: .bufferingNewest(2)
         )
-        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation)
+        let bridge = RustScanBridgeContext(generation: generation, continuation: continuation,
+                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
         bridge.yield(.discovered(generation: generation, artifact: makeArtifact()))
         bridge.yield(.discovered(
             generation: generation,
@@ -198,7 +199,8 @@ struct WindowScanModelTests {
     @Test("Incomplete or unknown Rust terminal statuses cannot report success", arguments: [2, 99])
     func unsuccessfulRustStatusMarksReportIncomplete(status: UInt32) async {
         let (stream, continuation) = AsyncStream.makeStream(of: ScanEvent.self)
-        let bridge = RustScanBridgeContext(generation: 1, continuation: continuation)
+        let bridge = RustScanBridgeContext(generation: 1, continuation: continuation,
+                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
         bridge.finish(status: status)
 
         let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))

@@ -3,6 +3,11 @@ import Foundation
 @MainActor
 final class RustScanEventSource: ScanEventSource {
     private var jobs: [UInt64: RustScanJob] = [:]
+    private let settings: SearchFilterSettings
+
+    init(settings: SearchFilterSettings = .shared) {
+        self.settings = settings
+    }
 
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
         let (stream, continuation) = AsyncStream.makeStream(
@@ -22,7 +27,9 @@ final class RustScanEventSource: ScanEventSource {
 
         let job = RustScanJob(control: control)
         jobs[generation] = job
-        let context = RustScanBridgeContext(generation: generation, continuation: continuation)
+        // Settings changes affect the next scan, never a running report.
+        let context = RustScanBridgeContext(generation: generation, continuation: continuation,
+                                           filters: settings.snapshot)
         let retainedContext = Unmanaged.passRetained(context).toOpaque()
         let rootBytes = Data(target.path.utf8)
         let startedSecurityScope = target.startAccessingSecurityScopedResource()
@@ -95,13 +102,15 @@ final class RustScanBridgeContext: @unchecked Sendable {
     let candidatePolicy = IsScannableArtifactCandidate()
     let outerRootPolicy = IsOuterArtifactRoot()
     let classificationPolicy = ClassifyArtifactRoot()
+    let filters: SearchFilterSnapshot
     private let lock = NSLock()
     private var overflowed = false
     private var didFinish = false
 
-    init(generation: UInt64, continuation: AsyncStream<ScanEvent>.Continuation) {
+    init(generation: UInt64, continuation: AsyncStream<ScanEvent>.Continuation, filters: SearchFilterSnapshot) {
         self.generation = generation
         self.continuation = continuation
+        self.filters = filters
     }
 
     @discardableResult
@@ -239,6 +248,12 @@ private func buildHunterPolicyCallback(
     guard bridge.outerRootPolicy.isSatisfiedBy(
         ArtifactRootContext(hasArtifactAncestor: facts.has_artifact_ancestor != 0)
     ), let classification = bridge.classificationPolicy.decide(context) else {
+        rawDecision.pointee.action = 0
+        return 1
+    }
+    guard bridge.filters.includes(candidate: context, classification: classification) else {
+        // Keep traversing an excluded root: eligible artifacts of another type
+        // may be inside it. Exclusions do not alter an accepted root's byte size.
         rawDecision.pointee.action = 0
         return 1
     }
