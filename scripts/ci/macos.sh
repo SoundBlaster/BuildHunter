@@ -72,9 +72,12 @@ import json
 import sys
 from pathlib import Path
 summary = json.loads(Path(sys.argv[1]).read_text())
-if summary.get("result") != "Passed" or summary.get("failedTests", 0) or summary.get("passedTests", 0) != 5:
-    raise SystemExit("Expected all five XCTest performance tests to pass")
-print("Verified five passing Release performance tests")
+passed = summary.get("passedTests", 0)
+# Every discovered performance test must run and pass; at least the original five exist.
+if (summary.get("result") != "Passed" or summary.get("failedTests", 0) or summary.get("skippedTests", 0)
+        or passed != summary.get("totalTestCount", passed) or passed < 5):
+    raise SystemExit("Expected every XCTest performance test to pass")
+print(f"Verified {passed} passing Release performance tests")
 PY
 else
   xcodebuild build "${common[@]}" -configuration Release 2>&1 | tee "$output_dir/release.log"
