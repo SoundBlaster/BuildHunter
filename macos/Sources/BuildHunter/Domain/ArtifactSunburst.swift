@@ -8,19 +8,49 @@ struct ArtifactSizeStatistics: Equatable, Sendable {
     var zeroCount = 0
 
     mutating func include(_ size: SizeState) {
-        artifactCount += 1
+        add(size, count: 1)
+    }
+
+    /// Reverses `include`, so a size change can be applied without recounting a folder.
+    mutating func exclude(_ size: SizeState) {
+        add(size, count: -1)
+    }
+
+    private mutating func add(_ size: SizeState, count: Int) {
+        artifactCount += count
         switch size {
         case .measuring:
-            measuringCount += 1
+            measuringCount += count
         case .measured(let bytes):
-            if bytes < 0 { unavailableCount += 1 }
-            if bytes == 0 { zeroCount += 1 }
+            if bytes < 0 { unavailableCount += count }
+            if bytes == 0 { zeroCount += count }
         case .partial(let bytes):
-            partialCount += 1
-            if bytes.map({ $0 < 0 }) ?? true { unavailableCount += 1 }
-            if bytes == 0 { zeroCount += 1 }
+            partialCount += count
+            if bytes.map({ $0 < 0 }) ?? true { unavailableCount += count }
+            if bytes == 0 { zeroCount += count }
         }
     }
+}
+
+/// An exact sum of non-negative `Int64` sizes. 128 bits cannot overflow for any report, so
+/// adding and removing sizes in any order gives the same total as summing them once.
+struct ByteTotal: Equatable, Sendable {
+    private var high: UInt64 = 0
+    private var low: UInt64 = 0
+
+    mutating func add(_ bytes: UInt64) {
+        let (sum, carry) = low.addingReportingOverflow(bytes)
+        low = sum
+        if carry { high &+= 1 }
+    }
+
+    mutating func subtract(_ bytes: UInt64) {
+        let (difference, borrow) = low.subtractingReportingOverflow(bytes)
+        low = difference
+        if borrow { high &-= 1 }
+    }
+
+    var value: Double { Double(high) * 0x1p64 + Double(low) }
 }
 
 struct ArtifactSunburstNode: Identifiable, Equatable, Sendable {
@@ -28,9 +58,11 @@ struct ArtifactSunburstNode: Identifiable, Equatable, Sendable {
     let name: String
     let parentID: String?
     var children: [String] = []
-    var bytes: Double = 0
+    var total = ByteTotal()
     var statistics = ArtifactSizeStatistics()
     var artifact: ScanRow?
+
+    var bytes: Double { total.value }
 }
 
 /// A projection of report rows, not another filesystem traversal. Directory nodes aggregate
@@ -42,35 +74,80 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
     init(rows: [ScanRow]) {
         var nodes = ["": ArtifactSunburstNode(id: "", name: "All artifacts", parentID: nil)]
         for row in rows {
-            let components = row.relativePath == "." ? [] : row.relativePath.split(separator: "/").map(String.init)
-            var ancestors = [""]
-            var parent = ""
-            for component in components {
-                let path = parent.isEmpty ? component : parent + "/" + component
-                if nodes[path] == nil {
-                    nodes[path] = ArtifactSunburstNode(id: path, name: component, parentID: parent)
-                    nodes[parent]!.children.append(path)
-                }
-                ancestors.append(path)
-                parent = path
-            }
-            let bytes: Double
-            switch row.size {
-            case .measured(let value), .partial(.some(let value)):
-                bytes = Double(max(0, value))
-            case .measuring, .partial(nil):
-                bytes = 0
-            }
-            for path in ancestors {
-                nodes[path]!.bytes += bytes
-                nodes[path]!.statistics.include(row.size)
-            }
-            nodes[parent]!.artifact = row
+            Self.insert(row, into: &nodes, keepingChildrenSorted: false)
         }
         for key in Array(nodes.keys) {
             nodes[key]!.children.sort()
         }
         self.nodes = nodes
+    }
+
+    /// Equivalent to `init(rows:)` when `rows` extends the rows behind `previous`, which is how
+    /// a report grows: rows are appended and only their sizes change. `previousSizes` holds
+    /// those rows' sizes in order; only changed rows walk their ancestors.
+    init(rows: [ScanRow], updating previous: ArtifactSunburstSnapshot, previousSizes: [SizeState]) {
+        var nodes = previous.nodes
+        for (old, row) in zip(previousSizes, rows) where old != row.size {
+            var path: String? = Self.leafPath(row.relativePath)
+            while let current = path {
+                nodes[current]!.total.subtract(Self.bytes(old))
+                nodes[current]!.total.add(Self.bytes(row.size))
+                nodes[current]!.statistics.exclude(old)
+                nodes[current]!.statistics.include(row.size)
+                path = nodes[current]!.parentID
+            }
+            nodes[Self.leafPath(row.relativePath)]!.artifact = row
+        }
+        for row in rows.dropFirst(previousSizes.count) {
+            Self.insert(row, into: &nodes, keepingChildrenSorted: true)
+        }
+        self.nodes = nodes
+    }
+
+    private static func leafPath(_ relativePath: String) -> String {
+        relativePath == "." ? "" : relativePath.split(separator: "/").joined(separator: "/")
+    }
+
+    private static func bytes(_ size: SizeState) -> UInt64 {
+        switch size {
+        case .measured(let value), .partial(.some(let value)):
+            UInt64(max(0, value))
+        case .measuring, .partial(nil):
+            0
+        }
+    }
+
+    private static func insert(_ row: ScanRow, into nodes: inout [String: ArtifactSunburstNode],
+                               keepingChildrenSorted: Bool) {
+        let components = row.relativePath == "." ? [] : row.relativePath.split(separator: "/").map(String.init)
+        var ancestors = [""]
+        var parent = ""
+        for component in components {
+            let path = parent.isEmpty ? component : parent + "/" + component
+            if nodes[path] == nil {
+                nodes[path] = ArtifactSunburstNode(id: path, name: component, parentID: parent)
+                if keepingChildrenSorted {
+                    let siblings = nodes[parent]!.children
+                    var low = siblings.startIndex
+                    var high = siblings.endIndex
+                    while low < high {
+                        let middle = (low + high) / 2
+                        if siblings[middle] < path { low = middle + 1 } else { high = middle }
+                    }
+                    nodes[parent]!.children.insert(path, at: low)
+                } else {
+                    nodes[parent]!.children.append(path)
+                }
+            }
+            ancestors.append(path)
+            parent = path
+        }
+        let bytes = bytes(row.size)
+        for path in ancestors {
+            nodes[path]!.total.add(bytes)
+            nodes[path]!.statistics.include(row.size)
+        }
+        nodes[parent]!.artifact = row
     }
 }
 

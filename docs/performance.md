@@ -68,6 +68,8 @@ testability only for this invocation; normal Release builds retain their own set
 - Clock and physical-memory metrics for preparing a sunburst snapshot and bounded
   layout from 10,000 artifact rows. Fixture generation is excluded; the resulting
   count, byte total, and sector bound are checked after measurement.
+- The same comparison for one streaming diagram refresh (25 new and 25 measured rows on
+  10,000) against rebuilding every folder node; the update must be at least 3x faster.
 - An interleaved comparison of one streaming table refresh (25 new rows merged into
   10,000 sorted rows) with a full localized re-sort; the merge must be at least 5x faster.
 - A five-sample, interleaved scaling check: 10,000 rows must take no more than

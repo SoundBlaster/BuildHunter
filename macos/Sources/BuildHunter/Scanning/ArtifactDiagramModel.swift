@@ -20,6 +20,9 @@ final class ArtifactDiagramModel {
     @ObservationIgnored private var lastRevision: UInt64?
     @ObservationIgnored private var sourceID: UUID?
     @ObservationIgnored private var reportID: UUID?
+    /// Sizes of the rows behind `snapshot`. A separate array, so the diagram never shares
+    /// the scan's row buffer and the event reducer can keep mutating it in place.
+    @ObservationIgnored private var snapshotSizes: [SizeState] = []
 
     init(snapshot: ArtifactSunburstSnapshot = ArtifactSunburstSnapshot(rows: []),
          targetURL: URL? = nil, targetName: String? = nil) {
@@ -55,10 +58,19 @@ final class ArtifactDiagramModel {
         guard sourceID != scan.id || lastRevision != revision else { return }
         let currentGeneration = scan.generation
         let rows = scan.rows
+        // A growing report extends the rows behind the current snapshot; update it in place.
+        let extendsSnapshot = sourceID == scan.id && reportID == scan.reportID
+            && snapshotSizes.count <= rows.count
+        let previous = extendsSnapshot ? (snapshot, snapshotSizes) : nil
         let worker = Task.detached(priority: .userInitiated) {
-            ArtifactSunburstSnapshot(rows: rows)
+            let snapshot = if let (snapshot, previousSizes) = previous {
+                ArtifactSunburstSnapshot(rows: rows, updating: snapshot, previousSizes: previousSizes)
+            } else {
+                ArtifactSunburstSnapshot(rows: rows)
+            }
+            return (snapshot, rows.map(\.size))
         }
-        let prepared = await withTaskCancellationHandler {
+        let (prepared, preparedSizes) = await withTaskCancellationHandler {
             await worker.value
         } onCancel: {
             worker.cancel()
@@ -79,6 +91,7 @@ final class ArtifactDiagramModel {
         reportID = scan.reportID
         lastRevision = revision
         snapshot = prepared
+        snapshotSizes = preparedSizes
         if prepared.nodes[focusID] == nil { focusID = "" }
         if let previewID, prepared.nodes[previewID] == nil { self.previewID = nil }
         updateLayout()
