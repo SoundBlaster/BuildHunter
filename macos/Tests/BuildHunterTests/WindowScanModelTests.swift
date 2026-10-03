@@ -120,6 +120,25 @@ struct WindowScanModelTests {
         #expect(model.phase == .completed)
     }
 
+    @Test("Many distinct warnings are deduplicated in linear time")
+    func manyWarningsApplyInLinearTime() {
+        let model = WindowScanModel(source: ControlledScanSource())
+        model.acceptDemoTarget(named: "Unreadable home")
+        let generation = model.generation
+        // A home-folder scan can report thousands of unreadable paths.
+        let messages = (0..<20_000).map { "Library/Private/\($0): Permission denied" }
+
+        let start = ProcessInfo.processInfo.systemUptime
+        for message in messages + messages {
+            model.apply(.warning(generation: generation, message: message))
+        }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+
+        #expect(model.warnings == messages)
+        // Quadratic membership checks take seconds here; a set takes milliseconds.
+        #expect(elapsed < 1)
+    }
+
     @Test("Terminal event rejects later events from the same generation")
     func terminalEventRejectsLateUpdates() {
         let model = WindowScanModel(source: ControlledScanSource())

@@ -19,6 +19,8 @@ final class WindowScanModel {
     private let source: any ScanEventSource
     private var scanTask: Task<Void, Never>?
     @ObservationIgnored private var rowIndices: [UUID: Int] = [:]
+    /// Mirrors `warnings` so deduplication stays O(1) for scans with many unreadable paths.
+    @ObservationIgnored private var warningSet: Set<String> = []
 
     init(source: any ScanEventSource = RustScanEventSource()) {
         self.source = source
@@ -103,7 +105,7 @@ final class WindowScanModel {
             rows[index].size = partial ? .partial(bytes) : .measured(bytes)
             reportRevision &+= 1
         case .warning(_, let message):
-            if !warnings.contains(message) { warnings.append(message) }
+            appendWarning(message)
         case .finished(_, let result):
             switch result {
             case .completed:
@@ -114,7 +116,7 @@ final class WindowScanModel {
                 phase = .stopped
                 markMeasuringRowsPartial()
             case .failed(let message):
-                if !warnings.contains(message) { warnings.append(message) }
+                appendWarning(message)
                 phase = .incomplete
                 markMeasuringRowsPartial()
             }
@@ -130,7 +132,12 @@ final class WindowScanModel {
         rows = []
         rowIndices = [:]
         warnings = []
+        warningSet = []
         reportRevision &+= 1
+    }
+
+    private func appendWarning(_ message: String) {
+        if warningSet.insert(message).inserted { warnings.append(message) }
     }
 
     private func beginScan() {
@@ -162,7 +169,7 @@ final class WindowScanModel {
                 self.apply(.finished(generation: activeGeneration, result: terminalResult))
                 return
             }
-            self.warnings.append("Event stream ended before a terminal result.")
+            self.appendWarning("Event stream ended before a terminal result.")
             self.phase = .incomplete
             self.markMeasuringRowsPartial()
         }
