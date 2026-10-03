@@ -17,20 +17,23 @@ struct ArtifactDiagramWindow: View {
             DiagramHeader(targetName: scan.targetName, phase: scan.phase,
                           statistics: diagram.snapshot.root.statistics)
             Divider()
-            HSplitView {
-                ArtifactSunburstChart(layout: diagram.layout, palette: diagram.palette, bytes: diagram.focus.bytes,
-                                      isScanning: scan.isScanning, statistics: diagram.focus.statistics,
-                                      focusID: diagram.focusID, reportID: scan.reportID,
-                                      canNavigateUp: diagram.canNavigateUp,
-                                      goUp: { diagram.navigateUp() },
-                                      hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
-                    diagram.navigate(to: sector.nodeID ?? sector.parentID)
-                }
-                .padding(24)
-                .frame(minWidth: 420, maxWidth: .infinity, maxHeight: .infinity)
+            GeometryReader { geometry in
+                let preferredPaneWidth = max(0, (geometry.size.width - 1) / 2)
+                HSplitView {
+                    ArtifactSunburstChart(layout: diagram.layout, palette: diagram.palette, bytes: diagram.focus.bytes,
+                                          isScanning: scan.isScanning, statistics: diagram.focus.statistics,
+                                          focusID: diagram.focusID, reportID: scan.reportID,
+                                          canNavigateUp: diagram.canNavigateUp,
+                                          goUp: { diagram.navigateUp() },
+                                          hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
+                        diagram.navigate(to: sector.nodeID ?? sector.parentID)
+                    }
+                    .padding(24)
+                    .frame(minWidth: 320, idealWidth: preferredPaneWidth, maxWidth: .infinity, maxHeight: .infinity)
 
-                ArtifactDiagramSidebar(model: diagram)
-                    .frame(minWidth: 240, idealWidth: 280, maxWidth: 380, maxHeight: .infinity)
+                    ArtifactDiagramSidebar(model: diagram)
+                        .frame(minWidth: 240, idealWidth: preferredPaneWidth, maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             WindowStatusBar {
                 Label("Known artifact sizes. Tiny folders are enlarged for visibility; partial sizes are lower bounds.",
@@ -399,19 +402,22 @@ private extension ScanPhase {
 #Preview("Completed artifact diagram") {
     let scan = WindowScanModel()
     scan.showMockState(.results)
-    return ArtifactDiagramWindow(scan: scan).frame(width: 1_000, height: 700)
+    let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: scan.rows))
+    return ArtifactDiagramWindow(scan: scan, diagram: diagram).frame(width: 1_000, height: 700)
 }
 
 #Preview("Partial artifact diagram") {
     let scan = WindowScanModel()
     scan.showMockState(.stopped)
-    return ArtifactDiagramWindow(scan: scan).frame(width: 1_000, height: 700)
+    let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: scan.rows))
+    return ArtifactDiagramWindow(scan: scan, diagram: diagram).frame(width: 1_000, height: 700)
 }
 
 #Preview("Compact artifact diagram") {
     let scan = WindowScanModel()
     scan.showMockState(.results)
-    return ArtifactDiagramWindow(scan: scan).frame(width: 760, height: 540)
+    let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: scan.rows))
+    return ArtifactDiagramWindow(scan: scan, diagram: diagram).frame(width: 760, height: 540)
 }
 
 #Preview("Folder color continuity") {
