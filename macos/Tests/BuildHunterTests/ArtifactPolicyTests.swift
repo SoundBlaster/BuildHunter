@@ -40,6 +40,20 @@ struct ArtifactPolicyTests {
                 ArtifactClassification(kind: .cache, language: "Python"))
     }
 
+    @Test("Bytecode file classification never touches the file system")
+    func bytecodeClassificationIsPureStringWork() {
+        // URL(fileURLWithPath:) stats a relative path to infer a directory hint, about
+        // 17 µs per name; a scan policy callback must stay pure string work.
+        let candidates = (0..<20_000).map { facts("module\($0).cpython-312.pyc", directory: false) }
+
+        let start = ProcessInfo.processInfo.systemUptime
+        let classified = candidates.filter { policy.decide($0) != nil }.count
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+
+        #expect(classified == candidates.count)
+        #expect(elapsed < 0.15)
+    }
+
     @Test("Parent markers are required for Rust and Python build directories")
     func parentMarkersAreRequired() {
         #expect(policy.decide(facts("target")) == nil)
