@@ -72,7 +72,7 @@ FFI contract обязан определить:
 
 Реализованные C signatures и payload layout описаны в `macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h` и совпадают с экспортами `src/lib.rs`. Callback payloads borrowed только на время вызова. Rust сохраняет исходные Unix path bytes; Swift показывает warning для invalid UTF-8 path, чьё отображаемое имя может быть lossy. Не использовать такое имя как точный path для будущих Reveal/Copy actions.
 
-Swift `AsyncStream` для Rust source использует unbounded buffering. Изначальный bound в 2048 событий на практике переполнялся: scanner выдаёт тысячи событий быстрее, чем занятый rendering main actor их применяет, и весь отчёт помечался incomplete. Буфер хранит не больше событий, чем отчёт и так держит как rows и warnings, и опустошается по мере применения. Bridge сохраняет обработку переполнения для любого bounded continuation: terminal outcome становится incomplete с warning; progress events не генерируются. Поскольку callback синхронный, Rust worker не ждёт UI и Stop не блокируется backpressure.
+Rust source доставляет события через bounded `ScanEventChannel` (4096 событий) с blocking backpressure. Изначальный bounded `AsyncStream` с drop policy на практике переполнялся: scanner выдаёт тысячи событий быстрее, чем занятый rendering main actor их применяет, и весь отчёт помечался incomplete. Теперь при полном буфере Rust scan thread ждёт свободного места, поэтому события не теряются, а память ограничена. Stop, cancellation task и освобождение stream закрывают канал: ожидающий producer просыпается, необработанные события отбрасываются, и Stop не блокируется backpressure.
 
 ## Sandbox и доступ
 
