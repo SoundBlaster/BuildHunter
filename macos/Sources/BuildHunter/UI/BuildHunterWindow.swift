@@ -4,9 +4,12 @@ import UniformTypeIdentifiers
 
 struct BuildHunterWindow: View {
     @State private var model: WindowScanModel
+    @Environment(\.openWindow) private var openWindow
+    private let windowStore: ScanWindowStore?
 
-    init(model: WindowScanModel = WindowScanModel()) {
+    init(model: WindowScanModel = WindowScanModel(), windowStore: ScanWindowStore? = nil) {
         _model = State(initialValue: model)
+        self.windowStore = windowStore
     }
 
     var body: some View {
@@ -14,12 +17,23 @@ struct BuildHunterWindow: View {
             readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
+                ScanReportFooter()
+                    .a11yRoot("buildhunter.report")
             } else {
                 emptyState
             }
         }
         .frame(minWidth: 760, minHeight: 460)
         .toolbar {
+            ToolbarItem(placement: .automatic) {
+                VStack {
+                    Button("Diagram", systemImage: "chart.pie.fill") { showDiagram() }
+                        .disabled(windowStore == nil)
+                        .help("Show a live diagram of this scan")
+                        .nestedAccessibilityIdentifier("openDiagram")
+                }
+                .a11yRoot("buildhunter.toolbar")
+            }
 #if DEBUG
             ToolbarItem(placement: .automatic) {
                 VStack {
@@ -47,12 +61,23 @@ struct BuildHunterWindow: View {
             model.accept(target: folder)
             return true
         }
+        .onAppear { windowStore?.register(model) }
         .onDisappear {
             model.stop()
+            windowStore?.scanWindowClosed(model.id)
         }
         .focusedSceneValue(\.buildHunterOpenFolder, OpenFolderRequest {
             model.isChoosingFolder = true
         })
+        .focusedSceneValue(\.buildHunterShowDiagram, ArtifactDiagramRequest {
+            showDiagram()
+        })
+    }
+
+    private func showDiagram() {
+        guard let windowStore else { return }
+        windowStore.prepareDiagram(for: model)
+        openWindow(id: "artifact-diagram", value: model.id)
     }
 
     private var readOnlyBanner: some View {
@@ -60,7 +85,7 @@ struct BuildHunterWindow: View {
             Text("Read-only scan · artifacts are measured as the folder is traversed.")
                 .font(.callout.weight(.medium))
         } icon: {
-            Image(systemName: "exclamationmark.triangle.fill")
+            Image(systemName: "eye.fill")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 18)
@@ -74,7 +99,7 @@ struct BuildHunterWindow: View {
         } description: {
             Text("Drop a folder here or use File → Open Folder… to scan local build artifacts.")
         } actions: {
-            Button("Open Folder…") { model.isChoosingFolder = true }
+            Button("Open Folder…", systemImage: "folder.fill") { model.isChoosingFolder = true }
                 .keyboardShortcut("o", modifiers: .command)
                 .nestedAccessibilityIdentifier("openFolder")
         }
@@ -86,18 +111,25 @@ struct BuildHunterWindow: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("\(targetName)")
-                        .font(.title2.weight(.semibold))
-                        .nestedAccessibilityIdentifier("target")
-                    Text(statusDescription)
-                        .foregroundStyle(.secondary)
-                        .nestedAccessibilityIdentifier("status")
+                    HStack(alignment: .firstTextBaseline, spacing: 7) {
+                        Image(systemName: "folder.fill").accessibilityHidden(true)
+                        Text("\(targetName)")
+                            .nestedAccessibilityIdentifier("target")
+                    }
+                    .font(.title2.weight(.semibold))
+                    Label {
+                        Text(statusDescription)
+                            .nestedAccessibilityIdentifier("status")
+                    } icon: {
+                        Image(systemName: statusSymbolName).accessibilityHidden(true)
+                    }
+                    .foregroundStyle(.secondary)
                 }
                 Spacer()
                 if model.isScanning {
-                    Button("Stop") { model.stop() }
+                    Button("Stop", systemImage: "stop.circle.fill") { model.stop() }
                 } else if model.phase != .idle {
-                    Button("Rescan") { model.rescan() }
+                    Button("Rescan", systemImage: "arrow.clockwise") { model.rescan() }
                 }
             }
             if !model.warnings.isEmpty {
@@ -109,37 +141,10 @@ struct BuildHunterWindow: View {
                 .foregroundStyle(.orange)
                 .nestedAccessibilityIdentifier("warnings")
             }
-            Table(model.rows) {
-                TableColumn("Path", value: \.relativePath)
-                    .width(min: 240, ideal: 360)
-                TableColumn("Size") { row in Text(sizeDescription(row.size)) }
-                    .width(min: 100, ideal: 125)
-                TableColumn("Language", value: \.language)
-                    .width(min: 90, ideal: 120)
-                TableColumn("Kind") { row in Text(row.kind.rawValue) }
-                    .width(min: 110, ideal: 150)
-            }
-            .overlay {
-                if model.rows.isEmpty && model.isScanning {
-                    ProgressView("Searching for build artifacts…")
-                        .padding()
-                        .background(.regularMaterial, in: .rect(cornerRadius: 10))
-                }
-            }
-            Text("BuildHunter only reads files and folders. It never deletes artifacts.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            ArtifactReportTable(scan: model)
         }
         .padding(18)
         .a11yRoot("buildhunter.report")
-    }
-
-    private func sizeDescription(_ state: SizeState) -> String {
-        switch state {
-        case .measuring: "Measuring…"
-        case .measured(let bytes): binarySize(bytes)
-        case .partial(let bytes): bytes.map { "\(binarySize($0)) partial" } ?? "Partial · size unknown"
-        }
     }
 
     private var statusDescription: String {
@@ -152,12 +157,107 @@ struct BuildHunterWindow: View {
         }
     }
 
-    private func binarySize(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .binary
-        return formatter.string(fromByteCount: bytes)
+    private var statusSymbolName: String {
+        switch model.phase {
+        case .idle: "folder.fill"
+        case .scanning: "hourglass"
+        case .completed: "checkmark.circle.fill"
+        case .stopped: "ellipsis.circle"
+        case .incomplete: "exclamationmark.circle.fill"
+        }
     }
 
+}
+
+private struct ArtifactReportTable: View {
+    let scan: WindowScanModel
+    @State private var model = ScanTableModel()
+
+    var body: some View {
+        Table(model.rows, sortOrder: $model.sortOrder) {
+            TableColumn("Path", sortUsing: ScanRowComparator(column: .path)) { row in
+                ArtifactReportCell(text: row.relativePath)
+            }
+            .width(min: 240, ideal: 360)
+            TableColumn("Size", sortUsing: ScanRowComparator(column: .size)) { row in
+                ArtifactReportCell(text: sizeDescription(row.size)).monospacedDigit()
+            }
+            .width(min: 100, ideal: 125)
+            TableColumn("Language", sortUsing: ScanRowComparator(column: .language)) { row in
+                ArtifactReportCell(text: row.language)
+            }
+            .width(min: 90, ideal: 120)
+            TableColumn("Kind", sortUsing: ScanRowComparator(column: .kind)) { row in
+                ArtifactReportCell(text: row.kind.rawValue)
+            }
+            .width(min: 110, ideal: 150)
+        }
+        .nestedAccessibilityIdentifier("table")
+        .overlay {
+            if scan.rows.isEmpty && scan.isScanning {
+                ProgressView("Searching for build artifacts…")
+                    .padding()
+                    .background(.regularMaterial, in: .rect(cornerRadius: 10))
+            }
+        }
+        .task { await model.follow(scan) }
+    }
+
+    private func sizeDescription(_ state: SizeState) -> String {
+        switch state {
+        case .measuring: "Measuring…"
+        case .measured(let bytes): ByteCountFormatter.string(fromByteCount: bytes, countStyle: .binary)
+        case .partial(let bytes): bytes.map {
+            "\(ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary)) partial"
+        } ?? "Partial · size unknown"
+        }
+    }
+}
+
+private struct ArtifactReportCell: View {
+    let text: String
+    @State private var isHovered = false
+
+    var body: some View {
+        Text(text)
+            .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
+            .background(Color.accentColor.opacity(isHovered ? 0.16 : 0), in: .rect(cornerRadius: 4))
+            .contentShape(Rectangle())
+            .onHover { isHovered = $0 }
+    }
+}
+
+/// Shared bottom chrome keeps both scan and diagram windows aligned.
+struct WindowStatusBar<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider()
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                content()
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 38, maxHeight: 38, alignment: .leading)
+        }
+    }
+}
+
+private struct ScanReportFooter: View {
+    var body: some View {
+        WindowStatusBar {
+            Label {
+                Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+                    .nestedAccessibilityIdentifier("readOnlyStatus")
+            } icon: {
+                Image(systemName: "eye.fill").accessibilityHidden(true)
+            }
+        }
+    }
 }
 
 #Preview("Empty window") {

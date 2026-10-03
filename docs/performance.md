@@ -65,6 +65,9 @@ testability only for this invocation; normal Release builds retain their own set
   1,000 and 10,000 rows, including the terminal transition.
 - Clock and physical-memory metrics for classifying 10,000 Swift/Rust candidates
   through the reused SpecificationCore decision policy.
+- Clock and physical-memory metrics for preparing a sunburst snapshot and bounded
+  layout from 10,000 artifact rows. Fixture generation is excluded; the resulting
+  count, byte total, and sector bound are checked after measurement.
 - A five-sample, interleaved scaling check: 10,000 rows must take no more than
   `20 × median(1,000 rows) + 25 ms`. This allows a tenfold input increase plus a
   coarse noise budget and rejects the observed quadratic ID lookup behavior.
@@ -76,7 +79,7 @@ on average. Rescan, target replacement and mock changes clear it with the report
 
 The macOS performance job publishes `performance.xcresult`, a summary, native metrics
 as JSON/CSV, the `event-scaling.json` attachment and the log under `macos/.build/ci/`.
-The script requires all four performance tests to pass. Unit tests protect duplicate,
+The script requires all five performance tests to pass. Unit tests protect duplicate,
 out-of-order, stale events and reuse of an artifact ID after restart.
 
 Local TDD evidence on 2026-10-02: the original model failed the scaling check

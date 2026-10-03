@@ -37,8 +37,8 @@ if [[ "$mode" == test ]]; then
   xcrun xcresulttool export attachments --path "$output_dir/test.xcresult" \
     --output-path "$screenshot_dir" --filter '*.png'
   screenshot_count="$(find "$screenshot_dir" -type f -name '*.png' | wc -l | tr -d ' ')"
-  if [[ "$screenshot_count" -lt 7 ]]; then
-    echo "Expected 7 UI screenshots, found $screenshot_count" >&2
+  if [[ "$screenshot_count" -lt 14 ]]; then
+    echo "Expected 14 UI screenshots, found $screenshot_count" >&2
     exit 1
   fi
   python3 - "$output_dir/test-summary.json" <<'PY'
@@ -72,9 +72,9 @@ import json
 import sys
 from pathlib import Path
 summary = json.loads(Path(sys.argv[1]).read_text())
-if summary.get("result") != "Passed" or summary.get("failedTests", 0) or summary.get("passedTests", 0) != 4:
-    raise SystemExit("Expected all four XCTest performance tests to pass")
-print("Verified four passing Release performance tests")
+if summary.get("result") != "Passed" or summary.get("failedTests", 0) or summary.get("passedTests", 0) != 5:
+    raise SystemExit("Expected all five XCTest performance tests to pass")
+print("Verified five passing Release performance tests")
 PY
 else
   xcodebuild build "${common[@]}" -configuration Release 2>&1 | tee "$output_dir/release.log"

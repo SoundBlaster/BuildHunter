@@ -6,9 +6,15 @@ The default source reads the selected folder through the Rust static library and
 
 Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to upstream revision `483214469828c42f7b615654aa70d0acbecc4dbf` (SpecificationCore 2.1.0).
 
-Debug builds include a **Mock State** menu in the window toolbar. It displays synthetic empty, scanning, completed, stopped, and incomplete reports, and clears any previous real target URL. Mock controls are compiled out of Release builds. `NestedA11yIDs` composes stable identifiers for test controls. UI tests select every state, check accessible status, open and dismiss the folder picker, and attach screenshots to `.xcresult`. CI exports and checks seven PNGs under `macos/.build/ci/ui-screenshots`.
+Open **Diagram** (⇧⌘D) to see the same report in a separate animated sunburst window. Folder navigation, live measurement updates, partial-size indicators, and Reduce Motion support are described in [Live artifact diagram](../docs/artifact-diagram.md).
+
+Debug builds include a **Mock State** menu in the window toolbar. It displays synthetic empty, scanning, completed, stopped, and incomplete reports, and clears any previous real target URL. Mock controls are compiled out of Release builds. `NestedA11yIDs` composes stable identifiers for test controls. UI tests select every state, check accessible status, open and dismiss the folder picker, verify the companion diagram, and attach screenshots to `.xcresult`. CI exports and checks ten PNGs under `macos/.build/ci/ui-screenshots`.
 
 Generate and open the Xcode project:
+
+Install Rust with rustup first. The Rust pre-build script uses Cargo from `PATH`,
+then checks `${CARGO_HOME:-$HOME/.cargo}/bin/cargo`. This also supports Xcode
+launched from Finder, which does not inherit your shell's Cargo path.
 
 ```sh
 cd macos

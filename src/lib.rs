@@ -751,21 +751,24 @@ mod tests {
     use super::*;
     use std::{
         fs,
-        sync::atomic::{AtomicBool, Ordering},
-        time::{SystemTime, UNIX_EPOCH},
+        sync::atomic::{AtomicBool, AtomicU64, Ordering},
     };
 
     struct TempTree(PathBuf);
 
     impl TempTree {
         fn new() -> Self {
-            let suffix = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_nanos();
-            let path = std::env::temp_dir().join(format!("build-hunter-core-{suffix}"));
-            fs::create_dir_all(&path).unwrap();
-            Self(path)
+            static NEXT_ID: AtomicU64 = AtomicU64::new(0);
+            loop {
+                let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+                let path = std::env::temp_dir()
+                    .join(format!("build-hunter-core-{}-{id}", std::process::id()));
+                match fs::create_dir(&path) {
+                    Ok(()) => return Self(path),
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                    Err(error) => panic!("create test tree {}: {error}", path.display()),
+                }
+            }
         }
     }
 
@@ -773,6 +776,37 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn temporary_trees_have_independent_paths_and_cleanup() {
+        let barrier = std::sync::Barrier::new(32);
+        let mut trees: Vec<TempTree> = std::thread::scope(|scope| {
+            let workers: Vec<_> = (0..32)
+                .map(|_| {
+                    scope.spawn(|| {
+                        barrier.wait();
+                        (0..16).map(|_| TempTree::new()).collect::<Vec<_>>()
+                    })
+                })
+                .collect();
+            workers
+                .into_iter()
+                .flat_map(|worker| worker.join().unwrap())
+                .collect()
+        });
+        let paths: std::collections::HashSet<_> = trees.iter().map(|tree| &tree.0).collect();
+        assert_eq!(
+            paths.len(),
+            trees.len(),
+            "live fixtures must never share a path"
+        );
+
+        let removed = trees.pop().unwrap();
+        let removed_path = removed.0.clone();
+        drop(removed);
+        assert!(!removed_path.exists());
+        assert!(trees.iter().all(|tree| tree.0.is_dir()));
     }
 
     #[test]

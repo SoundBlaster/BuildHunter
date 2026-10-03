@@ -399,3 +399,65 @@ private struct SingleStreamScanSource: ScanEventSource {
 
     func cancel(generation: UInt64) {}
 }
+
+@Suite("Artifact table sorting")
+@MainActor
+struct ScanTableModelTests {
+    @Test("Every header sorts both ways; sizes use bytes and keep unknown values last")
+    func columnsAndUnknownSizes() {
+        let rows = [
+            ScanRow(id: UUID(), relativePath: "Z/target", language: "Rust", kind: .buildOutput, size: .measured(20)),
+            ScanRow(id: UUID(), relativePath: "A/.build", language: "Swift", kind: .buildOutput, size: .partial(100)),
+            ScanRow(id: UUID(), relativePath: "B/cache", language: "Python", kind: .cache, size: .measuring),
+            ScanRow(id: UUID(), relativePath: "C/cache", language: "Python", kind: .cache, size: .partial(nil))
+        ]
+        for column in [ScanRowComparator.Column.path, .language, .kind] {
+            let forward = ScanRowComparator(column: column)
+            let reverse = ScanRowComparator(column: column, order: .reverse)
+            for first in rows {
+                for second in rows where forward.compare(first, second) != .orderedSame {
+                    #expect(forward.compare(first, second) != reverse.compare(first, second))
+                }
+            }
+        }
+        #expect(ScanRowComparator.sorted(rows, by: [.init(column: .size)]).map(\.relativePath)
+                == ["Z/target", "A/.build", "B/cache", "C/cache"])
+        #expect(ScanRowComparator.sorted(rows, by: [.init(column: .size, order: .reverse)]).map(\.relativePath)
+                == ["A/.build", "Z/target", "B/cache", "C/cache"])
+        #expect(ScanRowComparator.sorted(Array(rows.reversed()), by: [.init(column: .kind)])
+                == ScanRowComparator.sorted(rows, by: [.init(column: .kind)]))
+    }
+
+    @Test("Sorting during discovery does not break the scanner's row index or late measurements")
+    func streamingSort() async {
+        let scan = WindowScanModel(source: TableIdleSource())
+        let table = ScanTableModel()
+        scan.acceptDemoTarget(named: "Fixture")
+        defer { scan.stop() }
+        let entries = ["Z/target", "A/.build"].map {
+            ScanArtifact(id: UUID(), relativePath: $0, language: "Swift", kind: .buildOutput)
+        }
+        for entry in entries { scan.apply(.discovered(generation: scan.generation, artifact: entry)) }
+        await table.refresh(from: scan)
+        #expect(table.rows.map(\.relativePath) == ["A/.build", "Z/target"])
+        table.sortOrder = [.init(column: .size, order: .reverse)]
+        scan.apply(.completed(generation: scan.generation, artifactID: entries[0].id, bytes: 100))
+        await table.refresh(from: scan)
+        #expect(table.rows.first?.id == entries[0].id)
+        scan.apply(.completed(generation: scan.generation, artifactID: entries[1].id, bytes: 200))
+        await table.refresh(from: scan)
+        #expect(table.rows.map(\.size) == [.measured(200), .measured(100)])
+        #expect(scan.rows.map(\.size) == [.measured(100), .measured(200)])
+        table.sortOrder = [.init(column: .path, order: .reverse)]
+        await table.refresh(from: scan)
+        #expect(table.rows.first?.id == entries[0].id)
+        scan.rescan()
+        await table.refresh(from: scan)
+        #expect(table.rows.isEmpty)
+    }
+}
+
+private struct TableIdleSource: ScanEventSource {
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> { AsyncStream { _ in } }
+    func cancel(generation: UInt64) {}
+}

@@ -48,3 +48,47 @@ struct ScanRow: Identifiable, Equatable, Sendable {
     let kind: ArtifactKind
     var size: SizeState
 }
+
+/// Table sorting is a projection: the scanner retains its append-only row indices.
+struct ScanRowComparator: SortComparator, Sendable {
+    enum Column: Hashable, Sendable { case path, size, language, kind }
+    let column: Column
+    var order: SortOrder = .forward
+
+    func compare(_ lhs: ScanRow, _ rhs: ScanRow) -> ComparisonResult {
+        let result: ComparisonResult
+        switch column {
+        case .path: result = lhs.relativePath.localizedStandardCompare(rhs.relativePath)
+        case .language: result = lhs.language.localizedStandardCompare(rhs.language)
+        case .kind: result = lhs.kind.rawValue.localizedStandardCompare(rhs.kind.rawValue)
+        case .size:
+            switch (knownBytes(lhs.size), knownBytes(rhs.size)) {
+            case let (.some(left), .some(right)):
+                result = left == right ? .orderedSame : left < right ? .orderedAscending : .orderedDescending
+            case (.none, .none): return .orderedSame
+            case (.none, .some): return .orderedDescending
+            case (.some, .none): return .orderedAscending
+            }
+        }
+        guard order == .reverse else { return result }
+        return result == .orderedSame ? .orderedSame : result == .orderedAscending ? .orderedDescending : .orderedAscending
+    }
+
+    static func sorted(_ rows: [ScanRow], by comparators: [Self]) -> [ScanRow] {
+        rows.sorted { first, second in
+            for comparator in comparators {
+                let comparison = comparator.compare(first, second)
+                if comparison != .orderedSame { return comparison == .orderedAscending }
+            }
+            if first.relativePath != second.relativePath { return first.relativePath < second.relativePath }
+            return first.id.uuidString < second.id.uuidString
+        }
+    }
+
+    private func knownBytes(_ size: SizeState) -> Int64? {
+        switch size {
+        case .measured(let bytes), .partial(.some(let bytes)): bytes >= 0 ? bytes : nil
+        case .measuring, .partial(nil): nil
+        }
+    }
+}
