@@ -34,7 +34,8 @@ struct ClassifyArtifactRoot: DecisionSpec {
             $0.isDirectory && [".pytest_cache", ".mypy_cache", ".ruff_cache", ".pytype"].contains($0.nodeName)
         }
         let pythonBytecodeFile = PredicateSpec<Context>(description: "artifact.python.bytecode-file") {
-            !$0.isDirectory && ["pyc", "pyo"].contains(URL(fileURLWithPath: $0.nodeName).pathExtension)
+            // Pure string work: URL(fileURLWithPath:) would stat a relative path per call.
+            !$0.isDirectory && ($0.nodeName.hasSuffix(".pyc") || $0.nodeName.hasSuffix(".pyo"))
         }
 
         decision = FirstMatchSpec([
