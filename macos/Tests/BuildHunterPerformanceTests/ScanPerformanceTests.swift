@@ -64,6 +64,58 @@ final class ScanPerformanceTests: XCTestCase {
         }
     }
 
+    /// A streaming table refresh merges 25 new rows into 10,000 sorted ones. It must stay well
+    /// below a full localized re-sort; both are measured in the same process, interleaved.
+    func testIncrementalTableRefreshBeatsFullSort() async throws {
+        let order = [ScanRowComparator(column: .path)]
+        let rows = (0..<10_025).shuffled().map { index in
+            ScanRow(id: UUID(), relativePath: "Projects/group\(index % 97)/Project\(index)/.build",
+                    language: "Swift", kind: .buildOutput, size: .measured(4_096))
+        }
+        let existing = Array(rows.prefix(10_000))
+        let previous = ScanTableProjection(existing, by: order, extending: nil).sortedIndices
+        let expected = ScanRowComparator.sorted(rows, by: order)
+        try assertFaster(name: "table-refresh.json", factor: 5) { incremental in
+            let start = ProcessInfo.processInfo.systemUptime
+            let projection = ScanTableProjection(rows, by: order, extending: incremental ? previous : nil)
+            let elapsed = ProcessInfo.processInfo.systemUptime - start
+            XCTAssertEqual(projection.rows, expected)
+            return elapsed
+        }
+    }
+
+    /// Interleaved medians of five samples after a warm-up: the candidate must take at most
+    /// `1 / factor` of the baseline. A ratio in one process tolerates slow runners.
+    private func assertFaster(name: String, factor: Double, sample: (_ candidate: Bool) -> Double) throws {
+        _ = sample(false)
+        _ = sample(true)
+        var baseline: [Double] = []
+        var candidate: [Double] = []
+        for iteration in 0..<5 {
+            if iteration.isMultiple(of: 2) {
+                baseline.append(sample(false))
+                candidate.append(sample(true))
+            } else {
+                candidate.append(sample(true))
+                baseline.append(sample(false))
+            }
+        }
+        let baselineMedian = baseline.sorted()[2]
+        let candidateMedian = candidate.sorted()[2]
+        let report: [String: Any] = [
+            "baseline_seconds": baseline, "candidate_seconds": candidate,
+            "baseline_median_seconds": baselineMedian, "candidate_median_seconds": candidateMedian,
+            "minimum_speedup": factor
+        ]
+        let data = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys, .prettyPrinted])
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        XCTAssertLessThanOrEqual(candidateMedian * factor, baselineMedian,
+                                 "The candidate must be at least \(factor)x faster than the baseline.")
+    }
+
     /// A tenfold input increase must not approach quadratic growth. The fixed noise allowance
     /// protects very short runs; this is a coarse complexity guard, not a frame-time promise.
     func testEventProcessingScalesWithRowCount() async throws {

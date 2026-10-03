@@ -75,14 +75,17 @@ struct ScanRowComparator: SortComparator, Sendable {
     }
 
     static func sorted(_ rows: [ScanRow], by comparators: [Self]) -> [ScanRow] {
-        rows.sorted { first, second in
-            for comparator in comparators {
-                let comparison = comparator.compare(first, second)
-                if comparison != .orderedSame { return comparison == .orderedAscending }
-            }
-            if first.relativePath != second.relativePath { return first.relativePath < second.relativePath }
-            return first.id.uuidString < second.id.uuidString
+        rows.sorted { areInIncreasingOrder($0, $1, by: comparators) }
+    }
+
+    /// A total order: ties fall back to path, then identity.
+    static func areInIncreasingOrder(_ first: ScanRow, _ second: ScanRow, by comparators: [Self]) -> Bool {
+        for comparator in comparators {
+            let comparison = comparator.compare(first, second)
+            if comparison != .orderedSame { return comparison == .orderedAscending }
         }
+        if first.relativePath != second.relativePath { return first.relativePath < second.relativePath }
+        return first.id.uuidString < second.id.uuidString
     }
 
     private func knownBytes(_ size: SizeState) -> Int64? {
