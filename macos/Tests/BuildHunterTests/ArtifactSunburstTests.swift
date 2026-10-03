@@ -25,6 +25,111 @@ struct ArtifactSunburstTests {
         #expect(layout.sectors.filter { $0.depth == 0 }.last?.end == 1)
     }
 
+    @Test("A tiny positive sibling receives the six degree floor and larger shares redistribute")
+    func minimumAngleForExtremeRatio() throws {
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [
+            row("Large/.build", .measured(9_999)), row("Small/.build", .measured(1))
+        ]))
+        let large = try #require(layout.sectors.first { $0.id == .node("Large") })
+        let small = try #require(layout.sectors.first { $0.id == .node("Small") })
+        let minimum = ArtifactSunburstLayout.minimumSectorAngle
+        #expect(abs((small.end - small.start) - minimum) < 1e-12)
+        #expect(abs((large.end - large.start) - (1 - minimum)) < 1e-12)
+        #expect(large.bytes == 9_999 && small.bytes == 1,
+                "The angle floor must not change measured byte totals")
+        #expect(large.start == 0)
+        #expect(large.end == small.start)
+        #expect(small.end == 1)
+    }
+
+    @Test("A narrow parent groups overflow into Other while retaining a prior child slot")
+    func minimumAngleCapacityAndRetainedOrder() throws {
+        let rows = [
+            row("Large/.build", .measured(87)),
+            row("Tiny/A/.build", .measured(1)),
+            row("Tiny/B/.build", .measured(1)),
+            row("Tiny/C/.build", .measured(1))
+        ]
+        let snapshot = ArtifactSunburstSnapshot(rows: rows)
+        let layout = ArtifactSunburstLayout(snapshot: snapshot, retainedOrder: ["Tiny": ["Tiny/B"]])
+        let tiny = try #require(layout.sectors.first { $0.id == .node("Tiny") })
+        let children = layout.sectors.filter { $0.parentID == "Tiny" }.sorted { $0.start < $1.start }
+        let minimum = ArtifactSunburstLayout.minimumSectorAngle
+
+        #expect(children.map(\.id) == [.node("Tiny/B"), .other("Tiny")])
+        #expect(children[1].bytes == 2)
+        #expect(children.allSatisfy { $0.end - $0.start >= minimum - 1e-12 })
+        #expect(children.first?.start == tiny.start)
+        #expect(children.last?.end == tiny.end)
+        #expect(abs(children[0].end - children[1].start) < 1e-12,
+                "Sibling sectors must meet without overlap or gaps")
+
+        let refreshed = ArtifactSunburstLayout(
+            snapshot: ArtifactSunburstSnapshot(rows: Array(rows.reversed())),
+            retainedOrder: ["Tiny": ["Tiny/B"]]
+        )
+        #expect(refreshed.sectors.filter { $0.parentID == "Tiny" }.map(\.id) == children.map(\.id))
+        #expect(snapshot.nodes["Tiny"]?.bytes == 3)
+    }
+
+    @Test("A one-sector parent aggregates every child into Other")
+    func minimumAngleSingleSlotAggregation() throws {
+        let layout = ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: [
+            row("Massive/.build", .measured(9_999)),
+            row("Tiny/A/.build", .measured(1)),
+            row("Tiny/B/.build", .measured(1))
+        ]))
+        let tiny = try #require(layout.sectors.first { $0.id == .node("Tiny") })
+        let children = layout.sectors.filter { $0.parentID == "Tiny" }
+        let other = try #require(children.first { $0.id == .other("Tiny") })
+        #expect(children.count == 1)
+        #expect(other.start == tiny.start && other.end == tiny.end)
+        #expect(other.end - other.start >= ArtifactSunburstLayout.minimumSectorAngle - 1e-12)
+        #expect(other.bytes == 2)
+    }
+
+    @Test("Every displayed sibling group conserves its parent interval without overlap")
+    func siblingIntervalConservation() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: [
+            row("Large/.build", .measured(9_999)),
+            row("Small/A/.build", .measured(1)),
+            row("Small/B/.build", .measured(1)),
+            row("Dense/0/.build", .measured(1)),
+            row("Dense/1/.build", .measured(1)),
+            row("Dense/2/.build", .measured(1)),
+            row("Dense/3/.build", .measured(1))
+        ])
+        let layout = ArtifactSunburstLayout(snapshot: snapshot)
+        let minimum = ArtifactSunburstLayout.minimumSectorAngle
+
+        for (parentID, siblings) in Dictionary(grouping: layout.sectors, by: \.parentID) {
+            let ordered = siblings.sorted { $0.start < $1.start }
+            guard let first = ordered.first, let last = ordered.last else { continue }
+            if first.depth == 0 {
+                #expect(first.start == 0 && last.end == 1)
+            } else {
+                guard let parent = layout.sectors.first(where: { $0.id == .node(parentID) }) else {
+                    Issue.record("Missing parent sector for \(parentID)")
+                    continue
+                }
+                #expect(first.start == parent.start)
+                #expect(last.end == parent.end)
+            }
+            for sector in ordered {
+                #expect(sector.start.isFinite && sector.end.isFinite && sector.end > sector.start)
+                #expect(sector.end - sector.start >= minimum - 1e-12)
+                if sector.id == .other(parentID) {
+                    #expect(sector.bytes > 0)
+                }
+            }
+            for pair in zip(ordered, ordered.dropFirst()) {
+                #expect(abs(pair.0.end - pair.1.start) < 1e-12,
+                        "Siblings under \(parentID) must be contiguous and nonoverlapping")
+            }
+        }
+        #expect(layout.sectors.filter { $0.parentID == "Small" }.contains { $0.id == .other("Small") })
+    }
+
     @Test("Unknown and zero sizes never receive fabricated sector area")
     func incompleteMeasurements() {
         let snapshot = ArtifactSunburstSnapshot(rows: [
@@ -246,7 +351,8 @@ struct ArtifactSunburstTests {
         let narrowSectors = layout.sectors.filter { $0.nodeID == "Small" || $0.nodeID?.hasPrefix("Small/") == true }
         #expect(narrowSectors.count == 3)
         for sector in narrowSectors {
-            #expect(abs(sector.end - sector.start - 0.005) < 0.000_001)
+            #expect(abs(sector.end - sector.start - ArtifactSunburstLayout.minimumSectorAngle) < 0.000_001,
+                    "The minimum angle is active for this tiny folder and its single-child descendants")
             let innerEdgeWidth = 2 * plotRadius * sector.innerRadius * sin(.pi * (sector.end - sector.start))
             let decoration = sector.decoration(plotRadius: plotRadius)
             #expect(decoration.angularInset >= 0 && decoration.cornerRadius >= 0)

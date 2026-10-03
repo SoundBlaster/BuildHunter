@@ -33,7 +33,7 @@ struct ArtifactDiagramWindow: View {
                     .frame(minWidth: 240, idealWidth: 280, maxWidth: 380, maxHeight: .infinity)
             }
             WindowStatusBar {
-                Label("Area shows known artifact sizes. Partial sizes are lower bounds; unmeasured artifacts have no sector yet.",
+                Label("Known artifact sizes. Tiny folders are enlarged for visibility; partial sizes are lower bounds.",
                       systemImage: "chart.pie.fill")
             }
         }
@@ -180,6 +180,10 @@ private struct ArtifactSunburstChart: View {
                         }
                     }
                     .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: layout.sectors)
+                    // Recreate Charts when marks are inserted, removed or change rings.
+                    // A fresh chart has no zero-sized geometry to interpolate from.
+                    // Keeping this identity stable for measurements preserves animation.
+                    .id(ArtifactDiagramAnimationPolicy.topology(of: layout))
                     .nestedAccessibilityIdentifier("chart")
                 }
                 .aspectRatio(1, contentMode: .fit)
@@ -447,6 +451,23 @@ private extension ScanPhase {
     let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: scan.rows),
                                        targetURL: scan.targetURL, targetName: scan.targetName)
     return ArtifactDiagramWindow(scan: scan, diagram: diagram).frame(width: 1_060, height: 740)
+}
+
+#Preview("Tiny folder minimum angles") {
+    let rows = [
+        ("Large/Compiler/target", Int64(1_000_000_000)),
+        ("Tiny/One/.build", Int64(1)),
+        ("Tiny/Two/target", Int64(2)),
+        ("Small/Cache/__pycache__", Int64(1_024))
+    ].map { path, bytes in
+        ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(bytes))
+    }
+    let snapshot = ArtifactSunburstSnapshot(rows: rows)
+    let model = ArtifactDiagramModel(snapshot: snapshot)
+    return ArtifactSunburstChart(layout: model.layout, palette: model.palette, bytes: snapshot.root.bytes,
+                                 isScanning: false, statistics: snapshot.root.statistics) { _ in }
+        .padding(24)
+        .frame(width: 600, height: 600)
 }
 
 private struct DiagramPreviewSource: ScanEventSource {

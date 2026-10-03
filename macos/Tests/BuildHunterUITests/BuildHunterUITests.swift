@@ -109,6 +109,29 @@ final class BuildHunterUITests: XCTestCase {
                       "Closing the companion diagram must not stop its scan")
     }
 
+    func testDiagramTopologyChangesDoNotCrash() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("results", in: scanWindow, app: app)
+        scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
+        let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
+        XCTAssertTrue(diagram.waitForExistence(timeout: 10))
+        for _ in 0..<3 {
+            for scenario in ["scanning", "results", "stopped"] {
+                selectMockState(scenario, in: scanWindow, app: app)
+                activateWindow(titled: "Demo Workspace — Artifact Diagram", in: app)
+                let contentID = scenario == "scanning" ? "buildhunter.diagram.emptyStatus" : "buildhunter.diagram.chart"
+                XCTAssertTrue(diagram.descendants(matching: .any).matching(identifier: contentID)
+                    .firstMatch.waitForExistence(timeout: 5))
+                // Capturing forces the updated chart through its Canvas render pass.
+                _ = diagram.screenshot()
+                XCTAssertEqual(app.state, .runningForeground, "Streaming topology changes must not crash Charts")
+            }
+        }
+        attachScreenshot(named: "diagram-topology-regression", from: app)
+    }
+
     func testDiagramHoverPreviewAndCenterNavigation() {
         let app = launchWindow()
         defer { app.terminate() }

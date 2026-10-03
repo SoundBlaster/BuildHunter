@@ -6,8 +6,9 @@ forward. Both windows share the same in-memory report, target, and scan status.
 
 The animated Swift Charts sunburst groups table rows by relative path. The inner
 ring contains folders under the selected target; successive rings show descendants.
-Sector area represents the known size of artifact roots, including partial sizes
-as lower bounds. Source files and unreported folders do not contribute. Measuring,
+Sector angles follow known artifact sizes, with a six-degree minimum for visibility;
+tiny folders therefore occupy more angle than their byte share. Partial sizes are
+lower bounds. Source files and unreported folders do not contribute. Measuring,
 unknown, and zero-byte artifacts remain in the counts and folder list without
 invented sector area. The footer explains these limits.
 
@@ -32,11 +33,16 @@ Sizes and angle widths continue updating, so boundaries can move, but sibling or
 and membership do not reshuffle with each measurement. The diagram stops at the
 artifact roots, just like the table.
 
-Ring thickness depends only on hierarchy depth. Gaps and corner radii shrink for
-narrow sectors according to their width at the inner edge, so decoration does not
-consume the sector. Angular shares remain proportional to bytes, with no artificial
-minimum size. Very small folders can still form narrow slices; choose them in the
-sidebar to zoom in and compare their children.
+Ring thickness depends only on hierarchy depth. Every positive displayed sector,
+including **Other**, receives at least six degrees (1/60 of a turn). When a parent's
+span cannot fit all its children at that size, excess children join **Other**; when
+multiple children compete for one-sector capacity, **Other** represents all of them.
+Existing visible children keep their order and slots as far as the available capacity allows. The remaining
+angle is redistributed in byte proportion among larger sectors, so the minimum
+does not simply clip small slices or change reported byte totals. Gaps and corner
+radii also shrink for narrow sectors according to their width at the inner edge,
+so decoration does not consume the sector. Select a folder in the sidebar to
+inspect its full child list, including children grouped under **Other**.
 
 At each displayed level, immediate child branches receive contrasting colors;
 every descendant shares its branch's swatch across all visible rings. Entering a
@@ -54,8 +60,13 @@ if that folder was previously entered through a differently colored parent view.
 Color helps orientation, while path labels remain authoritative; very dense reports
 have more branches than easily distinguishable hues.
 
-Updates animate with stable path identities.
-Reduce Motion disables those animations. Accessible sector descriptions include
+Measured size updates animate when sector identities, order and hierarchy depth
+remain unchanged. Insertion, removal, navigation and empty/nonempty transitions
+update geometry atomically: interpolating newly created or reparented annular marks
+can produce nonfinite intermediate geometry inside Apple Charts. LLDB captured a
+Charts renderer trap with NaN angle and radius registers during a home-folder scan;
+the exact framework calculation that first produced NaN is not established.
+Reduce Motion disables size animations. Accessible sector descriptions include
 path, size, and partial status; the sidebar offers standard buttons for navigation.
 
 ## Data and window lifecycle
@@ -86,7 +97,7 @@ unknown/partial values, dense reports, navigation, stale scan events, and window
 ownership, branch color inheritance, stable streaming membership, hover restoration,
 absolute paths, and sorting alongside late measurements. UI tests exercise the
 companion window lifecycle, hover preview, center navigation, column-header sorting,
-and copying a real selected folder's full path. They attach 14 screenshots.
+and copying a real selected folder's full path. They also exercise repeated empty/nonempty chart transitions and attach screenshots.
 A Release performance test measures snapshot/layout/palette preparation and table
 sorting for 10,000 rows.
 These checks do not establish animation frame rate or signed sandbox runtime behavior.

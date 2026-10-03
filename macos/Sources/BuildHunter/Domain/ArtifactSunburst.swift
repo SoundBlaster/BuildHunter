@@ -75,6 +75,9 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
 }
 
 struct ArtifactSunburstLayout: Equatable, Sendable {
+    /// One sixtieth of a complete turn (six degrees).
+    static let minimumSectorAngle = 1.0 / 60.0
+
     struct Sector: Identifiable, Equatable, Sendable {
         enum ID: Hashable, Sendable {
             case node(String)
@@ -132,24 +135,41 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
             let previousSet = Set(previousIDs)
             let existing = previousIDs.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
             let newNodes = positive.filter { !previousSet.contains($0.id) }
-            let visible: [ArtifactSunburstNode]
-            let remaining: [ArtifactSunburstNode]
+            let selectedVisible: [ArtifactSunburstNode]
+            let selectedRemaining: [ArtifactSunburstNode]
             if positive.count > 7 {
                 let ranked = newNodes.sorted { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }
                 let added = Array(ranked.prefix(max(0, 6 - existing.count))).sorted { $0.id < $1.id }
-                visible = existing + added
-                let visibleIDs = Set(visible.map(\.id))
-                remaining = positive.filter { !visibleIDs.contains($0.id) }
+                selectedVisible = existing + added
+                let visibleIDs = Set(selectedVisible.map(\.id))
+                selectedRemaining = positive.filter { !visibleIDs.contains($0.id) }
             } else {
-                visible = existing + newNodes
-                remaining = []
+                selectedVisible = existing + newNodes
+                selectedRemaining = []
             }
-            let total = positive.reduce(0) { $0 + $1.bytes }
-            guard total > 0 else { return }
+
+            // A parent can show only as many readable sectors as fit at the floor.
+            // Keep already visible slots first, then group every displaced child
+            // with any existing overflow in Other.
+            let span = end - start
+            let capacity = max(1, Int(floor(span / Self.minimumSectorAngle + 1e-12)))
+            var visible = selectedVisible
+            var remaining = selectedRemaining
+            let candidateCount = visible.count + (remaining.isEmpty ? 0 : 1)
+            if candidateCount > capacity {
+                let retainedCount = max(0, capacity - 1)
+                remaining.append(contentsOf: visible.dropFirst(retainedCount))
+                visible = Array(visible.prefix(retainedCount))
+            }
+
+            let otherBytes = remaining.reduce(0) { $0 + $1.bytes }
+            let weights = visible.map(\.bytes) + (remaining.isEmpty ? [] : [otherBytes])
+            guard !weights.isEmpty else { return }
+            let widths = Self.minimumBoundedWidths(weights: weights, span: span)
             var cursor = start
             for (index, node) in visible.enumerated() {
-                let upper = remaining.isEmpty && index == visible.count - 1
-                    ? end : min(end, cursor + (end - start) * (node.bytes / total))
+                let upper = index == widths.count - 1 && remaining.isEmpty
+                    ? end : min(end, cursor + widths[index])
                 if upper > cursor {
                     sectors.append(Sector(id: .node(node.id), parentID: parent.id, name: node.name,
                                           bytes: node.bytes, depth: depth, start: cursor, end: upper,
@@ -159,9 +179,10 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
                 cursor = upper
             }
             if !remaining.isEmpty, end > cursor {
+                let upper = end
                 sectors.append(Sector(
                     id: .other(parent.id), parentID: parent.id, name: "Other (\(remaining.count))",
-                    bytes: remaining.reduce(0) { $0 + $1.bytes }, depth: depth, start: cursor, end: end,
+                    bytes: otherBytes, depth: depth, start: cursor, end: upper,
                     isPartial: remaining.contains { $0.statistics.partialCount > 0 }
                 ))
             }
@@ -174,6 +195,35 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
             visit(focus, depth: 0, start: 0, end: 1)
         }
         self.sectors = sectors
+    }
+
+    /// Applies a minimum width to small shares, then redistributes the remaining
+    /// angle among larger shares in proportion to their byte totals.
+    private static func minimumBoundedWidths(weights: [Double], span: Double) -> [Double] {
+        guard weights.count > 1 else { return [span] }
+        var widths = Array(repeating: 0.0, count: weights.count)
+        var active = Set(weights.indices)
+        var remainingAngle = span
+        var remainingWeight = weights.reduce(0, +)
+
+        while !active.isEmpty {
+            let undersized = active.filter {
+                remainingAngle * (weights[$0] / remainingWeight) < minimumSectorAngle
+            }.sorted()
+            guard !undersized.isEmpty else {
+                for index in active {
+                    widths[index] = remainingAngle * (weights[index] / remainingWeight)
+                }
+                break
+            }
+            for index in undersized {
+                widths[index] = minimumSectorAngle
+                remainingAngle -= minimumSectorAngle
+                remainingWeight -= weights[index]
+                active.remove(index)
+            }
+        }
+        return widths
     }
 
     func sector(angle: Double, radius: Double) -> Sector? {
