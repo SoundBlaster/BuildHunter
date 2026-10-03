@@ -17,7 +17,10 @@ and **All artifacts** return to ancestors. The center does nothing at the target
 Hovering a sector shows its folder name beside the cursor and temporarily previews
 that folder's children in the sidebar. Leaving the chart restores the committed
 folder and its filter; hovering never navigates or changes colors. Sidebar rows have
-an explicit hover highlight, as do cells in the main report table. The heading shows
+an explicit hover highlight, as do cells in the main report table. The sidebar
+sorts folders by numeric known byte totals, largest first; equal sizes sort by name.
+Filtering and hover previews preserve that order, and late measurements update it
+without reordering the chart sectors. The heading shows
 the absolute filesystem path with a copy button immediately after it; synthetic mock
 reports have no path to copy.
 

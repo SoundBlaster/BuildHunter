@@ -163,7 +163,11 @@ final class ArtifactDiagramModel {
     }
 
     private func updateChildren() {
-        children = displayedFolder.children.compactMap { snapshot.nodes[$0] }
+        children = displayedFolder.children.compactMap { snapshot.nodes[$0] }.sorted { left, right in
+            if left.bytes != right.bytes { return left.bytes > right.bytes }
+            let nameOrder = left.name.localizedStandardCompare(right.name)
+            return nameOrder == .orderedSame ? left.id < right.id : nameOrder == .orderedAscending
+        }
         filteredChildren = query.isEmpty || previewID != nil ? children
             : children.filter { $0.name.localizedStandardContains(query) }
     }

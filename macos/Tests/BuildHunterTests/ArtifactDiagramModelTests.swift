@@ -320,6 +320,39 @@ struct ArtifactDiagramModelTests {
         #expect(diagram.filteredChildren.isEmpty)
     }
 
+    @Test("Sidebar sorts numeric bytes descending during measurement, filtering and hover")
+    func sidebarSizeSorting() async {
+        let scan = WindowScanModel(source: DiagramIdleSource())
+        let diagram = ArtifactDiagramModel()
+        scan.acceptDemoTarget(named: "Fixture")
+        defer { scan.stop() }
+        for (path, bytes) in [("Pack/Alpha/target", Int64(10)), ("Pack/Beta/.build", 200),
+                              ("Pack/Gamma/.build", 200), ("Other/X/target", 1), ("Other/Y/target", 50)] {
+            let entry = artifact(path)
+            scan.apply(.discovered(generation: scan.generation, artifact: entry))
+            scan.apply(.completed(generation: scan.generation, artifactID: entry.id, bytes: bytes))
+        }
+        scan.apply(.discovered(generation: scan.generation, artifact: artifact("Pack/Unknown/target")))
+        await diagram.refresh(from: scan)
+        #expect(diagram.children.map(\.name) == ["Pack", "Other"])
+        diagram.navigate(to: "Pack")
+        #expect(diagram.children.map(\.name) == ["Beta", "Gamma", "Alpha", "Unknown"])
+        let sectorOrder = diagram.layout.sectors.filter { $0.depth == 0 }.map(\.id)
+        diagram.query = "a"
+        #expect(diagram.filteredChildren.map(\.name) == ["Beta", "Gamma", "Alpha"])
+        diagram.preview("Other")
+        #expect(diagram.filteredChildren.map(\.name) == ["Y", "X"])
+        diagram.preview(nil)
+        #expect(diagram.filteredChildren.map(\.name) == ["Beta", "Gamma", "Alpha"])
+        let lateAlphaCache = artifact("Pack/Alpha/__pycache__")
+        scan.apply(.discovered(generation: scan.generation, artifact: lateAlphaCache))
+        scan.apply(.completed(generation: scan.generation, artifactID: lateAlphaCache.id, bytes: 500))
+        await diagram.refresh(from: scan)
+        #expect(diagram.children.map(\.name) == ["Alpha", "Beta", "Gamma", "Unknown"])
+        #expect(diagram.layout.sectors.filter { $0.depth == 0 }.map(\.id) == sectorOrder,
+                "Sorting the sidebar must not reorder diagram sectors")
+    }
+
     @Test("Charts animates measurements only after sector topology is stable")
     func safeChartInterpolation() {
         func layout(_ paths: [(String, Int64)], focus: String = "") -> ArtifactSunburstLayout {
