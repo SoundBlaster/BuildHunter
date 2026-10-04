@@ -17,6 +17,9 @@ targets:
     platform: macOS
     sources:
       - path: Sources/BuildHunter
+      - path: Resources/LanguageIcons.xcassets
+      - path: Resources/LanguageIcons-LICENSE.txt
+        buildPhase: resources
       - path: Resources/BuildHunter.icon
         buildPhase: resources
         type: file

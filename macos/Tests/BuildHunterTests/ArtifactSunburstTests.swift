@@ -1,9 +1,63 @@
 import Foundation
 import Testing
+#if !SWIFT_PACKAGE
+import AppKit
+#endif
 @testable import BuildHunter
 
 @Suite("Artifact sunburst")
 struct ArtifactSunburstTests {
+    #if !SWIFT_PACKAGE
+    @Test("Every language badge has a bundled image")
+    @MainActor
+    func bundledLanguageIcons() throws {
+        for language in ArtifactLanguage.allCases {
+            let icon = try #require(NSImage(named: language.assetName))
+            #expect(icon.size.width > 0 && icon.size.height > 0)
+        }
+    }
+    #endif
+
+    @Test("Language badges include all descendant artifacts even before sizes arrive")
+    func descendantLanguages() throws {
+        let rows = [
+            languageRow("Projects/Deep/A/.build", "Swift", .measuring),
+            languageRow("Projects/Deep/B/target", "Rust", .measured(0)),
+            languageRow("Projects/Python/__pycache__", "Python", .partial(nil)),
+            languageRow("Projects/Python/other/__pycache__", "Python", .measured(5)),
+            languageRow("Unrelated/.build", "Swift", .measured(20)),
+            languageRow("Unknown/cache", "Future language", .measured(10))
+        ]
+        let snapshot = ArtifactSunburstSnapshot(rows: rows)
+        #expect(snapshot.root.languages == [.python, .rust, .swift])
+        #expect(snapshot.nodes["Projects"]?.languages == [.python, .rust, .swift])
+        #expect(snapshot.nodes["Projects/Deep"]?.languages == [.rust, .swift])
+        #expect(snapshot.nodes["Projects/Deep/A/.build"]?.languages == [.swift])
+        #expect(snapshot.nodes["Unrelated"]?.languages == [.swift])
+        #expect(snapshot.nodes["Unknown"]?.languages.isEmpty == true)
+    }
+
+    @Test("Streaming badges match a rebuild and a new scan drops previous languages")
+    func streamingLanguages() {
+        let initial = [languageRow("Package/Deep/.build", "Swift", .measuring)]
+        let previous = ArtifactSunburstSnapshot(rows: initial)
+        let rows = [
+            languageRow("Package/Deep/.build", "Swift", .measured(100)),
+            languageRow("Package/Subproject/target", "Rust", .measuring),
+            languageRow("Package/Python/__pycache__", "Python", .measured(0))
+        ]
+        let updated = ArtifactSunburstSnapshot(rows: rows, updating: previous, previousSizes: initial.map(\.size))
+        #expect(updated == ArtifactSunburstSnapshot(rows: rows))
+        #expect(updated.nodes["Package"]?.languages == [.python, .rust, .swift])
+        #expect(previous.root.languages == [.swift])
+        #expect(ArtifactSunburstSnapshot(rows: []).root.languages.isEmpty)
+        #expect(ArtifactSunburstSnapshot(rows: [languageRow(".", "Rust", .measuring)]).root.languages == [.rust])
+    }
+
+    private func languageRow(_ path: String, _ language: String, _ size: SizeState) -> ScanRow {
+        ScanRow(id: UUID(), relativePath: path, language: language, kind: .buildOutput, size: size)
+    }
+
     @Test("Folder totals conserve the sizes of the table rows")
     func totalsAndRanges() throws {
         let snapshot = ArtifactSunburstSnapshot(rows: [

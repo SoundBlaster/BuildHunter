@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C3286B8E715EA2A06E954DB /* LanguageIcons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7259337C0C79F54B8B54057A /* LanguageIcons.xcassets */; };
+		EDDD6C54E3E04CDDFFB0D81F /* LanguageIcons-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7E4DE14CFBB529855CE4C158 /* LanguageIcons-LICENSE.txt */; };
 		030D8A083791B92C0E600782 /* ArtifactSunburstTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95843E8BD5AD3180718D17BB /* ArtifactSunburstTests.swift */; };
 		0749941185285C61B5082D39 /* DemoScanSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADEADEDFC0CAEC86E7E0EDDA /* DemoScanSource.swift */; };
 		0CC582EDC9F94930E2BD5DD9 /* ArtifactDiagramModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0150F72170B48E6C0BCF83 /* ArtifactDiagramModel.swift */; };
@@ -64,6 +66,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7259337C0C79F54B8B54057A /* LanguageIcons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LanguageIcons.xcassets; sourceTree = "<group>"; };
+		7E4DE14CFBB529855CE4C158 /* LanguageIcons-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LanguageIcons-LICENSE.txt"; sourceTree = "<group>"; };
 		0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsScannableArtifactCandidate.swift; sourceTree = "<group>"; };
 		1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactPolicyTests.swift; sourceTree = "<group>"; };
 		25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterUITests.swift; sourceTree = "<group>"; };
@@ -227,6 +231,8 @@
 			isa = PBXGroup;
 			children = (
 				740FFA4A30704B8700EC8AE6 /* BuildHunter.icon */,
+				7E4DE14CFBB529855CE4C158 /* LanguageIcons-LICENSE.txt */,
+				7259337C0C79F54B8B54057A /* LanguageIcons.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -390,6 +396,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				740FFA4B30704B8700EC8AE6 /* BuildHunter.icon in Resources */,
+				EDDD6C54E3E04CDDFFB0D81F /* LanguageIcons-LICENSE.txt in Resources */,
+				4C3286B8E715EA2A06E954DB /* LanguageIcons.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

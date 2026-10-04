@@ -184,7 +184,7 @@ private struct ArtifactReportTable: View {
             }
             .width(min: 100, ideal: 125)
             TableColumn("Language", sortUsing: ScanRowComparator(column: .language)) { row in
-                ArtifactReportCell(text: row.language)
+                ArtifactReportCell(text: row.language, language: ArtifactLanguage(rawValue: row.language))
             }
             .width(min: 90, ideal: 120)
             TableColumn("Kind", sortUsing: ScanRowComparator(column: .kind)) { row in
@@ -216,10 +216,14 @@ private struct ArtifactReportTable: View {
 
 private struct ArtifactReportCell: View {
     let text: String
+    var language: ArtifactLanguage? = nil
     @State private var isHovered = false
 
     var body: some View {
-        Text(text)
+        HStack {
+            if let language { ArtifactLanguageIcon(language: language) }
+            Text(text)
+        }
             .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
             .background(Color.accentColor.opacity(isHovered ? 0.16 : 0), in: .rect(cornerRadius: 4))
             .contentShape(Rectangle())
@@ -299,4 +303,40 @@ private struct PreviewIdleScanSource: ScanEventSource {
     }
 
     func cancel(generation: UInt64) {}
+}
+
+/// Bundled assets keep badge rendering local and independent of filesystem scanning.
+struct ArtifactLanguageIcon: View {
+    let language: ArtifactLanguage
+
+    var body: some View {
+        Image(language.assetName)
+            .renderingMode(language == .rust ? .template : .original)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 16, height: 16)
+            .foregroundStyle(.primary)
+            .accessibilityHidden(true)
+    }
+}
+
+struct ArtifactLanguageBadges: View {
+    let languages: Set<ArtifactLanguage>
+
+    private var ordered: [ArtifactLanguage] {
+        ArtifactLanguage.allCases.filter { languages.contains($0) }
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(ordered, id: \.self) { language in
+                ArtifactLanguageIcon(language: language)
+                    .help(language.rawValue)
+            }
+        }
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Artifact languages")
+        .accessibilityValue(ordered.map(\.rawValue).joined(separator: ", "))
+    }
 }

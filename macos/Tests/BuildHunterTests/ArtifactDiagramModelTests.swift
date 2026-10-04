@@ -5,6 +5,30 @@ import Testing
 @Suite("Live diagram sessions")
 @MainActor
 struct ArtifactDiagramModelTests {
+    @Test("Deep language badges follow discovery, preview and target replacement")
+    func languageBadgesFollowLiveScan() async {
+        let scan = WindowScanModel(source: DiagramIdleSource())
+        let diagram = ArtifactDiagramModel()
+        scan.acceptDemoTarget(named: "Mixed project")
+        defer { scan.stop() }
+        for (path, language) in [("Projects/Deep/Swift/.build", "Swift"),
+                                 ("Projects/Deep/Rust/target", "Rust"),
+                                 ("Projects/Python/__pycache__", "Python")] {
+            let artifact = ScanArtifact(id: UUID(), relativePath: path, language: language, kind: .buildOutput)
+            scan.apply(.discovered(generation: scan.generation, artifact: artifact))
+        }
+        await diagram.refresh(from: scan)
+        #expect(diagram.children.first?.languages == [.python, .rust, .swift])
+        diagram.preview("Projects")
+        #expect(diagram.children.first { $0.id == "Projects/Deep" }?.languages == [.rust, .swift])
+        diagram.navigate(to: "Projects/Deep")
+        #expect(diagram.children.first { $0.name == "Rust" }?.languages == [.rust])
+        scan.acceptDemoTarget(named: "Empty target")
+        await diagram.refresh(from: scan)
+        #expect(diagram.snapshot.root.languages.isEmpty)
+        #expect(diagram.children.isEmpty)
+    }
+
     @Test("Discovery, measurement and stop update the same report projection")
     func streamedUpdates() async {
         let scan = WindowScanModel(source: DiagramIdleSource())
