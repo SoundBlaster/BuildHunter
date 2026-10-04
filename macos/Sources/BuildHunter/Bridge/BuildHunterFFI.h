@@ -20,6 +20,8 @@ typedef struct BHCandidateDecision {
     uint32_t kind;
 } BHCandidateDecision;
 
+enum { BH_POLICY_TABLE_VERSION = 1, BH_POLICY_TABLE_CELL_COUNT = 4609 };
+
 typedef struct BHScanEvent {
     uint32_t event_type;
     uint64_t artifact_id;
@@ -61,5 +63,23 @@ void bh_scan_control_destroy(void *control);
 int32_t bh_scan(void *control, const uint8_t *root, size_t root_len,
                 uint8_t apparent_size, BHPolicyCallback policy_callback,
                 BHEventCallback event_callback, void *context);
+
+/* Version 1 has 18 ordered UTF-8 name classes x 256 fact flags, plus the
+ * final invalid-UTF-8 cell. Cell facts borrow process-lifetime name bytes.
+ * Returns 0 for an out-of-range index or null facts pointer. */
+uint32_t bh_policy_table_version(void);
+size_t bh_policy_table_cell_count(void);
+int32_t bh_policy_table_cell_facts(size_t index, BHCandidateFacts *facts);
+
+/* The decisions array must contain exactly bh_policy_table_cell_count()
+ * readable entries. Actions are 0 (traverse), 1 (prune), or 2 (classify).
+ * Invalid arguments return status 3 before traversal or callbacks. Entries are
+ * copied before scanning; event payloads retain the usual callback lifetime. */
+int32_t bh_scan_with_policy_table(void *control, const uint8_t *root,
+                                  size_t root_len, uint8_t apparent_size,
+                                  uint32_t table_version,
+                                  const BHCandidateDecision *decisions,
+                                  size_t decision_count,
+                                  BHEventCallback event_callback, void *context);
 
 #endif

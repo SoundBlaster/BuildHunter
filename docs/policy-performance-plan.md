@@ -69,8 +69,8 @@ References: [Swift library PR #16](https://github.com/SoundBlaster/Specification
 [keyed static Rust PR #20](https://github.com/SoundBlaster/specification-core-rs/pull/20).
 These PRs are open. Their published CI checks passed at Swift `596aa71`,
 Rust `b3a02b9`, and application `6edcdb8`; subsequent commits require their own
-checks. Rust #20 checks passed at `d58b32a`; Swift #17 CI is pending at
-`bacc4d6`. No row below is marked resolved yet.
+checks. Rust #20 checks passed at `d58b32a`; Swift #17 checks passed at
+`bacc4d6`; application #27 checks passed at `2b620c8`. No row below is marked resolved yet.
 
 | ID | Scope and current state | Evidence and remaining acceptance work |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ checks. Rust #20 checks passed at `d58b32a`; Swift #17 CI is pending at
 | H10 | Exact shared worker classifier: **pending** | Worker prefetch has not been switched to the shared catalog classifier. Require classification/prefetch parity and bounded candidate counts. |
 | H11 | Compiled field-table leaves: **pending** | No field-table implementation in specification-core-serde yet; app marker masks alone do not satisfy this item. |
 | H12 | RuleNode evaluation-plan compiler: **pending** | No compiler yet. Require independent direct/compiled semantic parity before flattening, folding or reordering. |
-| H13 | Finite Swift policy tables: **pending** | No tabulation or callback elimination yet. Require exhaustive table/direct parity and measured callback counts. |
+| H13 | Finite Swift policy tables: **local next stack layer** | Versioned 4,609-cell table compiled by the same Swift policy, Rust-owned snapshot and extensible callback fallback implemented. Rust 22 tests/Clippy pass; exhaustive Swift parity and whole-scan callback-count/performance tests are added, hosted validation pending. |
 | H14 | Avoid classifier memoization without useful reuse: **guardrail** | No unbounded classifier cache is being added. A real hit-rate study has not established the hypothesis universally. |
 | H15 | Bounded memoization at an expensive boundary: **pending** | Deferred until finite-table work and a pure policy projection contract. No boundary cache is implemented. |
 | H16 | Partial evaluation of scan constants: **partial app foundation** | An immutable filter snapshot exists. A compiled plan that removes scan-constant rules remains pending. |
@@ -107,9 +107,10 @@ performance tests. A green check does not verify an unimplemented hypothesis.
 Each performance claim must retain its workload, compiler/settings, source SHAs
 and raw repeated samples; measure whole scans separately from microbenchmarks.
 
-Next acceptance checkpoint: validate Swift static-library CI and complete
-BuildHunter Release integration, then implement finite policy
-tables and exact shared worker classification. Align released versions only
+Next acceptance checkpoint: validate the finite-table application layer, then
+implement exact shared worker classification. Swift static-library and application
+#27 CI passed; the latter local hosted runner hung before establishing a connection.
+CI and local runtime evidence remain distinct. Align released versions only
 after consumer validation. The catalog/schema/plugin architecture still needs
 its own acceptance checklist before the whole issue can be closed.
 
@@ -189,7 +190,7 @@ measured effects must be reassessed after future annotation changes.
 The static library PRs target their foundation branches: Swift #17 over #16,
 Rust #20 over #19. Existing APIs and versions remain unchanged. New CI jobs
 retain independent parity, repeated raw samples, noise-aware gates and
-source/compiler/harness metadata. Rust checks passed; Swift checks are pending.
+source/compiler/harness metadata. Rust and Swift checks passed on their current heads.
 
 BuildHunter's nine fixed Swift classification rules now use the balanced
 builder in their original order. The branch dependency is pinned to Swift
@@ -203,5 +204,31 @@ FirstMatchSpec implementation on 32,768 mixed names/types/marker inputs. It
 checks complete result parity outside timing, then alternates seven timed rounds
 with eight fixture passes per sample. The gate permits 1.5x baseline + 2 ms +
 six combined MADs; it does not demand a particular speedup. Hosted Release
-performance and unit tests are running. No signed UI/home-directory scan or
+performance and unit/UI tests passed in GitHub Actions at `2b620c8`. The local
+Release test build compiled, but its runner hung before establishing a connection
+and no local timing result was produced. No signed UI/home-directory scan or
 whole-scan improvement is claimed by this checkpoint.
+
+
+## Third checkpoint: finite scan policy table
+
+Addresses H13, and the per-scan filter binding portion of H16. The new layer
+targets `codex/static-policy` above application #27; library release versions
+remain unchanged. ADR 0002 defines the finite name/fact projection and additive
+versioned C ABI. Rust holds an owned immutable table; Swift computes its cells
+using the existing policy and captured filter snapshot on a detached task.
+Unsupported exact/suffix descriptors retain the callback path. No Rust copy of
+Swift classification rules or unbounded classifier memoization is introduced.
+
+Rust validates table version, length, pointers and actions before filesystem work.
+Its tests cover all projection cells, invalid UTF-8, suffixes, ignored marker bits,
+caller-storage mutation, cancellation and callback/table event parity. Swift tests
+cover every cell for each canonical exclusion and all exclusions together, plus
+custom fallback, root priority and captured snapshots.
+
+A Release integration test compares complete normalized events and policy callback
+counts on 64 mixed projects. Seven alternating scan pairs retain raw timings;
+table construction is measured separately and included in a broad regression gate.
+Filesystem work is included; no particular speedup is required or claimed.
+The existing macOS CI performance job discovers this test and exports its JSON
+attachment together with the xcresult. Local hosted validation is in progress.

@@ -29,27 +29,38 @@ final class RustScanEventSource: ScanEventSource {
         let job = RustScanJob(control: control, channel: channel)
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
-        let context = RustScanBridgeContext(generation: generation, channel: channel,
-                                           filters: settings.snapshot)
+        let filters = settings.snapshot
+        let policy = BuildHunterScanPolicy(filters: filters)
+        let context = RustScanBridgeContext(generation: generation, channel: channel, policy: policy)
         let retainedContext = Unmanaged.passRetained(context).toOpaque()
         let rootBytes = Data(target.path.utf8)
         let startedSecurityScope = target.startAccessingSecurityScopedResource()
         let stream = channel.makeStream(onClose: { job.cancel() })
 
         Task.detached(priority: .userInitiated) {
+            // Compiling all vocabulary cells is bounded but nontrivial; keep it off the UI actor.
+            let table = RustCompiledPolicyTable.compile(using: context.policy)
             let result = rootBytes.withUnsafeBytes { rawBuffer -> Int32 in
                 guard let baseAddress = rawBuffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
                     return 3
                 }
-                return bh_scan(
-                    control,
-                    baseAddress,
-                    rawBuffer.count,
-                    0,
-                    buildHunterPolicyCallback,
-                    buildHunterEventCallback,
-                    retainedContext
-                )
+                if let table {
+                    return table.withUnsafeEntries { entries, count in
+                        bh_scan_with_policy_table(
+                            control,
+                            baseAddress,
+                            rawBuffer.count,
+                            0,
+                            table.version,
+                            entries,
+                            count,
+                            buildHunterEventCallback,
+                            retainedContext
+                        )
+                    }
+                }
+                return bh_scan(control, baseAddress, rawBuffer.count, 0,
+                               buildHunterPolicyCallback, buildHunterEventCallback, retainedContext)
             }
             job.finish()
             if startedSecurityScope {
@@ -228,17 +239,14 @@ private final class ScanEventStreamLifetime: Sendable {
 final class RustScanBridgeContext: @unchecked Sendable {
     let generation: UInt64
     let channel: ScanEventChannel
-    let candidatePolicy = IsScannableArtifactCandidate()
-    let outerRootPolicy = IsOuterArtifactRoot()
-    let classificationPolicy = ClassifyArtifactRoot()
-    let filters: SearchFilterSnapshot
+    let policy: BuildHunterScanPolicy
     private let lock = NSLock()
     private var didFinish = false
 
-    init(generation: UInt64, channel: ScanEventChannel, filters: SearchFilterSnapshot) {
+    init(generation: UInt64, channel: ScanEventChannel, policy: BuildHunterScanPolicy) {
         self.generation = generation
         self.channel = channel
-        self.filters = filters
+        self.policy = policy
     }
 
     func yield(_ event: ScanEvent) {
@@ -320,6 +328,109 @@ final class RustScanBridgeContext: @unchecked Sendable {
     }
 }
 
+/// The sole Swift implementation of a scan decision. Both the legacy callback and the
+/// finite table compiler pass raw ABI facts through this function, preserving the UTF-8
+/// guard before any policy context is created.
+struct BuildHunterScanPolicy {
+    private let candidatePolicy = IsScannableArtifactCandidate()
+    private let outerRootPolicy = IsOuterArtifactRoot()
+    private let classificationPolicy = ClassifyArtifactRoot()
+    let filters: SearchFilterSnapshot
+
+    init(filters: SearchFilterSnapshot) {
+        self.filters = filters
+    }
+
+    func decision(for facts: BHCandidateFacts) -> BHCandidateDecision {
+        guard let name = decodeUTF8(facts.node_name, length: facts.node_name_len) else {
+            return BHCandidateDecision(action: 0, language: 0, kind: 0)
+        }
+        let context = ArtifactPolicyContext(
+            nodeName: name,
+            isDirectory: facts.is_directory != 0,
+            isSymbolicLink: facts.is_symbolic_link != 0,
+            hasArtifactAncestor: facts.has_artifact_ancestor != 0,
+            ownMarkerFacts: ArtifactMarkerFacts(rawValue: facts.own_marker_files),
+            parentMarkerFacts: ArtifactMarkerFacts(rawValue: facts.parent_marker_files)
+        )
+        return decision(for: context)
+    }
+
+    func decision(for context: ArtifactPolicyContext) -> BHCandidateDecision {
+        guard candidatePolicy.isSatisfiedBy(context) else {
+            return BHCandidateDecision(action: 1, language: 0, kind: 0)
+        }
+        guard outerRootPolicy.isSatisfiedBy(ArtifactRootContext(hasArtifactAncestor: context.hasArtifactAncestor)),
+              let classification = classificationPolicy.decide(context) else {
+            return BHCandidateDecision(action: 0, language: 0, kind: 0)
+        }
+        guard filters.includes(candidate: context, classification: classification) else {
+            // Keep traversing an excluded root: eligible artifacts of another type
+            // may be inside it. Exclusions do not alter an accepted root's byte size.
+            return BHCandidateDecision(action: 0, language: 0, kind: 0)
+        }
+        return BHCandidateDecision(action: 2, language: languageCode(classification.language),
+                                   kind: kindCode(classification.kind))
+    }
+}
+
+/// Immutable, scan-owned decisions compiled over the Rust vocabulary. Unsupported
+/// descriptor matching remains on the extensible callback path.
+final class RustCompiledPolicyTable: @unchecked Sendable {
+    let version: UInt32
+    let entries: [BHCandidateDecision]
+
+    private init(version: UInt32, entries: [BHCandidateDecision]) {
+        self.version = version
+        self.entries = entries
+    }
+
+    static func compile(filters: SearchFilterSnapshot) -> RustCompiledPolicyTable? {
+        compile(using: BuildHunterScanPolicy(filters: filters))
+    }
+
+    static func compile(using policy: BuildHunterScanPolicy) -> RustCompiledPolicyTable? {
+        let cellCount = Int(BH_POLICY_TABLE_CELL_COUNT)
+        guard bh_policy_table_version() == UInt32(BH_POLICY_TABLE_VERSION),
+              bh_policy_table_cell_count() == cellCount,
+              isRepresentable(policy.filters) else { return nil }
+
+        var entries: [BHCandidateDecision] = []
+        entries.reserveCapacity(cellCount)
+        for index in 0..<cellCount {
+            var facts = BHCandidateFacts(node_name: nil, node_name_len: 0, is_directory: 0,
+                                         is_symbolic_link: 0, has_artifact_ancestor: 0,
+                                         own_marker_files: 0, parent_marker_files: 0)
+            guard bh_policy_table_cell_facts(index, &facts) != 0 else { return nil }
+            entries.append(policy.decision(for: facts))
+        }
+        guard entries.count == cellCount else { return nil }
+        return RustCompiledPolicyTable(version: bh_policy_table_version(), entries: entries)
+    }
+
+    func withUnsafeEntries<R>(_ body: (UnsafePointer<BHCandidateDecision>, Int) -> R) -> R {
+        entries.withUnsafeBufferPointer { buffer in
+            guard let baseAddress = buffer.baseAddress else {
+                preconditionFailure("A validated policy table cannot be empty.")
+            }
+            return body(baseAddress, buffer.count)
+        }
+    }
+
+    private static func isRepresentable(_ filters: SearchFilterSnapshot) -> Bool {
+        let exactNames: Set<String> = [
+            ".git", ".build", "target", "__pycache__", ".pytest_cache", ".mypy_cache",
+            ".ruff_cache", ".pytype", ".tox", ".nox", "build", "dist", ".venv", "venv"
+        ]
+        let suffixes: Set<String> = [".egg-info", ".pyc", ".pyo"]
+        return filters.catalog.allSatisfy { descriptor in
+            if descriptor.requiresVenvMarker { return true }
+            return descriptor.nodeNames.allSatisfy(exactNames.contains)
+                && descriptor.suffixes.allSatisfy(suffixes.contains)
+        }
+    }
+}
+
 @_cdecl("build_hunter_policy_callback")
 private func buildHunterPolicyCallback(
     _ rawContext: UnsafeMutableRawPointer?,
@@ -328,38 +439,7 @@ private func buildHunterPolicyCallback(
 ) -> Int32 {
     guard let rawContext, let rawFacts, let rawDecision else { return 0 }
     let bridge = Unmanaged<RustScanBridgeContext>.fromOpaque(rawContext).takeUnretainedValue()
-    let facts = rawFacts.pointee
-    guard let name = decodeUTF8(facts.node_name, length: facts.node_name_len) else {
-        rawDecision.pointee.action = 0
-        return 1
-    }
-    let context = ArtifactPolicyContext(
-        nodeName: name,
-        isDirectory: facts.is_directory != 0,
-        isSymbolicLink: facts.is_symbolic_link != 0,
-        hasArtifactAncestor: facts.has_artifact_ancestor != 0,
-        ownMarkerFacts: ArtifactMarkerFacts(rawValue: facts.own_marker_files),
-        parentMarkerFacts: ArtifactMarkerFacts(rawValue: facts.parent_marker_files)
-    )
-    guard bridge.candidatePolicy.isSatisfiedBy(context) else {
-        rawDecision.pointee.action = 1
-        return 1
-    }
-    guard bridge.outerRootPolicy.isSatisfiedBy(
-        ArtifactRootContext(hasArtifactAncestor: facts.has_artifact_ancestor != 0)
-    ), let classification = bridge.classificationPolicy.decide(context) else {
-        rawDecision.pointee.action = 0
-        return 1
-    }
-    guard bridge.filters.includes(candidate: context, classification: classification) else {
-        // Keep traversing an excluded root: eligible artifacts of another type
-        // may be inside it. Exclusions do not alter an accepted root's byte size.
-        rawDecision.pointee.action = 0
-        return 1
-    }
-    rawDecision.pointee.action = 2
-    rawDecision.pointee.language = languageCode(classification.language)
-    rawDecision.pointee.kind = kindCode(classification.kind)
+    rawDecision.pointee = bridge.policy.decision(for: rawFacts.pointee)
     return 1
 }
 

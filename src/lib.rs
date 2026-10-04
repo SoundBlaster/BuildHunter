@@ -9,6 +9,12 @@ use std::{
     },
 };
 
+mod policy_table;
+pub use policy_table::{
+    bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
+    bh_scan_with_policy_table,
+};
+
 #[cfg(unix)]
 use std::os::unix::{ffi::OsStrExt, fs::MetadataExt};
 
@@ -1359,22 +1365,18 @@ pub unsafe extern "C" fn bh_scan(
     {
         return 3;
     }
-    let root_bytes = unsafe { std::slice::from_raw_parts(root, root_len) };
-    let root_path = path_from_bytes(root_bytes);
-    let control = unsafe { &*control };
     let policy_callback = policy_callback.unwrap();
-    let event_callback = event_callback.unwrap();
     let mut policy_failed = false;
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let report = scan_with_policy(
-            &root_path,
-            ScanOptions {
-                apparent_size: apparent_size != 0,
-            },
+    unsafe {
+        run_ffi_scan(
             control,
+            root,
+            root_len,
+            apparent_size,
+            event_callback.unwrap(),
+            context,
             |facts| {
-                let decision = BHCandidateDecision::default();
-                let mut decision = decision;
+                let mut decision = BHCandidateDecision::default();
                 let c_facts = BHCandidateFacts {
                     node_name: facts.node_name.as_ptr(),
                     node_name_len: facts.node_name.len(),
@@ -1384,36 +1386,57 @@ pub unsafe extern "C" fn bh_scan(
                     own_marker_files: facts.own_marker_files,
                     parent_marker_files: facts.parent_marker_files,
                 };
-                let succeeded = unsafe { policy_callback(context, &c_facts, &mut decision) };
+                let succeeded = policy_callback(context, &c_facts, &mut decision);
                 if succeeded == 0 {
                     policy_failed = true;
-                    control.fail();
-                    return CandidateAction::Prune;
+                    return None;
                 }
-                match decision.action {
-                    0 => CandidateAction::Traverse,
-                    1 => CandidateAction::Prune,
-                    2 => CandidateAction::Classify(ArtifactClassificationCode {
-                        language: decision.language,
-                        kind: decision.kind,
-                    }),
-                    _ => {
-                        policy_failed = true;
-                        control.fail();
-                        CandidateAction::Prune
-                    }
+                policy_table::action_from_decision(decision).or_else(|| {
+                    policy_failed = true;
+                    None
+                })
+            },
+        )
+    }
+    .map_or(3, |status| if policy_failed { 3 } else { status })
+}
+
+/// Run the common scan and preserve the callback's historical failure and panic handling.
+unsafe fn run_ffi_scan(
+    control: *mut ScanControl,
+    root: *const u8,
+    root_len: usize,
+    apparent_size: u8,
+    event_callback: BHEventCallback,
+    context: *mut c_void,
+    mut policy: impl FnMut(&CandidateFacts) -> Option<CandidateAction>,
+) -> Option<i32> {
+    if control.is_null() || root.is_null() {
+        return None;
+    }
+    let root_bytes = unsafe { std::slice::from_raw_parts(root, root_len) };
+    let root_path = path_from_bytes(root_bytes);
+    let control = unsafe { &*control };
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let report = scan_with_policy(
+            &root_path,
+            ScanOptions {
+                apparent_size: apparent_size != 0,
+            },
+            control,
+            |facts| match policy(facts) {
+                Some(action) => action,
+                None => {
+                    control.fail();
+                    CandidateAction::Prune
                 }
             },
             |event| unsafe { send_ffi_event(event_callback, context, event) },
         );
-        if policy_failed {
-            3
-        } else {
-            status_code(report.status)
-        }
+        status_code(report.status)
     }));
     match result {
-        Ok(status) => status,
+        Ok(status) => Some(status),
         Err(_) => {
             let event = BHScanEvent {
                 event_type: 4,
@@ -1429,7 +1452,7 @@ pub unsafe extern "C" fn bh_scan(
                 message_len: 0,
             };
             unsafe { event_callback(context, &event) };
-            3
+            Some(3)
         }
     }
 }

@@ -38,6 +38,8 @@
 		F60DE588B31B83267DD5B91A /* ArtifactDiagramWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */; };
 		FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */; };
 		5E7355CF4914369049DC0C8B /* StaticPolicyPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */; };
+		37D9507A6AEB0C2E154FACD7 /* FinitePolicyTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF5266816D8A7DC4BAA3C16 /* FinitePolicyTableTests.swift */; };
+		EDD0A04C6416742933F94E65 /* FinitePolicyScanPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DAF11AB598498405126921 /* FinitePolicyScanPerformanceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +100,8 @@
 		FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburst.swift; sourceTree = "<group>"; };
 		FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsWindow.swift; sourceTree = "<group>"; };
 		31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticPolicyPerformanceTests.swift; sourceTree = "<group>"; };
+		6CF5266816D8A7DC4BAA3C16 /* FinitePolicyTableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinitePolicyTableTests.swift; sourceTree = "<group>"; };
+		31DAF11AB598498405126921 /* FinitePolicyScanPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinitePolicyScanPerformanceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +138,7 @@
 			children = (
 				D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */,
 				31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */,
+				31DAF11AB598498405126921 /* FinitePolicyScanPerformanceTests.swift */,
 			);
 			path = BuildHunterPerformanceTests;
 			sourceTree = "<group>";
@@ -220,6 +225,7 @@
 				1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */,
 				95843E8BD5AD3180718D17BB /* ArtifactSunburstTests.swift */,
 				65E20EAE29A9A554531B8A41 /* SearchFilterIntegrationTests.swift */,
+				6CF5266816D8A7DC4BAA3C16 /* FinitePolicyTableTests.swift */,
 				5B057B0645AC397544AEED89 /* SearchFilterSettingsTests.swift */,
 				381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */,
 			);
@@ -410,6 +416,7 @@
 				"$(SRCROOT)/../Cargo.toml",
 				"$(SRCROOT)/../Cargo.lock",
 				"$(SRCROOT)/../src/lib.rs",
+				"$(SRCROOT)/../src/policy_table.rs",
 			);
 			name = "Build Rust scanner (Apple Silicon)";
 			outputFileListPaths = (
@@ -438,6 +445,7 @@
 			files = (
 				91BAFEA4EB4D1D5C975E9049 /* ScanPerformanceTests.swift in Sources */,
 				5E7355CF4914369049DC0C8B /* StaticPolicyPerformanceTests.swift in Sources */,
+				EDD0A04C6416742933F94E65 /* FinitePolicyScanPerformanceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -449,6 +457,7 @@
 				1C9920F952809D4378379415 /* ArtifactPolicyTests.swift in Sources */,
 				030D8A083791B92C0E600782 /* ArtifactSunburstTests.swift in Sources */,
 				39A1C057EC0F4EBA0BB42DDE /* SearchFilterIntegrationTests.swift in Sources */,
+				37D9507A6AEB0C2E154FACD7 /* FinitePolicyTableTests.swift in Sources */,
 				408B063A95E7BD973C0302C0 /* SearchFilterSettingsTests.swift in Sources */,
 				FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */,
 			);
