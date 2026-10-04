@@ -86,7 +86,7 @@ checks. Rust #20 checks passed at `d58b32a`; Swift #17 checks passed at
 | H10 | Exact shared worker classifier: **pending** | Worker prefetch has not been switched to the shared catalog classifier. Require classification/prefetch parity and bounded candidate counts. |
 | H11 | Compiled field-table leaves: **pending** | No field-table implementation in specification-core-serde yet; app marker masks alone do not satisfy this item. |
 | H12 | RuleNode evaluation-plan compiler: **pending** | No compiler yet. Require independent direct/compiled semantic parity before flattening, folding or reordering. |
-| H13 | Finite Swift policy tables: **local next stack layer** | Versioned 4,609-cell table compiled by the same Swift policy, Rust-owned snapshot and extensible callback fallback implemented. Rust 22 tests/Clippy pass; exhaustive Swift parity and whole-scan callback-count/performance tests are added, hosted validation pending. |
+| H13 | Finite Swift policy tables: **application PR #29 / validation pending** | [PR #29](https://github.com/SoundBlaster/BuildHunter/pull/29): versioned 4,609-cell table compiled by the same Swift policy, Rust-owned snapshot and extensible callback fallback implemented. Rust 22 tests/Clippy pass; exhaustive Swift parity and whole-scan callback-count/performance tests are added, hosted validation pending. |
 | H14 | Avoid classifier memoization without useful reuse: **guardrail** | No unbounded classifier cache is being added. A real hit-rate study has not established the hypothesis universally. |
 | H15 | Bounded memoization at an expensive boundary: **pending** | Deferred until finite-table work and a pure policy projection contract. No boundary cache is implemented. |
 | H16 | Partial evaluation of scan constants: **partial app foundation** | An immutable filter snapshot exists. A compiled plan that removes scan-constant rules remains pending. |
@@ -212,7 +212,7 @@ whole-scan improvement is claimed by this checkpoint.
 
 ## Third checkpoint: finite scan policy table
 
-Addresses H13, and the per-scan filter binding portion of H16. The new layer
+Addresses H13, and the per-scan filter binding portion of H16. Application [PR #29](https://github.com/SoundBlaster/BuildHunter/pull/29)
 targets `codex/static-policy` above application #27; library release versions
 remain unchanged. ADR 0002 defines the finite name/fact projection and additive
 versioned C ABI. Rust holds an owned immutable table; Swift computes its cells
