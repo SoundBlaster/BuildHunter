@@ -307,7 +307,8 @@ struct WindowScanModelTests {
         let channel = ScanEventChannel(capacity: 8)
         let stream = channel.makeStream(onClose: {})
         let bridge = RustScanBridgeContext(generation: 1, channel: channel,
-                                           filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: []))
+                                           policy: BuildHunterScanPolicy(filters: SearchFilterSnapshot(
+                                            excludedFilterIDs: [], catalog: [])))
         bridge.finish(status: status)
 
         let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))

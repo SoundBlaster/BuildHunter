@@ -13,7 +13,7 @@ struct SearchFilterDescriptor: Codable, Hashable, Identifiable, Sendable {
     func matches(_ candidate: ArtifactPolicyContext, classification: ArtifactClassification) -> Bool {
         guard group == classification.language else { return false }
         if requiresVenvMarker {
-            return candidate.ownMarkerFiles.contains("pyvenv.cfg")
+            return candidate.ownMarkerFacts.contains(.pythonVirtualEnvironment)
         }
         return nodeNames.contains(candidate.nodeName)
             || suffixes.contains { candidate.nodeName.hasSuffix($0) }
@@ -28,7 +28,9 @@ struct SearchFilterDecisionContext: Sendable {
 }
 
 /// Applies the user's filter selection to a candidate already recognized by the scanner.
-struct IsIncludedSearchArtifact: Specification {
+/// The cached predicate captures no state; it reads only the immutable Sendable context.
+/// `PredicateSpec` itself lacks `Sendable`, so this wrapper records that narrower guarantee.
+struct IsIncludedSearchArtifact: Specification, @unchecked Sendable {
     private let rule = PredicateSpec<SearchFilterDecisionContext>(description: "search.filter.candidate.enabled") {
         !$0.excludedFilterIDs.contains($0.descriptor.id)
             && $0.descriptor.matches($0.candidate, classification: $0.classification)
@@ -43,6 +45,13 @@ struct IsIncludedSearchArtifact: Specification {
 struct SearchFilterSnapshot: Sendable {
     let excludedFilterIDs: Set<String>
     let catalog: [SearchFilterDescriptor]
+    private let inclusionPolicy: IsIncludedSearchArtifact
+
+    init(excludedFilterIDs: Set<String>, catalog: [SearchFilterDescriptor]) {
+        self.excludedFilterIDs = excludedFilterIDs
+        self.catalog = catalog
+        inclusionPolicy = IsIncludedSearchArtifact()
+    }
 
     func descriptor(
         matching candidate: ArtifactPolicyContext,
@@ -56,7 +65,7 @@ struct SearchFilterSnapshot: Sendable {
         candidate: ArtifactPolicyContext,
         classification: ArtifactClassification
     ) -> Bool {
-        IsIncludedSearchArtifact().isSatisfiedBy(
+        inclusionPolicy.isSatisfiedBy(
             SearchFilterDecisionContext(
                 descriptor: descriptor,
                 candidate: candidate,

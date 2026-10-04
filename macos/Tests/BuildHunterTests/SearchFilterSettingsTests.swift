@@ -89,6 +89,39 @@ struct SearchFilterSettingsTests {
         #expect(snapshot.includes(candidate: candidate, classification: classification))
     }
 
+    @Test("Each canonical filter excludes its matching candidate")
+    func canonicalFiltersExcludeMatchingCandidates() {
+        let descriptors = SearchFilterCatalog.load()
+        let candidates: [String: (ArtifactPolicyContext, ArtifactClassification)] = [
+            "swift.build": (facts(".build"), build("Swift")),
+            "rust.target": (facts("target", parent: ["Cargo.toml"]), build("Rust")),
+            "python.bytecode": (facts("module.pyc", directory: false),
+                                ArtifactClassification(kind: .cache, language: "Python")),
+            "python.pytest-cache": (facts(".pytest_cache"), cache("Python")),
+            "python.mypy-cache": (facts(".mypy_cache"), cache("Python")),
+            "python.ruff-cache": (facts(".ruff_cache"), cache("Python")),
+            "python.pytype-cache": (facts(".pytype"), cache("Python")),
+            "python.build": (facts("build", parent: ["pyproject.toml"]), build("Python")),
+            "python.dist": (facts("dist", parent: ["setup.py"]), build("Python")),
+            "python.egg-info": (facts("module.egg-info"), cache("Python")),
+            "python.environment": (facts("venv", own: ["pyvenv.cfg"]),
+                                   ArtifactClassification(kind: .environment, language: "Python")),
+            "python.tox": (facts(".tox"), ArtifactClassification(kind: .testEnvironment, language: "Python")),
+            "python.nox": (facts(".nox"), ArtifactClassification(kind: .testEnvironment, language: "Python"))
+        ]
+
+        // One disabled ID is present at a time, so this exercises all 13 canonical exclusions.
+        for descriptor in descriptors {
+            guard let (candidate, classification) = candidates[descriptor.id] else {
+                Issue.record("Missing fixture for canonical filter \(descriptor.id)")
+                continue
+            }
+            let snapshot = SearchFilterSnapshot(excludedFilterIDs: [descriptor.id], catalog: descriptors)
+            #expect(snapshot.descriptor(matching: candidate, classification: classification)?.id == descriptor.id)
+            #expect(!snapshot.includes(candidate: candidate, classification: classification))
+        }
+    }
+
     private let catalog = [
         Self.descriptor("swift.build", group: "Swift", nodes: [".build"]),
         Self.descriptor("rust.target", group: "Rust", nodes: ["target"]),
@@ -112,6 +145,10 @@ struct SearchFilterSettingsTests {
 
     private func build(_ language: String) -> ArtifactClassification {
         ArtifactClassification(kind: .buildOutput, language: language)
+    }
+
+    private func cache(_ language: String) -> ArtifactClassification {
+        ArtifactClassification(kind: .cache, language: language)
     }
 
     private func facts(_ name: String, directory: Bool = true,

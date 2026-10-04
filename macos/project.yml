@@ -7,7 +7,7 @@ options:
 packages:
   SpecificationCore:
     url: https://github.com/SoundBlaster/SpecificationCore.git
-    revision: 483214469828c42f7b615654aa70d0acbecc4dbf
+    branch: perf/balanced-decisions
   NestedA11yIDs:
     url: https://github.com/SoundBlaster/NestedA11yIDs.git
     from: 1.0.0
@@ -48,6 +48,7 @@ targets:
           - "$(SRCROOT)/../Cargo.toml"
           - "$(SRCROOT)/../Cargo.lock"
           - "$(SRCROOT)/../src/lib.rs"
+          - "$(SRCROOT)/../src/policy_table.rs"
         outputFiles:
           - "$(SRCROOT)/../target/aarch64-apple-darwin/release/libbuild_hunter.a"
   BuildHunterTests:
