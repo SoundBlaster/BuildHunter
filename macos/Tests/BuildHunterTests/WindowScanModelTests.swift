@@ -69,6 +69,53 @@ struct WindowScanModelTests {
         #expect(terminal == .completed)
     }
 
+    @Test("A continuously occupied event queue releases delivered payloads", arguments: [1, 2, 8])
+    func occupiedQueueReleasesDeliveredEvents(capacity: Int) async throws {
+        let channel = ScanEventChannel(capacity: capacity)
+        for index in 0..<capacity {
+            #expect(channel.send(.warning(generation: 1, message: "\(index)")))
+        }
+        for index in 0..<10_000 {
+            let event = try #require(await channel.next())
+            guard case .warning(_, let message) = event else {
+                Issue.record("Expected a warning event")
+                return
+            }
+            #expect(message == "\(index)", "FIFO must survive repeated wraparound")
+            if index == 9_999 {
+                #expect(channel.retainedEventCount == capacity - 1,
+                        "Delivered payloads must be released even while the queue stays occupied")
+            }
+            #expect(channel.send(.warning(generation: 1, message: "\(index + capacity)")))
+        }
+        #expect(channel.bufferedCount == capacity)
+        #expect(channel.retainedEventCount == capacity)
+        channel.finish()
+        for index in 10_000..<(10_000 + capacity) {
+            let event = try #require(await channel.next())
+            guard case .warning(_, let message) = event else {
+                Issue.record("Expected a buffered warning event")
+                return
+            }
+            #expect(message == "\(index)")
+        }
+        #expect(await channel.next() == nil)
+        #expect(channel.retainedEventCount == 0)
+    }
+
+    @Test("Closing a partly consumed queue releases its remaining payloads")
+    func closingQueueReleasesPayloads() async throws {
+        let channel = ScanEventChannel(capacity: 2)
+        channel.send(.warning(generation: 1, message: "first"))
+        channel.send(.warning(generation: 1, message: "second"))
+        _ = try #require(await channel.next())
+        channel.close()
+        #expect(channel.bufferedCount == 0)
+        #expect(channel.retainedEventCount == 0)
+        #expect(!channel.send(.warning(generation: 1, message: "closed")))
+        #expect(await channel.next() == nil)
+    }
+
     @Test("Rust events wait for buffer space instead of being dropped")
     func rustEventsApplyBackpressure() async throws {
         let channel = ScanEventChannel(capacity: 8)
