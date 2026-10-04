@@ -394,7 +394,10 @@ fn managed_cloud_location(path: &Path) -> Option<&'static str> {
         .or_else(|_| path.strip_prefix("/Users"))
         .ok()?;
     let mut components = user_path.components();
-    components.next()?; // account name
+    let account = components.next()?.as_os_str();
+    if account == "Shared" {
+        return None;
+    }
     if components.next()?.as_os_str() != "Library" {
         return None;
     }
@@ -1647,6 +1650,9 @@ mod tests {
             );
         }
         for local in [
+            "/Users/Shared/Library/Mobile Documents/project/target",
+            "/Users/Shared/Library/CloudStorage/project/target",
+            "/System/Volumes/Data/Users/Shared/Library/CloudStorage/project/target",
             "/Users/developer/Library/Caches",
             "/Users/developer/Library/CloudStorage-backup",
             "/Users/developer/project/Library/CloudStorage",
