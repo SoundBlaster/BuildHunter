@@ -316,6 +316,7 @@ struct ArtifactLanguageIcon: View {
             .scaledToFit()
             .frame(width: 16, height: 16)
             .foregroundStyle(.primary)
+            .help(language.rawValue)
             .accessibilityHidden(true)
     }
 }
@@ -331,7 +332,6 @@ struct ArtifactLanguageBadges: View {
         HStack(spacing: 4) {
             ForEach(ordered, id: \.self) { language in
                 ArtifactLanguageIcon(language: language)
-                    .help(language.rawValue)
             }
         }
         .fixedSize()
