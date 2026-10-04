@@ -6,19 +6,21 @@ struct ClassifyArtifactRoot: DecisionSpec {
     typealias Result = ArtifactClassification
 
     private let decision: FirstMatchSpec<Context, Result>
+    private let scannableCandidate: IsScannableArtifactCandidate
 
     init() {
+        scannableCandidate = IsScannableArtifactCandidate()
         let swiftBuild = PredicateSpec<Context>(description: "artifact.swift.build") {
             $0.isDirectory && $0.nodeName == ".build"
         }
         let rustBuild = PredicateSpec<Context>(description: "artifact.rust.target") {
-            $0.isDirectory && $0.nodeName == "target" && $0.parentMarkerFiles.contains("Cargo.toml")
+            $0.isDirectory && $0.nodeName == "target" && $0.parentMarkerFacts.contains(.cargoManifest)
         }
         let pythonEnvironment = PredicateSpec<Context>(description: "artifact.python.environment") {
-            $0.isDirectory && $0.ownMarkerFiles.contains("pyvenv.cfg")
+            $0.isDirectory && $0.ownMarkerFacts.contains(.pythonVirtualEnvironment)
         }
         let toxEnvironment = PredicateSpec<Context>(description: "artifact.python.test-environment") {
-            $0.isDirectory && [".tox", ".nox"].contains($0.nodeName)
+            $0.isDirectory && ($0.nodeName == ".tox" || $0.nodeName == ".nox")
         }
         let pythonBytecode = PredicateSpec<Context>(description: "artifact.python.bytecode-root") {
             $0.isDirectory && $0.nodeName == "__pycache__"
@@ -27,11 +29,12 @@ struct ClassifyArtifactRoot: DecisionSpec {
             $0.isDirectory && $0.nodeName.hasSuffix(".egg-info")
         }
         let pythonBuild = PredicateSpec<Context>(description: "artifact.python.build-output") {
-            $0.isDirectory && ["build", "dist"].contains($0.nodeName)
-                && !$0.parentMarkerFiles.isDisjoint(with: ["pyproject.toml", "setup.py", "setup.cfg"])
+            $0.isDirectory && ($0.nodeName == "build" || $0.nodeName == "dist")
+                && !$0.parentMarkerFacts.intersection(.pythonBuildProject).isEmpty
         }
         let pythonCache = PredicateSpec<Context>(description: "artifact.python.tool-cache") {
-            $0.isDirectory && [".pytest_cache", ".mypy_cache", ".ruff_cache", ".pytype"].contains($0.nodeName)
+            $0.isDirectory && ($0.nodeName == ".pytest_cache" || $0.nodeName == ".mypy_cache"
+                || $0.nodeName == ".ruff_cache" || $0.nodeName == ".pytype")
         }
         let pythonBytecodeFile = PredicateSpec<Context>(description: "artifact.python.bytecode-file") {
             // Pure string work: URL(fileURLWithPath:) would stat a relative path per call.
@@ -52,7 +55,7 @@ struct ClassifyArtifactRoot: DecisionSpec {
     }
 
     func decide(_ context: Context) -> Result? {
-        guard IsScannableArtifactCandidate().isSatisfiedBy(context) else { return nil }
+        guard scannableCandidate.isSatisfiedBy(context) else { return nil }
         return decision.decide(context)
     }
 }

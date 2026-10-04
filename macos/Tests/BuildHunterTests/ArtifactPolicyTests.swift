@@ -72,6 +72,89 @@ struct ArtifactPolicyTests {
         #expect(IsOuterArtifactRoot().isSatisfiedBy(ArtifactRootContext(hasArtifactAncestor: false)))
     }
 
+    @Test("Typed marker masks preserve Set initializer policy for every marker combination")
+    func markerMaskAndSetParity() {
+        let names: [(UInt32, String)] = [
+            (1, "Cargo.toml"), (2, "pyproject.toml"), (4, "setup.py"),
+            (8, "setup.cfg"), (16, "pyvenv.cfg")
+        ]
+        for ownMask in UInt32(0)..<32 {
+            for parentMask in UInt32(0)..<32 {
+                let ownNames = Set(names.compactMap { ownMask & $0.0 == 0 ? nil : $0.1 })
+                let parentNames = Set(names.compactMap { parentMask & $0.0 == 0 ? nil : $0.1 })
+                for name in [".build", "target", "venv", ".tox", ".nox", "build", "dist",
+                             "__pycache__", "package.egg-info", ".pytest_cache", "module.pyc", ".git", "other"] {
+                    for directory in [false, true] {
+                        for symbolicLink in [false, true] {
+                            for hasAncestor in [false, true] {
+                                let fromSets = ArtifactPolicyContext(
+                                    nodeName: name, isDirectory: directory, isSymbolicLink: symbolicLink,
+                                    hasArtifactAncestor: hasAncestor,
+                                    ownMarkerFiles: ownNames, parentMarkerFiles: parentNames
+                                )
+                                let fromMasks = ArtifactPolicyContext(
+                                    nodeName: name, isDirectory: directory, isSymbolicLink: symbolicLink,
+                                    hasArtifactAncestor: hasAncestor,
+                                    ownMarkerFacts: ArtifactMarkerFacts(rawValue: ownMask),
+                                    parentMarkerFacts: ArtifactMarkerFacts(rawValue: parentMask)
+                                )
+                                #expect(fromMasks.ownMarkerFacts == fromSets.ownMarkerFacts)
+                                #expect(fromMasks.parentMarkerFacts == fromSets.parentMarkerFacts)
+                                #expect(policy.decide(fromMasks) == referenceClassification(
+                                    fromSets, ownMarkers: ownNames, parentMarkers: parentNames
+                                ))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Unknown marker names and unknown ABI bits have never affected the policy.
+        let unknownName = ArtifactPolicyContext(nodeName: "build", isDirectory: true, isSymbolicLink: false,
+                                               ownMarkerFiles: ["unknown.marker"], parentMarkerFiles: ["unknown.marker"])
+        let unknownBit = ArtifactPolicyContext(nodeName: "build", isDirectory: true, isSymbolicLink: false,
+                                               ownMarkerFacts: ArtifactMarkerFacts(rawValue: 1 << 31),
+                                               parentMarkerFacts: ArtifactMarkerFacts(rawValue: 1 << 31))
+        #expect(policy.decide(unknownName) == policy.decide(unknownBit))
+    }
+
+    private func referenceClassification(
+        _ context: ArtifactPolicyContext, ownMarkers: Set<String>, parentMarkers: Set<String>
+    ) -> ArtifactClassification? {
+        guard !context.isSymbolicLink,
+              !(context.isDirectory && context.nodeName == ".git" && !context.hasArtifactAncestor) else { return nil }
+        if context.isDirectory && ownMarkers.contains("pyvenv.cfg") {
+            return ArtifactClassification(kind: .environment, language: "Python")
+        }
+        if context.isDirectory && (context.nodeName == ".tox" || context.nodeName == ".nox") {
+            return ArtifactClassification(kind: .testEnvironment, language: "Python")
+        }
+        if context.isDirectory && context.nodeName == ".build" {
+            return ArtifactClassification(kind: .buildOutput, language: "Swift")
+        }
+        if context.isDirectory && context.nodeName == "target"
+            && parentMarkers.contains("Cargo.toml") {
+            return ArtifactClassification(kind: .buildOutput, language: "Rust")
+        }
+        if context.isDirectory && (context.nodeName == "build" || context.nodeName == "dist")
+            && !parentMarkers.isDisjoint(with: ["pyproject.toml", "setup.py", "setup.cfg"]) {
+            return ArtifactClassification(kind: .buildOutput, language: "Python")
+        }
+        if context.isDirectory && context.nodeName == "__pycache__" {
+            return ArtifactClassification(kind: .cache, language: "Python")
+        }
+        if context.isDirectory && context.nodeName.hasSuffix(".egg-info") {
+            return ArtifactClassification(kind: .cache, language: "Python")
+        }
+        if context.isDirectory && [".pytest_cache", ".mypy_cache", ".ruff_cache", ".pytype"].contains(context.nodeName) {
+            return ArtifactClassification(kind: .cache, language: "Python")
+        }
+        if !context.isDirectory && (context.nodeName.hasSuffix(".pyc") || context.nodeName.hasSuffix(".pyo")) {
+            return ArtifactClassification(kind: .cache, language: "Python")
+        }
+        return nil
+    }
+
     private func facts(
         _ name: String,
         directory: Bool = true,

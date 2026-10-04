@@ -64,6 +64,62 @@ final class ScanPerformanceTests: XCTestCase {
         }
     }
 
+    /// Compares the old String/Set bridge projection with ABI-native marker facts. XCTest's
+    /// memory metric records the allocation-sensitive work; there is deliberately no exact
+    /// nanosecond or byte threshold because host noise varies substantially.
+    func testLegacySetMarkerBridgeProjectionAllocationProfile() {
+        let candidates = markerBridgeCandidates(count: 10_000)
+        let policy = ClassifyArtifactRoot()
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: measurementOptions()) {
+            startMeasuring()
+            var classified = 0
+            for candidate in candidates {
+                let context = ArtifactPolicyContext(
+                    nodeName: candidate.name, isDirectory: true, isSymbolicLink: false,
+                    ownMarkerFiles: legacyMarkerNames(candidate.ownMask),
+                    parentMarkerFiles: legacyMarkerNames(candidate.parentMask)
+                )
+                if policy.decide(context) != nil { classified += 1 }
+            }
+            stopMeasuring()
+            XCTAssertGreaterThan(classified, 0)
+        }
+    }
+
+    func testDirectMaskMarkerBridgeFactsAllocationProfile() {
+        let candidates = markerBridgeCandidates(count: 10_000)
+        let policy = ClassifyArtifactRoot()
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()], options: measurementOptions()) {
+            startMeasuring()
+            var classified = 0
+            for candidate in candidates {
+                let context = ArtifactPolicyContext(
+                    nodeName: candidate.name, isDirectory: true, isSymbolicLink: false,
+                    ownMarkerFacts: ArtifactMarkerFacts(rawValue: candidate.ownMask),
+                    parentMarkerFacts: ArtifactMarkerFacts(rawValue: candidate.parentMask)
+                )
+                if policy.decide(context) != nil { classified += 1 }
+            }
+            stopMeasuring()
+            XCTAssertGreaterThan(classified, 0)
+        }
+    }
+
+    /// Both bridge representations are checked at 10x input sizes, with a broad allowance
+    /// that catches nonlinear work without turning runner timing into a speed claim.
+    func testMarkerBridgeRepresentationsScaleWithCandidateCount() {
+        let small = markerBridgeCandidates(count: 1_000)
+        let large = markerBridgeCandidates(count: 10_000)
+        for usesMasks in [false, true] {
+            let smallElapsed = markerBridgeElapsed(small, usesMasks: usesMasks)
+            let largeElapsed = markerBridgeElapsed(large, usesMasks: usesMasks)
+            XCTAssertLessThanOrEqual(
+                largeElapsed, smallElapsed * 20 + 0.025,
+                "10,000 marker bridge candidates must scale within 20x the 1,000-candidate median plus 25 ms."
+            )
+        }
+    }
+
     /// A streaming table refresh merges 25 new rows into 10,000 sorted ones. It must stay well
     /// below a full localized re-sort; both are measured in the same process, interleaved.
     func testIncrementalTableRefreshBeatsFullSort() async throws {
@@ -238,6 +294,51 @@ final class ScanPerformanceTests: XCTestCase {
             stopMeasuring()
             validate(model, count: count)
         }
+    }
+
+    private func markerBridgeCandidates(count: Int) -> [(name: String, ownMask: UInt32, parentMask: UInt32)] {
+        let names = ["venv", "target", "build", ".tox", ".build", "worker.pyc"]
+        return (0..<count).map { index in
+            return (names[index % names.count], UInt32(index & 31), UInt32((index * 7) & 31))
+        }
+    }
+
+    private func markerBridgeElapsed(
+        _ candidates: [(name: String, ownMask: UInt32, parentMask: UInt32)], usesMasks: Bool
+    ) -> Double {
+        let policy = ClassifyArtifactRoot()
+        var classified = 0
+        let start = ProcessInfo.processInfo.systemUptime
+        for candidate in candidates {
+            let context: ArtifactPolicyContext
+            if usesMasks {
+                context = ArtifactPolicyContext(
+                    nodeName: candidate.name, isDirectory: true, isSymbolicLink: false,
+                    ownMarkerFacts: ArtifactMarkerFacts(rawValue: candidate.ownMask),
+                    parentMarkerFacts: ArtifactMarkerFacts(rawValue: candidate.parentMask)
+                )
+            } else {
+                context = ArtifactPolicyContext(
+                    nodeName: candidate.name, isDirectory: true, isSymbolicLink: false,
+                    ownMarkerFiles: legacyMarkerNames(candidate.ownMask),
+                    parentMarkerFiles: legacyMarkerNames(candidate.parentMask)
+                )
+            }
+            if policy.decide(context) != nil { classified += 1 }
+        }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+        XCTAssertGreaterThan(classified, 0)
+        return elapsed
+    }
+
+    private func legacyMarkerNames(_ flags: UInt32) -> Set<String> {
+        var names = Set<String>()
+        if flags & 1 != 0 { names.insert("Cargo.toml") }
+        if flags & 2 != 0 { names.insert("pyproject.toml") }
+        if flags & 4 != 0 { names.insert("setup.py") }
+        if flags & 8 != 0 { names.insert("setup.cfg") }
+        if flags & 16 != 0 { names.insert("pyvenv.cfg") }
+        return names
     }
 
     private func elapsedApplying(_ batch: [ScanEvent]) -> Double {

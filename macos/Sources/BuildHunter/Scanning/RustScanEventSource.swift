@@ -333,15 +333,13 @@ private func buildHunterPolicyCallback(
         rawDecision.pointee.action = 0
         return 1
     }
-    let ownMarkers = markerNames(facts.own_marker_files)
-    let parentMarkers = markerNames(facts.parent_marker_files)
     let context = ArtifactPolicyContext(
         nodeName: name,
         isDirectory: facts.is_directory != 0,
         isSymbolicLink: facts.is_symbolic_link != 0,
         hasArtifactAncestor: facts.has_artifact_ancestor != 0,
-        ownMarkerFiles: ownMarkers,
-        parentMarkerFiles: parentMarkers
+        ownMarkerFacts: ArtifactMarkerFacts(rawValue: facts.own_marker_files),
+        parentMarkerFacts: ArtifactMarkerFacts(rawValue: facts.parent_marker_files)
     )
     guard bridge.candidatePolicy.isSatisfiedBy(context) else {
         rawDecision.pointee.action = 1
@@ -382,16 +380,6 @@ private func decode(_ bytes: UnsafePointer<UInt8>?, length: Int) -> String {
 private func decodeUTF8(_ bytes: UnsafePointer<UInt8>?, length: Int) -> String? {
     guard let bytes else { return nil }
     return String(bytes: UnsafeBufferPointer(start: bytes, count: length), encoding: .utf8)
-}
-
-private func markerNames(_ flags: UInt32) -> Set<String> {
-    var names = Set<String>()
-    if flags & 1 != 0 { names.insert("Cargo.toml") }
-    if flags & 2 != 0 { names.insert("pyproject.toml") }
-    if flags & 4 != 0 { names.insert("setup.py") }
-    if flags & 8 != 0 { names.insert("setup.cfg") }
-    if flags & 16 != 0 { names.insert("pyvenv.cfg") }
-    return names
 }
 
 private func languageCode(_ language: String) -> UInt32 {

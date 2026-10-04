@@ -859,10 +859,10 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SoundBlaster/SpecificationCore.git";
+			repositoryURL = "ssh://git@github.com/SoundBlaster/SpecificationCore.git";
 			requirement = {
-				kind = revision;
-				revision = 483214469828c42f7b615654aa70d0acbecc4dbf;
+				kind = branch;
+				branch = "perf/cross-module-policy";
 			};
 		};
 		2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */ = {
