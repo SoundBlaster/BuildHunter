@@ -78,12 +78,12 @@ struct FinitePolicyTableTests {
         #expect(decision(policy, name: ".build", directory: true).action == 0)
         #expect(decision(policy, name: ".build", directory: true, ancestor: true).action == 0)
         #expect(decision(policy, name: "target", directory: true,
-                         parent: [.cargoManifest], ancestor: true).action == 0)
+                         ancestor: true, parent: [.cargoManifest]).action == 0)
 
         let selected = BuildHunterScanPolicy(filters: SearchFilterSnapshot(
             excludedFilterIDs: [], catalog: SearchFilterCatalog.load()))
         #expect(decision(selected, name: "target", directory: true,
-                         parent: [.cargoManifest], ancestor: true).action == 0)
+                         ancestor: true, parent: [.cargoManifest]).action == 0)
     }
 
     @Test("Custom exact, suffix, and Unicode descriptors use the callback fallback")
@@ -141,7 +141,7 @@ struct FinitePolicyTableTests {
                          parent: ArtifactMarkerFacts = []) -> BHCandidateDecision {
         let bytes = Array(name.utf8)
         return bytes.withUnsafeBufferPointer { buffer in
-            var facts = BHCandidateFacts(node_name: buffer.baseAddress, node_name_len: buffer.count,
+            let facts = BHCandidateFacts(node_name: buffer.baseAddress, node_name_len: buffer.count,
                                          is_directory: directory ? 1 : 0, is_symbolic_link: 0,
                                          has_artifact_ancestor: ancestor ? 1 : 0,
                                          own_marker_files: own.rawValue, parent_marker_files: parent.rawValue)

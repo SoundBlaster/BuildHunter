@@ -509,7 +509,7 @@ mod tests {
         assert_eq!(legacy.discovered, state.events.discovered);
         assert_eq!(
             legacy.discovered,
-            [b"one/.build".to_vec(), b"two/.build".to_vec()]
+            ["one", "two"].map(|name| crate::path_bytes(&PathBuf::from(name).join(".build")))
         );
         assert_eq!(legacy.completed, state.events.completed);
         assert_eq!(legacy.finished, Some(0));
