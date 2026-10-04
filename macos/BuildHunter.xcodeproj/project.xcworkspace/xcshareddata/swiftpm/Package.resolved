@@ -13,7 +13,7 @@
     {
       "identity" : "specificationcore",
       "kind" : "remoteSourceControl",
-      "location" : "ssh://git@github.com/SoundBlaster/SpecificationCore.git",
+      "location" : "https://github.com/SoundBlaster/SpecificationCore.git",
       "state" : {
         "branch" : "perf/cross-module-policy",
         "revision" : "c3a3f5965fb949f7144a26fa15844cc2024d5fc6"

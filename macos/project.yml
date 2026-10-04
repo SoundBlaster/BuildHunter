@@ -6,7 +6,7 @@ options:
   createIntermediateGroups: true
 packages:
   SpecificationCore:
-    url: ssh://git@github.com/SoundBlaster/SpecificationCore.git
+    url: https://github.com/SoundBlaster/SpecificationCore.git
     branch: perf/cross-module-policy
   NestedA11yIDs:
     url: https://github.com/SoundBlaster/NestedA11yIDs.git

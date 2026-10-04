@@ -81,6 +81,11 @@ keyed Rust dispatch and balanced Swift construction are the next library stage;
 finite policy tables and shared worker classification remain pending. No version
 bumps or releases have occurred.
 
+Public SPM dependencies use HTTPS so GitHub-hosted runners can resolve them
+without SSH credentials. The temporary SpecificationCore branch and locked
+revision remain unchanged. Anonymous remote access and Xcode's locked package
+resolution passed after the transport correction. Repository clone/push uses SSH.
+
 ## CMO and resilient-layout follow-up
 
 [The later issue update](https://github.com/SoundBlaster/BuildHunter/issues/25#issuecomment-5980860908)

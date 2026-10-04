@@ -859,7 +859,7 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "ssh://git@github.com/SoundBlaster/SpecificationCore.git";
+			repositoryURL = "https://github.com/SoundBlaster/SpecificationCore.git";
 			requirement = {
 				kind = branch;
 				branch = "perf/cross-module-policy";
