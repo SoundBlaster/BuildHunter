@@ -10,6 +10,7 @@ use std::{
 };
 
 mod policy_table;
+mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
     bh_scan_with_policy_table,
@@ -388,13 +389,17 @@ pub fn scan_with_policy(
         .map_or(1, std::num::NonZeroUsize::get)
         .min(MAX_SCAN_WORKERS);
     let (sender, receiver) = std::sync::mpsc::channel();
+    let worker_qos = thread_qos::capture();
     let (artifacts, warnings) = std::thread::scope(|scope| {
         // Closing on every exit, including a panicking callback, lets the workers finish.
         let _close = CloseOnDrop(&queue);
         for _ in 0..workers {
             let sender = sender.clone();
             let (queue, probes) = (&queue, &probes);
-            scope.spawn(move || run_worker(queue, &sender, control, probes));
+            scope.spawn(move || {
+                thread_qos::apply(worker_qos);
+                run_worker(queue, &sender, control, probes)
+            });
         }
         drop(sender);
         let mut scanner = Scanner {

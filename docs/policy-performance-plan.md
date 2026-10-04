@@ -86,7 +86,7 @@ checks. Rust #20 checks passed at `d58b32a`; Swift #17 checks passed at
 | H10 | Exact shared worker classifier: **pending** | Worker prefetch has not been switched to the shared catalog classifier. Require classification/prefetch parity and bounded candidate counts. |
 | H11 | Compiled field-table leaves: **pending** | No field-table implementation in specification-core-serde yet; app marker masks alone do not satisfy this item. |
 | H12 | RuleNode evaluation-plan compiler: **pending** | No compiler yet. Require independent direct/compiled semantic parity before flattening, folding or reordering. |
-| H13 | Finite Swift policy tables: **application PR #29 / validation pending** | [PR #29](https://github.com/SoundBlaster/BuildHunter/pull/29): versioned 4,609-cell table compiled by the same Swift policy, Rust-owned snapshot and extensible callback fallback implemented. Rust 22 tests/Clippy pass; exhaustive Swift parity and whole-scan callback-count/performance tests are added, hosted validation pending. |
+| H13 | Finite Swift policy tables: **application PR #29 / validated, unmerged** | [PR #29](https://github.com/SoundBlaster/BuildHunter/pull/29), `015376a`: Rust tests and all eight app CI checks pass, including 98 unit/UI tests and 13 Release performance tests. Local whole-scan parity passed: policy callbacks 640 → 0, 897 events in both paths. No material whole-scan speedup demonstrated; merge/release remains pending. |
 | H14 | Avoid classifier memoization without useful reuse: **guardrail** | No unbounded classifier cache is being added. A real hit-rate study has not established the hypothesis universally. |
 | H15 | Bounded memoization at an expensive boundary: **pending** | Deferred until finite-table work and a pure policy projection contract. No boundary cache is implemented. |
 | H16 | Partial evaluation of scan constants: **partial app foundation** | An immutable filter snapshot exists. A compiled plan that removes scan-constant rules remains pending. |
@@ -232,3 +232,37 @@ table construction is measured separately and included in a broad regression gat
 Filesystem work is included; no particular speedup is required or claimed.
 The existing macOS CI performance job discovers this test and exports its JSON
 attachment together with the xcresult. Local hosted validation is in progress.
+
+## macOS worker QoS follow-up (2026-10-05)
+
+The local synchronous MainActor performance test reported a high-priority
+caller waiting on Default-priority Rust workers. A separate Release harness
+using the production asynchronous `RustScanEventSource` reproduced the
+requested-priority mismatch: coordinator User Initiated (25), all eight
+workers Default (21). Its 1,000-project scan discovered and measured all
+1,000 artifacts without warnings; the MainActor heartbeat executed 30 times
+during the 88.5 ms scan. This establishes the worker mismatch independently
+of the synchronous test, but does not establish a GUI hang or a whole-scan
+speedup. The harness uses the actual Swift bridge and Rust scanner outside
+the signed App Sandbox application.
+
+The fix captures the caller's requested Darwin QoS class and relative priority
+once per scan and applies them on each dedicated Rust worker before filesystem
+work. It leaves the Swift task and caller unchanged, skips unspecified QoS,
+and treats unsupported/failed QoS requests as best effort. Other platforms
+keep their existing scheduling. Requested QoS does not include temporary
+scheduler overrides.
+
+After the fix, the same harness reported User Initiated (25) on the coordinator
+and all eight workers. All 1,000 artifacts were discovered and measured with
+zero warnings; the MainActor heartbeat executed 19 times during the 50.1 ms
+scan. These single runs validate propagation and responsiveness, not a timing
+comparison or disappearance of Xcode's diagnostic in the signed GUI.
+
+Local acceptance: `cargo test --locked` passed 25 tests (including
+`propagates_user_initiated_class_and_relative_priority`,
+`propagates_default_class_and_relative_priority`, and
+`unspecified_qos_is_a_no_op`); formatting, all-targets Clippy with warnings
+denied, and all-targets Linux cross-compilation checks passed. Existing
+macOS/Linux/Windows Rust CI runs this layer without a new workflow. This is
+a runtime scheduling follow-up to issue 25, not resolution of another H row.
