@@ -106,8 +106,10 @@ private final class RustScanJob: @unchecked Sendable {
 final class ScanEventChannel: @unchecked Sendable {
     private let condition = NSCondition()
     private let capacity: Int
-    private var events: [ScanEvent] = []
+    // Fixed storage bounds payload retention even when the queue never becomes empty.
+    private var events: [ScanEvent?]
     private var head = 0
+    private var occupiedCount = 0
     private var waiter: CheckedContinuation<ScanEvent?, Never>?
     private var finished = false
     private var closed = false
@@ -115,15 +117,22 @@ final class ScanEventChannel: @unchecked Sendable {
     init(capacity: Int) {
         precondition(capacity > 0)
         self.capacity = capacity
+        events = Array(repeating: nil, count: capacity)
     }
 
-    var bufferedCount: Int { condition.withLock { events.count - head } }
+    var bufferedCount: Int { condition.withLock { occupiedCount } }
+
+    /// Test probe: counts payloads retained by backing storage, including delivered events.
+    /// Scans every slot (O(capacity)); not used by the scan or app UI.
+    var retainedEventCount: Int {
+        condition.withLock { events.reduce(0) { $0 + ($1 == nil ? 0 : 1) } }
+    }
 
     /// Blocks while the buffer is full. Returns `false` once the queue is closed.
     @discardableResult
     func send(_ event: ScanEvent) -> Bool {
         condition.lock()
-        while !closed, waiter == nil, events.count - head >= capacity {
+        while !closed, waiter == nil, occupiedCount >= capacity {
             condition.wait()
         }
         guard !closed else {
@@ -132,7 +141,8 @@ final class ScanEventChannel: @unchecked Sendable {
         }
         let waiter = self.waiter
         if waiter == nil {
-            events.append(event)
+            events[(head + occupiedCount) % capacity] = event
+            occupiedCount += 1
         } else {
             self.waiter = nil
         }
@@ -155,8 +165,9 @@ final class ScanEventChannel: @unchecked Sendable {
     func close() {
         condition.lock()
         closed = true
-        events.removeAll()
+        for index in events.indices { events[index] = nil }
         head = 0
+        occupiedCount = 0
         let waiter = self.waiter
         self.waiter = nil
         condition.broadcast()
@@ -167,13 +178,11 @@ final class ScanEventChannel: @unchecked Sendable {
     func next() async -> ScanEvent? {
         await withCheckedContinuation { continuation in
             condition.lock()
-            if head < events.count {
+            if occupiedCount > 0 {
                 let event = events[head]
-                head += 1
-                if head == events.count {
-                    events.removeAll(keepingCapacity: true)
-                    head = 0
-                }
+                events[head] = nil
+                head = (head + 1) % capacity
+                occupiedCount -= 1
                 condition.signal()
                 condition.unlock()
                 continuation.resume(returning: event)
