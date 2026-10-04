@@ -5,7 +5,14 @@ struct ClassifyArtifactRoot: DecisionSpec {
     typealias Context = ArtifactPolicyContext
     typealias Result = ArtifactClassification
 
-    private let decision: FirstMatchSpec<Context, Result>
+    // The nine fixed rules retain their concrete types through the library's
+    // balanced builder. Runtime catalogs can continue using FirstMatchSpec.
+    private typealias Rule = BooleanDecisionAdapter<PredicateSpec<Context>, Result>
+    private typealias Pair = BinaryFirstMatch<Rule, Rule>
+    private typealias Triple = BinaryFirstMatch<Rule, Pair>
+    private typealias Four = BinaryFirstMatch<Pair, Pair>
+    private typealias Five = BinaryFirstMatch<Pair, Triple>
+    private let decision: StaticFirstMatch<BinaryFirstMatch<Four, Five>>
     private let scannableCandidate: IsScannableArtifactCandidate
 
     init() {
@@ -41,17 +48,17 @@ struct ClassifyArtifactRoot: DecisionSpec {
             !$0.isDirectory && ($0.nodeName.hasSuffix(".pyc") || $0.nodeName.hasSuffix(".pyo"))
         }
 
-        decision = FirstMatchSpec([
-            (pythonEnvironment, ArtifactClassification(kind: .environment, language: "Python")),
-            (toxEnvironment, ArtifactClassification(kind: .testEnvironment, language: "Python")),
-            (swiftBuild, ArtifactClassification(kind: .buildOutput, language: "Swift")),
-            (rustBuild, ArtifactClassification(kind: .buildOutput, language: "Rust")),
-            (pythonBuild, ArtifactClassification(kind: .buildOutput, language: "Python")),
-            (pythonBytecode, ArtifactClassification(kind: .cache, language: "Python")),
-            (pythonMetadata, ArtifactClassification(kind: .cache, language: "Python")),
-            (pythonCache, ArtifactClassification(kind: .cache, language: "Python")),
-            (pythonBytecodeFile, ArtifactClassification(kind: .cache, language: "Python"))
-        ])
+        decision = StaticFirstMatch {
+            pythonEnvironment.returning(ArtifactClassification(kind: .environment, language: "Python"))
+            toxEnvironment.returning(ArtifactClassification(kind: .testEnvironment, language: "Python"))
+            swiftBuild.returning(ArtifactClassification(kind: .buildOutput, language: "Swift"))
+            rustBuild.returning(ArtifactClassification(kind: .buildOutput, language: "Rust"))
+            pythonBuild.returning(ArtifactClassification(kind: .buildOutput, language: "Python"))
+            pythonBytecode.returning(ArtifactClassification(kind: .cache, language: "Python"))
+            pythonMetadata.returning(ArtifactClassification(kind: .cache, language: "Python"))
+            pythonCache.returning(ArtifactClassification(kind: .cache, language: "Python"))
+            pythonBytecodeFile.returning(ArtifactClassification(kind: .cache, language: "Python"))
+        }
     }
 
     func decide(_ context: Context) -> Result? {

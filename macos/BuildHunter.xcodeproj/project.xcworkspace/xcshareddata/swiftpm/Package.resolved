@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SoundBlaster/SpecificationCore.git",
       "state" : {
-        "branch" : "perf/cross-module-policy",
-        "revision" : "c3a3f5965fb949f7144a26fa15844cc2024d5fc6"
+        "branch" : "perf/balanced-decisions",
+        "revision" : "bacc4d65174bcf680e10954c0eed788c410553c0"
       }
     },
     {

@@ -64,10 +64,13 @@ Use these states consistently:
 
 References: [Swift library PR #16](https://github.com/SoundBlaster/SpecificationCore/pull/16),
 [Rust library PR #19](https://github.com/SoundBlaster/specification-core-rs/pull/19),
-[application PR #26](https://github.com/SoundBlaster/BuildHunter/pull/26).
-All three PRs are open. Their published CI checks passed at Swift `596aa71`,
+[application PR #26](https://github.com/SoundBlaster/BuildHunter/pull/26),
+[balanced Swift PR #17](https://github.com/SoundBlaster/SpecificationCore/pull/17),
+[keyed static Rust PR #20](https://github.com/SoundBlaster/specification-core-rs/pull/20).
+These PRs are open. Their published CI checks passed at Swift `596aa71`,
 Rust `b3a02b9`, and application `6edcdb8`; subsequent commits require their own
-checks. No row below is marked resolved yet.
+checks. Rust #20 checks passed at `d58b32a`; Swift #17 CI is pending at
+`bacc4d6`. No row below is marked resolved yet.
 
 | ID | Scope and current state | Evidence and remaining acceptance work |
 | --- | --- | --- |
@@ -75,9 +78,9 @@ checks. No row below is marked resolved yet.
 | H2 | Large runtime catalogs: **library benchmark only** | PR #19 compares 14/214 rules. The application catalog and a 200-target scanner scenario are not integrated. |
 | H3 | Indexed first-match: **Rust PR #19; app pending** | Ordered keyed/unkeyed parity, duplicate keys, one projection per candidate and shared-worker tests pass. Swift indexing and application adoption remain pending. |
 | H4 | Faster hashing: **pending** | No hash replacement or demonstrated need. Compare with the existing index before accepting added complexity. |
-| H5 | Static first-match: **local in both libraries** | Rust concrete macro and Swift balanced fixed-arity builder have semantic tests and Release consumers. Publication, CI and application adoption remain pending. |
+| H5 | Static first-match: **Swift PR #17 / Rust PR #20** | Concrete macro and balanced fixed-arity builder have semantic tests and Release consumers. Rust CI passed; Swift CI is pending. Swift application adoption is under Release validation; Rust app adoption remains pending. |
 | H6 | Swift cross-module body visibility: **PR #16; PR #26 uses its branch** | Actual-library first-match consumer improved about 1.76x in the recorded baseline comparison. Other composition APIs showed no material gain. Merge/release and final dependency alignment remain pending. |
-| H7 | Existential storage overhead: **local alternative; app pending** | Static APIs retain concrete rule types. Production application dispatch still uses dynamic first-match; measure the adopted path before claiming removal of existential overhead. |
+| H7 | Existential storage overhead: **Swift PR #17; app integration in progress** | BuildHunter now uses the balanced builder for its nine fixed classification rules, retaining concrete adapter types instead of the FirstMatchSpec collection. Predicate closures remain. Release comparison against the former implementation is pending. |
 | H8 | Per-call construction/allocation: **partial PR #26** | Candidate/filter specifications are reused and marker literals become masks. Exhaustive policy/filter tests pass. Descriptor lookup is still linear; allocation counts have not been measured. |
 | H9 | Swift bridge cost: **partial PR #26** | Marker Set conversion is removed. The 10,000-input projection/classification fixture measured 5.09 vs 0.20 ms. String decoding and FFI callbacks remain; this is not a whole-scan speedup. |
 | H10 | Exact shared worker classifier: **pending** | Worker prefetch has not been switched to the shared catalog classifier. Require classification/prefetch parity and bounded candidate counts. |
@@ -89,8 +92,8 @@ checks. No row below is marked resolved yet.
 | H16 | Partial evaluation of scan constants: **partial app foundation** | An immutable filter snapshot exists. A compiled plan that removes scan-constant rules remains pending. |
 | H17 | Evaluate shared leaves once: **pending** | No DAG/shared-leaf evaluation plan yet. Verify leaf-call counts and parity when implemented. |
 | H18 | Cost/selectivity reordering: **pending** | No reordering. Preserve observable first-match/short-circuit behavior and establish leaf purity before changing evaluation order. |
-| H19 | Key-aware static dispatch: **Rust local; Swift pending** | Rust macro tests cover linear-reference parity, construction order, unrelated-key skipping and borrowed non-Clone decisions. Final synthetic medians were 4.04/13.09 ns for 14/214 rules; these did not beat the handwritten reference. No app adoption yet. |
-| H20 | Swift specialization and balanced construction: **local verification** | Growing-leaf benchmark measured right-nested/balanced medians 160.87/8.13 ns. A separate real-library inline-always experiment improved only about 0.65% and retained specialization remarks. The exact guard diagnosis, binary-size/compile-time impact, publication and integration remain open. |
+| H19 | Key-aware static dispatch: **Rust PR #20; Swift pending** | Macro tests cover linear-reference parity, construction order, unrelated-key skipping and borrowed non-Clone decisions. CI passed on Linux/macOS; a later local sample gave 3.84/12.27 ns for 14/214 rules and did not beat handwritten dispatch. No Rust app adoption yet. |
+| H20 | Swift specialization and balanced construction: **PR #17; app validation in progress** | Five process samples of the growing-leaf benchmark measured right-nested/balanced medians 162.50/8.33 ns. A separate real-library inline-always experiment improved only about 0.65% and retained specialization remarks. The exact guard diagnosis, binary-size/compile-time impact, remote CI and final integration remain open. |
 | H21 | Avoid parameter-pack iteration for this backend: **guardrail** | The local Swift builder uses balanced fixed arities, not pack iteration. Reassess pack support only against a reproducible consumer on a new toolchain. |
 
 For each implementation PR, list **Addresses H…**, the affected layer, named
@@ -104,8 +107,8 @@ performance tests. A green check does not verify an unimplemented hypothesis.
 Each performance claim must retain its workload, compiler/settings, source SHAs
 and raw repeated samples; measure whole scans separately from microbenchmarks.
 
-Next acceptance checkpoint: publish the local static-library implementations,
-validate their CI, integrate them in BuildHunter, then implement finite policy
+Next acceptance checkpoint: validate Swift static-library CI and complete
+BuildHunter Release integration, then implement finite policy
 tables and exact shared worker classification. Align released versions only
 after consumer validation. The catalog/schema/plugin architecture still needs
 its own acceptance checklist before the whole issue can be closed.
@@ -180,3 +183,25 @@ resilient binary support or blanket freezing is claimed. Frozen layout commits
 stored fields to the binary ABI and needs a separate compatibility decision.
 Balanced construction and keyed dispatch remain independently useful; their
 measured effects must be reassessed after future annotation changes.
+
+## Second checkpoint: static backends (2026-10-04)
+
+The static library PRs target their foundation branches: Swift #17 over #16,
+Rust #20 over #19. Existing APIs and versions remain unchanged. New CI jobs
+retain independent parity, repeated raw samples, noise-aware gates and
+source/compiler/harness metadata. Rust checks passed; Swift checks are pending.
+
+BuildHunter's nine fixed Swift classification rules now use the balanced
+builder in their original order. The branch dependency is pinned to Swift
+`bacc4d65174bcf680e10954c0eed788c410553c0` over HTTPS. Xcode locked package resolution
+confirmed that revision. Eight classification tests, including exhaustive marker
+parity, passed in a Release SwiftPM validation package built from copied actual
+domain sources. This is separate from hosted application validation.
+
+A new Release XCTest compares the adopted policy against the old dynamic
+FirstMatchSpec implementation on 32,768 mixed names/types/marker inputs. It
+checks complete result parity outside timing, then alternates seven timed rounds
+with eight fixture passes per sample. The gate permits 1.5x baseline + 2 ms +
+six combined MADs; it does not demand a particular speedup. Hosted Release
+performance and unit tests are running. No signed UI/home-directory scan or
+whole-scan improvement is claimed by this checkpoint.

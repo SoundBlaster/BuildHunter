@@ -37,6 +37,7 @@
 		EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */; };
 		F60DE588B31B83267DD5B91A /* ArtifactDiagramWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */; };
 		FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */; };
+		5E7355CF4914369049DC0C8B /* StaticPolicyPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +97,7 @@
 		F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWindowStore.swift; sourceTree = "<group>"; };
 		FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburst.swift; sourceTree = "<group>"; };
 		FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsWindow.swift; sourceTree = "<group>"; };
+		31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticPolicyPerformanceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +133,7 @@
 			isa = PBXGroup;
 			children = (
 				D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */,
+				31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */,
 			);
 			path = BuildHunterPerformanceTests;
 			sourceTree = "<group>";
@@ -434,6 +437,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				91BAFEA4EB4D1D5C975E9049 /* ScanPerformanceTests.swift in Sources */,
+				5E7355CF4914369049DC0C8B /* StaticPolicyPerformanceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -862,7 +866,7 @@
 			repositoryURL = "https://github.com/SoundBlaster/SpecificationCore.git";
 			requirement = {
 				kind = branch;
-				branch = "perf/cross-module-policy";
+				branch = "perf/balanced-decisions";
 			};
 		};
 		2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */ = {
