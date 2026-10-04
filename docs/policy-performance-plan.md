@@ -80,3 +80,24 @@ Existing macOS CI runs the new clock/memory/scaling tests automatically. Static
 keyed Rust dispatch and balanced Swift construction are the next library stage;
 finite policy tables and shared worker classification remain pending. No version
 bumps or releases have occurred.
+
+## CMO and resilient-layout follow-up
+
+[The later issue update](https://github.com/SoundBlaster/BuildHunter/issues/25#issuecomment-5980860908)
+separates linking, body visibility and generic specialization. Its measurements
+use a replica; they motivate actual-library verification, not a new speed claim.
+
+The local Xcode Release build-for-testing compiler driver uses `-O` and
+`-whole-module-optimization`. Replaying its SpecificationCore arm64 invocation
+with `-driver-print-jobs` shows `-enable-default-cmo` on the effective frontend
+command, with neither aggressive `-cross-module-optimization` nor
+`-enable-library-evolution`. Looking only at driver flags would have missed the
+default CMO flag. This test build also uses `-enable-testing`; it is not evidence
+for every future distribution configuration.
+
+The follow-up verifies non-tracing `@inline(__always)` on tiny combinator
+evaluations with a real separate-module consumer, growing leaf types, SIL and
+result parity. Frozen layout is considered only for stable And/Or/Not storage;
+it commits that storage to the binary ABI. No blanket freezing of the library is
+planned. Balanced construction and keyed dispatch remain independently useful;
+their measured effects must be reassessed after annotation changes.
