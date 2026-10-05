@@ -102,8 +102,18 @@ has been adopted by the scanner.
 | H17 | Evaluate shared leaves once: **pending** | No DAG/shared-leaf evaluation plan or call-count acceptance tests. |
 | H18 | Cost/selectivity reordering: **pending** | No reordering; purity and observable priority/short-circuit semantics must be preserved. |
 | H19 | Key-aware static dispatch: **partial, Rust library merged** | Rust #20 covers ordered reference parity, construction, unrelated-key skipping, outer generic/lifetime contexts and borrowed non-Clone decisions. CI passed. Scanner adoption and Swift keyed backend remain pending; local 3.84/12.27 ns samples did not beat handwritten dispatch. |
-| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support the balanced workaround. Actual-library inline-always experiment gained only about 0.65% and retained remarks. Full guard diagnosis, large-composition binary-size/compile-time impact and resilient ABI support remain open. |
+| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support balanced construction. Forced evaluation inlining has a separate measured effect: on the actual library, in separate-module microbenchmarks, about 62–65x faster nested-chain and about 3.1x faster balanced evaluation; dynamic `FirstMatchSpec` did not materially improve ([SpecificationCore #20](https://github.com/SoundBlaster/SpecificationCore/pull/20), open, stacked on #19; not yet adopted by the app). *Historical:* the earlier ~0.65% came from a narrow experiment with forced inlining on `And`/`Or`/`Not` only and is not a verdict on the annotation set. No whole-scan speedup is demonstrated. The upstream guard report, resilient ABI support and the compile-time trade-off (one cell +18.8%; a fresh median +3.3% with wide spread) remain open. |
 | H21 | Avoid parameter-pack iteration here: **guardrail** | Adopted builder uses balanced fixed arities. Reassess only with reproducible new-toolchain evidence. |
+
+
+**Current Swift annotation recommendation.** Balanced construction and forced
+evaluation inlining are separate, measured levers. Adopt forced inlining through
+SpecificationCore's `AggressiveInlining` trait (#20: on by default, consumer
+opt-out, disabled under Tracing, no new `@frozen` types) once it merges and the
+app's Release gates pass. Do not add blanket `@frozen`: it is an ABI commitment
+without a measured need, and library-evolution builds are not yet comparable.
+Replica-library figures in issue 25 comments and the ~0.65% experiment are kept
+as historical evidence only.
 
 Within the explicitly scoped H ledger: **3 resolved, 9 partial, 7 pending,
 2 guardrails**. These are hypotheses and engineering tasks, not a count of
