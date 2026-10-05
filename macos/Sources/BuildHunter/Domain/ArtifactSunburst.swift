@@ -326,6 +326,9 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
 /// A frozen navigation plan. Scan updates cannot change its geometry midway through
 /// fading neighbors, expanding the selected branch, then revealing the new viewport.
 struct ArtifactSunburstNavigation: Sendable {
+    enum Direction: Sendable { case descend, ascend }
+    let direction: Direction
+
     struct Frame: Identifiable, Sendable {
         let id: ArtifactSunburstLayout.Sector.ID
         let start: Double
@@ -347,25 +350,44 @@ struct ArtifactSunburstNavigation: Sendable {
     private let anchor: ArtifactSunburstLayout.Sector
     private let entries: [Entry]
 
-    init?(source: ArtifactSunburstLayout, destination: ArtifactSunburstLayout, selectedID: String) {
-        guard let anchor = source.sectors.first(where: { $0.nodeID == selectedID }),
+    init?(source: ArtifactSunburstLayout, destination: ArtifactSunburstLayout, selectedID: String,
+          direction: Direction = .descend) {
+        let parent = direction == .descend ? source : destination
+        let child = direction == .descend ? destination : source
+        // All artifacts can skip levels. Contract into the closest visible ancestor;
+        // a folder grouped out of its parent contracts into that parent's Other.
+        let ancestor = direction == .ascend ? parent.sectors.filter {
+            $0.nodeID.map { selectedID.hasPrefix($0 + "/") } ?? false
+        }.max { ($0.nodeID?.count ?? 0) < ($1.nodeID?.count ?? 0) } : nil
+        let other = direction == .ascend ? parent.sectors.filter {
+            if case .other = $0.id { return $0.parentID.isEmpty || selectedID.hasPrefix($0.parentID + "/") }
+            return false
+        }.max { $0.parentID.count < $1.parentID.count } : nil
+        guard let anchor = parent.sectors.first(where: { $0.nodeID == selectedID }) ?? ancestor ?? other,
               anchor.start.isFinite, anchor.end.isFinite, anchor.end > anchor.start else { return nil }
+        self.direction = direction
         self.anchor = anchor
-        let destinations = Dictionary(uniqueKeysWithValues: destination.sectors.map { ($0.id, $0) })
-        var entries = source.sectors.map { sector in
+        let branch = anchor.nodeID ?? selectedID
+        let destinations = Dictionary(uniqueKeysWithValues: child.sectors.map { ($0.id, $0) })
+        var entries = parent.sectors.map { sector in
             let path = sector.nodeID ?? sector.parentID
             return Entry(id: sector.id, source: sector, destination: destinations[sector.id],
-                         isSelectedBranch: path == selectedID || path.hasPrefix(selectedID + "/"))
+                         isSelectedBranch: sector.id == anchor.id || path == branch || path.hasPrefix(branch + "/"))
         }
-        let sourceIDs = Set(source.sectors.map(\.id))
-        entries.append(contentsOf: destination.sectors.filter { !sourceIDs.contains($0.id) }.map {
+        let sourceIDs = Set(parent.sectors.map(\.id))
+        entries.append(contentsOf: child.sectors.filter { !sourceIDs.contains($0.id) }.map {
             Entry(id: $0.id, source: nil, destination: $0, isSelectedBranch: true)
         })
         self.entries = entries
     }
 
     func frames(fade: Double, expansion: Double, reveal: Double) -> [Frame] {
-        let fade = unit(fade), expansion = unit(expansion), reveal = unit(reveal)
+        // Reverse the same geometric path, not a separate approximation: restore the
+        // full branch, contract its angles, then fade the parent's neighbors back in.
+        let first = unit(fade), second = unit(expansion), third = unit(reveal)
+        let fade = direction == .descend ? first : 1 - third
+        let expansion = direction == .descend ? second : 1 - second
+        let reveal = direction == .descend ? third : 1 - first
         return entries.map { entry in
             let destination = entry.destination
             let source = entry.source

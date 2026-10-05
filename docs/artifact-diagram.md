@@ -69,13 +69,18 @@ neighbors fade out for 140 ms, the selected branch and its visible descendants
 expand from their current angular interval to the full circle over 460 ms,
 then children move into the inner rings over 180 ms. The same sequence is used
 for chart clicks and sidebar selection. Descents from outer rings are supported.
-Navigation controls and hover are paused during that short transition.
+Returning with Up, the center, or All artifacts reverses the same geometric path:
+restore the parent branch's rings for 180 ms, contract into its original angular
+interval over 460 ms, then reveal neighbors over 140 ms. All artifacts can skip
+levels by contracting into the closest visible ancestor. A grouped folder returns
+into its parent's Other sector. The graph and entire sidebar, including filtering
+and Copy path, are locked throughout navigation in both directions.
 
 Navigation uses an animatable SwiftUI path overlay with frozen source/destination
 layouts; the underlying Chart receives the destination without navigation
 interpolation. The scanner continues collecting events, while diagram publication
-pauses until the transition ends and then catches up at the next refresh. Up and
-All artifacts retain normal Chart interpolation. Reduce Motion skips expansion;
+pauses until the transition ends and then catches up at the next refresh.
+Reduce Motion skips staged navigation;
 report replacement, closing the window, or enabling Reduce Motion cancels the
 overlay and releases the publication pause. Completion callbacks are guarded by
 a transition identity so a cancelled animation cannot start its next phase.

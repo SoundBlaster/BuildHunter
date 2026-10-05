@@ -213,7 +213,10 @@ final class BuildHunterUITests: XCTestCase {
         let focus = diagram.staticTexts["buildhunter.diagram.focus"]
         let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
         XCTAssertTrue(center.waitForExistence(timeout: 5))
+        let filter = diagram.textFields["buildhunter.diagram.filter"]
+        XCTAssertTrue(filter.waitForExistence(timeout: 5))
         for _ in 0..<3 {
+            waitForEnabled(filter)
             // Click the actual inner-ring sector to exercise the graph gesture,
             // then continue through the same navigation coordinator via the list.
             center.coordinate(withNormalizedOffset: CGVector(dx: 1.25, dy: 0.5)).click()
@@ -235,6 +238,20 @@ final class BuildHunterUITests: XCTestCase {
                 XCTAssertEqual(app.state, .runningForeground, "Returning from a deep folder must not crash Charts")
             }
         }
+        // All artifacts can return directly across several ancestor levels.
+        for path in ["Packages", "Packages/Core"] {
+            let folder = diagram.buttons["buildhunter.diagram.folders.folder.\(path)"]
+            XCTAssertTrue(folder.waitForExistence(timeout: 5))
+            waitForEnabled(folder)
+            folder.click()
+            expectValue(path, of: focus)
+        }
+        let showAll = diagram.buttons["buildhunter.diagram.showAll"]
+        waitForEnabled(showAll)
+        showAll.click()
+        expectValue("Demo Workspace", of: focus)
+        waitForEnabled(filter)
+        XCTAssertEqual(app.state, .runningForeground)
         attachScreenshot(named: "diagram-branch-expansion-return", from: app)
     }
 

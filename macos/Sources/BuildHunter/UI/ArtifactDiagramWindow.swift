@@ -63,19 +63,23 @@ struct ArtifactDiagramWindow: View {
     private func navigate(to path: String) {
         guard navigation == nil, path != diagram.focusID, diagram.snapshot.nodes[path] != nil else { return }
         let descending = !path.isEmpty && (diagram.focusID.isEmpty || path.hasPrefix(diagram.focusID + "/"))
-        guard descending, !reduceMotion else {
+        let ascending = path.isEmpty || diagram.focusID.hasPrefix(path + "/")
+        guard descending || ascending, !reduceMotion else {
             diagram.navigate(to: path)
             return
         }
         let source = diagram.layout
         let palette = diagram.palette
+        let selectedID = ascending ? diagram.focusID : path
+        let direction: ArtifactSunburstNavigation.Direction = ascending ? .ascend : .descend
         // The normal Chart receives the final layout without interpolating navigation.
         // A frozen overlay controls the selected branch's geometry in explicit phases.
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         withTransaction(transaction) {
             diagram.navigate(to: path)
-            if let plan = ArtifactSunburstNavigation(source: source, destination: diagram.layout, selectedID: path) {
+            if let plan = ArtifactSunburstNavigation(source: source, destination: diagram.layout,
+                                                     selectedID: selectedID, direction: direction) {
                 navigation = DiagramNavigationPresentation(plan: plan, sourcePalette: palette, destinationPalette: diagram.palette)
                 diagram.setNavigationTransitionActive(true)
                 fade = 0; expansion = 0; reveal = 0
@@ -85,8 +89,9 @@ struct ArtifactDiagramWindow: View {
 
     private func fadeNeighbors(token: UUID) {
         guard navigation?.id == token else { return }
-        recordNavigationPhase("fade")
-        withAnimation(.easeOut(duration: 0.14), completionCriteria: .removed) {
+        let ascending = navigation?.plan.direction == .ascend
+        recordNavigationPhase(ascending ? "restore-branch" : "fade")
+        withAnimation(.easeOut(duration: ascending ? 0.18 : 0.14), completionCriteria: .removed) {
             fade = 1
         } completion: {
             expandBranch(token: token)
@@ -95,7 +100,7 @@ struct ArtifactDiagramWindow: View {
 
     private func expandBranch(token: UUID) {
         guard navigation?.id == token else { return }
-        recordNavigationPhase("expand")
+        recordNavigationPhase(navigation?.plan.direction == .ascend ? "contract" : "expand")
         withAnimation(.smooth(duration: 0.46), completionCriteria: .removed) {
             expansion = 1
         } completion: {
@@ -105,8 +110,9 @@ struct ArtifactDiagramWindow: View {
 
     private func revealChildren(token: UUID) {
         guard navigation?.id == token else { return }
-        recordNavigationPhase("reveal")
-        withAnimation(.easeInOut(duration: 0.18), completionCriteria: .removed) {
+        let ascending = navigation?.plan.direction == .ascend
+        recordNavigationPhase(ascending ? "reveal-neighbors" : "reveal")
+        withAnimation(.easeInOut(duration: ascending ? 0.14 : 0.18), completionCriteria: .removed) {
             reveal = 1
         } completion: {
             if navigation?.id == token { cancelNavigation() }
@@ -404,7 +410,7 @@ private struct DiagramNavigationLayer: View {
                     DiagramNavigationSector(start: frame.start, end: frame.end,
                                             inner: frame.innerRadius, outer: frame.outerRadius,
                                             inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
-                        .fill(presentation.color(for: frame, reveal: reveal))
+                        .fill(presentation.color(for: frame, reveal: presentation.plan.direction == .ascend ? fade : reveal))
                         .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
                 }
             }
