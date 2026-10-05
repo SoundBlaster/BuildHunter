@@ -2,9 +2,112 @@ import Foundation
 import Testing
 @testable import BuildHunter
 
+@Suite("Sunburst folder expansion")
+struct ArtifactSunburstNavigationTests {
+    private func snapshot() -> ArtifactSunburstSnapshot {
+        ArtifactSunburstSnapshot(rows: [
+            ("Apps/Alpha/.build", Int64(900)), ("Apps/Alpha/Inner/.build", 200), ("Apps/Beta/target", 100),
+            ("Tools/__pycache__", 500)
+        ].map { path, bytes in
+            ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(bytes))
+        })
+    }
+
+    @Test("Neighbors disappear before the selected branch expands")
+    func fadeThenExpand() throws {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
+        let anchor = try #require(plan.frames(fade: 1, expansion: 0, reveal: 0).first { $0.id == .node("Apps") })
+        let original = try #require(source.sectors.first { $0.nodeID == "Apps" })
+        #expect(anchor.start == original.start && anchor.end == original.end)
+        #expect(anchor.opacity == 1)
+        #expect(plan.frames(fade: 1, expansion: 0, reveal: 0).filter { !$0.isSelectedBranch }.allSatisfy { $0.opacity == 0 })
+        let expanded = try #require(plan.frames(fade: 1, expansion: 1, reveal: 0).first { $0.id == .node("Apps") })
+        #expect(expanded.start == 0 && expanded.end == 1)
+        #expect(expanded.innerRadius == original.innerRadius)
+        #expect(expanded.outerRadius == original.outerRadius)
+    }
+
+    @Test("The final frame matches the destination, including newly exposed descendants")
+    func destinationMatches() throws {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
+        let final = plan.frames(fade: 1, expansion: 1, reveal: 1).filter { $0.opacity > 0 }
+        #expect(Set(final.map(\.id)) == Set(destination.sectors.map(\.id)))
+        for sector in destination.sectors {
+            let frame = try #require(final.first { $0.id == sector.id })
+            #expect(abs(frame.start - sector.start) < 1e-12)
+            #expect(abs(frame.end - sector.end) < 1e-12)
+            #expect(abs(frame.innerRadius - sector.innerRadius) < 1e-12)
+            #expect(abs(frame.outerRadius - sector.outerRadius) < 1e-12)
+        }
+    }
+
+    @Test("Every animation intermediate has finite angles and bounded radii", arguments: ["Apps", "Apps/Alpha", "Apps/Alpha/.build"])
+    func safeIntermediates(path: String) throws {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: path)
+        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: path))
+        for step in 0...100 {
+            let t = Double(step) / 100
+            for (fade, expansion, reveal) in [(t, 0.0, 0.0), (1.0, t, 0.0), (1.0, 1.0, t)] {
+                let frames = plan.frames(fade: fade, expansion: expansion, reveal: reveal)
+                #expect(Set(frames.map(\.id)).count == frames.count)
+                for frame in frames {
+                    let finite = [frame.start, frame.end, frame.innerRadius, frame.outerRadius, frame.opacity].allSatisfy(\.isFinite)
+                    #expect(finite)
+                    #expect(frame.start >= 0 && frame.end <= 1 && frame.end > frame.start)
+                    #expect(frame.innerRadius >= 0 && frame.outerRadius <= 1)
+                    #expect(frame.outerRadius >= frame.innerRadius)
+                    #expect(frame.opacity >= 0 && frame.opacity <= 1)
+                }
+            }
+        }
+    }
+
+    @Test("Only a visible named sector can start a branch expansion")
+    func missingSector() {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        #expect(ArtifactSunburstNavigation(source: source, destination: source, selectedID: "missing") == nil)
+        #expect(ArtifactSunburstNavigation(source: source, destination: source, selectedID: "") == nil)
+    }
+}
+
 @Suite("Live diagram sessions")
 @MainActor
 struct ArtifactDiagramModelTests {
+    @Test("Navigation freezes its endpoints while scanning continues, then catches up")
+    func navigationCoalescesMeasurements() async {
+        let scan = WindowScanModel(source: DiagramIdleSource())
+        let diagram = ArtifactDiagramModel()
+        scan.acceptDemoTarget(named: "Fixture")
+        defer { scan.stop() }
+        let first = artifact("Package/Alpha/.build")
+        scan.apply(.discovered(generation: scan.generation, artifact: first))
+        scan.apply(.completed(generation: scan.generation, artifactID: first.id, bytes: 80))
+        await diagram.refresh(from: scan)
+        diagram.navigate(to: "Package")
+        let endpoint = diagram.layout
+        diagram.setNavigationTransitionActive(true)
+        let late = artifact("Package/Beta/target")
+        scan.apply(.discovered(generation: scan.generation, artifact: late))
+        scan.apply(.completed(generation: scan.generation, artifactID: late.id, bytes: 120))
+        await diagram.refresh(from: scan)
+        #expect(scan.rows.count == 2)
+        #expect(diagram.layout == endpoint)
+        diagram.setNavigationTransitionActive(false)
+        await diagram.refresh(from: scan)
+        #expect(diagram.focusID == "Package")
+        #expect(diagram.focus.bytes == 200)
+        #expect(diagram.layout.sectors.contains { $0.nodeID == "Package/Beta" })
+    }
+
     @Test("Deep language badges follow discovery, preview and target replacement")
     func languageBadgesFollowLiveScan() async {
         let scan = WindowScanModel(source: DiagramIdleSource())

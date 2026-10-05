@@ -23,6 +23,7 @@ final class ArtifactDiagramModel {
     /// Sizes of the rows behind `snapshot`. A separate array, so the diagram never shares
     /// the scan's row buffer and the event reducer can keep mutating it in place.
     @ObservationIgnored private var snapshotSizes: [SizeState] = []
+    @ObservationIgnored private var navigationTransitionActive = false
 
     init(snapshot: ArtifactSunburstSnapshot = ArtifactSunburstSnapshot(rows: []),
          targetURL: URL? = nil, targetName: String? = nil) {
@@ -53,7 +54,7 @@ final class ArtifactDiagramModel {
     }
 
     func refresh(from scan: WindowScanModel) async {
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled, !navigationTransitionActive else { return }
         let revision = scan.reportRevision
         guard sourceID != scan.id || lastRevision != revision else { return }
         let currentGeneration = scan.generation
@@ -75,7 +76,7 @@ final class ArtifactDiagramModel {
         } onCancel: {
             worker.cancel()
         }
-        guard !Task.isCancelled, scan.generation == currentGeneration else { return }
+        guard !Task.isCancelled, !navigationTransitionActive, scan.generation == currentGeneration else { return }
         if sourceID != scan.id || reportID != scan.reportID {
             focusID = ""
             palette = ArtifactSunburstPalette()
@@ -125,6 +126,12 @@ final class ArtifactDiagramModel {
     func navigateUp() {
         guard canNavigateUp else { return }
         navigate(to: focus.parentID ?? "")
+    }
+
+    /// The scanner continues; the next refresh coalesces all revisions received
+    /// during the short navigation transition instead of moving its endpoints.
+    func setNavigationTransitionActive(_ active: Bool) {
+        navigationTransitionActive = active
     }
 
     func preview(_ path: String?) {

@@ -63,11 +63,26 @@ if that folder was previously entered through a differently colored parent view.
 Color helps orientation, while path labels remain authoritative; very dense reports
 have more branches than easily distinguishable hues.
 
-Size updates, sector insertion/removal and navigation now preserve Chart identity
-and use a 250 ms smooth animation. Reduce Motion disables these animations.
-The previous topology-based Chart recreation has been removed for investigation.
-The earlier Charts renderer trap with NaN angle/radius values remains a known
-regression risk; restoring animation does not establish that its cause is fixed.
+Size updates and sector insertion/removal preserve Chart identity and use a
+250 ms smooth animation. Entering a visible folder has a deliberate sequence:
+neighbors fade out for 140 ms, the selected branch and its visible descendants
+expand from their current angular interval to the full circle over 460 ms,
+then children move into the inner rings over 180 ms. The same sequence is used
+for chart clicks and sidebar selection. Descents from outer rings are supported.
+Navigation controls and hover are paused during that short transition.
+
+Navigation uses an animatable SwiftUI path overlay with frozen source/destination
+layouts; the underlying Chart receives the destination without navigation
+interpolation. The scanner continues collecting events, while diagram publication
+pauses until the transition ends and then catches up at the next refresh. Up and
+All artifacts retain normal Chart interpolation. Reduce Motion skips expansion;
+report replacement, closing the window, or enabling Reduce Motion cancels the
+overlay and releases the publication pause. Completion callbacks are guarded by
+a transition identity so a cancelled animation cannot start its next phase.
+
+Sector rounding is temporarily disabled (`cornerRadius = 0`) for the renderer
+investigation. Gaps remain. The earlier Charts trap is a known regression risk;
+the local comparison is evidence, not a guarantee of crash freedom.
 Accessible sector descriptions include path, size and partial status.
 
 ### Debugging geometry (2026-10-05)
@@ -78,11 +93,18 @@ and corner values, without filesystem names. Invalid/nonfinite inputs are report
 at error level. These are endpoint inputs; they do not expose Charts' internal
 animation intermediates. Release builds omit this instrumentation.
 
-The diagnostic app built and launched in Xcode with LLDB. A home-folder scan and
-navigation were exercised without reproducing the previous renderer trap during
-the observed interval; the full scan was still running. Latest checked inputs had
-`invalid=false` and Reduce Motion was off. This does not prove crash freedom or
-animation frame rate.
+With animation restored and rounding enabled, navigation back from a deep folder
+reproduced `EXC_BREAKPOINT` in Charts. LLDB showed `NaN` floating-point registers
+and a nonfinite guard trapping before a floating-point-to-integer conversion.
+The last logged endpoint inputs had `invalid=false`; that does not establish
+where the intermediate `NaN` was first produced. Disassembly/register evidence
+is preserved locally at `/Volumes/FlashCard/BuildHunter-chart-trap-20261005.txt`.
+
+After rebuilding with rounding disabled, the user reported that repeated
+navigation no longer reproduced the crash. That isolates a useful comparison but
+does not prove rounding alone was the cause. Debug builds additionally record
+`ChartNavigation` phase transitions without folder names. Neither diagnostic
+establishes animation frame rate or crash freedom across all reports.
 
 A breakpoint on `_os_log_fault_impl` captured one negative-size runtime warning
 on the main thread with this stack:
@@ -133,7 +155,11 @@ unknown/partial values, dense reports, navigation, stale scan events, and window
 ownership, branch color inheritance, stable streaming membership, hover restoration,
 absolute paths, and sorting alongside late measurements. UI tests exercise the
 companion window lifecycle, hover preview, center navigation, column-header sorting,
-and copying a real selected folder's full path. They also exercise repeated empty/nonempty chart transitions and attach screenshots.
+and copying a real selected folder's full path. Navigation tests check neighbor
+fade, full-circle expansion, destination geometry, newly exposed descendants,
+finite/bounded intermediate angles and radii, and coalescing of measurements
+while endpoints are held. UI tests exercise repeated graph clicks, three-level
+descent/return, and empty/nonempty chart transitions, with screenshots.
 A Release performance test measures snapshot/layout/palette preparation and table
 sorting for 10,000 rows.
 These checks do not establish animation frame rate or signed sandbox runtime behavior.

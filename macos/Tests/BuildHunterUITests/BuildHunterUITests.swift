@@ -202,6 +202,48 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertFalse(diagram.buttons["buildhunter.diagram.copyPath"].isEnabled)
     }
 
+    func testDiagramBranchExpansionAndRepeatedDeepReturn() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("results", in: scanWindow, app: app)
+        scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
+        let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
+        XCTAssertTrue(diagram.waitForExistence(timeout: 10))
+        let focus = diagram.staticTexts["buildhunter.diagram.focus"]
+        let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
+        XCTAssertTrue(center.waitForExistence(timeout: 5))
+        for _ in 0..<3 {
+            // Click the actual inner-ring sector to exercise the graph gesture,
+            // then continue through the same navigation coordinator via the list.
+            center.coordinate(withNormalizedOffset: CGVector(dx: 1.25, dy: 0.5)).click()
+            expectValue("Packages", of: focus)
+            for path in ["Packages/Core", "Packages/Core/.build"] {
+                let folder = diagram.buttons["buildhunter.diagram.folders.folder.\(path)"]
+                XCTAssertTrue(folder.waitForExistence(timeout: 5))
+                waitForEnabled(folder)
+                folder.click()
+                expectValue(path, of: focus)
+                _ = diagram.screenshot()
+                XCTAssertEqual(app.state, .runningForeground)
+            }
+            for parent in ["Packages/Core", "Packages", "Demo Workspace"] {
+                waitForEnabled(center)
+                center.click()
+                expectValue(parent, of: focus)
+                _ = diagram.screenshot()
+                XCTAssertEqual(app.state, .runningForeground, "Returning from a deep folder must not crash Charts")
+            }
+        }
+        attachScreenshot(named: "diagram-branch-expansion-return", from: app)
+    }
+
+    private func waitForEnabled(_ element: XCUIElement) {
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed,
+                       "Navigation controls must be re-enabled after branch expansion")
+    }
+
     func testTableHeadersSortRowsInBothDirections() {
         let app = launchWindow()
         defer { app.terminate() }

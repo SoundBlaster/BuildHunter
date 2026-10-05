@@ -323,6 +323,81 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     }
 }
 
+/// A frozen navigation plan. Scan updates cannot change its geometry midway through
+/// fading neighbors, expanding the selected branch, then revealing the new viewport.
+struct ArtifactSunburstNavigation: Sendable {
+    struct Frame: Identifiable, Sendable {
+        let id: ArtifactSunburstLayout.Sector.ID
+        let start: Double
+        let end: Double
+        let innerRadius: Double
+        let outerRadius: Double
+        let opacity: Double
+        let depth: Double
+        let isSelectedBranch: Bool
+    }
+
+    private struct Entry: Sendable {
+        let id: ArtifactSunburstLayout.Sector.ID
+        let source: ArtifactSunburstLayout.Sector?
+        let destination: ArtifactSunburstLayout.Sector?
+        let isSelectedBranch: Bool
+    }
+
+    private let anchor: ArtifactSunburstLayout.Sector
+    private let entries: [Entry]
+
+    init?(source: ArtifactSunburstLayout, destination: ArtifactSunburstLayout, selectedID: String) {
+        guard let anchor = source.sectors.first(where: { $0.nodeID == selectedID }),
+              anchor.start.isFinite, anchor.end.isFinite, anchor.end > anchor.start else { return nil }
+        self.anchor = anchor
+        let destinations = Dictionary(uniqueKeysWithValues: destination.sectors.map { ($0.id, $0) })
+        var entries = source.sectors.map { sector in
+            let path = sector.nodeID ?? sector.parentID
+            return Entry(id: sector.id, source: sector, destination: destinations[sector.id],
+                         isSelectedBranch: path == selectedID || path.hasPrefix(selectedID + "/"))
+        }
+        let sourceIDs = Set(source.sectors.map(\.id))
+        entries.append(contentsOf: destination.sectors.filter { !sourceIDs.contains($0.id) }.map {
+            Entry(id: $0.id, source: nil, destination: $0, isSelectedBranch: true)
+        })
+        self.entries = entries
+    }
+
+    func frames(fade: Double, expansion: Double, reveal: Double) -> [Frame] {
+        let fade = unit(fade), expansion = unit(expansion), reveal = unit(reveal)
+        return entries.map { entry in
+            let destination = entry.destination
+            let source = entry.source
+            let depth = source?.depth ?? min(2, anchor.depth + 1 + (destination?.depth ?? 0))
+            let ring = ArtifactSunburstLayout.Sector(id: entry.id, parentID: "", name: "", bytes: 0,
+                                                   depth: depth, start: 0, end: 1, isPartial: false)
+            let start = source?.start ?? mix(anchor.start, anchor.end, destination?.start ?? 0)
+            let end = source?.end ?? mix(anchor.start, anchor.end, destination?.end ?? 1)
+            let inner = source?.innerRadius ?? ring.innerRadius
+            let outer = source?.outerRadius ?? ring.outerRadius
+            let selected = entry.isSelectedBranch
+            let expandedStart = selected ? unit((start - anchor.start) / (anchor.end - anchor.start)) : start
+            let expandedEnd = selected ? unit((end - anchor.start) / (anchor.end - anchor.start)) : end
+            let growingStart = mix(start, expandedStart, expansion)
+            let growingEnd = mix(end, expandedEnd, expansion)
+            let opacity = source == nil ? reveal : selected ? (destination == nil ? 1 - reveal : 1) : 1 - fade
+            return Frame(id: entry.id,
+                         start: mix(growingStart, destination?.start ?? expandedStart, reveal),
+                         end: mix(growingEnd, destination?.end ?? expandedEnd, reveal),
+                         innerRadius: mix(inner, destination?.innerRadius ?? inner, reveal),
+                         outerRadius: mix(outer, destination?.outerRadius ?? inner, reveal),
+                         opacity: opacity, depth: mix(Double(depth), Double(destination?.depth ?? depth), reveal),
+                         isSelectedBranch: selected)
+        }
+    }
+
+    private func unit(_ value: Double) -> Double { value.isFinite ? min(1, max(0, value)) : 0 }
+    private func mix(_ start: Double, _ end: Double, _ progress: Double) -> Double {
+        start * (1 - progress) + end * progress
+    }
+}
+
 /// A palette belongs to one navigation scope. Its immediate branches have distinct
 /// colors, shared by their descendants; the largest branch inherits the entry color.
 struct ArtifactSunburstPalette: Equatable, Sendable {

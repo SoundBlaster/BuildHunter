@@ -7,6 +7,11 @@ import NestedA11yIDs
 struct ArtifactDiagramWindow: View {
     let scan: WindowScanModel
     @State private var diagram: ArtifactDiagramModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var navigation: DiagramNavigationPresentation?
+    @State private var fade = 0.0
+    @State private var expansion = 0.0
+    @State private var reveal = 0.0
 
     init(scan: WindowScanModel, diagram: ArtifactDiagramModel = ArtifactDiagramModel()) {
         self.scan = scan
@@ -25,14 +30,16 @@ struct ArtifactDiagramWindow: View {
                                           isScanning: scan.isScanning, statistics: diagram.focus.statistics,
                                           focusID: diagram.focusID, reportID: scan.reportID,
                                           canNavigateUp: diagram.canNavigateUp,
-                                          goUp: { diagram.navigateUp() },
+                                          navigation: navigation, fade: fade, expansion: expansion, reveal: reveal,
+                                          goUp: { navigate(to: diagram.focus.parentID ?? "") },
                                           hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
-                        diagram.navigate(to: sector.nodeID ?? sector.parentID)
+                        navigate(to: sector.nodeID ?? sector.parentID)
                     }
                     .padding(24)
                     .frame(minWidth: 320, idealWidth: preferredPaneWidth, maxWidth: .infinity, maxHeight: .infinity)
 
-                    ArtifactDiagramSidebar(model: diagram)
+                    ArtifactDiagramSidebar(model: diagram, navigate: { navigate(to: $0) })
+                        .disabled(navigation != nil)
                         .frame(minWidth: 240, idealWidth: preferredPaneWidth, maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
@@ -44,7 +51,83 @@ struct ArtifactDiagramWindow: View {
         .frame(minWidth: 760, minHeight: 540)
         .navigationTitle("\(scan.targetName ?? "BuildHunter") — Artifact Diagram")
         .task { await diagram.follow(scan) }
+        .task(id: navigation?.id) {
+            if let token = navigation?.id { fadeNeighbors(token: token) }
+        }
+        .onChange(of: scan.reportID) { cancelNavigation() }
+        .onChange(of: reduceMotion) { if reduceMotion { cancelNavigation() } }
+        .onDisappear { cancelNavigation() }
         .a11yRoot("buildhunter.diagram")
+    }
+
+    private func navigate(to path: String) {
+        guard navigation == nil, path != diagram.focusID, diagram.snapshot.nodes[path] != nil else { return }
+        let descending = !path.isEmpty && (diagram.focusID.isEmpty || path.hasPrefix(diagram.focusID + "/"))
+        guard descending, !reduceMotion else {
+            diagram.navigate(to: path)
+            return
+        }
+        let source = diagram.layout
+        let palette = diagram.palette
+        // The normal Chart receives the final layout without interpolating navigation.
+        // A frozen overlay controls the selected branch's geometry in explicit phases.
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            diagram.navigate(to: path)
+            if let plan = ArtifactSunburstNavigation(source: source, destination: diagram.layout, selectedID: path) {
+                navigation = DiagramNavigationPresentation(plan: plan, sourcePalette: palette, destinationPalette: diagram.palette)
+                diagram.setNavigationTransitionActive(true)
+                fade = 0; expansion = 0; reveal = 0
+            }
+        }
+    }
+
+    private func fadeNeighbors(token: UUID) {
+        guard navigation?.id == token else { return }
+        recordNavigationPhase("fade")
+        withAnimation(.easeOut(duration: 0.14), completionCriteria: .removed) {
+            fade = 1
+        } completion: {
+            expandBranch(token: token)
+        }
+    }
+
+    private func expandBranch(token: UUID) {
+        guard navigation?.id == token else { return }
+        recordNavigationPhase("expand")
+        withAnimation(.smooth(duration: 0.46), completionCriteria: .removed) {
+            expansion = 1
+        } completion: {
+            revealChildren(token: token)
+        }
+    }
+
+    private func revealChildren(token: UUID) {
+        guard navigation?.id == token else { return }
+        recordNavigationPhase("reveal")
+        withAnimation(.easeInOut(duration: 0.18), completionCriteria: .removed) {
+            reveal = 1
+        } completion: {
+            if navigation?.id == token { cancelNavigation() }
+        }
+    }
+
+    private func cancelNavigation() {
+        if navigation != nil { recordNavigationPhase("finished-or-cancelled") }
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            navigation = nil
+            diagram.setNavigationTransitionActive(false)
+            fade = 0; expansion = 0; reveal = 0
+        }
+    }
+
+    private func recordNavigationPhase(_ phase: String) {
+#if DEBUG
+        Logger(subsystem: "BuildHunter", category: "ChartNavigation").notice("ChartNavigation phase=\(phase, privacy: .public)")
+#endif
     }
 }
 
@@ -89,6 +172,10 @@ private struct ArtifactSunburstChart: View {
     var focusID = ""
     var reportID: UUID?
     var canNavigateUp = false
+    var navigation: DiagramNavigationPresentation?
+    var fade = 0.0
+    var expansion = 0.0
+    var reveal = 0.0
     var goUp: () -> Void = {}
     var hover: (ArtifactSunburstLayout.Sector?) -> Void = { _ in }
     let select: (ArtifactSunburstLayout.Sector) -> Void
@@ -116,9 +203,9 @@ private struct ArtifactSunburstChart: View {
                             outerRadius: .ratio(sector.outerRadius),
                             angularInset: CGFloat(decoration.angularInset)
                         )
-                        .cornerRadius(CGFloat(decoration.cornerRadius))
+                        .cornerRadius(0) // Diagnostic comparison: keep animation and gap, disable rounding.
                         .foregroundStyle(diagramColor(palette.color(for: sector)))
-                        .opacity(max(0.7, 1 - Double(sector.depth) * 0.14))
+                        .opacity(navigation == nil ? max(0.7, 1 - Double(sector.depth) * 0.14) : 0)
                         .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")
                         .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
                     }
@@ -129,8 +216,17 @@ private struct ArtifactSunburstChart: View {
                                 let frame = geometry[anchor]
                                 let centerDiameter = min(frame.width, frame.height) * 0.21
                                 ZStack(alignment: .topLeading) {
+                                    if let navigation {
+                                        DiagramNavigationLayer(presentation: navigation, fade: fade,
+                                                               expansion: expansion, reveal: reveal)
+                                            .frame(width: frame.width, height: frame.height)
+                                            .position(x: frame.midX, y: frame.midY)
+                                            .allowsHitTesting(false)
+                                            .accessibilityHidden(true)
+                                    }
                                     Rectangle().fill(.clear).contentShape(Rectangle())
                                         .onTapGesture { location in
+                                            guard navigation == nil else { return }
                                             if let sector = hit(location, proxy: proxy, geometry: geometry) {
                                                 setHover(nil)
                                                 select(sector)
@@ -159,7 +255,7 @@ private struct ArtifactSunburstChart: View {
                                         .contentShape(Circle())
                                     }
                                     .buttonStyle(DiagramCenterButtonStyle())
-                                    .disabled(!canNavigateUp)
+                                    .disabled(!canNavigateUp || navigation != nil)
                                     .accessibilityLabel(canNavigateUp ? "Go to parent folder" : "All artifacts")
                                     .help(canNavigateUp ? "Go to parent folder" : "All artifacts")
                                     .nestedAccessibilityIdentifier("centerUp")
@@ -177,6 +273,7 @@ private struct ArtifactSunburstChart: View {
                                 .onContinuousHover { phase in
                                     switch phase {
                                     case .active(let location):
+                                        guard navigation == nil else { return }
                                         pointer = location
                                         setHover(hit(location, proxy: proxy, geometry: geometry))
                                     case .ended:
@@ -186,7 +283,7 @@ private struct ArtifactSunburstChart: View {
                             }
                         }
                     }
-                    .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: layout.sectors)
+                    .animation(reduceMotion || navigation != nil ? nil : .smooth(duration: 0.25), value: layout.sectors)
                     // Preserve Chart identity so streaming insertions and navigation animate.
                     // Debug evidence records our inputs separately from Charts' interpolation.
                     .onAppear { recordChartInputs(size: chartGeometry.size) }
@@ -222,14 +319,14 @@ private struct ArtifactSunburstChart: View {
         let inputs = layout.sectors.enumerated().map { index, sector in
             let decoration = sector.decoration(plotRadius: radius)
             let values = [sector.start, sector.end, sector.innerRadiusRelativeToOuter,
-                          sector.outerRadius, decoration.angularInset, decoration.cornerRadius]
+                          sector.outerRadius, decoration.angularInset, 0]
             if !values.allSatisfy(\.isFinite) || sector.end <= sector.start
                 || sector.innerRadiusRelativeToOuter < 0 || sector.innerRadiusRelativeToOuter >= 1
                 || sector.outerRadius <= 0 || sector.outerRadius > 1
-                || decoration.angularInset < 0 || decoration.cornerRadius < 0 {
+                || decoration.angularInset < 0 {
                 invalid = true
             }
-            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=\(decoration.cornerRadius)"
+            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=0"
         }.joined(separator: ";")
         logger.notice("ChartInput size=\(size.width)x\(size.height) sectors=\(layout.sectors.count) invalid=\(invalid) reduceMotion=\(reduceMotion)")
         logger.debug("ChartInput sectors: \(inputs, privacy: .public)")
@@ -278,6 +375,84 @@ private struct ArtifactSunburstChart: View {
     }
 }
 
+private struct DiagramNavigationPresentation: Identifiable {
+    let id = UUID()
+    let plan: ArtifactSunburstNavigation
+    let sourcePalette: ArtifactSunburstPalette
+    let destinationPalette: ArtifactSunburstPalette
+
+    func color(for frame: ArtifactSunburstNavigation.Frame, reveal: Double) -> Color {
+        guard case .node(let path) = frame.id else { return diagramColor(.other) }
+        let source = sourcePalette.color(for: path) ?? .other
+        return diagramColor(reveal == 0 ? source : destinationPalette.color(for: path) ?? source)
+    }
+}
+
+/// Only navigation uses these paths. Streaming values continue to use Swift Charts.
+/// Keeping both endpoint layouts fixed prevents producer events from retargeting a zoom.
+private struct DiagramNavigationLayer: View {
+    let presentation: DiagramNavigationPresentation
+    let fade: Double
+    let expansion: Double
+    let reveal: Double
+
+    var body: some View {
+        GeometryReader { geometry in
+            let radius = min(geometry.size.width, geometry.size.height) / 2
+            ZStack {
+                ForEach(presentation.plan.frames(fade: fade, expansion: expansion, reveal: reveal)) { frame in
+                    DiagramNavigationSector(start: frame.start, end: frame.end,
+                                            inner: frame.innerRadius, outer: frame.outerRadius,
+                                            inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
+                        .fill(presentation.color(for: frame, reveal: reveal))
+                        .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
+                }
+            }
+        }
+    }
+}
+
+private struct DiagramNavigationSector: Shape {
+    var start: Double
+    var end: Double
+    var inner: Double
+    var outer: Double
+    var inset: Double
+
+    var animatableData: AnimatablePair<AnimatablePair<Double, Double>, AnimatablePair<AnimatablePair<Double, Double>, Double>> {
+        get { .init(.init(start, end), .init(.init(inner, outer), inset)) }
+        set {
+            start = newValue.first.first; end = newValue.first.second
+            inner = newValue.second.first.first; outer = newValue.second.first.second
+            inset = newValue.second.second
+        }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        guard [start, end, inner, outer, inset].allSatisfy(\.isFinite), end > start,
+              outer > inner, inner >= 0, outer <= 1 else { return Path() }
+        let radius = min(rect.width, rect.height) / 2
+        guard radius > 0 else { return Path() }
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let gap = end - start >= 1 - 1e-12 ? 0 : min((end - start) / 8, inset / (max(1, inner * radius) * 2 * .pi))
+        let lower = (start + gap) * 2 * .pi - .pi / 2
+        let upper = (end - gap) * 2 * .pi - .pi / 2
+        var path = Path()
+        path.move(to: CGPoint(x: center.x + cos(lower) * inner * radius,
+                              y: center.y + sin(lower) * inner * radius))
+        path.addLine(to: CGPoint(x: center.x + cos(lower) * outer * radius,
+                                y: center.y + sin(lower) * outer * radius))
+        path.addArc(center: center, radius: outer * radius,
+                    startAngle: .radians(lower), endAngle: .radians(upper), clockwise: false)
+        path.addLine(to: CGPoint(x: center.x + cos(upper) * inner * radius,
+                                y: center.y + sin(upper) * inner * radius))
+        path.addArc(center: center, radius: inner * radius,
+                    startAngle: .radians(upper), endAngle: .radians(lower), clockwise: true)
+        path.closeSubpath()
+        return path
+    }
+}
+
 private struct DiagramCenterButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         // Disabling Up at the root must not dim the report's central total.
@@ -313,14 +488,15 @@ private struct DiagramTooltip: View {
 
 private struct ArtifactDiagramSidebar: View {
     @Bindable var model: ArtifactDiagramModel
+    let navigate: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Button("All artifacts", systemImage: "square.stack.3d.up.fill") { model.navigate(to: "") }
+                Button("All artifacts", systemImage: "square.stack.3d.up.fill") { navigate("") }
                     .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("showAll")
-                Button("Up", systemImage: "arrow.up.circle") { model.navigateUp() }
+                Button("Up", systemImage: "arrow.up.circle") { navigate(model.focus.parentID ?? "") }
                     .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("up")
             }
@@ -360,7 +536,7 @@ private struct ArtifactDiagramSidebar: View {
                 LazyVStack(spacing: 4) {
                     ForEach(model.filteredChildren) { node in
                         ArtifactDiagramFolderRow(node: node, swatch: model.palette.color(for: node.id)) {
-                            model.navigate(to: node.id)
+                            navigate(node.id)
                         }
                     }
                 }
