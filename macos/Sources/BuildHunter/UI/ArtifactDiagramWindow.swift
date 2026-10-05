@@ -367,7 +367,10 @@ private struct ArtifactDiagramFolderRow: View {
                     .padding(.top, 1)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(node.name).lineLimit(1).truncationMode(.middle)
+                    HStack {
+                        Text(node.name).lineLimit(1).truncationMode(.middle)
+                        ArtifactLanguageBadges(languages: node.languages)
+                    }
                     Text("\(diagramBytes(node.bytes)) · \(node.statistics.artifactCount) artifacts")
                         .font(.caption).foregroundStyle(.secondary)
                     if node.statistics.measuringCount > 0 || node.statistics.partialCount > 0 {
@@ -385,6 +388,8 @@ private struct ArtifactDiagramFolderRow: View {
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
         .accessibilityLabel("\(node.id), \(diagramBytes(node.bytes)) known")
+        .accessibilityValue(ArtifactLanguage.allCases.filter { node.languages.contains($0) }
+            .map(\.rawValue).joined(separator: ", "))
         .nestedAccessibilityIdentifier("folder.\(node.id)")
     }
 }
@@ -525,4 +530,24 @@ private struct DiagramPreviewSource: ScanEventSource {
     }
     .padding(16)
     .frame(width: 404, height: 312)
+}
+
+#Preview("Descendant language badges") {
+    let snapshot = ArtifactSunburstSnapshot(rows: [
+        ScanRow(id: UUID(), relativePath: "Projects/Deep/Swift/.build", language: "Swift",
+                kind: .buildOutput, size: .measured(100_000)),
+        ScanRow(id: UUID(), relativePath: "Projects/Deep/Rust/target", language: "Rust",
+                kind: .buildOutput, size: .measured(200_000)),
+        ScanRow(id: UUID(), relativePath: "Projects/Python/__pycache__", language: "Python",
+                kind: .cache, size: .measuring)
+    ])
+    VStack {
+        ForEach(["Projects", "Projects/Deep", "Projects/Python"], id: \.self) { path in
+            if let node = snapshot.nodes[path] {
+                ArtifactDiagramFolderRow(node: node, swatch: nil) {}
+            }
+        }
+    }
+    .padding()
+    .frame(width: 380)
 }

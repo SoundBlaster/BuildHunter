@@ -107,3 +107,15 @@ These checks do not establish animation frame rate or signed sandbox runtime beh
 
 The explicit angle ranges and nested-radius construction follow the technique
 described in [Building a sunburst diagram in Swift Charts](https://nilcoalescing.com/blog/BuildingASunburstDiagramInSwiftCharts/).
+
+## Language badges
+
+Folder rows show Python, Rust and Swift icons for all detected artifact roots below
+that folder, including deeper descendants and artifacts still being measured.
+Multiple languages appear once each, in Python/Rust/Swift order. The same icons
+appear beside language names in the main report table. Hovering an icon shows its
+language name; folder accessibility values include the aggregated language names.
+
+Badges use the existing streaming report projection and do not perform additional
+filesystem reads. A replacement scan builds a fresh language set. The bundled
+Devicon v2.17.0 assets and their MIT notice are in `macos/Resources`.

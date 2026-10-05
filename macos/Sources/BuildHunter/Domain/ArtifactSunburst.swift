@@ -53,6 +53,14 @@ struct ByteTotal: Equatable, Sendable {
     var value: Double { Double(high) * 0x1p64 + Double(low) }
 }
 
+enum ArtifactLanguage: String, CaseIterable, Hashable, Sendable {
+    case python = "Python"
+    case rust = "Rust"
+    case swift = "Swift"
+
+    var assetName: String { "Language" + rawValue }
+}
+
 struct ArtifactSunburstNode: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
@@ -61,6 +69,7 @@ struct ArtifactSunburstNode: Identifiable, Equatable, Sendable {
     var total = ByteTotal()
     var statistics = ArtifactSizeStatistics()
     var artifact: ScanRow?
+    var languages: Set<ArtifactLanguage> = []
 
     var bytes: Double { total.value }
 }
@@ -146,6 +155,9 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
         for path in ancestors {
             nodes[path]!.total.add(bytes)
             nodes[path]!.statistics.include(row.size)
+            if let language = ArtifactLanguage(rawValue: row.language) {
+                nodes[path]!.languages.insert(language)
+            }
         }
         nodes[parent]!.artifact = row
     }
