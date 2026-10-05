@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Charts
+import OSLog
 import NestedA11yIDs
 
 struct ArtifactDiagramWindow: View {
@@ -186,10 +187,11 @@ private struct ArtifactSunburstChart: View {
                         }
                     }
                     .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: layout.sectors)
-                    // Recreate Charts when marks are inserted, removed or change rings.
-                    // A fresh chart has no zero-sized geometry to interpolate from.
-                    // Keeping this identity stable for measurements preserves animation.
-                    .id(ArtifactDiagramAnimationPolicy.topology(of: layout))
+                    // Preserve Chart identity so streaming insertions and navigation animate.
+                    // Debug evidence records our inputs separately from Charts' interpolation.
+                    .onAppear { recordChartInputs(size: chartGeometry.size) }
+                    .onChange(of: layout.sectors) { recordChartInputs(size: chartGeometry.size) }
+                    .onChange(of: chartGeometry.size) { recordChartInputs(size: chartGeometry.size) }
                     .nestedAccessibilityIdentifier("chart")
                 }
                 .aspectRatio(1, contentMode: .fit)
@@ -210,6 +212,31 @@ private struct ArtifactSunburstChart: View {
             if !layout.sectors.contains(where: { $0.id == hovered }) { setHover(nil) }
         }
         .onDisappear { setHover(nil) }
+    }
+
+    private func recordChartInputs(size: CGSize) {
+#if DEBUG
+        let logger = Logger(subsystem: "BuildHunter", category: "ChartInput")
+        let radius = min(size.width, size.height) / 2
+        var invalid = !size.width.isFinite || !size.height.isFinite || size.width < 0 || size.height < 0
+        let inputs = layout.sectors.enumerated().map { index, sector in
+            let decoration = sector.decoration(plotRadius: radius)
+            let values = [sector.start, sector.end, sector.innerRadiusRelativeToOuter,
+                          sector.outerRadius, decoration.angularInset, decoration.cornerRadius]
+            if !values.allSatisfy(\.isFinite) || sector.end <= sector.start
+                || sector.innerRadiusRelativeToOuter < 0 || sector.innerRadiusRelativeToOuter >= 1
+                || sector.outerRadius <= 0 || sector.outerRadius > 1
+                || decoration.angularInset < 0 || decoration.cornerRadius < 0 {
+                invalid = true
+            }
+            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=\(decoration.cornerRadius)"
+        }.joined(separator: ";")
+        logger.notice("ChartInput size=\(size.width)x\(size.height) sectors=\(layout.sectors.count) invalid=\(invalid) reduceMotion=\(reduceMotion)")
+        logger.debug("ChartInput sectors: \(inputs, privacy: .public)")
+        if invalid {
+            logger.error("Invalid ChartInput sectors: \(inputs, privacy: .public)")
+        }
+#endif
     }
 
     private var sizeNotes: String {

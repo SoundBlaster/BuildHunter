@@ -63,14 +63,47 @@ if that folder was previously entered through a differently colored parent view.
 Color helps orientation, while path labels remain authoritative; very dense reports
 have more branches than easily distinguishable hues.
 
-Measured size updates animate when sector identities, order and hierarchy depth
-remain unchanged. Insertion, removal, navigation and empty/nonempty transitions
-update geometry atomically: interpolating newly created or reparented annular marks
-can produce nonfinite intermediate geometry inside Apple Charts. LLDB captured a
-Charts renderer trap with NaN angle and radius registers during a home-folder scan;
-the exact framework calculation that first produced NaN is not established.
-Reduce Motion disables size animations. Accessible sector descriptions include
-path, size, and partial status; the sidebar offers standard buttons for navigation.
+Size updates, sector insertion/removal and navigation now preserve Chart identity
+and use a 250 ms smooth animation. Reduce Motion disables these animations.
+The previous topology-based Chart recreation has been removed for investigation.
+The earlier Charts renderer trap with NaN angle/radius values remains a known
+regression risk; restoring animation does not establish that its cause is fixed.
+Accessible sector descriptions include path, size and partial status.
+
+### Debugging geometry (2026-10-05)
+
+Debug builds log `ChartInput` frame dimensions and the sector count on layout/size
+changes. Debug-level detail contains indexed sector angles, radius ratios, inset
+and corner values, without filesystem names. Invalid/nonfinite inputs are reported
+at error level. These are endpoint inputs; they do not expose Charts' internal
+animation intermediates. Release builds omit this instrumentation.
+
+The diagnostic app built and launched in Xcode with LLDB. A home-folder scan and
+navigation were exercised without reproducing the previous renderer trap during
+the observed interval; the full scan was still running. Latest checked inputs had
+`invalid=false` and Reduce Motion was off. This does not prove crash freedom or
+animation frame rate.
+
+A breakpoint on `_os_log_fault_impl` captured one negative-size runtime warning
+on the main thread with this stack:
+
+```text
+_os_log_fault_impl
+_NSViewValidateGeometry
+NSViewValidateSize
+-[NSView setFrameSize:]
+-[NSThemeFrame _positionSharingIndicator]
+-[NSWindowSharingSessionRecipientIndicator invalidateIntrinsicContentSize]
+...
+-[NSThemeFrame _updateButtons]
+-[NSWindow _updateButtonsForWindowSharingSession]
+-[NSWindow _setIsSelectivelyShared:]
+```
+
+That occurrence comes from AppKit's window-sharing titlebar indicator, not a
+Charts frame. The same warnings were observed before the diagram was opened.
+This does not explain the earlier Charts trap or prove that every geometry warning
+has the same source. Catch subsequent Swift runtime/exception stops separately.
 
 ## Data and window lifecycle
 
