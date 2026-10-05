@@ -319,7 +319,7 @@ final class RustScanBridgeContext: @unchecked Sendable {
         let result: ScanTerminalResult = switch status {
         case 0: .completed
         case 1: .stopped
-        case 2: .failed("Some paths could not be read; results are incomplete.")
+        case 2: .failed("Some paths were skipped or could not be read; results are incomplete.")
         case 3: .failed("The scanner could not complete the scan.")
         default: .failed("The Rust scanner returned an unknown status \(status).")
         }

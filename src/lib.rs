@@ -371,6 +371,71 @@ impl Default for ScanControl {
     }
 }
 
+/// Recognize macOS managed cloud roots lexically, before any directory enumeration.
+/// HOME is deliberately not used: a sandboxed app's HOME points at its container.
+/// Legacy sync folders outside these locations cannot be identified by path alone.
+#[cfg(any(target_os = "macos", all(test, unix)))]
+fn managed_cloud_location(path: &Path) -> Option<&'static str> {
+    use std::path::Component;
+    if !path.is_absolute() {
+        return None;
+    }
+    let normalized;
+    let path = if path.components().any(|part| part == Component::ParentDir) {
+        let mut result = PathBuf::new();
+        for component in path.components() {
+            match component {
+                Component::ParentDir => {
+                    result.pop();
+                }
+                _ => result.push(component.as_os_str()),
+            }
+        }
+        normalized = result;
+        normalized.as_path()
+    } else {
+        path
+    };
+    let user_path = path
+        .strip_prefix("/System/Volumes/Data/Users")
+        .or_else(|_| path.strip_prefix("/Users"))
+        .ok()?;
+    let mut components = user_path.components();
+    let account = components.next()?.as_os_str();
+    if account == "Shared" {
+        return None;
+    }
+    if components.next()?.as_os_str() != "Library" {
+        return None;
+    }
+    match components.next()?.as_os_str().to_str()? {
+        "Mobile Documents" => Some("iCloud"),
+        "CloudStorage" => Some("File Provider"),
+        _ => None,
+    }
+}
+
+fn cloud_skip_reason(path: &Path) -> Option<String> {
+    #[cfg(target_os = "macos")]
+    {
+        let absolute;
+        let path = if path.is_absolute() {
+            path
+        } else {
+            absolute = std::path::absolute(path).ok()?;
+            absolute.as_path()
+        };
+        managed_cloud_location(path).map(|provider| {
+            format!("Skipped cloud-managed location ({provider}); contents were not scanned")
+        })
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = path;
+        None
+    }
+}
+
 /// Upper bound on listing threads; directory listing stops scaling past a few cores.
 const MAX_SCAN_WORKERS: usize = 8;
 
@@ -822,6 +887,10 @@ where
 
     fn run(&mut self) {
         let root = self.root;
+        if let Some(reason) = cloud_skip_reason(root) {
+            self.warn(root, reason, &[]);
+            return;
+        }
         match self.probes.metadata(root) {
             Err(error) => self.warn(root, error, &[]),
             Ok(metadata) if metadata.is_dir() => {
@@ -1040,6 +1109,10 @@ where
         for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
             if self.control.should_stop() {
                 return;
+            }
+            if let Some(reason) = cloud_skip_reason(&child) {
+                self.warn(&child, reason, &chain);
+                continue;
             }
             if file_type.is_dir() {
                 for id in &chain {
@@ -1588,6 +1661,70 @@ mod tests {
     impl Drop for TempTree {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn managed_cloud_paths_match_only_standard_user_locations() {
+        for root in [
+            "/Users/developer/Library/Mobile Documents",
+            "/Users/developer/Library/CloudStorage",
+            "/System/Volumes/Data/Users/developer/Library/CloudStorage",
+        ] {
+            assert!(managed_cloud_location(Path::new(root)).is_some());
+            assert!(
+                managed_cloud_location(&Path::new(root).join("provider/project/target")).is_some()
+            );
+        }
+        for local in [
+            "/Users/Shared/Library/Mobile Documents/project/target",
+            "/Users/Shared/Library/CloudStorage/project/target",
+            "/System/Volumes/Data/Users/Shared/Library/CloudStorage/project/target",
+            "/Users/developer/Library/Caches",
+            "/Users/developer/Library/CloudStorage-backup",
+            "/Users/developer/project/Library/CloudStorage",
+            "/Users/developer/project/iCloud/target",
+            "/Users/developer/Library/Mobile Documents/../Caches",
+            "Library/CloudStorage",
+        ] {
+            assert!(
+                managed_cloud_location(Path::new(local)).is_none(),
+                "{local}"
+            );
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn selected_cloud_location_is_marked_without_filesystem_probes() {
+        for root in [
+            "/Users/buildhunter-cloud-test/Library/Mobile Documents",
+            "/Users/buildhunter-cloud-test/Library/CloudStorage/provider/target",
+        ] {
+            let mut events = Vec::new();
+            let report = scan_with_policy(
+                Path::new(root),
+                ScanOptions::default(),
+                &ScanControl::new(),
+                |_| panic!("Cloud locations must not reach artifact policy"),
+                |event| events.push(event.clone()),
+            );
+            assert_eq!(report.status, ScanStatus::Incomplete);
+            assert!(report.artifacts.is_empty());
+            assert_eq!(report.warnings.len(), 1);
+            assert!(
+                report.warnings[0]
+                    .message
+                    .contains("Skipped cloud-managed location")
+            );
+            assert_eq!(report.probes.metadata, 0);
+            assert!(report.probes.listing_threads.is_empty());
+            assert!(matches!(events.first(), Some(ScanEvent::Warning(_))));
+            assert_eq!(
+                events.last(),
+                Some(&ScanEvent::Finished(ScanStatus::Incomplete))
+            );
         }
     }
 
