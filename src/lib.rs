@@ -465,9 +465,23 @@ pub fn scan_with_policy(
         .min(MAX_SCAN_WORKERS);
     let (sender, receiver) = std::sync::mpsc::channel();
     let worker_qos = thread_qos::capture();
-    let (artifacts, warnings, mut profile) = std::thread::scope(|scope| {
+    let profile_state = control
+        .profiling
+        .load(Ordering::Acquire)
+        .then(profile::ProfileState::new);
+    let profile = profile_state.as_ref();
+    let (artifacts, warnings) = std::thread::scope(|scope| {
         // Closing on every exit, including a panicking callback, lets the workers finish.
         let _close = CloseOnDrop(&queue);
+        // Dropping the sender, also during unwinding, stops the sampler before the join.
+        let _stop_sampler = profile.map(|state| {
+            let (stop, signal) = std::sync::mpsc::channel::<()>();
+            scope.spawn(move || {
+                thread_qos::apply(worker_qos);
+                state.run_sampler(&signal);
+            });
+            stop
+        });
         for _ in 0..workers {
             let sender = sender.clone();
             let (queue, probes) = (&queue, &probes);
@@ -492,13 +506,10 @@ pub fn scan_with_policy(
             nodes: Vec::new(),
             awaiting: std::collections::HashMap::new(),
             outstanding: 0,
-            profile: control
-                .profiling
-                .load(Ordering::Acquire)
-                .then(profile::ProfileClock::new),
+            profile,
         };
         scanner.run();
-        (scanner.artifacts, scanner.warnings, scanner.profile)
+        (scanner.artifacts, scanner.warnings)
     });
     let status = if control.is_failed() {
         ScanStatus::Failed
@@ -509,8 +520,12 @@ pub fn scan_with_policy(
     } else {
         ScanStatus::Incomplete
     };
-    if let Some(sample) = profile.as_mut().and_then(|clock| clock.sample(true, 0)) {
-        emit(&ScanEvent::Profile(sample));
+    if let Some(profile) = profile {
+        profile.counters.pending_tasks.store(0, Ordering::Relaxed);
+        profile.record();
+        for sample in profile.drain() {
+            emit(&ScanEvent::Profile(sample));
+        }
     }
     emit(&ScanEvent::Finished(status));
     ScanReport {
@@ -875,7 +890,7 @@ struct Scanner<'a, P, E> {
     /// `None` marks a speculative measurement nobody needs.
     awaiting: std::collections::HashMap<usize, Option<PendingMeasure>>,
     outstanding: usize,
-    profile: Option<profile::ProfileClock>,
+    profile: Option<&'a profile::ProfileState>,
 }
 
 impl<P, E> Scanner<'_, P, E>
@@ -883,13 +898,21 @@ where
     P: FnMut(&CandidateFacts) -> CandidateAction,
     E: FnMut(&ScanEvent),
 {
-    fn emit_profile(&mut self, force: bool) {
-        if let Some(sample) = self
-            .profile
-            .as_mut()
-            .and_then(|profile| profile.sample(force, self.outstanding))
-        {
+    /// Delivers samples the sampler thread queued; their timestamps are when they were taken.
+    fn emit_profile(&mut self) {
+        let Some(profile) = self.profile else { return };
+        for sample in profile.drain() {
             self.emit(&ScanEvent::Profile(sample));
+        }
+    }
+
+    fn set_outstanding(&mut self, outstanding: usize) {
+        self.outstanding = outstanding;
+        if let Some(profile) = self.profile {
+            profile
+                .counters
+                .pending_tasks
+                .store(outstanding as u64, Ordering::Relaxed);
         }
     }
 
@@ -902,8 +925,8 @@ where
             relative_path: relative_path(self.root, path),
             message: error.to_string(),
         };
-        if let Some(profile) = &mut self.profile {
-            profile.counters.warnings += 1;
+        if let Some(profile) = self.profile {
+            profile::bump(&profile.counters.warnings, 1);
         }
         self.warnings.push(warning.clone());
         self.emit(&ScanEvent::Warning(warning));
@@ -917,7 +940,10 @@ where
     }
 
     fn run(&mut self) {
-        self.emit_profile(true);
+        if let Some(profile) = self.profile {
+            profile.record();
+        }
+        self.emit_profile();
         let root = self.root;
         if let Some(reason) = cloud_skip_reason(root) {
             self.warn(root, reason, &[]);
@@ -945,9 +971,10 @@ where
             }
         }
         while self.outstanding > 0 && !self.control.should_stop() {
-            self.emit_profile(false);
-            let message = if let Some(clock) = &self.profile {
-                match self.receiver.recv_timeout(clock.remaining_interval()) {
+            self.emit_profile();
+            let message = if self.profile.is_some() {
+                // Wake at least once per interval to deliver what the sampler queued.
+                match self.receiver.recv_timeout(profile::PROFILE_INTERVAL) {
                     Ok(message) => message,
                     Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
                     Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
@@ -958,7 +985,7 @@ where
                 };
                 message
             };
-            self.outstanding -= 1;
+            self.set_outstanding(self.outstanding - 1);
             // Messages after a stop may be partial; open artifacts are completed below.
             if self.control.should_stop() {
                 break;
@@ -997,7 +1024,7 @@ where
             measure: !node.chain.is_empty(),
         };
         self.nodes.push(Some(node));
-        self.outstanding += 1;
+        self.set_outstanding(self.outstanding + 1);
         self.queue.push(task);
     }
 
@@ -1012,8 +1039,8 @@ where
             nested,
             partial: false,
         };
-        if let Some(profile) = &mut self.profile {
-            profile.counters.artifacts += 1;
+        if let Some(profile) = self.profile {
+            profile::bump(&profile.counters.artifacts, 1);
         }
         self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
         self.artifacts.push(artifact);
@@ -1040,8 +1067,8 @@ where
         index: usize,
         chain: &[u64],
     ) -> Option<FileSlot> {
-        if let Some(profile) = &mut self.profile {
-            profile.counters.entries += 1;
+        if let Some(profile) = self.profile {
+            profile::bump(&profile.counters.entries, 1);
         }
         let is_symlink = file_type.is_symlink();
         let name = path.file_name().map(os_str_bytes).unwrap_or_default();
@@ -1090,8 +1117,8 @@ where
                 0
             }
         };
-        if let Some(profile) = &mut self.profile {
-            profile.counters.measured_bytes = profile.counters.measured_bytes.saturating_add(bytes);
+        if let Some(profile) = self.profile {
+            profile::bump(&profile.counters.measured_bytes, bytes);
         }
         for id in chain {
             let progress = &mut self.progress[Self::index(*id)];
@@ -1104,12 +1131,12 @@ where
     }
 
     fn process_listing(&mut self, node: usize, listing: Listing, measuring: bool) {
-        if let Some(profile) = &mut self.profile {
-            profile.counters.entries += 1;
-            profile.counters.directories += 1;
+        if let Some(profile) = self.profile {
+            profile::bump(&profile.counters.entries, 1);
+            profile::bump(&profile.counters.directories, 1);
         }
         if measuring {
-            self.outstanding += 1;
+            self.set_outstanding(self.outstanding + 1);
         }
         let DirNode {
             path,
@@ -1159,7 +1186,7 @@ where
         }
         for (index, (error_path, error)) in listing.errors.into_iter().enumerate() {
             if index % 32 == 0 {
-                self.emit_profile(false);
+                self.emit_profile();
             }
             self.warn(&error_path, error, &chain);
         }
@@ -1168,7 +1195,7 @@ where
             // Check per chunk, including large single-directory responses, without
             // adding a clock read to every filesystem entry.
             if index % 32 == 0 {
-                self.emit_profile(false);
+                self.emit_profile();
             }
             if self.control.should_stop() {
                 return;
@@ -1233,9 +1260,8 @@ where
             match metadata {
                 Ok(metadata) => {
                     let bytes = metadata_bytes(&metadata, self.options.apparent_size);
-                    if let Some(profile) = &mut self.profile {
-                        profile.counters.measured_bytes =
-                            profile.counters.measured_bytes.saturating_add(bytes);
+                    if let Some(profile) = self.profile {
+                        profile::bump(&profile.counters.measured_bytes, bytes);
                     }
                     for id in &chain {
                         let progress = &mut self.progress[Self::index(*id)];
@@ -1247,7 +1273,7 @@ where
         }
         for (index, slot) in slots.iter().enumerate() {
             if index % 32 == 0 {
-                self.emit_profile(false);
+                self.emit_profile();
             }
             let metadata = files.get_mut(slot.index).and_then(Option::take);
             self.measure_file(slot, metadata, &chain);
@@ -1847,6 +1873,66 @@ mod tests {
                 .iter()
                 .any(|sample| sample.artifacts > 0 && sample.artifacts < 128),
             "A single large listing must not hold back progress until every child is classified"
+        );
+    }
+
+    #[test]
+    fn blocked_event_consumer_does_not_thin_the_profile_timeline() {
+        // A consumer that cannot keep up blocks the coordinator inside `emit`. Samples are
+        // taken on their own thread, so the timeline keeps its interval through the stall.
+        // Before the sampler thread each stall became a single gap as long as the stall.
+        const STALL_MS: u64 = 500;
+        let tree = TempTree::new();
+        for index in 0..4 {
+            let build = tree.0.join(format!("package-{index}/.build"));
+            fs::create_dir_all(&build).unwrap();
+            fs::write(build.join("object.o"), b"fixture").unwrap();
+        }
+        let control = ScanControl::new();
+        control.set_profiling(true);
+        let mut samples = Vec::new();
+        scan_with_policy(
+            &tree.0,
+            ScanOptions::default(),
+            &control,
+            |facts| rust_cli_policy(facts, false),
+            |event| match event {
+                ScanEvent::ArtifactDiscovered(_) => {
+                    std::thread::sleep(std::time::Duration::from_millis(STALL_MS))
+                }
+                ScanEvent::Profile(sample) => samples.push(*sample),
+                _ => {}
+            },
+        );
+        let timeline: Vec<_> = samples
+            .iter()
+            .map(|sample| sample.elapsed_us / 1000)
+            .collect();
+        let elapsed_ms = *timeline.last().unwrap();
+        assert!(
+            elapsed_ms >= 4 * STALL_MS,
+            "four stalls, timeline {timeline:?}"
+        );
+        // A busy runner can wake the sampler late; allow that, but not a stall-long gap.
+        assert!(
+            samples.len() as u64 >= elapsed_ms / 100 * 7 / 10,
+            "{} samples over {elapsed_ms} ms: {timeline:?}",
+            samples.len()
+        );
+        let largest_gap = timeline
+            .windows(2)
+            .map(|pair| pair[1] - pair[0])
+            .max()
+            .unwrap();
+        assert!(
+            largest_gap < STALL_MS * 7 / 10,
+            "samples must not wait for the consumer: largest gap {largest_gap} ms in {timeline:?}"
+        );
+        assert!(
+            samples
+                .windows(2)
+                .all(|pair| pair[0].elapsed_us < pair[1].elapsed_us
+                    && pair[0].entries <= pair[1].entries)
         );
     }
 

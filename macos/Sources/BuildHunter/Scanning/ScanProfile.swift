@@ -18,6 +18,8 @@ struct ScanProfilePoint: Identifiable, Equatable, Sendable {
     let seconds: Double
     let entriesPerSecond: Double
     let bytesPerSecond: Double
+    /// Cumulative found volume at this point, for the total line.
+    var measuredBytes: UInt64 = 0
     var id: Double { seconds }
 }
 
@@ -48,7 +50,8 @@ struct ScanProfileHistory: Sendable {
         peakEntriesPerSecond = max(peakEntriesPerSecond, entries)
         peakBytesPerSecond = max(peakBytesPerSecond, bytes)
         if points.count == Self.capacity { points.removeFirst() }
-        points.append(ScanProfilePoint(seconds: sample.elapsedSeconds, entriesPerSecond: entries, bytesPerSecond: bytes))
+        points.append(ScanProfilePoint(seconds: sample.elapsedSeconds, entriesPerSecond: entries,
+                                       bytesPerSecond: bytes, measuredBytes: sample.measuredBytes))
     }
 
     private func mean(_ count: UInt64) -> Double {
