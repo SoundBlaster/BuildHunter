@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import NestedA11yIDs
 
 struct ScanProfilePanel: View {
     let profile: ScanProfileHistory
@@ -65,7 +66,7 @@ struct ScanProfilePanel: View {
                     }
                 }
                 .frame(height: 140)
-                .accessibilityIdentifier("buildhunter.report.profile.chart")
+                .nestedAccessibilityIdentifier("chart")
                 if let sample = profile.latest {
                     Text("\(sample.entries) entries · \(sample.directories) folders · \(sample.artifacts) artifacts · \(sample.warnings) warnings · \(sample.pendingTasks) pending tasks")
                         .font(.caption).foregroundStyle(.secondary)
@@ -79,10 +80,10 @@ struct ScanProfilePanel: View {
         } label: {
             Label("Scan profile", systemImage: "chart.xyaxis.line")
         }
-        .accessibilityIdentifier("buildhunter.report.profile")
+        .nestedAccessibilityIdentifier("profile")
     }
 
-    private var sampleAnimation: Animation? { reduceMotion ? nil : .linear(duration: 0.2) }
+    private var sampleAnimation: Animation? { reduceMotion ? nil : .linear(duration: 0.1) }
 
     private var current: Double { profile.points.last.map(rate) ?? 0 }
     private var average: Double { metric == .entries ? profile.averageEntriesPerSecond : profile.averageBytesPerSecond }
@@ -102,7 +103,7 @@ struct ScanProfilePanel: View {
     private func statistic(_ title: String, value: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.caption).foregroundStyle(.secondary)
-                .accessibilityIdentifier("buildhunter.report.profile.\(title.lowercased())")
+                .nestedAccessibilityIdentifier(title.lowercased())
             Text(formatted(value)).font(.headline).monospacedDigit()
                 .contentTransition(.numericText(value: value))
                 .animation(sampleAnimation, value: value)

@@ -70,7 +70,7 @@ void *bh_scan_control_create(void);
 /* Cancellation is thread-safe. Destroy the control only after bh_scan returns;
  * serialize destruction with cancellation so no caller uses a destroyed handle.
  */
-/* Opt-in before starting a scan. Emits cumulative snapshots every ~250 ms,
+/* Opt-in before starting a scan. Emits cumulative snapshots every ~100 ms,
  * plus initial and terminal snapshots. Default disabled. */
 void bh_scan_control_set_profiling(void *control, uint8_t enabled);
 void bh_scan_control_cancel(void *control);

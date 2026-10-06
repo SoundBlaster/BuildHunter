@@ -658,20 +658,21 @@ struct ScanProfileTests {
         #expect(history.points.count == ScanProfileHistory.capacity)
         #expect(history.peakEntriesPerSecond == 110)
         #expect(history.averageEntriesPerSecond == 10.1)
-        #expect(history.points.first?.seconds == 761)
+        #expect(history.points.first?.seconds == 401)
     }
 
     @Test("Rolling chart points retain absolute identities and values")
     func rollingChartIdentity() {
         var history = ScanProfileHistory()
         history.record(sample(0, entries: 0))
-        for seconds in 1...240 {
+        for seconds in 1...ScanProfileHistory.capacity {
             history.record(sample(UInt64(seconds), entries: UInt64(seconds * 10)))
         }
         let before = Dictionary(uniqueKeysWithValues: history.points.map { ($0.id, $0) })
-        history.record(sample(241, entries: 2_410))
+        let next = UInt64(ScanProfileHistory.capacity + 1)
+        history.record(sample(next, entries: next * 10))
         #expect(history.points.first?.id == 2)
-        #expect(history.points.last?.id == 241)
+        #expect(history.points.last?.id == Double(next))
         for point in history.points where before[point.id] != nil {
             #expect(before[point.id] == point, "A retained mark must keep the same time and rate")
         }
@@ -689,6 +690,32 @@ struct ScanProfileTests {
         #expect(history.points.count == 1)
         #expect(history.latest?.entries == 20)
         #expect(history.points.allSatisfy { $0.entriesPerSecond.isFinite && $0.bytesPerSecond.isFinite })
+    }
+
+    @Test("Buffered artifact bursts preserve live samples and terminal results")
+    func bufferedBurst() async {
+        let stream = AsyncStream<ScanEvent> { continuation in
+            continuation.yield(.profile(generation: 1, sample: sample(0, entries: 0)))
+            for index in 1...2_048 {
+                let artifact = ScanArtifact(id: UUID(), relativePath: "project-\(index)/.build",
+                                            language: "Swift", kind: .buildOutput)
+                continuation.yield(.discovered(generation: 1, artifact: artifact))
+                continuation.yield(.completed(generation: 1, artifactID: artifact.id, bytes: 1))
+                if index % 128 == 0 {
+                    continuation.yield(.profile(generation: 1,
+                        sample: sample(UInt64(index / 128), entries: UInt64(index), bytes: UInt64(index))))
+                }
+            }
+            continuation.yield(.finished(generation: 1, result: .completed))
+            continuation.finish()
+        }
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Busy stream")
+        await model.waitForCurrentScan()
+        #expect(model.phase == .completed)
+        #expect(model.rows.count == 2_048)
+        #expect(model.profile.points.count == 16)
+        #expect(model.profile.latest?.entries == 2_048)
     }
 
     @Test("Replacing or stopping a target rejects stale profile events")

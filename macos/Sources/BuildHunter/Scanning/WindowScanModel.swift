@@ -154,6 +154,9 @@ final class WindowScanModel {
         scanTask = Task { [weak self] in
             var terminalResult: ScanTerminalResult?
             var receivedTerminalResult = false
+            var eventsSinceRenderCheck = 0
+            let renderClock = ContinuousClock()
+            var lastRenderPause = renderClock.now
             for await event in stream {
                 guard !Task.isCancelled, let self else { return }
                 guard event.generation == activeGeneration else { continue }
@@ -169,6 +172,16 @@ final class WindowScanModel {
                 guard !receivedTerminalResult else { continue }
                 self.apply(event)
                 guard self.phase == .scanning else { return }
+                eventsSinceRenderCheck += 1
+                if eventsSinceRenderCheck == 256 {
+                    eventsSinceRenderCheck = 0
+                    if renderClock.now - lastRenderPause >= .milliseconds(8) {
+                        // A perpetually occupied stream can resume synchronously. Park
+                        // briefly so the run loop can draw profile frames and accept Stop.
+                        do { try await Task.sleep(for: .milliseconds(1)) } catch { return }
+                        lastRenderPause = renderClock.now
+                    }
+                }
             }
             guard !Task.isCancelled, let self,
                   self.generation == activeGeneration, self.phase == .scanning else { return }

@@ -1,4 +1,4 @@
-use build_hunter::ScanProfileSample;
+use build_hunter::{PROFILE_INTERVAL, ScanProfileSample};
 use std::collections::VecDeque;
 
 const CAPACITY: usize = 4096;
@@ -50,10 +50,11 @@ impl ProfileReport {
             s.elapsed_us, s.entries, s.directories, s.measured_bytes, s.artifacts, s.warnings, s.pending_tasks
         )).collect::<Vec<_>>().join(",");
         format!(
-            "{{\"schema_version\":1,\"root\":{},\"status\":{},\"size_mode\":{},\"sample_interval_ms\":250,\"truncated_samples\":{},\"average_entries_per_second\":{},\"average_measured_bytes_per_second\":{},\"peak_entries_per_second\":{},\"peak_measured_bytes_per_second\":{},\"samples\":[{}]}}\n",
+            "{{\"schema_version\":1,\"root\":{},\"status\":{},\"size_mode\":{},\"sample_interval_ms\":{},\"truncated_samples\":{},\"average_entries_per_second\":{},\"average_measured_bytes_per_second\":{},\"peak_entries_per_second\":{},\"peak_measured_bytes_per_second\":{},\"samples\":[{}]}}\n",
             crate::quoted(root),
             crate::quoted(status),
             crate::quoted(size_mode),
+            PROFILE_INTERVAL.as_millis(),
             self.dropped,
             rate(last.entries),
             rate(last.measured_bytes),

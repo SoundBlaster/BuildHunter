@@ -39,7 +39,7 @@ Unsigned build/unit-test evidence does not establish signed sandbox behavior. Op
 Expand **Scan profile** in the main report window to inspect live throughput.
 Choose entries/s or measured bytes/s; current, average, peak and elapsed time
 remain available after completion. Byte throughput describes metadata sizing,
-not disk reads. History is bounded to 240 intervals; lifetime statistics remain
+not disk reads. History is bounded to 600 intervals; lifetime statistics remain
 intact. Mock scanning/completed/stopped states include deterministic profile
 samples, and UI tests capture the expanded completed panel. The panel, incoming
 chart samples, metric selection and numeric readouts animate smoothly; Reduce

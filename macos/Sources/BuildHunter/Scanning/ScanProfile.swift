@@ -21,10 +21,10 @@ struct ScanProfilePoint: Identifiable, Equatable, Sendable {
     var id: Double { seconds }
 }
 
-/// The chart retains the latest minute at the nominal 4 Hz cadence. Lifetime
+/// The chart retains the latest minute at the nominal 10 Hz cadence. Lifetime
 /// means and peaks are independent of this rolling display window.
 struct ScanProfileHistory: Sendable {
-    static let capacity = 240
+    static let capacity = 600
     private(set) var points: [ScanProfilePoint] = []
     private(set) var latest: ScanProfileSnapshot?
     private(set) var peakEntriesPerSecond: Double = 0

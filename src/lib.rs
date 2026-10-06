@@ -11,7 +11,7 @@ use std::{
 
 mod policy_table;
 mod profile;
-pub use profile::ScanProfileSample;
+pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
 mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
@@ -946,8 +946,8 @@ where
         }
         while self.outstanding > 0 && !self.control.should_stop() {
             self.emit_profile(false);
-            let message = if self.profile.is_some() {
-                match self.receiver.recv_timeout(profile::PROFILE_INTERVAL) {
+            let message = if let Some(clock) = &self.profile {
+                match self.receiver.recv_timeout(clock.remaining_interval()) {
                     Ok(message) => message,
                     Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
                     Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
@@ -1157,11 +1157,19 @@ where
             let id = self.discover(&path, parent_len > 0, code.language, code.kind);
             chain.push(id);
         }
-        for (error_path, error) in listing.errors {
+        for (index, (error_path, error)) in listing.errors.into_iter().enumerate() {
+            if index % 32 == 0 {
+                self.emit_profile(false);
+            }
             self.warn(&error_path, error, &chain);
         }
         let mut files = Vec::new();
         for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
+            // Check per chunk, including large single-directory responses, without
+            // adding a clock read to every filesystem entry.
+            if index % 32 == 0 {
+                self.emit_profile(false);
+            }
             if self.control.should_stop() {
                 return;
             }
@@ -1237,7 +1245,10 @@ where
                 Err(error) => self.warn(&path, error, &chain),
             }
         }
-        for slot in &slots {
+        for (index, slot) in slots.iter().enumerate() {
+            if index % 32 == 0 {
+                self.emit_profile(false);
+            }
             let metadata = files.get_mut(slot.index).and_then(Option::take);
             self.measure_file(slot, metadata, &chain);
         }
@@ -1806,6 +1817,37 @@ mod tests {
         assert_eq!(last.artifacts as usize, plain.artifacts.len());
         assert_eq!(last.pending_tasks, 0);
         assert!(last.elapsed_us > 0);
+    }
+
+    #[test]
+    fn profile_updates_inside_a_large_directory_response() {
+        let tree = TempTree::new();
+        for index in 0..128 {
+            fs::write(tree.0.join(format!("module-{index}.pyc")), b"fixture").unwrap();
+        }
+        let control = ScanControl::new();
+        control.set_profiling(true);
+        let mut samples = Vec::new();
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions::default(),
+            &control,
+            |facts| rust_cli_policy(facts, false),
+            |event| match event {
+                ScanEvent::ArtifactDiscovered(_) => {
+                    std::thread::sleep(std::time::Duration::from_millis(4))
+                }
+                ScanEvent::Profile(sample) => samples.push(*sample),
+                _ => {}
+            },
+        );
+        assert_eq!(report.artifacts.len(), 128);
+        assert!(
+            samples
+                .iter()
+                .any(|sample| sample.artifacts > 0 && sample.artifacts < 128),
+            "A single large listing must not hold back progress until every child is classified"
+        );
     }
 
     #[test]

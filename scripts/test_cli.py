@@ -21,6 +21,7 @@ class CLIIntegrationTests(unittest.TestCase):
         self.assertEqual(normal["artifacts"], profiled["artifacts"])
         profile = json.loads(destination.read_text())
         self.assertEqual(profile["schema_version"], 1)
+        self.assertEqual(profile["sample_interval_ms"], 100)
         self.assertEqual(profile["status"], "completed")
         self.assertEqual(profile["size_mode"], "apparent")
         self.assertEqual(profile["samples"][-1]["measured_bytes"], normal["total_bytes"])
