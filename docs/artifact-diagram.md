@@ -78,14 +78,19 @@ levels by contracting into the closest visible ancestor. A grouped folder return
 into its parent's Other sector. The graph and entire sidebar, including filtering
 and Copy path, are locked throughout navigation in both directions.
 
-Navigation uses an animatable SwiftUI path overlay with frozen source/destination
-layouts; the underlying Chart receives the destination without navigation
-interpolation. The scanner continues collecting events, while diagram publication
+Navigation uses a SwiftUI path overlay with frozen source/destination layouts; the
+underlying Chart receives the destination without navigation interpolation. A
+`TimelineView` redraws the overlay every display frame from the elapsed time
+(`ArtifactSunburstNavigation.progress(at:)`: cubic ease-out fade, critically damped
+zoom), so every frame lies on the planned trajectory. Animating `fade`/`zoom` state
+instead lost the first phase: the overlay appeared in the same update that started
+its animation, which then had no starting frame, as the first CI Screener trace showed. The scanner continues collecting events, while diagram publication
 pauses until the transition ends and then catches up at the next refresh.
 Reduce Motion skips staged navigation;
 report replacement, closing the window, or enabling Reduce Motion cancels the
-overlay and releases the publication pause. Completion callbacks are guarded by
-a transition identity so a cancelled animation cannot start its next phase.
+overlay and releases the publication pause. The transition task that marks the
+phases and ends the transition is keyed by the transition identity, so a
+cancelled transition never reaches its next step.
 
 Sector rounding is temporarily disabled (`cornerRadius = 0`) for the renderer
 investigation. Gaps remain. The earlier Charts trap is a known regression risk;

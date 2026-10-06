@@ -21,8 +21,8 @@ struct ArtifactDiagramWindow: View {
 #endif
     }
     @State private var navigation: DiagramNavigationPresentation?
-    @State private var fade = 0.0
-    @State private var zoom = 0.0
+    /// When the overlay's clock started; nil until the transition task runs.
+    @State private var navigationStart: Date?
 
     init(scan: WindowScanModel, diagram: ArtifactDiagramModel = ArtifactDiagramModel()) {
         self.scan = scan
@@ -41,7 +41,7 @@ struct ArtifactDiagramWindow: View {
                                           isScanning: scan.isScanning, statistics: diagram.focus.statistics,
                                           focusID: diagram.focusID, reportID: scan.reportID,
                                           canNavigateUp: diagram.canNavigateUp,
-                                          navigation: navigation, fade: fade, zoom: zoom,
+                                          navigation: navigation, navigationStart: navigationStart,
                                           goUp: { navigate(to: diagram.focus.parentID ?? "") },
                                           hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
                         navigate(to: sector.nodeID ?? sector.parentID)
@@ -63,7 +63,7 @@ struct ArtifactDiagramWindow: View {
         .navigationTitle("\(scan.targetName ?? "BuildHunter") — Artifact Diagram")
         .task { await diagram.follow(scan) }
         .task(id: navigation?.id) {
-            if let token = navigation?.id { startNavigation(token: token) }
+            if let token = navigation?.id { await runNavigation(token: token) }
         }
         .onChange(of: scan.reportID) { cancelNavigation() }
         .onChange(of: motionReduced) { if motionReduced { cancelNavigation() } }
@@ -109,7 +109,7 @@ struct ArtifactDiagramWindow: View {
                 DiagramTraceRecorder.shared?.capture(for: 2)
 #endif
                 diagram.setNavigationTransitionActive(true)
-                fade = 0; zoom = 0
+                navigationStart = nil
             } else {
 #if DEBUG
                 DiagramTraceRecorder.shared?.mark("navigation.skipped", ["reason": "noPlan"])
@@ -120,35 +120,20 @@ struct ArtifactDiagramWindow: View {
     }
 
     /// Entering fades the neighbors, then zooms in one motion; returning zooms back out,
-    /// then fades the neighbors in. Each step checks the token so a cancelled
-    /// transition never starts its next phase.
-    private func startNavigation(token: UUID) {
-        guard navigation?.id == token else { return }
-        if navigation?.plan.direction == .ascend {
-            runZoom(token: token) { runFade(token: token) { finishNavigation(token: token) } }
-        } else {
-            runFade(token: token) { runZoom(token: token) { finishNavigation(token: token) } }
-        }
-    }
-
-    private func runFade(token: UUID, then next: @escaping () -> Void) {
-        guard navigation?.id == token else { return }
-        recordNavigationPhase("fade")
-        withAnimation(.easeOut(duration: 0.14), completionCriteria: .removed) {
-            fade = 1
-        } completion: {
-            next()
-        }
-    }
-
-    private func runZoom(token: UUID, then next: @escaping () -> Void) {
-        guard navigation?.id == token else { return }
-        recordNavigationPhase("zoom")
-        withAnimation(.smooth(duration: 0.55), completionCriteria: .removed) {
-            zoom = 1
-        } completion: {
-            next()
-        }
+    /// then fades the neighbors in. The overlay draws each frame from the elapsed time;
+    /// this task only starts the clock, marks the phases and ends the transition. A
+    /// cancelled transition cancels the task, which never reaches its next step.
+    private func runNavigation(token: UUID) async {
+        guard let plan = navigation?.plan, navigation?.id == token else { return }
+        navigationStart = .now
+        let descending = plan.direction == .descend
+        recordNavigationPhase(descending ? "fade" : "zoom")
+        try? await Task.sleep(for: .seconds(plan.firstPhaseDuration))
+        guard !Task.isCancelled, navigation?.id == token else { return }
+        recordNavigationPhase(descending ? "zoom" : "fade")
+        try? await Task.sleep(for: .seconds(ArtifactSunburstNavigation.duration - plan.firstPhaseDuration))
+        guard !Task.isCancelled else { return }
+        finishNavigation(token: token)
     }
 
     private func finishNavigation(token: UUID) {
@@ -168,7 +153,7 @@ struct ArtifactDiagramWindow: View {
         withTransaction(transaction) {
             navigation = nil
             diagram.setNavigationTransitionActive(false)
-            fade = 0; zoom = 0
+            navigationStart = nil
         }
     }
 
@@ -222,8 +207,7 @@ private struct ArtifactSunburstChart: View {
     var reportID: UUID?
     var canNavigateUp = false
     var navigation: DiagramNavigationPresentation?
-    var fade = 0.0
-    var zoom = 0.0
+    var navigationStart: Date?
     var goUp: () -> Void = {}
     var hover: (ArtifactSunburstLayout.Sector?) -> Void = { _ in }
     let select: (ArtifactSunburstLayout.Sector) -> Void
@@ -265,7 +249,7 @@ private struct ArtifactSunburstChart: View {
                                 let centerDiameter = min(frame.width, frame.height) * 0.21
                                 ZStack(alignment: .topLeading) {
                                     if let navigation {
-                                        DiagramNavigationLayer(presentation: navigation, fade: fade, zoom: zoom)
+                                        DiagramNavigationLayer(presentation: navigation, start: navigationStart)
                                             .frame(width: frame.width, height: frame.height)
                                             .position(x: frame.midX, y: frame.midY)
                                             .allowsHitTesting(false)
@@ -447,19 +431,25 @@ private struct DiagramNavigationPresentation: Identifiable {
 /// Keeping both endpoint layouts fixed prevents producer events from retargeting a zoom.
 private struct DiagramNavigationLayer: View {
     let presentation: DiagramNavigationPresentation
-    let fade: Double
-    let zoom: Double
+    /// Nil until the transition task starts the clock; the source layout shows until then.
+    let start: Date?
 
     var body: some View {
-        GeometryReader { geometry in
-            let radius = min(geometry.size.width, geometry.size.height) / 2
-            ZStack {
-                ForEach(presentation.plan.frames(fade: fade, zoom: zoom)) { frame in
-                    DiagramNavigationSector(start: frame.start, end: frame.end,
-                                            inner: frame.innerRadius, outer: frame.outerRadius,
-                                            inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
-                        .fill(presentation.color(for: frame, zoom: zoom))
-                        .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
+        // Driving progress from the display clock, rather than animating fade/zoom state,
+        // keeps the first phase from collapsing when the overlay appears in the same
+        // update that would start its animation.
+        TimelineView(.animation) { context in
+            let progress = presentation.plan.progress(at: start.map { context.date.timeIntervalSince($0) } ?? 0)
+            GeometryReader { geometry in
+                let radius = min(geometry.size.width, geometry.size.height) / 2
+                ZStack {
+                    ForEach(presentation.plan.frames(fade: progress.fade, zoom: progress.zoom)) { frame in
+                        DiagramNavigationSector(start: frame.start, end: frame.end,
+                                                inner: frame.innerRadius, outer: frame.outerRadius,
+                                                inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
+                            .fill(presentation.color(for: frame, zoom: progress.zoom))
+                            .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
+                    }
                 }
             }
         }

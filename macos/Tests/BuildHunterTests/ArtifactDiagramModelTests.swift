@@ -55,6 +55,39 @@ struct ArtifactSunburstNavigationTests {
         #expect(anchor.start == original.start && anchor.end == original.end && anchor.opacity == 1)
     }
 
+    @Test("The transition clock runs one phase after the other, each eased from 0 to 1")
+    func phaseClock() throws {
+        let snapshot = snapshot()
+        let parent = ArtifactSunburstLayout(snapshot: snapshot)
+        let child = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+        let enter = try #require(ArtifactSunburstNavigation(source: parent, destination: child, selectedID: "Apps"))
+        let leave = try #require(ArtifactSunburstNavigation(source: child, destination: parent, selectedID: "Apps",
+                                                            direction: .ascend))
+        let fade = ArtifactSunburstNavigation.fadeDuration
+        let zoom = ArtifactSunburstNavigation.zoomDuration
+        let total = ArtifactSunburstNavigation.duration
+
+        // Entering: the fade runs alone, then the zoom; returning: the zoom first.
+        #expect(enter.progress(at: 0) == (0, 0) && leave.progress(at: 0) == (0, 0))
+        let midFade = enter.progress(at: fade / 2)
+        #expect(midFade.fade > 0 && midFade.fade < 1 && midFade.zoom == 0)
+        #expect(enter.progress(at: fade) == (1, 0))
+        let midZoom = leave.progress(at: zoom / 2)
+        #expect(midZoom.zoom > 0 && midZoom.zoom < 1 && midZoom.fade == 0)
+        #expect(leave.progress(at: zoom) == (0, 1))
+        for plan in [enter, leave] {
+            #expect(plan.progress(at: total) == (1, 1))
+            #expect(plan.progress(at: total + 1) == (1, 1))
+            #expect(plan.progress(at: -1) == (0, 0) && plan.progress(at: .nan) == (0, 0))
+            var previous = (fade: 0.0, zoom: 0.0)
+            for step in 0...100 {
+                let now = plan.progress(at: total * Double(step) / 100)
+                #expect(now.fade >= previous.fade && now.zoom >= previous.zoom)
+                previous = now
+            }
+        }
+    }
+
     @Test("Opening to a full turn and moving inward happen together")
     func expansionAndInwardMotionTogether() throws {
         let snapshot = snapshot()

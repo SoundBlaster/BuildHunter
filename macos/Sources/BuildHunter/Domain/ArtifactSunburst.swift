@@ -399,6 +399,35 @@ struct ArtifactSunburstNavigation: Sendable {
         self.entries = entries
     }
 
+    static let fadeDuration = 0.14
+    static let zoomDuration = 0.55
+    static let duration = fadeDuration + zoomDuration
+
+    /// Seconds until the second phase starts: the zoom when entering, the fade when returning.
+    var firstPhaseDuration: Double { direction == .descend ? Self.fadeDuration : Self.zoomDuration }
+
+    /// Eased `fade` and `zoom` progress `elapsed` seconds into the transition. The view
+    /// evaluates this every display frame instead of letting SwiftUI interpolate between
+    /// endpoint states, so every frame lies on the planned trajectory.
+    func progress(at elapsed: Double) -> (fade: Double, zoom: Double) {
+        let time = elapsed.isFinite ? max(0, elapsed) : 0
+        let first = min(1, time / firstPhaseDuration)
+        let second = min(1, max(0, time - firstPhaseDuration) / (Self.duration - firstPhaseDuration))
+        return direction == .descend
+            ? (Self.easeOut(first), Self.smooth(second))
+            : (Self.easeOut(second), Self.smooth(first))
+    }
+
+    /// Cubic ease-out, matching the neighbors' quick fade.
+    static func easeOut(_ x: Double) -> Double { 1 - pow(1 - min(1, max(0, x)), 3) }
+
+    /// A critically damped spring like SwiftUI's `.smooth`, scaled to end exactly at 1.
+    static func smooth(_ x: Double) -> Double {
+        let x = min(1, max(0, x))
+        func spring(_ x: Double) -> Double { 1 - (1 + 2 * .pi * x) * exp(-2 * .pi * x) }
+        return spring(x) / spring(1)
+    }
+
     /// `fade` and `zoom` each run from 0 to 1 in time order. Entering fades the neighbors,
     /// then zooms; returning zooms back out, then fades the neighbors in again.
     func frames(fade: Double, zoom: Double) -> [Frame] {
