@@ -10,7 +10,8 @@ BASELINE and CURRENT are both files or both directories. Directories may be:
   * a raw `xcresulttool export attachments` folder (manifest.json with
     "suggestedHumanReadableName"), as CI uploads in ui-screenshots/,
   * any folder of PNGs.
-Images are paired by test + attachment name, so UUID file names and ordinal
+Images are paired by test + attachment name (repeats become name#2, name#3 in
+capture order), so UUID file names and ordinal
 prefixes do not matter.
 
 A pixel counts as changed when any channel differs by more than
@@ -40,33 +41,50 @@ def strip_noise(name):
 
 
 def index(root):
-    """Map a stable key -> image path."""
+    """Map a stable key -> image path.
+
+    Keys are test/attachment-name. A name a test attaches more than once gets
+    #2, #3, ... in capture order, so repeated checkpoints are compared one to
+    one instead of collapsing into the first. Occurrences are counted even when
+    a file is missing, so one lost capture doesn't shift the others.
+    """
     if os.path.isfile(root):
         return {"image": root}
-    manifest_path = os.path.join(root, "manifest.json")
     keyed = {}
+    seen = {}
+
+    def add(key, path):
+        seen[key] = seen.get(key, 0) + 1
+        if seen[key] > 1:
+            key = f"{key}#{seen[key]}"
+        if os.path.exists(path):
+            keyed[key] = path
+
+    manifest_path = os.path.join(root, "manifest.json")
     if os.path.exists(manifest_path):
         with open(manifest_path) as fh:
             manifest = json.load(fh)
+        # xcresult_attachments.py manifest: already in capture order.
         for entry in manifest:
-            if "path" in entry and entry["path"].lower().endswith(".png") \
-                    and os.path.exists(os.path.join(root, entry["path"])):
-                key = f"{entry['test']}/{entry['name']}"
-                keyed.setdefault(key, os.path.join(root, entry["path"]))
-            for attachment in entry.get("attachments", []):
+            if entry.get("path", "").lower().endswith(".png"):
+                add(f"{entry['test']}/{entry['name']}", os.path.join(root, entry["path"]))
+        # `xcresulttool export attachments` manifest: one entry per test, unordered attachments.
+        for entry in manifest:
+            attachments = sorted(entry.get("attachments", []), key=lambda a: a.get("timestamp", 0))
+            for attachment in attachments:
                 file_name = attachment.get("exportedFileName", "")
-                if file_name.lower().endswith(".png") and os.path.exists(os.path.join(root, file_name)):
-                    key = f"{entry['testIdentifier']}/{strip_noise(attachment['suggestedHumanReadableName'])}"
-                    keyed.setdefault(key, os.path.join(root, file_name))
-        if keyed:
+                if file_name.lower().endswith(".png"):
+                    name = strip_noise(attachment["suggestedHumanReadableName"])
+                    add(f"{entry['testIdentifier']}/{name}", os.path.join(root, file_name))
+        if seen:
             return keyed
     for dirpath, _, files in os.walk(root):
-        for name in files:
+        for name in sorted(files):  # ordinal prefixes keep capture order
             if name.lower().endswith(".png"):
                 rel = os.path.relpath(os.path.join(dirpath, name), root)
                 parts = rel.split(os.sep)
                 parts[-1] = strip_noise(parts[-1])
-                keyed.setdefault("/".join(parts), os.path.join(dirpath, name))
+                add("/".join(parts), os.path.join(dirpath, name))
     return keyed
 
 

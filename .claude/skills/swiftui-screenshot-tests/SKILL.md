@@ -108,7 +108,8 @@ python3 -I $SK/compare_screenshots.py "$SCRATCH/ci-main/ui-screenshots" "$SCRATC
 
 - Images are paired by test and attachment name, so either side can be a raw
   `ui-screenshots/` folder, an `xcresult_attachments.py` export, or a single
-  file.
+  file. A name a test attaches several times is compared per occurrence
+  (`name`, `name#2`, …, in capture order).
 - A pixel counts as changed when any channel moves more than
   `--pixel-threshold` (default 16).
 - An image fails when more than `--tolerance` of its pixels change (default
@@ -155,11 +156,20 @@ A change in a view the PR never touches is the strongest regression signal.
 ## 5. Animations: Screener traces
 
 A screenshot catches one instant. Transitions such as the sunburst zoom need a
-timeline. Debug builds launched with `BUILDHUNTER_SCREENER=1` record a
-`.vtrace` through `DiagramTraceRecorder`. A trace holds markers like
+timeline. The Screener pilot (the DaisyDisk navigation PR, SoundBlaster/BuildHunter#38)
+adds `DiagramTraceRecorder`. With it, Debug builds launched with
+`BUILDHUNTER_SCREENER=1` record a `.vtrace`, and CI copies traces into
+`screener-traces/` in the evidence artifact. A trace holds markers like
 `navigation.begin`, `navigation.phase` and `chart.layout`, plus window frames
-every ~40 ms. CI copies the traces into `screener-traces/` in the evidence
-artifact.
+every ~40 ms.
+
+First check that the run has traces:
+`ls "$SCRATCH/ci-pr/screener-traces"`. Branches without the pilot have no
+traces, and neither does `main` until #38 merges. Without traces, use
+section 6 for the geometry, or section 3's screen-recording frames when a test
+failed. A trace with markers but no frames, or with `navigation.skipped`,
+means the animation never ran (for example, Reduce Motion on the runner).
+Report that finding instead of judging the animation.
 
 ```bash
 python3 -I $SK/vtrace.py list "$SCRATCH/ci-pr"                    # every .vtrace under a folder, newest first
