@@ -882,8 +882,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SoundBlaster/SpecificationCore.git";
 			requirement = {
-				kind = branch;
-				branch = "perf/balanced-decisions";
+				kind = revision;
+				revision = 3a672ea9a081853bb0500c96a85243f01e39bcdd;
 			};
 		};
 		2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */ = {
