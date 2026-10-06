@@ -561,6 +561,10 @@ private struct ArtifactDiagramSidebar: View {
                         .font(.headline)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
+                        // macOS 27 keeps a selectable Text's old AXValue after its content
+                        // changes; a new identity per path gives VoiceOver and UI tests a
+                        // fresh element. It also clears a stale selection on navigation.
+                        .id(model.displayedPath)
                         .nestedAccessibilityIdentifier("focus")
                 }
                 Button("Copy path", systemImage: "document.on.document") {
