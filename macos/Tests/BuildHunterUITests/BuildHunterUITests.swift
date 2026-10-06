@@ -45,7 +45,9 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
         attachScreenshot(named: "scan-profile-completed", from: app)
         disclosure.click()
-        XCTAssertFalse(chart.exists)
+        let collapsed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"), object: chart)
+        wait(for: [collapsed], timeout: 5)
     }
 
     private func openSettings(_ app: XCUIApplication) {
