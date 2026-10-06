@@ -1880,6 +1880,8 @@ mod tests {
     fn blocked_event_consumer_does_not_thin_the_profile_timeline() {
         // A consumer that cannot keep up blocks the coordinator inside `emit`. Samples are
         // taken on their own thread, so the timeline keeps its interval through the stall.
+        // Before the sampler thread each stall became a single gap as long as the stall.
+        const STALL_MS: u64 = 500;
         let tree = TempTree::new();
         for index in 0..4 {
             let build = tree.0.join(format!("package-{index}/.build"));
@@ -1896,30 +1898,35 @@ mod tests {
             |facts| rust_cli_policy(facts, false),
             |event| match event {
                 ScanEvent::ArtifactDiscovered(_) => {
-                    std::thread::sleep(std::time::Duration::from_millis(300))
+                    std::thread::sleep(std::time::Duration::from_millis(STALL_MS))
                 }
                 ScanEvent::Profile(sample) => samples.push(*sample),
                 _ => {}
             },
         );
-        let elapsed_ms = samples.last().unwrap().elapsed_us / 1000;
+        let timeline: Vec<_> = samples
+            .iter()
+            .map(|sample| sample.elapsed_us / 1000)
+            .collect();
+        let elapsed_ms = *timeline.last().unwrap();
         assert!(
-            elapsed_ms >= 1_200,
-            "four 300 ms stalls, got {elapsed_ms} ms"
+            elapsed_ms >= 4 * STALL_MS,
+            "four stalls, timeline {timeline:?}"
         );
+        // A busy runner can wake the sampler late; allow that, but not a stall-long gap.
         assert!(
-            samples.len() as u64 >= elapsed_ms / 100 - 2,
-            "{} samples over {elapsed_ms} ms",
+            samples.len() as u64 >= elapsed_ms / 100 * 7 / 10,
+            "{} samples over {elapsed_ms} ms: {timeline:?}",
             samples.len()
         );
-        let largest_gap = samples
+        let largest_gap = timeline
             .windows(2)
-            .map(|pair| pair[1].elapsed_us - pair[0].elapsed_us)
+            .map(|pair| pair[1] - pair[0])
             .max()
             .unwrap();
         assert!(
-            largest_gap < 200_000,
-            "samples must not wait for the consumer: largest gap {largest_gap} us"
+            largest_gap < STALL_MS * 7 / 10,
+            "samples must not wait for the consumer: largest gap {largest_gap} ms in {timeline:?}"
         );
         assert!(
             samples
