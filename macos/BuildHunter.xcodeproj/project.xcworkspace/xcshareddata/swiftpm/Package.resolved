@@ -1,5 +1,5 @@
 {
-  "originHash" : "a6d7bfed684efe28f4bd9c87aa6ab983a569ac69a3900509067409ab10af3022",
+  "originHash" : "1f8bc646de48cd92094856bde706c0941431599510c3c73265b9e295c9441fb2",
   "pins" : [
     {
       "identity" : "nesteda11yids",
@@ -15,8 +15,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SoundBlaster/SpecificationCore.git",
       "state" : {
-        "branch" : "perf/balanced-decisions",
-        "revision" : "bacc4d65174bcf680e10954c0eed788c410553c0"
+        "revision" : "3a672ea9a081853bb0500c96a85243f01e39bcdd"
       }
     },
     {

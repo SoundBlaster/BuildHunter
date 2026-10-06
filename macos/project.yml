@@ -7,7 +7,7 @@ options:
 packages:
   SpecificationCore:
     url: https://github.com/SoundBlaster/SpecificationCore.git
-    branch: perf/balanced-decisions
+    revision: 3a672ea9a081853bb0500c96a85243f01e39bcdd
   NestedA11yIDs:
     url: https://github.com/SoundBlaster/NestedA11yIDs.git
     from: 1.0.0

@@ -4,7 +4,7 @@ This macOS 26+ arm64 SwiftUI app implements the scanner described by [the PRD](.
 
 The default source reads the selected folder through the Rust static library and C FFI. GUI classification uses SpecificationCore, and includes Python environments with their own `pyvenv.cfg`. Only outer artifact roots appear as rows. Sizes estimate allocated blocks, including directory metadata; they do not promise reclaimable space. Partial measurements and read errors keep the report incomplete. The app never deletes files.
 
-Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to upstream revision `483214469828c42f7b615654aa70d0acbecc4dbf` (SpecificationCore 2.1.0).
+Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to merged upstream revision `3a672ea9a081853bb0500c96a85243f01e39bcdd` pending release alignment. Its default `AggressiveInlining` trait favors synchronous evaluation speed; Tracing disables forced inlining. See the upstream [performance configuration guide](https://github.com/SoundBlaster/SpecificationCore/blob/3a672ea9a081853bb0500c96a85243f01e39bcdd/Sources/SpecificationCore/Documentation.docc/EvaluationPerformance.md) for consumer opt-out and measured tradeoffs. Library microbenchmark gains do not establish a whole-scan speedup.
 
 Open **BuildHunter → Settings…** (⌘,) to select the artifact types searched in new
 scans and Rescan. All current types are enabled initially. Preferences persist
