@@ -13,38 +13,95 @@ struct ArtifactSunburstNavigationTests {
         })
     }
 
-    @Test("Neighbors disappear before the selected branch expands")
-    func fadeThenExpand() throws {
-        let snapshot = snapshot()
-        let source = ArtifactSunburstLayout(snapshot: snapshot)
-        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
-        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
-        let anchor = try #require(plan.frames(fade: 1, expansion: 0, reveal: 0).first { $0.id == .node("Apps") })
-        let original = try #require(source.sectors.first { $0.nodeID == "Apps" })
-        #expect(anchor.start == original.start && anchor.end == original.end)
-        #expect(anchor.opacity == 1)
-        #expect(plan.frames(fade: 1, expansion: 0, reveal: 0).filter { !$0.isSelectedBranch }.allSatisfy { $0.opacity == 0 })
-        let expanded = try #require(plan.frames(fade: 1, expansion: 1, reveal: 0).first { $0.id == .node("Apps") })
-        #expect(expanded.start == 0 && expanded.end == 1)
-        #expect(expanded.innerRadius == original.innerRadius)
-        #expect(expanded.outerRadius == original.outerRadius)
-    }
-
-    @Test("The final frame matches the destination, including newly exposed descendants")
-    func destinationMatches() throws {
-        let snapshot = snapshot()
-        let source = ArtifactSunburstLayout(snapshot: snapshot)
-        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
-        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
-        let final = plan.frames(fade: 1, expansion: 1, reveal: 1).filter { $0.opacity > 0 }
-        #expect(Set(final.map(\.id)) == Set(destination.sectors.map(\.id)))
-        for sector in destination.sectors {
-            let frame = try #require(final.first { $0.id == sector.id })
+    private func expectMatches(_ frames: [ArtifactSunburstNavigation.Frame],
+                               _ layout: ArtifactSunburstLayout) throws {
+        let visible = frames.filter { $0.opacity > 0 }
+        #expect(Set(visible.map(\.id)) == Set(layout.sectors.map(\.id)))
+        for sector in layout.sectors {
+            let frame = try #require(visible.first { $0.id == sector.id })
             #expect(abs(frame.start - sector.start) < 1e-12)
             #expect(abs(frame.end - sector.end) < 1e-12)
             #expect(abs(frame.innerRadius - sector.innerRadius) < 1e-12)
             #expect(abs(frame.outerRadius - sector.outerRadius) < 1e-12)
+            #expect(frame.opacity == 1)
         }
+    }
+
+    private func expectSafe(_ frames: [ArtifactSunburstNavigation.Frame]) {
+        #expect(Set(frames.map(\.id)).count == frames.count)
+        for frame in frames {
+            let finite = [frame.start, frame.end, frame.innerRadius, frame.outerRadius,
+                          frame.opacity, frame.depth].allSatisfy(\.isFinite)
+            #expect(finite)
+            #expect(frame.start >= 0 && frame.end <= 1 && frame.end > frame.start)
+            #expect(frame.innerRadius >= 0 && frame.outerRadius <= 1)
+            #expect(frame.outerRadius >= frame.innerRadius)
+            #expect(frame.opacity >= 0 && frame.opacity <= 1)
+        }
+    }
+
+    @Test("Neighbors fade first; the zoom starts from the parent view")
+    func fadeThenZoom() throws {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
+        let initial = plan.frames(fade: 0, zoom: 0)
+        try expectMatches(initial, source)
+        let faded = plan.frames(fade: 1, zoom: 0)
+        #expect(faded.filter { !$0.isSelectedBranch }.allSatisfy { $0.opacity == 0 })
+        let anchor = try #require(faded.first { $0.id == .node("Apps") })
+        let original = try #require(source.sectors.first { $0.nodeID == "Apps" })
+        #expect(anchor.start == original.start && anchor.end == original.end && anchor.opacity == 1)
+    }
+
+    @Test("Opening to a full turn and moving inward happen together")
+    func expansionAndInwardMotionTogether() throws {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
+        let original = try #require(source.sectors.first { $0.nodeID == "Apps" })
+        var previous = try #require(plan.frames(fade: 1, zoom: 0).first { $0.id == .node("Apps") })
+        for step in 1...10 {
+            let frames = plan.frames(fade: 1, zoom: Double(step) / 10)
+            let anchor = try #require(frames.first { $0.id == .node("Apps") })
+            // Every step both widens the angle and moves the ring toward the center.
+            #expect(anchor.end - anchor.start > previous.end - previous.start)
+            #expect(anchor.outerRadius < previous.outerRadius)
+            #expect(anchor.innerRadius < previous.innerRadius || anchor.innerRadius == 0)
+            previous = anchor
+        }
+        #expect(previous.start == 0 && previous.end == 1)
+        #expect(previous.innerRadius == 0)
+        #expect(previous.outerRadius == ArtifactSunburstNavigation.centerRadius)
+        #expect(previous.opacity == 0)
+        #expect(original.end - original.start < 1)
+    }
+
+    @Test("Descendants move straight to their rings; new levels slide in from the edge")
+    func descendantsAndNewLevels() throws {
+        let snapshot = snapshot()
+        let source = ArtifactSunburstLayout(snapshot: snapshot)
+        let destination = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
+        let plan = try #require(ArtifactSunburstNavigation(source: source, destination: destination, selectedID: "Apps"))
+        let sourceIDs = Set(source.sectors.map(\.id))
+        let added = destination.sectors.filter { !sourceIDs.contains($0.id) }
+        #expect(!added.isEmpty, "the fixture exposes a deeper level")
+        let start = plan.frames(fade: 1, zoom: 0)
+        for sector in added {
+            let frame = try #require(start.first { $0.id == sector.id })
+            #expect(frame.opacity == 0)
+            #expect(frame.outerRadius >= sector.outerRadius, "new rings start outside their target")
+        }
+        let middle = plan.frames(fade: 1, zoom: 0.5)
+        for sector in destination.sectors where sourceIDs.contains(sector.id) {
+            let frame = try #require(middle.first { $0.id == sector.id })
+            let before = try #require(source.sectors.first { $0.id == sector.id })
+            #expect(frame.innerRadius < before.innerRadius, "kept descendants move inward during the zoom")
+            #expect(frame.innerRadius > sector.innerRadius)
+        }
+        try expectMatches(plan.frames(fade: 1, zoom: 1), destination)
     }
 
     @Test("Every animation intermediate has finite angles and bounded radii", arguments: ["Apps", "Apps/Alpha", "Apps/Alpha/.build"])
@@ -58,18 +115,9 @@ struct ArtifactSunburstNavigationTests {
                                                              selectedID: path, direction: direction))
             for step in 0...100 {
                 let t = Double(step) / 100
-                for (fade, expansion, reveal) in [(t, 0.0, 0.0), (1.0, t, 0.0), (1.0, 1.0, t)] {
-                    let frames = plan.frames(fade: fade, expansion: expansion, reveal: reveal)
-                    #expect(Set(frames.map(\.id)).count == frames.count)
-                    for frame in frames {
-                        let finite = [frame.start, frame.end, frame.innerRadius, frame.outerRadius, frame.opacity].allSatisfy(\.isFinite)
-                        #expect(finite)
-                        #expect(frame.start >= 0 && frame.end <= 1 && frame.end > frame.start)
-                        #expect(frame.innerRadius >= 0 && frame.outerRadius <= 1)
-                        #expect(frame.outerRadius >= frame.innerRadius)
-                        #expect(frame.opacity >= 0 && frame.opacity <= 1)
-                    }
-                }
+                expectSafe(plan.frames(fade: t, zoom: 0))
+                expectSafe(plan.frames(fade: 1, zoom: t))
+                expectSafe(plan.frames(fade: 0, zoom: t))
             }
         }
     }
@@ -82,38 +130,23 @@ struct ArtifactSunburstNavigationTests {
         #expect(ArtifactSunburstNavigation(source: source, destination: source, selectedID: "") == nil)
     }
 
-    @Test("Returning contracts the branch before revealing its neighbors")
-    func returnContractsBeforeNeighbors() throws {
+    @Test("Returning zooms out of the center before the neighbors fade back in")
+    func returnMirrorsEntering() throws {
         let snapshot = snapshot()
         let parent = ArtifactSunburstLayout(snapshot: snapshot)
         let child = ArtifactSunburstLayout(snapshot: snapshot, focusID: "Apps")
         let plan = try #require(ArtifactSunburstNavigation(source: child, destination: parent,
                                                          selectedID: "Apps", direction: .ascend))
-        let initial = plan.frames(fade: 0, expansion: 0, reveal: 0).filter { $0.opacity > 0 }
-        #expect(Set(initial.map(\.id)) == Set(child.sectors.map(\.id)))
-        for sector in child.sectors {
-            let frame = try #require(initial.first { $0.id == sector.id })
-            #expect(abs(frame.start - sector.start) < 1e-12)
-            #expect(abs(frame.end - sector.end) < 1e-12)
-            #expect(abs(frame.innerRadius - sector.innerRadius) < 1e-12)
-            #expect(abs(frame.outerRadius - sector.outerRadius) < 1e-12)
-        }
-        let restored = try #require(plan.frames(fade: 1, expansion: 0, reveal: 0).first { $0.id == .node("Apps") })
-        #expect(restored.start == 0 && restored.end == 1 && restored.opacity == 1)
-        let contracted = plan.frames(fade: 1, expansion: 1, reveal: 0)
-        let anchor = try #require(contracted.first { $0.id == .node("Apps") })
+        try expectMatches(plan.frames(fade: 0, zoom: 0), child)
+        let zoomedOut = plan.frames(fade: 0, zoom: 1)
+        let anchor = try #require(zoomedOut.first { $0.id == .node("Apps") })
         let original = try #require(parent.sectors.first { $0.nodeID == "Apps" })
-        #expect(anchor.start == original.start && anchor.end == original.end)
-        #expect(contracted.filter { !$0.isSelectedBranch }.allSatisfy { $0.opacity == 0 })
-        let final = plan.frames(fade: 1, expansion: 1, reveal: 1).filter { $0.opacity > 0 }
-        #expect(Set(final.map(\.id)) == Set(parent.sectors.map(\.id)))
-        for sector in parent.sectors {
-            let frame = try #require(final.first { $0.id == sector.id })
-            #expect(abs(frame.start - sector.start) < 1e-12)
-            #expect(abs(frame.end - sector.end) < 1e-12)
-            #expect(abs(frame.innerRadius - sector.innerRadius) < 1e-12)
-            #expect(abs(frame.outerRadius - sector.outerRadius) < 1e-12)
-        }
+        #expect(abs(anchor.start - original.start) < 1e-12 && abs(anchor.end - original.end) < 1e-12)
+        #expect(abs(anchor.innerRadius - original.innerRadius) < 1e-12)
+        #expect(zoomedOut.filter { !$0.isSelectedBranch }.allSatisfy { $0.opacity == 0 })
+        let early = try #require(plan.frames(fade: 0, zoom: 0.1).first { $0.id == .node("Apps") })
+        #expect(early.outerRadius < original.outerRadius, "the folder grows out of the center")
+        try expectMatches(plan.frames(fade: 1, zoom: 1), parent)
     }
 
     @Test("Deep All artifacts return and grouped Other both have a contraction anchor")
@@ -139,17 +172,22 @@ struct ArtifactSunburstNavigationTests {
         ] {
             for step in 0...100 {
                 let t = Double(step) / 100
-                for (fade, expansion, reveal) in [(t, 0.0, 0.0), (1.0, t, 0.0), (1.0, 1.0, t)] {
-                    for frame in plan.frames(fade: fade, expansion: expansion, reveal: reveal) {
-                        let finite = [frame.start, frame.end, frame.innerRadius, frame.outerRadius, frame.opacity].allSatisfy(\.isFinite)
-                        #expect(finite)
-                        #expect(frame.start >= 0 && frame.end <= 1 && frame.end > frame.start)
-                        #expect(frame.innerRadius >= 0 && frame.outerRadius <= 1 && frame.outerRadius >= frame.innerRadius)
-                        #expect(frame.opacity >= 0 && frame.opacity <= 1)
-                    }
-                }
+                expectSafe(plan.frames(fade: 0, zoom: t))
+                expectSafe(plan.frames(fade: t, zoom: 1))
             }
         }
+    }
+
+    @Test("Palette blending takes the short way around the hue circle")
+    func swatchBlending() {
+        let red = ArtifactSunburstPalette.Swatch(hue: 0.95)
+        let orange = ArtifactSunburstPalette.Swatch(hue: 0.05, saturation: 0.5, brightness: 0.6)
+        #expect(red.blended(with: orange, by: 0) == red)
+        let end = red.blended(with: orange, by: 1)
+        #expect(abs(end.hue - 0.05) < 1e-12 && abs(end.saturation - 0.5) < 1e-12)
+        let middle = red.blended(with: orange, by: 0.5)
+        #expect(middle.hue < 0.01 || middle.hue > 0.99, "crosses 0, not the long way through 0.5")
+        #expect(abs(middle.brightness - 0.74) < 1e-12)
     }
 }
 

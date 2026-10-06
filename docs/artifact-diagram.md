@@ -64,14 +64,16 @@ Color helps orientation, while path labels remain authoritative; very dense repo
 have more branches than easily distinguishable hues.
 
 Size updates and sector insertion/removal preserve Chart identity and use a
-250 ms smooth animation. Entering a visible folder has a deliberate sequence:
-neighbors fade out for 140 ms, the selected branch and its visible descendants
-expand from their current angular interval to the full circle over 460 ms,
-then children move into the inner rings over 180 ms. The same sequence is used
-for chart clicks and sidebar selection. Descents from outer rings are supported.
-Returning with Up, the center, or All artifacts reverses the same geometric path:
-restore the parent branch's rings for 180 ms, contract into its original angular
-interval over 460 ms, then reveal neighbors over 140 ms. All artifacts can skip
+250 ms smooth animation. Entering a visible folder works like DaisyDisk's zoom:
+neighbors fade out for 140 ms, then over 550 ms one motion opens the selected
+sector to a full turn while it sinks into the center disc behind the Up button,
+its visible descendants move straight to their new rings, and newly exposed
+levels slide in from the outer edge. Colors blend from the parent palette to the
+entered folder's palette over the same motion. The same sequence is used for
+chart clicks and sidebar selection. Descents from outer rings are supported.
+Returning with Up, the center, or All artifacts plays the same path backwards:
+the folder grows out of the center into its original angle and ring, then the
+neighbors fade back in. All artifacts can skip
 levels by contracting into the closest visible ancestor. A grouped folder returns
 into its parent's Other sector. The graph and entire sidebar, including filtering
 and Copy path, are locked throughout navigation in both directions.
@@ -161,8 +163,9 @@ ownership, branch color inheritance, stable streaming membership, hover restorat
 absolute paths, and sorting alongside late measurements. UI tests exercise the
 companion window lifecycle, hover preview, center navigation, column-header sorting,
 and copying a real selected folder's full path. Navigation tests check neighbor
-fade, full-circle expansion, destination geometry, newly exposed descendants,
-finite/bounded intermediate angles and radii, and coalescing of measurements
+fade, simultaneous angular opening and inward motion into the center disc,
+descendants moving straight to their rings, new levels sliding in from the edge,
+mirrored return, palette blending, finite/bounded intermediate angles and radii, and coalescing of measurements
 while endpoints are held. UI tests exercise repeated graph clicks, three-level
 descent/return, and empty/nonempty chart transitions, with screenshots.
 A Release performance test measures snapshot/layout/palette preparation and table

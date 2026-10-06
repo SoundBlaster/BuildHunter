@@ -323,11 +323,17 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     }
 }
 
-/// A frozen navigation plan. Scan updates cannot change its geometry midway through
-/// fading neighbors, expanding the selected branch, then revealing the new viewport.
+/// A frozen navigation plan. Scan updates cannot change its geometry midway through.
+/// Entering a folder works like a zoom: neighbors fade, then in one motion the selected
+/// sector opens to a full turn while sinking into the center disc, its descendants move
+/// straight to their new rings, and newly exposed levels slide in from the outer edge.
+/// Returning plays the same path backwards.
 struct ArtifactSunburstNavigation: Sendable {
     enum Direction: Sendable { case descend, ascend }
     let direction: Direction
+
+    /// The disc behind the center button, where an entered folder ends up.
+    static let centerRadius = 0.21
 
     struct Frame: Identifiable, Sendable {
         let id: ArtifactSunburstLayout.Sector.ID
@@ -347,8 +353,19 @@ struct ArtifactSunburstNavigation: Sendable {
         let isSelectedBranch: Bool
     }
 
+    /// Angles and radii at one end of the motion.
+    private struct Geometry {
+        let start: Double
+        let end: Double
+        let inner: Double
+        let outer: Double
+        let depth: Double
+    }
+
     private let anchor: ArtifactSunburstLayout.Sector
     private let entries: [Entry]
+    /// Rings the entered branch moves inward: the anchor's own ring plus the center.
+    private let shift: Int
 
     init?(source: ArtifactSunburstLayout, destination: ArtifactSunburstLayout, selectedID: String,
           direction: Direction = .descend) {
@@ -367,6 +384,7 @@ struct ArtifactSunburstNavigation: Sendable {
               anchor.start.isFinite, anchor.end.isFinite, anchor.end > anchor.start else { return nil }
         self.direction = direction
         self.anchor = anchor
+        shift = anchor.depth + 1
         let branch = anchor.nodeID ?? selectedID
         let destinations = Dictionary(uniqueKeysWithValues: child.sectors.map { ($0.id, $0) })
         var entries = parent.sectors.map { sector in
@@ -381,37 +399,74 @@ struct ArtifactSunburstNavigation: Sendable {
         self.entries = entries
     }
 
-    func frames(fade: Double, expansion: Double, reveal: Double) -> [Frame] {
-        // Reverse the same geometric path, not a separate approximation: restore the
-        // full branch, contract its angles, then fade the parent's neighbors back in.
-        let first = unit(fade), second = unit(expansion), third = unit(reveal)
-        let fade = direction == .descend ? first : 1 - third
-        let expansion = direction == .descend ? second : 1 - second
-        let reveal = direction == .descend ? third : 1 - first
+    /// `fade` and `zoom` each run from 0 to 1 in time order. Entering fades the neighbors,
+    /// then zooms; returning zooms back out, then fades the neighbors in again.
+    func frames(fade: Double, zoom: Double) -> [Frame] {
+        // Both directions share one path, expressed as entering: 0 is the parent view.
+        let hidden = direction == .descend ? unit(fade) : 1 - unit(fade)
+        let progress = direction == .descend ? unit(zoom) : 1 - unit(zoom)
         return entries.map { entry in
-            let destination = entry.destination
-            let source = entry.source
-            let depth = source?.depth ?? min(2, anchor.depth + 1 + (destination?.depth ?? 0))
-            let ring = ArtifactSunburstLayout.Sector(id: entry.id, parentID: "", name: "", bytes: 0,
-                                                   depth: depth, start: 0, end: 1, isPartial: false)
-            let start = source?.start ?? mix(anchor.start, anchor.end, destination?.start ?? 0)
-            let end = source?.end ?? mix(anchor.start, anchor.end, destination?.end ?? 1)
-            let inner = source?.innerRadius ?? ring.innerRadius
-            let outer = source?.outerRadius ?? ring.outerRadius
-            let selected = entry.isSelectedBranch
-            let expandedStart = selected ? unit((start - anchor.start) / (anchor.end - anchor.start)) : start
-            let expandedEnd = selected ? unit((end - anchor.start) / (anchor.end - anchor.start)) : end
-            let growingStart = mix(start, expandedStart, expansion)
-            let growingEnd = mix(end, expandedEnd, expansion)
-            let opacity = source == nil ? reveal : selected ? (destination == nil ? 1 - reveal : 1) : 1 - fade
+            let from = startGeometry(entry)
+            let to = endGeometry(entry, from: from)
+            let opacity: Double = if !entry.isSelectedBranch {
+                1 - hidden
+            } else if entry.source == nil {
+                progress
+            } else if entry.destination == nil {
+                1 - progress
+            } else {
+                1
+            }
             return Frame(id: entry.id,
-                         start: mix(growingStart, destination?.start ?? expandedStart, reveal),
-                         end: mix(growingEnd, destination?.end ?? expandedEnd, reveal),
-                         innerRadius: mix(inner, destination?.innerRadius ?? inner, reveal),
-                         outerRadius: mix(outer, destination?.outerRadius ?? inner, reveal),
-                         opacity: opacity, depth: mix(Double(depth), Double(destination?.depth ?? depth), reveal),
-                         isSelectedBranch: selected)
+                         start: mix(from.start, to.start, progress),
+                         end: mix(from.end, to.end, progress),
+                         innerRadius: mix(from.inner, to.inner, progress),
+                         outerRadius: mix(from.outer, to.outer, progress),
+                         opacity: opacity,
+                         depth: mix(from.depth, to.depth, progress),
+                         isSelectedBranch: entry.isSelectedBranch)
         }
+    }
+
+    /// The parent view. A newly exposed descendant waits beyond the outer edge, inside the
+    /// angle of the selected sector, so it slides in as the branch moves inward.
+    private func startGeometry(_ entry: Entry) -> Geometry {
+        if let source = entry.source { return geometry(source) }
+        let destination = entry.destination!
+        return ring(Double(destination.depth + shift),
+                    start: mix(anchor.start, anchor.end, destination.start),
+                    end: mix(anchor.start, anchor.end, destination.end))
+    }
+
+    /// The child view. The selected sector without a slot of its own becomes the center
+    /// disc; other branch sectors without a slot keep moving with their ring and fade.
+    private func endGeometry(_ entry: Entry, from: Geometry) -> Geometry {
+        if let destination = entry.destination { return geometry(destination) }
+        guard entry.isSelectedBranch, let source = entry.source else { return from }
+        if entry.id == anchor.id {
+            return Geometry(start: 0, end: 1, inner: 0, outer: Self.centerRadius, depth: 0)
+        }
+        let span = anchor.end - anchor.start
+        return ring(Double(max(0, source.depth - shift)),
+                    start: unit((source.start - anchor.start) / span),
+                    end: unit((source.end - anchor.start) / span))
+    }
+
+    private func geometry(_ sector: ArtifactSunburstLayout.Sector) -> Geometry {
+        Geometry(start: sector.start, end: sector.end, inner: sector.innerRadius,
+                 outer: sector.outerRadius, depth: Double(sector.depth))
+    }
+
+    /// A ring by depth, as in the layout; rings past the plot collapse onto its edge.
+    private func ring(_ depth: Double, start: Double, end: Double) -> Geometry {
+        let template = ArtifactSunburstLayout.Sector(id: .other(""), parentID: "", name: "", bytes: 0,
+                                                     depth: 0, start: 0, end: 1, isPartial: false)
+        let step = ArtifactSunburstLayout.Sector(id: .other(""), parentID: "", name: "", bytes: 0,
+                                                 depth: 1, start: 0, end: 1, isPartial: false).innerRadius
+            - template.innerRadius
+        let inner = min(1, template.innerRadius + depth * step)
+        let outer = min(1, inner + template.outerRadius - template.innerRadius)
+        return Geometry(start: start, end: end, inner: inner, outer: outer, depth: depth)
     }
 
     private func unit(_ value: Double) -> Double { value.isFinite ? min(1, max(0, value)) : 0 }
@@ -429,6 +484,17 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
         var brightness: Double = 0.88
 
         static let other = Swatch(hue: 0, saturation: 0, brightness: 0.55)
+
+        /// Blends toward `target` along the shorter way around the hue circle.
+        func blended(with target: Swatch, by progress: Double) -> Swatch {
+            let t = progress.isFinite ? min(1, max(0, progress)) : 0
+            var delta = (target.hue - hue).truncatingRemainder(dividingBy: 1)
+            if delta > 0.5 { delta -= 1 } else if delta < -0.5 { delta += 1 }
+            let blendedHue = (hue + delta * t).truncatingRemainder(dividingBy: 1)
+            return Swatch(hue: blendedHue < 0 ? blendedHue + 1 : blendedHue,
+                          saturation: saturation + (target.saturation - saturation) * t,
+                          brightness: brightness + (target.brightness - brightness) * t)
+        }
     }
 
     struct Scope: Hashable, Sendable {

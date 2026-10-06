@@ -10,8 +10,7 @@ struct ArtifactDiagramWindow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var navigation: DiagramNavigationPresentation?
     @State private var fade = 0.0
-    @State private var expansion = 0.0
-    @State private var reveal = 0.0
+    @State private var zoom = 0.0
 
     init(scan: WindowScanModel, diagram: ArtifactDiagramModel = ArtifactDiagramModel()) {
         self.scan = scan
@@ -30,7 +29,7 @@ struct ArtifactDiagramWindow: View {
                                           isScanning: scan.isScanning, statistics: diagram.focus.statistics,
                                           focusID: diagram.focusID, reportID: scan.reportID,
                                           canNavigateUp: diagram.canNavigateUp,
-                                          navigation: navigation, fade: fade, expansion: expansion, reveal: reveal,
+                                          navigation: navigation, fade: fade, zoom: zoom,
                                           goUp: { navigate(to: diagram.focus.parentID ?? "") },
                                           hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
                         navigate(to: sector.nodeID ?? sector.parentID)
@@ -52,7 +51,7 @@ struct ArtifactDiagramWindow: View {
         .navigationTitle("\(scan.targetName ?? "BuildHunter") — Artifact Diagram")
         .task { await diagram.follow(scan) }
         .task(id: navigation?.id) {
-            if let token = navigation?.id { fadeNeighbors(token: token) }
+            if let token = navigation?.id { startNavigation(token: token) }
         }
         .onChange(of: scan.reportID) { cancelNavigation() }
         .onChange(of: reduceMotion) { if reduceMotion { cancelNavigation() } }
@@ -82,41 +81,45 @@ struct ArtifactDiagramWindow: View {
                                                      selectedID: selectedID, direction: direction) {
                 navigation = DiagramNavigationPresentation(plan: plan, sourcePalette: palette, destinationPalette: diagram.palette)
                 diagram.setNavigationTransitionActive(true)
-                fade = 0; expansion = 0; reveal = 0
+                fade = 0; zoom = 0
             }
         }
     }
 
-    private func fadeNeighbors(token: UUID) {
+    /// Entering fades the neighbors, then zooms in one motion; returning zooms back out,
+    /// then fades the neighbors in. Each step checks the token so a cancelled
+    /// transition never starts its next phase.
+    private func startNavigation(token: UUID) {
         guard navigation?.id == token else { return }
-        let ascending = navigation?.plan.direction == .ascend
-        recordNavigationPhase(ascending ? "restore-branch" : "fade")
-        withAnimation(.easeOut(duration: ascending ? 0.18 : 0.14), completionCriteria: .removed) {
+        if navigation?.plan.direction == .ascend {
+            runZoom(token: token) { runFade(token: token) { finishNavigation(token: token) } }
+        } else {
+            runFade(token: token) { runZoom(token: token) { finishNavigation(token: token) } }
+        }
+    }
+
+    private func runFade(token: UUID, then next: @escaping () -> Void) {
+        guard navigation?.id == token else { return }
+        recordNavigationPhase("fade")
+        withAnimation(.easeOut(duration: 0.14), completionCriteria: .removed) {
             fade = 1
         } completion: {
-            expandBranch(token: token)
+            next()
         }
     }
 
-    private func expandBranch(token: UUID) {
+    private func runZoom(token: UUID, then next: @escaping () -> Void) {
         guard navigation?.id == token else { return }
-        recordNavigationPhase(navigation?.plan.direction == .ascend ? "contract" : "expand")
-        withAnimation(.smooth(duration: 0.46), completionCriteria: .removed) {
-            expansion = 1
+        recordNavigationPhase("zoom")
+        withAnimation(.smooth(duration: 0.55), completionCriteria: .removed) {
+            zoom = 1
         } completion: {
-            revealChildren(token: token)
+            next()
         }
     }
 
-    private func revealChildren(token: UUID) {
-        guard navigation?.id == token else { return }
-        let ascending = navigation?.plan.direction == .ascend
-        recordNavigationPhase(ascending ? "reveal-neighbors" : "reveal")
-        withAnimation(.easeInOut(duration: ascending ? 0.14 : 0.18), completionCriteria: .removed) {
-            reveal = 1
-        } completion: {
-            if navigation?.id == token { cancelNavigation() }
-        }
+    private func finishNavigation(token: UUID) {
+        if navigation?.id == token { cancelNavigation() }
     }
 
     private func cancelNavigation() {
@@ -126,7 +129,7 @@ struct ArtifactDiagramWindow: View {
         withTransaction(transaction) {
             navigation = nil
             diagram.setNavigationTransitionActive(false)
-            fade = 0; expansion = 0; reveal = 0
+            fade = 0; zoom = 0
         }
     }
 
@@ -180,8 +183,7 @@ private struct ArtifactSunburstChart: View {
     var canNavigateUp = false
     var navigation: DiagramNavigationPresentation?
     var fade = 0.0
-    var expansion = 0.0
-    var reveal = 0.0
+    var zoom = 0.0
     var goUp: () -> Void = {}
     var hover: (ArtifactSunburstLayout.Sector?) -> Void = { _ in }
     let select: (ArtifactSunburstLayout.Sector) -> Void
@@ -223,8 +225,7 @@ private struct ArtifactSunburstChart: View {
                                 let centerDiameter = min(frame.width, frame.height) * 0.21
                                 ZStack(alignment: .topLeading) {
                                     if let navigation {
-                                        DiagramNavigationLayer(presentation: navigation, fade: fade,
-                                                               expansion: expansion, reveal: reveal)
+                                        DiagramNavigationLayer(presentation: navigation, fade: fade, zoom: zoom)
                                             .frame(width: frame.width, height: frame.height)
                                             .position(x: frame.midX, y: frame.midY)
                                             .allowsHitTesting(false)
@@ -387,10 +388,12 @@ private struct DiagramNavigationPresentation: Identifiable {
     let sourcePalette: ArtifactSunburstPalette
     let destinationPalette: ArtifactSunburstPalette
 
-    func color(for frame: ArtifactSunburstNavigation.Frame, reveal: Double) -> Color {
+    /// Colors blend from the palette before navigation to the one after it as the zoom runs.
+    func color(for frame: ArtifactSunburstNavigation.Frame, zoom: Double) -> Color {
         guard case .node(let path) = frame.id else { return diagramColor(.other) }
         let source = sourcePalette.color(for: path) ?? .other
-        return diagramColor(reveal == 0 ? source : destinationPalette.color(for: path) ?? source)
+        let destination = destinationPalette.color(for: path) ?? source
+        return diagramColor(source.blended(with: destination, by: zoom))
     }
 }
 
@@ -399,18 +402,17 @@ private struct DiagramNavigationPresentation: Identifiable {
 private struct DiagramNavigationLayer: View {
     let presentation: DiagramNavigationPresentation
     let fade: Double
-    let expansion: Double
-    let reveal: Double
+    let zoom: Double
 
     var body: some View {
         GeometryReader { geometry in
             let radius = min(geometry.size.width, geometry.size.height) / 2
             ZStack {
-                ForEach(presentation.plan.frames(fade: fade, expansion: expansion, reveal: reveal)) { frame in
+                ForEach(presentation.plan.frames(fade: fade, zoom: zoom)) { frame in
                     DiagramNavigationSector(start: frame.start, end: frame.end,
                                             inner: frame.innerRadius, outer: frame.outerRadius,
                                             inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
-                        .fill(presentation.color(for: frame, reveal: presentation.plan.direction == .ascend ? fade : reveal))
+                        .fill(presentation.color(for: frame, zoom: zoom))
                         .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
                 }
             }
