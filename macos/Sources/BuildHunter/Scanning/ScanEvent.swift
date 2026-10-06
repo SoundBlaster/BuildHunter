@@ -30,13 +30,14 @@ enum ScanTerminalResult: Equatable, Sendable {
 enum ScanEvent: Sendable {
     case discovered(generation: UInt64, artifact: ScanArtifact)
     case completed(generation: UInt64, artifactID: UUID, bytes: Int64, partial: Bool = false)
+    case profile(generation: UInt64, sample: ScanProfileSnapshot)
     case warning(generation: UInt64, message: String)
     case finished(generation: UInt64, result: ScanTerminalResult)
 
     var generation: UInt64 {
         switch self {
         case .discovered(let generation, _), .completed(let generation, _, _, _),
-             .warning(let generation, _), .finished(let generation, _): generation
+             .warning(let generation, _), .profile(let generation, _), .finished(let generation, _): generation
         }
     }
 }

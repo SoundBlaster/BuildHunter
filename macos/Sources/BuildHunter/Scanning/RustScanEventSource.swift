@@ -26,6 +26,7 @@ final class RustScanEventSource: ScanEventSource {
             return channel.makeStream(onClose: {})
         }
 
+        bh_scan_control_set_profiling(control, 1)
         let job = RustScanJob(control: control, channel: channel)
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
@@ -304,6 +305,15 @@ final class RustScanBridgeContext: @unchecked Sendable {
             ))
         case 4:
             finish(status: value.status)
+        case 5:
+            if let sample = value.profile?.pointee {
+                // Copy every borrowed counter before returning to Rust.
+                yield(.profile(generation: generation, sample: ScanProfileSnapshot(
+                    elapsedMicroseconds: sample.elapsed_us, entries: sample.entries,
+                    directories: sample.directories, measuredBytes: sample.measured_bytes,
+                    artifacts: sample.artifacts, warnings: sample.warnings, pendingTasks: sample.pending_tasks
+                )))
+            }
         default:
             yield(.warning(generation: generation, message: "Rust scanner emitted an unknown event."))
         }

@@ -141,6 +141,7 @@ struct BuildHunterWindow: View {
                 .foregroundStyle(.orange)
                 .nestedAccessibilityIdentifier("warnings")
             }
+            ScanProfilePanel(profile: model.profile, isScanning: model.isScanning)
             ArtifactReportTable(scan: model)
         }
         .padding(18)

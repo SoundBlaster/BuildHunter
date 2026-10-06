@@ -27,6 +27,27 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertEqual((persisted.value as? NSNumber)?.intValue, 1)
     }
 
+    func testScanProfilePanelExpandsAndCollapses() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let window = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: 5))
+        selectMockState("results", in: window, app: app)
+        let chart = app.descendants(matching: .any)
+            .matching(identifier: "buildhunter.report.profile.chart").firstMatch
+        XCTAssertFalse(chart.exists, "The profile panel starts collapsed")
+        let disclosure = app.descendants(matching: .any)
+            .matching(identifier: "buildhunter.report.profile").firstMatch
+        XCTAssertTrue(disclosure.waitForExistence(timeout: 5))
+        disclosure.click()
+        XCTAssertTrue(chart.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average"].exists)
+        XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
+        attachScreenshot(named: "scan-profile-completed", from: app)
+        disclosure.click()
+        XCTAssertFalse(chart.exists)
+    }
+
     private func openSettings(_ app: XCUIApplication) {
         app.activate()
         app.menuBars.menuBarItems["BuildHunter"].click()

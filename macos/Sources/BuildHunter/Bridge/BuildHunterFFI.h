@@ -22,6 +22,17 @@ typedef struct BHCandidateDecision {
 
 enum { BH_POLICY_TABLE_VERSION = 1, BH_POLICY_TABLE_CELL_COUNT = 4609 };
 
+/* Cumulative counters; bytes are artifact metadata sizes, not disk reads. */
+typedef struct BHScanProfileSample {
+    uint64_t elapsed_us;
+    uint64_t entries;
+    uint64_t directories;
+    uint64_t measured_bytes;
+    uint64_t artifacts;
+    uint64_t warnings;
+    uint64_t pending_tasks;
+} BHScanProfileSample;
+
 typedef struct BHScanEvent {
     uint32_t event_type;
     uint64_t artifact_id;
@@ -34,6 +45,7 @@ typedef struct BHScanEvent {
     uint32_t status;
     const uint8_t *message;
     size_t message_len;
+    const BHScanProfileSample *profile;
 } BHScanEvent;
 
 typedef int32_t (*BHPolicyCallback)(void *context, const BHCandidateFacts *facts,
@@ -43,7 +55,7 @@ typedef void (*BHEventCallback)(void *context, const BHScanEvent *event);
 /* The policy callback writes action 0 (traverse), 1 (prune), or 2 (classify).
  * Returning 0 or an unknown action fails the scan and stops traversal. Any
  * artifact still being measured gets a partial completion before the terminal event.
- * Event types: 1 discovered, 2 measured, 3 warning, 4 finished.
+ * Event types: 1 discovered, 2 measured, 3 warning, 4 finished, 5 profile (profile pointer set).
  * Terminal status / bh_scan result: 0 complete, 1 cancelled, 2 incomplete, 3 failed.
  * Callbacks run serially on the calling thread; all payload pointers are borrowed
  * until the callback returns. Keep the callback context alive until bh_scan returns.
@@ -58,6 +70,9 @@ void *bh_scan_control_create(void);
 /* Cancellation is thread-safe. Destroy the control only after bh_scan returns;
  * serialize destruction with cancellation so no caller uses a destroyed handle.
  */
+/* Opt-in before starting a scan. Emits cumulative snapshots every ~250 ms,
+ * plus initial and terminal snapshots. Default disabled. */
+void bh_scan_control_set_profiling(void *control, uint8_t enabled);
 void bh_scan_control_cancel(void *control);
 void bh_scan_control_destroy(void *control);
 int32_t bh_scan(void *control, const uint8_t *root, size_t root_len,

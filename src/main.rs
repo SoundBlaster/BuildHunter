@@ -1,3 +1,4 @@
+mod profile_report;
 use build_hunter::{ScanControl, ScanOptions, rust_cli_policy, scan_with_policy};
 use std::{collections::BTreeSet, env, fs, path::PathBuf, process, time::Instant};
 
@@ -86,12 +87,13 @@ fn main() {
     let mut list_filters = false;
     let mut exclusions = BTreeSet::new();
     let mut root = None;
+    let mut profile_path = None;
     let mut args = env::args_os().skip(1);
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
                 println!(
-                    "build-hunter [PATH] [--language all|swift|rust|python] [--exclude ID[,ID...]] [--list-filters] [--json] [--apparent] [--include-envs]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\nExclusions select recognized roots; nested artifacts remain discoverable.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
+                    "build-hunter [PATH] [--language all|swift|rust|python] [--exclude ID[,ID...]] [--list-filters] [--json] [--apparent] [--include-envs] [--profile FILE]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\n--profile FILE saves throughput counters and rates as JSON; FILE must not exist.\nMeasured bytes/s describes metadata sizing, not disk reads.\nExclusions select recognized roots; nested artifacts remain discoverable.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
                 );
                 return;
             }
@@ -124,6 +126,16 @@ fn main() {
                     .and_then(|v| v.into_string().ok())
                     .unwrap_or_default();
             }
+            Some("--profile") => {
+                let Some(path) = args
+                    .next()
+                    .filter(|value| !value.to_string_lossy().starts_with('-') && !value.is_empty())
+                else {
+                    eprintln!("--profile requires an output file path");
+                    process::exit(2);
+                };
+                profile_path = Some(PathBuf::from(path));
+            }
             Some("--json") => json = true,
             Some("--apparent") => apparent = true,
             Some("--include-envs") => environments = true,
@@ -149,8 +161,18 @@ fn main() {
             process::exit(2);
         }
     };
+    // Fail fast for existing paths, but create only after scanning so the output
+    // cannot affect artifact sizes when it is saved inside the selected tree.
+    if let Some(path) = &profile_path
+        && fs::symlink_metadata(path).is_ok()
+    {
+        eprintln!("Profile output already exists: {}", path.display());
+        process::exit(2);
+    }
+    let mut profile = profile_report::ProfileReport::default();
     let start = Instant::now();
     let control = ScanControl::new();
+    control.set_profiling(profile_path.is_some());
     let report = scan_with_policy(
         &root,
         ScanOptions {
@@ -177,8 +199,46 @@ fn main() {
                 other => other,
             }
         },
-        |_| {},
+        |event| {
+            if let build_hunter::ScanEvent::Profile(sample) = event {
+                profile.record(*sample);
+            }
+        },
     );
+    if let Some(path) = &profile_path {
+        use std::io::Write;
+        // create_new also protects a report created by another process during the scan.
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)
+            .unwrap_or_else(|error| {
+                eprintln!("Could not create profile {}: {error}", path.display());
+                process::exit(2);
+            });
+        let status = match report.status {
+            build_hunter::ScanStatus::Completed => "completed",
+            build_hunter::ScanStatus::Cancelled => "cancelled",
+            build_hunter::ScanStatus::Incomplete => "incomplete",
+            build_hunter::ScanStatus::Failed => "failed",
+        };
+        let size_mode = if apparent || !cfg!(unix) {
+            "apparent"
+        } else {
+            "allocated"
+        };
+        if let Err(error) = file
+            .write_all(
+                profile
+                    .json(&root.to_string_lossy(), status, size_mode)
+                    .as_bytes(),
+            )
+            .and_then(|_| file.flush())
+        {
+            eprintln!("Could not write profile: {error}");
+            process::exit(2);
+        }
+    }
     let mut rows = report.artifacts;
     rows.sort_by(|a, b| {
         b.bytes

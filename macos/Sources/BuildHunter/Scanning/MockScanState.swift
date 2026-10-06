@@ -55,6 +55,16 @@ enum MockScanState: String, CaseIterable, Identifiable {
         self == .incomplete ? ["Permission denied while reading Demo Workspace/Private/.build."] : []
     }
 
+    var profileSamples: [ScanProfileSnapshot] {
+        guard self != .empty else { return [] }
+        return (0...40).map { index in
+            ScanProfileSnapshot(elapsedMicroseconds: UInt64(index) * 250_000,
+                entries: UInt64(index * index * 50), directories: UInt64(index * 15),
+                measuredBytes: UInt64(index * index) * 1_000_000,
+                artifacts: UInt64(min(index, 3)), warnings: UInt64(warnings.count), pendingTasks: 0)
+        }
+    }
+
     var terminalResult: ScanTerminalResult? {
         switch self {
         case .empty, .scanning: nil

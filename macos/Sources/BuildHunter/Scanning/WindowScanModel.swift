@@ -9,6 +9,7 @@ final class WindowScanModel {
     private(set) var targetURL: URL?
     private(set) var rows: [ScanRow] = []
     private(set) var warnings: [String] = []
+    private(set) var profile = ScanProfileHistory()
     private(set) var generation: UInt64 = 0
     private(set) var phase: ScanPhase = .idle
     var isScanning: Bool { phase == .scanning }
@@ -65,6 +66,9 @@ final class WindowScanModel {
         for warning in mockState.warnings {
             apply(.warning(generation: activeGeneration, message: warning))
         }
+        for sample in mockState.profileSamples {
+            apply(.profile(generation: activeGeneration, sample: sample))
+        }
         if let terminalResult = mockState.terminalResult {
             apply(.finished(generation: activeGeneration, result: terminalResult))
         }
@@ -104,6 +108,8 @@ final class WindowScanModel {
             guard rows[index].size == .measuring else { return }
             rows[index].size = partial ? .partial(bytes) : .measured(bytes)
             reportRevision &+= 1
+        case .profile(_, let sample):
+            profile.record(sample)
         case .warning(_, let message):
             appendWarning(message)
         case .finished(_, let result):
@@ -130,6 +136,7 @@ final class WindowScanModel {
     private func clearReport() {
         reportID = UUID()
         rows = []
+        profile = ScanProfileHistory()
         rowIndices = [:]
         warnings = []
         warningSet = []

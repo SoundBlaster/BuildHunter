@@ -52,6 +52,7 @@ targets:
           - "$(SRCROOT)/../Cargo.lock"
           - "$(SRCROOT)/../src/lib.rs"
           - "$(SRCROOT)/../src/policy_table.rs"
+          - "$(SRCROOT)/../src/profile.rs"
         outputFiles:
           - "$(SRCROOT)/../target/aarch64-apple-darwin/release/libbuild_hunter.a"
   BuildHunterTests:
