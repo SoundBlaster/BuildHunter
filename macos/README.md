@@ -39,7 +39,9 @@ Unsigned build/unit-test evidence does not establish signed sandbox behavior. Op
 The right of the report window's status bar shows a CPU-history style bar chart
 of recent entries/s: one bar per interval, newest on the right, moving left while
 scanning and kept after completion. Click it to inspect throughput in a popover.
-Choose entries/s or measured bytes/s; current, average, peak and elapsed time
+A second line with a gradient fill shows the total found volume (cumulative
+measured bytes) on the trailing axis. Choose entries/s or measured bytes/s for the
+rate line; current, average, peak and elapsed time
 remain available after completion. Byte throughput describes metadata sizing,
 not disk reads. History is bounded to 600 intervals; lifetime statistics remain
 intact. Mock scanning/completed/stopped states include deterministic profile

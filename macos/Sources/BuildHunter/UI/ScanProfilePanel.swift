@@ -89,6 +89,11 @@ struct ScanProfilePanel: View {
     }
 
     var body: some View {
+        // Computed once per render; the chart reads them for every point.
+        let rateTop = max(1, profile.points.map(rate).max() ?? 0)
+        // Found volume is cumulative, so the newest point is the largest.
+        let foundTop = max(1, Double(profile.points.last?.measuredBytes ?? 0))
+        let foundScale = rateTop / foundTop
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Picker("Throughput", selection: $metric) {
@@ -109,21 +114,46 @@ struct ScanProfilePanel: View {
                 statistic("Average", value: average)
                 statistic("Peak", value: peak)
             }
+            HStack(spacing: 16) {
+                legend(metric.rawValue, color: Self.rateColor)
+                legend("Found volume", color: Self.foundColor)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
             Chart(profile.points) { point in
-                AreaMark(x: .value("Elapsed seconds", point.seconds), y: .value(metric.rawValue, rate(point)))
-                    .foregroundStyle(.blue.opacity(0.15))
-                LineMark(x: .value("Elapsed seconds", point.seconds), y: .value(metric.rawValue, rate(point)))
-                    .foregroundStyle(.blue)
+                // Total found volume shares the plot; the trailing axis labels it in bytes.
+                AreaMark(x: .value("Elapsed seconds", point.seconds),
+                         y: .value("Found volume", Double(point.measuredBytes) * foundScale))
+                    .foregroundStyle(LinearGradient(colors: [Self.foundColor.opacity(0.35),
+                                                             Self.foundColor.opacity(0.02)],
+                                                    startPoint: .top, endPoint: .bottom))
+                LineMark(x: .value("Elapsed seconds", point.seconds),
+                         y: .value("Found volume", Double(point.measuredBytes) * foundScale),
+                         series: .value("Series", "Found volume"))
+                    .foregroundStyle(Self.foundColor)
+                    .accessibilityLabel("Found volume at \(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
+                    .accessibilityValue(bytesLabel(Double(point.measuredBytes)))
+                LineMark(x: .value("Elapsed seconds", point.seconds),
+                         y: .value(metric.rawValue, rate(point)),
+                         series: .value("Series", "Rate"))
+                    .foregroundStyle(Self.rateColor)
                     .accessibilityLabel("\(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
                     .accessibilityValue(formatted(rate(point)))
             }
-            .chartYScale(domain: 0...max(1, profile.points.map(rate).max() ?? 0))
+            .chartYScale(domain: 0...rateTop)
             .chartXAxisLabel("Elapsed seconds")
             .chartYAxis {
                 AxisMarks(position: .leading) { value in
                     AxisGridLine()
                     AxisValueLabel {
                         if let number = value.as(Double.self) { Text(formatted(number)) }
+                    }
+                }
+                AxisMarks(position: .trailing, values: [0, rateTop / 2, rateTop]) { value in
+                    AxisValueLabel {
+                        if let number = value.as(Double.self) {
+                            Text(bytesLabel(number / foundScale))
+                        }
                     }
                 }
             }
@@ -152,6 +182,23 @@ struct ScanProfilePanel: View {
     }
 
     private var sampleAnimation: Animation? { reduceMotion ? nil : .linear(duration: 0.1) }
+
+    private static let rateColor = Color.blue
+    private static let foundColor = Color.green
+
+    private func bytesLabel(_ bytes: Double) -> String {
+        // Clamp before converting: Double(UInt64.max) does not fit back into an integer.
+        let clamped = min(max(0, bytes), Double(Int64.max / 2))
+        return ByteCountFormatter.string(fromByteCount: Int64(clamped), countStyle: .binary)
+    }
+
+    private func legend(_ title: String, color: Color) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            Circle().fill(color).frame(width: 7, height: 7)
+        }
+    }
 
     private var current: Double { profile.points.last.map(rate) ?? 0 }
     private var average: Double { metric == .entries ? profile.averageEntriesPerSecond : profile.averageBytesPerSecond }

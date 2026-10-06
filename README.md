@@ -118,7 +118,9 @@ between adjacent cumulative snapshots, avoiding division by zero.
 The macOS main window shows a mini bar chart of recent entries/s at the right of
 its status bar. Bars move from right to left while scanning and stay after the
 scan finishes; clicking the chart opens a popover with entries/s or measured bytes/s, current/average/peak rates, elapsed time,
-counters, and a live chart of the latest 600 intervals (about one minute).
+counters, and a live chart of the latest 600 intervals (about one minute). A second
+line with a gradient fill shows the total found volume (cumulative measured bytes),
+labelled on the chart's trailing axis.
 Collecting samples does not depend on whether the popover is open. Stop keeps
 the profile and shows current speed as zero. Rescan/replacing the folder resets
 it and rejects stale events. Profiles are kept only for the current window.
