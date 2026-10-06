@@ -11,6 +11,10 @@ packages:
   NestedA11yIDs:
     url: https://github.com/SoundBlaster/NestedA11yIDs.git
     from: 1.0.0
+  # Pilot: Debug-only animation traces (BUILDHUNTER_SCREENER=1).
+  Screener:
+    url: https://github.com/SoundBlaster/Screener.git
+    revision: 4df92367fc04be039fdcfa9fe40e42f9df29a1e6
 targets:
   BuildHunter:
     type: application
@@ -44,6 +48,8 @@ targets:
         product: SpecificationCore
       - package: NestedA11yIDs
         product: NestedA11yIDs
+      - package: Screener
+        product: ScreenerKit
     preBuildScripts:
       - name: Build Rust scanner (Apple Silicon)
         script: bash "${SRCROOT}/../scripts/build-rust-macos.sh"

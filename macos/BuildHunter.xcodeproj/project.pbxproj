@@ -36,6 +36,7 @@
 		DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */; };
 		E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B58340DBC91862752743D7 /* ScanEvent.swift */; };
 		E5BE11BE7273D4EAFFE06E47 /* NestedA11yIDs in Frameworks */ = {isa = PBXBuildFile; productRef = 350BA0250A13F735F168EA0F /* NestedA11yIDs */; };
+		5C3EE0A1B2C3D4E5F6071801 /* ScreenerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3EE0A1B2C3D4E5F6071802 /* ScreenerKit */; };
 		EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */; };
 		F60DE588B31B83267DD5B91A /* ArtifactDiagramWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */; };
 		FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */; };
@@ -123,6 +124,7 @@
 			files = (
 				33F97AD915EA2A1D798C7933 /* SpecificationCore in Frameworks */,
 				E5BE11BE7273D4EAFFE06E47 /* NestedA11yIDs in Frameworks */,
+				5C3EE0A1B2C3D4E5F6071801 /* ScreenerKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,6 +298,7 @@
 			packageProductDependencies = (
 				CD515261407E62AB7380C8F1 /* SpecificationCore */,
 				350BA0250A13F735F168EA0F /* NestedA11yIDs */,
+				5C3EE0A1B2C3D4E5F6071802 /* ScreenerKit */,
 			);
 			productName = BuildHunter;
 			productReference = C404E32AE24EC6E7D5F08472 /* BuildHunter.app */;
@@ -385,6 +388,7 @@
 			packageReferences = (
 				2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */,
 				0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */,
+				5C3EE0A1B2C3D4E5F6071803 /* XCRemoteSwiftPackageReference "Screener" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C60D92D82FB237BAA56C18F1 /* Products */;
@@ -894,6 +898,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		5C3EE0A1B2C3D4E5F6071803 /* XCRemoteSwiftPackageReference "Screener" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SoundBlaster/Screener.git";
+			requirement = {
+				kind = revision;
+				revision = 4df92367fc04be039fdcfa9fe40e42f9df29a1e6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -916,6 +928,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0CA4FF173251AD7ACCB8C4A3 /* XCRemoteSwiftPackageReference "SpecificationCore" */;
 			productName = SpecificationCore;
+		};
+		5C3EE0A1B2C3D4E5F6071802 /* ScreenerKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C3EE0A1B2C3D4E5F6071803 /* XCRemoteSwiftPackageReference "Screener" */;
+			productName = ScreenerKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

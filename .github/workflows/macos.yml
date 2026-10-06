@@ -21,6 +21,16 @@ jobs:
           xcode-version: '26.6'
       - name: Build and test
         run: bash scripts/ci/macos.sh test
+      - name: Collect Screener traces
+        if: always()
+        # Pilot: the unsigned test build is not sandboxed, so traces land in the user Caches.
+        run: |
+          mkdir -p macos/.build/ci/screener-traces
+          for root in "$HOME/Library/Caches/Screener/Traces" \
+                      "$HOME/Library/Containers/dev.buildhunter.app/Data/Library/Caches/Screener/Traces"; do
+            if [ -d "$root" ]; then cp -R "$root"/. macos/.build/ci/screener-traces/; fi
+          done
+          find macos/.build/ci/screener-traces -maxdepth 2 | head -20
       - name: Publish test evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -31,6 +41,7 @@ jobs:
             macos/.build/ci/test-summary.json
             macos/.build/ci/test.log
             macos/.build/ci/ui-screenshots
+            macos/.build/ci/screener-traces
           if-no-files-found: warn
           retention-days: 7
   performance:

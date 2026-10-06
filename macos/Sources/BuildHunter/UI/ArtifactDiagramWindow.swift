@@ -3,6 +3,9 @@ import SwiftUI
 import Charts
 import OSLog
 import NestedA11yIDs
+#if DEBUG
+import ScreenerKit
+#endif
 
 struct ArtifactDiagramWindow: View {
     let scan: WindowScanModel
@@ -69,6 +72,7 @@ struct ArtifactDiagramWindow: View {
         }
         let source = diagram.layout
         let palette = diagram.palette
+        let sourceFocus = diagram.focusID
         let selectedID = ascending ? diagram.focusID : path
         let direction: ArtifactSunburstNavigation.Direction = ascending ? .ascend : .descend
         // The normal Chart receives the final layout without interpolating navigation.
@@ -80,6 +84,15 @@ struct ArtifactDiagramWindow: View {
             if let plan = ArtifactSunburstNavigation(source: source, destination: diagram.layout,
                                                      selectedID: selectedID, direction: direction) {
                 navigation = DiagramNavigationPresentation(plan: plan, sourcePalette: palette, destinationPalette: diagram.palette)
+#if DEBUG
+                // Folder depths only; traces never carry folder names.
+                DiagramTraceRecorder.shared?.mark("navigation.begin", [
+                    "direction": ascending ? "ascend" : "descend",
+                    "fromDepth": "\(sourceFocus.isEmpty ? 0 : sourceFocus.split(separator: "/").count)",
+                    "toDepth": "\(path.isEmpty ? 0 : path.split(separator: "/").count)",
+                ])
+                DiagramTraceRecorder.shared?.capture(for: 2)
+#endif
                 diagram.setNavigationTransitionActive(true)
                 fade = 0; zoom = 0
             }
@@ -123,7 +136,13 @@ struct ArtifactDiagramWindow: View {
     }
 
     private func cancelNavigation() {
-        if navigation != nil { recordNavigationPhase("finished-or-cancelled") }
+        if navigation != nil {
+            recordNavigationPhase("finished-or-cancelled")
+#if DEBUG
+            // Keep recording after the overlay hands over to the chart.
+            DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
+        }
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         withTransaction(transaction) {
@@ -136,6 +155,7 @@ struct ArtifactDiagramWindow: View {
     private func recordNavigationPhase(_ phase: String) {
 #if DEBUG
         Logger(subsystem: "BuildHunter", category: "ChartNavigation").notice("ChartNavigation phase=\(phase, privacy: .public)")
+        DiagramTraceRecorder.shared?.mark("navigation.\(phase)")
 #endif
     }
 }
@@ -336,6 +356,11 @@ private struct ArtifactSunburstChart: View {
             return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=0"
         }.joined(separator: ";")
         logger.notice("ChartInput size=\(size.width)x\(size.height) sectors=\(layout.sectors.count) invalid=\(invalid) reduceMotion=\(reduceMotion)")
+        DiagramTraceRecorder.shared?.mark("chart.layout", [
+            "sectors": "\(layout.sectors.count)",
+            "rings": "\((layout.sectors.map(\.depth).max() ?? -1) + 1)",
+            "invalid": "\(invalid)",
+        ])
         logger.debug("ChartInput sectors: \(inputs, privacy: .public)")
         if invalid {
             logger.error("Invalid ChartInput sectors: \(inputs, privacy: .public)")
@@ -762,3 +787,67 @@ private struct DiagramPreviewSource: ScanEventSource {
     .padding()
     .frame(width: 380)
 }
+
+#if DEBUG
+/// Screener pilot, Debug builds only. With `BUILDHUNTER_SCREENER=1` the diagram records a
+/// `.vtrace` session under Caches/Screener/Traces: navigation and layout markers, plus window
+/// keyframes every 40 ms while a transition runs and for a second after it. Inspect a trace
+/// later, for example with `screener-mcp`.
+@MainActor
+final class DiagramTraceRecorder {
+    static let shared: DiagramTraceRecorder? =
+        ProcessInfo.processInfo.environment["BUILDHUNTER_SCREENER"] == "1" ? DiagramTraceRecorder() : nil
+
+    private let screener = Screener()
+    private var session: Task<Void, Never>?
+    private var captureUntil = ContinuousClock.now
+    private var capturing = false
+
+    func mark(_ name: String, _ metadata: [String: String] = [:]) {
+        let started = startedSession()
+        let screener = screener
+        Task {
+            await started.value
+            try? await screener.mark(name, metadata: metadata)
+        }
+    }
+
+    /// Captures until `seconds` from now; overlapping requests extend the same loop.
+    func capture(for seconds: Double) {
+        captureUntil = max(captureUntil, ContinuousClock.now + .milliseconds(Int(seconds * 1000)))
+        guard !capturing else { return }
+        capturing = true
+        let started = startedSession()
+        Task {
+            await started.value
+            while ContinuousClock.now < captureUntil {
+                recordFrame()
+                try? await Task.sleep(for: .milliseconds(40))
+            }
+            capturing = false
+        }
+    }
+
+    private func startedSession() -> Task<Void, Never> {
+        if let session { return session }
+        let screener = screener
+        let traces = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appending(path: "Screener/Traces")
+        let started = Task {
+            _ = try? await screener.startSession(name: "diagram-navigation",
+                                                 appBundleID: Bundle.main.bundleIdentifier ?? "BuildHunter",
+                                                 tracesDirectory: traces)
+        }
+        session = started
+        return started
+    }
+
+    private func recordFrame() {
+        guard let view = NSApp.windows.first(where: {
+            $0.isVisible && $0.title.hasSuffix("Artifact Diagram")
+        })?.contentView, let image = try? AppKitCaptureSource(view: view).capture() else { return }
+        let screener = screener
+        Task { try? await screener.recordFrame(image, reason: "diagram") }
+    }
+}
+#endif
