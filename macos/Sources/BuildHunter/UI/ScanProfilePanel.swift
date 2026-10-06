@@ -2,11 +2,46 @@ import SwiftUI
 import Charts
 import NestedA11yIDs
 
+/// Compact status bar entry: live throughput while scanning; opens the full profile.
+struct ScanProfileStatusItem: View {
+    let profile: ScanProfileHistory
+    let isScanning: Bool
+    @Environment(\.accessibilityPrefix) private var prefix
+    @State private var presented = false
+
+    var body: some View {
+        Button {
+            presented.toggle()
+        } label: {
+            Label {
+                if isScanning, let rate = profile.points.last?.entriesPerSecond {
+                    Text("Scan profile · \(rate.formatted(.number.precision(.fractionLength(0)))) entries/s")
+                        .monospacedDigit()
+                } else {
+                    Text("Scan profile")
+                }
+            } icon: {
+                Image(systemName: "chart.xyaxis.line").accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.borderless)
+        .help("Show scan throughput")
+        .nestedAccessibilityIdentifier("profile")
+        .popover(isPresented: $presented, arrowEdge: .top) {
+            ScanProfilePanel(profile: profile, isScanning: isScanning)
+                .padding(14)
+                .frame(width: 520)
+                // Children keep the "<report>.profile.*" identifiers without a second
+                // element claiming the button's own identifier.
+                .environment(\.accessibilityPrefix, prefix.isEmpty ? "profile" : "\(prefix).profile")
+        }
+    }
+}
+
 struct ScanProfilePanel: View {
     let profile: ScanProfileHistory
     let isScanning: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var expanded = false
     @State private var metric = Metric.entries
 
     private enum Metric: String, CaseIterable {
@@ -15,79 +50,68 @@ struct ScanProfilePanel: View {
     }
 
     var body: some View {
-        DisclosureGroup(isExpanded: $expanded.animation(disclosureAnimation)) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Picker("Throughput", selection: $metric) {
-                        ForEach(Metric.allCases, id: \.self) { value in
-                            Text(value.rawValue).tag(value)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 320)
-                    Spacer()
-                    Text("\(profile.latest?.elapsedSeconds ?? 0, format: .number.precision(.fractionLength(1))) s")
-                        .monospacedDigit().foregroundStyle(.secondary)
-                        .contentTransition(.numericText())
-                        .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
-                }
-                HStack(spacing: 24) {
-                    statistic("Current", value: isScanning ? current : 0)
-                    statistic("Average", value: average)
-                    statistic("Peak", value: peak)
-                }
-                Chart(profile.points) { point in
-                    AreaMark(x: .value("Elapsed seconds", point.seconds), y: .value(metric.rawValue, rate(point)))
-                        .foregroundStyle(.blue.opacity(0.15))
-                    LineMark(x: .value("Elapsed seconds", point.seconds), y: .value(metric.rawValue, rate(point)))
-                        .foregroundStyle(.blue)
-                        .accessibilityLabel("\(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
-                        .accessibilityValue(formatted(rate(point)))
-                }
-                .chartYScale(domain: 0...max(1, profile.points.map(rate).max() ?? 0))
-                .chartXAxisLabel("Elapsed seconds")
-                .chartYAxis {
-                    AxisMarks(position: .leading) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let number = value.as(Double.self) { Text(formatted(number)) }
-                        }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Picker("Throughput", selection: $metric) {
+                    ForEach(Metric.allCases, id: \.self) { value in
+                        Text(value.rawValue).tag(value)
                     }
                 }
-                // Points keep absolute timestamp identities, including when the rolling
-                // history evicts its oldest interval. Animate new samples, not slot indices.
-                .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: metric)
-                .transaction { transaction in
-                    // A fresh scan resets the timeline; never morph the previous scan into it.
-                    if profile.points.count < 2 {
-                        transaction.animation = nil
-                        transaction.disablesAnimations = true
-                    }
-                }
-                .frame(height: 140)
-                .nestedAccessibilityIdentifier("chart")
-                if let sample = profile.latest {
-                    Text("\(sample.entries) entries · \(sample.directories) folders · \(sample.artifacts) artifacts · \(sample.warnings) warnings · \(sample.pendingTasks) pending tasks")
-                        .font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Text("Waiting for scan samples…").font(.caption).foregroundStyle(.secondary)
-                }
-                Text("Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks cover the entire scan.")
-                    .font(.caption).foregroundStyle(.secondary)
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 320)
+                Spacer()
+                Text("\(profile.latest?.elapsedSeconds ?? 0, format: .number.precision(.fractionLength(1))) s")
+                    .monospacedDigit().foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+                    .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
             }
-            .padding(.top, 8)
-        } label: {
-            Label("Scan profile", systemImage: "chart.xyaxis.line")
-                // macOS toggles a DisclosureGroup only from its small triangle;
-                // let the whole title toggle the panel as well.
-                .contentShape(Rectangle())
-                .onTapGesture { withAnimation(disclosureAnimation) { expanded.toggle() } }
+            HStack(spacing: 24) {
+                statistic("Current", value: isScanning ? current : 0)
+                statistic("Average", value: average)
+                statistic("Peak", value: peak)
+            }
+            Chart(profile.points) { point in
+                AreaMark(x: .value("Elapsed seconds", point.seconds), y: .value(metric.rawValue, rate(point)))
+                    .foregroundStyle(.blue.opacity(0.15))
+                LineMark(x: .value("Elapsed seconds", point.seconds), y: .value(metric.rawValue, rate(point)))
+                    .foregroundStyle(.blue)
+                    .accessibilityLabel("\(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
+                    .accessibilityValue(formatted(rate(point)))
+            }
+            .chartYScale(domain: 0...max(1, profile.points.map(rate).max() ?? 0))
+            .chartXAxisLabel("Elapsed seconds")
+            .chartYAxis {
+                AxisMarks(position: .leading) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let number = value.as(Double.self) { Text(formatted(number)) }
+                    }
+                }
+            }
+            // Points keep absolute timestamp identities, including when the rolling
+            // history evicts its oldest interval. Animate new samples, not slot indices.
+            .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: metric)
+            .transaction { transaction in
+                // A fresh scan resets the timeline; never morph the previous scan into it.
+                if profile.points.count < 2 {
+                    transaction.animation = nil
+                    transaction.disablesAnimations = true
+                }
+            }
+            .frame(height: 140)
+            .nestedAccessibilityIdentifier("chart")
+            if let sample = profile.latest {
+                Text("\(sample.entries) entries · \(sample.directories) folders · \(sample.artifacts) artifacts · \(sample.warnings) warnings · \(sample.pendingTasks) pending tasks")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                Text("Waiting for scan samples…").font(.caption).foregroundStyle(.secondary)
+            }
+            Text("Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks cover the entire scan.")
+                .font(.caption).foregroundStyle(.secondary)
         }
-        .nestedAccessibilityIdentifier("profile")
     }
 
-    private var disclosureAnimation: Animation? { reduceMotion ? nil : .smooth(duration: 0.25) }
     private var sampleAnimation: Animation? { reduceMotion ? nil : .linear(duration: 0.1) }
 
     private var current: Double { profile.points.last.map(rate) ?? 0 }

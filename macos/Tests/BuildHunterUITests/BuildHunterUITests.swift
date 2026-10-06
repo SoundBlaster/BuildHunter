@@ -27,7 +27,7 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertEqual((persisted.value as? NSNumber)?.intValue, 1)
     }
 
-    func testScanProfilePanelExpandsAndCollapses() {
+    func testScanProfileOpensFromStatusBar() {
         let app = launchWindow()
         defer { app.terminate() }
         let window = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
@@ -35,19 +35,18 @@ final class BuildHunterUITests: XCTestCase {
         selectMockState("results", in: window, app: app)
         let chart = app.descendants(matching: .any)
             .matching(identifier: "buildhunter.report.profile.chart").firstMatch
-        XCTAssertFalse(chart.exists, "The profile panel starts collapsed")
-        let disclosure = app.descendants(matching: .any)
-            .matching(identifier: "buildhunter.report.profile").firstMatch
-        XCTAssertTrue(disclosure.waitForExistence(timeout: 5))
-        disclosure.click()
+        XCTAssertFalse(chart.exists, "The profile popover starts closed")
+        let statusItem = app.buttons["buildhunter.report.profile"]
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        statusItem.click()
         XCTAssertTrue(chart.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average"].exists)
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
         attachScreenshot(named: "scan-profile-completed", from: app)
-        disclosure.click()
-        let collapsed = XCTNSPredicateExpectation(
+        app.typeKey(.escape, modifierFlags: [])
+        let closed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"), object: chart)
-        wait(for: [collapsed], timeout: 5)
+        wait(for: [closed], timeout: 5)
     }
 
     private func openSettings(_ app: XCUIApplication) {

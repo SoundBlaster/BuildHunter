@@ -34,14 +34,16 @@ xcodebuild test -project BuildHunter.xcodeproj -scheme BuildHunter -destination 
 
 Unsigned build/unit-test evidence does not establish signed sandbox behavior. Open/drop grants, window replacement/close, Finder integration, clipboard actions, and App Store readiness remain separate runtime/delivery gates. Finder and Copy Path actions have not been implemented yet.
 
-### Scan profile panel
+### Scan profile
 
-Expand **Scan profile** in the main report window to inspect live throughput.
+Click **Scan profile** at the right of the report window's status bar to inspect
+live throughput in a popover; while scanning, the entry itself shows current
+entries/s.
 Choose entries/s or measured bytes/s; current, average, peak and elapsed time
 remain available after completion. Byte throughput describes metadata sizing,
 not disk reads. History is bounded to 600 intervals; lifetime statistics remain
 intact. Mock scanning/completed/stopped states include deterministic profile
-samples, and UI tests capture the expanded completed panel. The panel, incoming
+samples, and UI tests capture the opened completed profile. Incoming
 chart samples, metric selection and numeric readouts animate smoothly; Reduce
 Motion disables these animations. Rolling points retain absolute timestamp
 identities, and a fresh scan resets the chart without morphing the old timeline.

@@ -17,7 +17,7 @@ struct BuildHunterWindow: View {
             readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
-                ScanReportFooter()
+                ScanReportFooter(profile: model.profile, isScanning: model.isScanning)
                     .a11yRoot("buildhunter.report")
             } else {
                 emptyState
@@ -141,7 +141,6 @@ struct BuildHunterWindow: View {
                 .foregroundStyle(.orange)
                 .nestedAccessibilityIdentifier("warnings")
             }
-            ScanProfilePanel(profile: model.profile, isScanning: model.isScanning)
             ArtifactReportTable(scan: model)
         }
         .padding(18)
@@ -253,6 +252,9 @@ struct WindowStatusBar<Content: View>: View {
 }
 
 private struct ScanReportFooter: View {
+    let profile: ScanProfileHistory
+    let isScanning: Bool
+
     var body: some View {
         WindowStatusBar {
             Label {
@@ -261,6 +263,8 @@ private struct ScanReportFooter: View {
             } icon: {
                 Image(systemName: "eye.fill").accessibilityHidden(true)
             }
+            Spacer(minLength: 12)
+            ScanProfileStatusItem(profile: profile, isScanning: isScanning)
         }
     }
 }
