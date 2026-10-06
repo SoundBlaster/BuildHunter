@@ -17,7 +17,7 @@ struct BuildHunterWindow: View {
             readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
-                ScanReportFooter()
+                ScanReportFooter(profile: model.profile, isScanning: model.isScanning)
                     .a11yRoot("buildhunter.report")
             } else {
                 emptyState
@@ -252,14 +252,23 @@ struct WindowStatusBar<Content: View>: View {
 }
 
 private struct ScanReportFooter: View {
+    let profile: ScanProfileHistory
+    let isScanning: Bool
+
     var body: some View {
         WindowStatusBar {
-            Label {
-                Text("BuildHunter only reads files and folders. It never deletes artifacts.")
-                    .nestedAccessibilityIdentifier("readOnlyStatus")
-            } icon: {
-                Image(systemName: "eye.fill").accessibilityHidden(true)
+            // Fill the bar so the profile chart sits at the trailing edge.
+            HStack(alignment: .center, spacing: 12) {
+                Label {
+                    Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+                        .nestedAccessibilityIdentifier("readOnlyStatus")
+                } icon: {
+                    Image(systemName: "eye.fill").accessibilityHidden(true)
+                }
+                Spacer(minLength: 0)
+                ScanProfileStatusItem(profile: profile, isScanning: isScanning)
             }
+            .frame(maxWidth: .infinity)
         }
     }
 }

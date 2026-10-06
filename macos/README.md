@@ -33,3 +33,17 @@ xcodebuild test -project BuildHunter.xcodeproj -scheme BuildHunter -destination 
 `-skipMacroValidation` is the user-authorized invocation-scoped bypass for the pinned macro dependency. It skips every macro's validation in that invocation and does not change global trust settings. [Verification instructions](../docs/verification.md) describe the Rust, CLI, Swift unit, UI, and Release checks.
 
 Unsigned build/unit-test evidence does not establish signed sandbox behavior. Open/drop grants, window replacement/close, Finder integration, clipboard actions, and App Store readiness remain separate runtime/delivery gates. Finder and Copy Path actions have not been implemented yet.
+
+### Scan profile
+
+The right of the report window's status bar shows a CPU-history style bar chart
+of recent entries/s: one bar per interval, newest on the right, moving left while
+scanning and kept after completion. Click it to inspect throughput in a popover.
+Choose entries/s or measured bytes/s; current, average, peak and elapsed time
+remain available after completion. Byte throughput describes metadata sizing,
+not disk reads. History is bounded to 600 intervals; lifetime statistics remain
+intact. Mock scanning/completed/stopped states include deterministic profile
+samples, and UI tests capture the opened completed profile. Incoming
+chart samples, metric selection and numeric readouts animate smoothly; Reduce
+Motion disables these animations. Rolling points retain absolute timestamp
+identities, and a fresh scan resets the chart without morphing the old timeline.

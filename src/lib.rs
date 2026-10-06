@@ -10,6 +10,8 @@ use std::{
 };
 
 mod policy_table;
+mod profile;
+pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
 mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
@@ -306,6 +308,7 @@ pub enum ScanStatus {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ScanEvent {
+    Profile(ScanProfileSample),
     ArtifactDiscovered(Artifact),
     ArtifactCompleted { id: u64, bytes: u64, partial: bool },
     Warning(ScanWarning),
@@ -332,6 +335,7 @@ impl ScanReport {
 }
 
 pub struct ScanControl {
+    profiling: AtomicBool,
     cancelled: AtomicBool,
     failed: AtomicBool,
 }
@@ -339,9 +343,15 @@ pub struct ScanControl {
 impl ScanControl {
     pub fn new() -> Self {
         Self {
+            profiling: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
             failed: AtomicBool::new(false),
         }
+    }
+
+    /// Enable before starting a scan. Disabled scans emit no profile events.
+    pub fn set_profiling(&self, enabled: bool) {
+        self.profiling.store(enabled, Ordering::Release);
     }
 
     pub fn cancel(&self) {
@@ -455,7 +465,7 @@ pub fn scan_with_policy(
         .min(MAX_SCAN_WORKERS);
     let (sender, receiver) = std::sync::mpsc::channel();
     let worker_qos = thread_qos::capture();
-    let (artifacts, warnings) = std::thread::scope(|scope| {
+    let (artifacts, warnings, mut profile) = std::thread::scope(|scope| {
         // Closing on every exit, including a panicking callback, lets the workers finish.
         let _close = CloseOnDrop(&queue);
         for _ in 0..workers {
@@ -482,9 +492,13 @@ pub fn scan_with_policy(
             nodes: Vec::new(),
             awaiting: std::collections::HashMap::new(),
             outstanding: 0,
+            profile: control
+                .profiling
+                .load(Ordering::Acquire)
+                .then(profile::ProfileClock::new),
         };
         scanner.run();
-        (scanner.artifacts, scanner.warnings)
+        (scanner.artifacts, scanner.warnings, scanner.profile)
     });
     let status = if control.is_failed() {
         ScanStatus::Failed
@@ -495,6 +509,9 @@ pub fn scan_with_policy(
     } else {
         ScanStatus::Incomplete
     };
+    if let Some(sample) = profile.as_mut().and_then(|clock| clock.sample(true, 0)) {
+        emit(&ScanEvent::Profile(sample));
+    }
     emit(&ScanEvent::Finished(status));
     ScanReport {
         artifacts,
@@ -858,6 +875,7 @@ struct Scanner<'a, P, E> {
     /// `None` marks a speculative measurement nobody needs.
     awaiting: std::collections::HashMap<usize, Option<PendingMeasure>>,
     outstanding: usize,
+    profile: Option<profile::ProfileClock>,
 }
 
 impl<P, E> Scanner<'_, P, E>
@@ -865,6 +883,16 @@ where
     P: FnMut(&CandidateFacts) -> CandidateAction,
     E: FnMut(&ScanEvent),
 {
+    fn emit_profile(&mut self, force: bool) {
+        if let Some(sample) = self
+            .profile
+            .as_mut()
+            .and_then(|profile| profile.sample(force, self.outstanding))
+        {
+            self.emit(&ScanEvent::Profile(sample));
+        }
+    }
+
     fn emit(&mut self, event: &ScanEvent) {
         (self.emit)(event);
     }
@@ -874,6 +902,9 @@ where
             relative_path: relative_path(self.root, path),
             message: error.to_string(),
         };
+        if let Some(profile) = &mut self.profile {
+            profile.counters.warnings += 1;
+        }
         self.warnings.push(warning.clone());
         self.emit(&ScanEvent::Warning(warning));
         for id in chain {
@@ -886,6 +917,7 @@ where
     }
 
     fn run(&mut self) {
+        self.emit_profile(true);
         let root = self.root;
         if let Some(reason) = cloud_skip_reason(root) {
             self.warn(root, reason, &[]);
@@ -913,8 +945,18 @@ where
             }
         }
         while self.outstanding > 0 && !self.control.should_stop() {
-            let Ok(message) = self.receiver.recv() else {
-                break;
+            self.emit_profile(false);
+            let message = if let Some(clock) = &self.profile {
+                match self.receiver.recv_timeout(clock.remaining_interval()) {
+                    Ok(message) => message,
+                    Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
+                    Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
+                }
+            } else {
+                let Ok(message) = self.receiver.recv() else {
+                    break;
+                };
+                message
             };
             self.outstanding -= 1;
             // Messages after a stop may be partial; open artifacts are completed below.
@@ -970,6 +1012,9 @@ where
             nested,
             partial: false,
         };
+        if let Some(profile) = &mut self.profile {
+            profile.counters.artifacts += 1;
+        }
         self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
         self.artifacts.push(artifact);
         self.progress.push(ArtifactProgress::default());
@@ -995,6 +1040,9 @@ where
         index: usize,
         chain: &[u64],
     ) -> Option<FileSlot> {
+        if let Some(profile) = &mut self.profile {
+            profile.counters.entries += 1;
+        }
         let is_symlink = file_type.is_symlink();
         let name = path.file_name().map(os_str_bytes).unwrap_or_default();
         let action = if is_symlink || is_policy_candidate(&name, false, 0) {
@@ -1042,6 +1090,9 @@ where
                 0
             }
         };
+        if let Some(profile) = &mut self.profile {
+            profile.counters.measured_bytes = profile.counters.measured_bytes.saturating_add(bytes);
+        }
         for id in chain {
             let progress = &mut self.progress[Self::index(*id)];
             progress.bytes = progress.bytes.saturating_add(bytes);
@@ -1053,6 +1104,10 @@ where
     }
 
     fn process_listing(&mut self, node: usize, listing: Listing, measuring: bool) {
+        if let Some(profile) = &mut self.profile {
+            profile.counters.entries += 1;
+            profile.counters.directories += 1;
+        }
         if measuring {
             self.outstanding += 1;
         }
@@ -1102,11 +1157,19 @@ where
             let id = self.discover(&path, parent_len > 0, code.language, code.kind);
             chain.push(id);
         }
-        for (error_path, error) in listing.errors {
+        for (index, (error_path, error)) in listing.errors.into_iter().enumerate() {
+            if index % 32 == 0 {
+                self.emit_profile(false);
+            }
             self.warn(&error_path, error, &chain);
         }
         let mut files = Vec::new();
         for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
+            // Check per chunk, including large single-directory responses, without
+            // adding a clock read to every filesystem entry.
+            if index % 32 == 0 {
+                self.emit_profile(false);
+            }
             if self.control.should_stop() {
                 return;
             }
@@ -1170,6 +1233,10 @@ where
             match metadata {
                 Ok(metadata) => {
                     let bytes = metadata_bytes(&metadata, self.options.apparent_size);
+                    if let Some(profile) = &mut self.profile {
+                        profile.counters.measured_bytes =
+                            profile.counters.measured_bytes.saturating_add(bytes);
+                    }
                     for id in &chain {
                         let progress = &mut self.progress[Self::index(*id)];
                         progress.bytes = progress.bytes.saturating_add(bytes);
@@ -1178,7 +1245,10 @@ where
                 Err(error) => self.warn(&path, error, &chain),
             }
         }
-        for slot in &slots {
+        for (index, slot) in slots.iter().enumerate() {
+            if index % 32 == 0 {
+                self.emit_profile(false);
+            }
             let metadata = files.get_mut(slot.index).and_then(Option::take);
             self.measure_file(slot, metadata, &chain);
         }
@@ -1392,6 +1462,7 @@ pub struct BHScanEvent {
     pub status: u32,
     pub message: *const u8,
     pub message_len: usize,
+    pub profile: *const ScanProfileSample,
 }
 
 pub type BHPolicyCallback = unsafe extern "C" fn(
@@ -1404,6 +1475,16 @@ pub type BHEventCallback = unsafe extern "C" fn(context: *mut c_void, event: *co
 #[unsafe(no_mangle)]
 pub extern "C" fn bh_scan_control_create() -> *mut ScanControl {
     Box::into_raw(Box::new(ScanControl::new()))
+}
+
+/// Enable profile events before invoking a scan. Existing callers remain opt-out.
+/// # Safety
+/// `control` must be a live pointer returned by `bh_scan_control_create`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn bh_scan_control_set_profiling(control: *mut ScanControl, enabled: u8) {
+    if let Some(control) = unsafe { control.as_ref() } {
+        control.set_profiling(enabled != 0);
+    }
 }
 
 /// # Safety
@@ -1528,6 +1609,7 @@ unsafe fn run_ffi_scan(
                 status: 3,
                 message: std::ptr::null(),
                 message_len: 0,
+                profile: std::ptr::null(),
             };
             unsafe { event_callback(context, &event) };
             Some(3)
@@ -1537,7 +1619,26 @@ unsafe fn run_ffi_scan(
 
 unsafe fn send_ffi_event(callback: BHEventCallback, context: *mut c_void, event: &ScanEvent) {
     let empty: [u8; 0] = [];
+    if let ScanEvent::Profile(sample) = event {
+        let ffi = BHScanEvent {
+            event_type: 5,
+            artifact_id: 0,
+            path: std::ptr::null(),
+            path_len: 0,
+            language: 0,
+            kind: 0,
+            bytes: 0,
+            partial: 0,
+            status: 0,
+            message: std::ptr::null(),
+            message_len: 0,
+            profile: sample,
+        };
+        unsafe { callback(context, &ffi) };
+        return;
+    }
     let (ffi, _path, _message) = match event {
+        ScanEvent::Profile(_) => unreachable!(),
         ScanEvent::ArtifactDiscovered(artifact) => {
             let path = path_bytes(&artifact.relative_path);
             let ffi = BHScanEvent {
@@ -1552,6 +1653,7 @@ unsafe fn send_ffi_event(callback: BHEventCallback, context: *mut c_void, event:
                 status: 0,
                 message: empty.as_ptr(),
                 message_len: 0,
+                profile: std::ptr::null(),
             };
             (ffi, path, Vec::new())
         }
@@ -1568,6 +1670,7 @@ unsafe fn send_ffi_event(callback: BHEventCallback, context: *mut c_void, event:
                 status: 0,
                 message: empty.as_ptr(),
                 message_len: 0,
+                profile: std::ptr::null(),
             },
             Vec::new(),
             Vec::new(),
@@ -1587,6 +1690,7 @@ unsafe fn send_ffi_event(callback: BHEventCallback, context: *mut c_void, event:
                 status: 0,
                 message: message.as_ptr(),
                 message_len: message.len(),
+                profile: std::ptr::null(),
             };
             (ffi, path, message)
         }
@@ -1603,6 +1707,7 @@ unsafe fn send_ffi_event(callback: BHEventCallback, context: *mut c_void, event:
                 status: status_code(*status) as u32,
                 message: empty.as_ptr(),
                 message_len: 0,
+                profile: std::ptr::null(),
             },
             Vec::new(),
             Vec::new(),
@@ -1662,6 +1767,136 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn profiling_preserves_results_and_counts_nested_measurements_once() {
+        let tree = TempTree::new();
+        fs::create_dir_all(tree.0.join(".build/__pycache__")).unwrap();
+        fs::write(tree.0.join(".build/__pycache__/module.pyc"), b"fixture").unwrap();
+        let plain_control = ScanControl::default();
+        let mut plain_profiles = 0;
+        let plain = scan_with_policy(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &plain_control,
+            |facts| rust_cli_policy(facts, false),
+            |event| {
+                if matches!(event, ScanEvent::Profile(_)) {
+                    plain_profiles += 1
+                }
+            },
+        );
+        assert_eq!(plain_profiles, 0);
+        let control = ScanControl::default();
+        control.set_profiling(true);
+        let mut samples = Vec::new();
+        let profiled = scan_with_policy(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &control,
+            |facts| rust_cli_policy(facts, false),
+            |event| {
+                if let ScanEvent::Profile(sample) = event {
+                    samples.push(*sample)
+                }
+            },
+        );
+        assert_eq!(profiled.status, plain.status);
+        assert_eq!(profiled.total_bytes(), plain.total_bytes());
+        assert_eq!(profiled.artifacts.len(), plain.artifacts.len());
+        assert!(samples.len() >= 2);
+        let last = samples.last().unwrap();
+        assert_eq!(last.measured_bytes, plain.total_bytes());
+        assert_eq!(last.entries, 4); // root, .build, __pycache__, module.pyc
+        assert_eq!(last.directories, 3);
+        assert_eq!(last.artifacts as usize, plain.artifacts.len());
+        assert_eq!(last.pending_tasks, 0);
+        assert!(last.elapsed_us > 0);
+    }
+
+    #[test]
+    fn profile_updates_inside_a_large_directory_response() {
+        let tree = TempTree::new();
+        for index in 0..128 {
+            fs::write(tree.0.join(format!("module-{index}.pyc")), b"fixture").unwrap();
+        }
+        let control = ScanControl::new();
+        control.set_profiling(true);
+        let mut samples = Vec::new();
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions::default(),
+            &control,
+            |facts| rust_cli_policy(facts, false),
+            |event| match event {
+                ScanEvent::ArtifactDiscovered(_) => {
+                    std::thread::sleep(std::time::Duration::from_millis(4))
+                }
+                ScanEvent::Profile(sample) => samples.push(*sample),
+                _ => {}
+            },
+        );
+        assert_eq!(report.artifacts.len(), 128);
+        assert!(
+            samples
+                .iter()
+                .any(|sample| sample.artifacts > 0 && sample.artifacts < 128),
+            "A single large listing must not hold back progress until every child is classified"
+        );
+    }
+
+    #[test]
+    fn cancelled_profile_still_emits_a_terminal_snapshot() {
+        let tree = TempTree::new();
+        let control = ScanControl::default();
+        control.set_profiling(true);
+        control.cancel();
+        let mut events = Vec::new();
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions::default(),
+            &control,
+            |_| CandidateAction::Traverse,
+            |event| events.push(event.clone()),
+        );
+        assert_eq!(report.status, ScanStatus::Cancelled);
+        assert!(matches!(events.first(), Some(ScanEvent::Profile(_))));
+        assert!(matches!(events[events.len() - 2], ScanEvent::Profile(_)));
+        assert!(matches!(
+            events.last(),
+            Some(ScanEvent::Finished(ScanStatus::Cancelled))
+        ));
+    }
+
+    #[test]
+    fn ffi_profile_payload_can_be_copied_during_callback() {
+        unsafe extern "C" fn capture(context: *mut c_void, event: *const BHScanEvent) {
+            let event = unsafe { &*event };
+            assert_eq!(event.event_type, 5);
+            unsafe {
+                *(context as *mut ScanProfileSample) = *event.profile;
+            }
+        }
+        let sample = ScanProfileSample {
+            elapsed_us: 1_000_000,
+            entries: 42,
+            measured_bytes: 99,
+            ..ScanProfileSample::default()
+        };
+        let mut copied = ScanProfileSample::default();
+        unsafe {
+            send_ffi_event(
+                capture,
+                (&mut copied as *mut ScanProfileSample).cast(),
+                &ScanEvent::Profile(sample),
+            );
+        }
+        assert_eq!(copied, sample);
     }
 
     #[cfg(unix)]

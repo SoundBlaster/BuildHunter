@@ -13,6 +13,47 @@ BINARY = Path(sys.argv.pop(1)).resolve()
 
 
 class CLIIntegrationTests(unittest.TestCase):
+    def test_profile_is_opt_in_and_counts_nested_bytes_once(self):
+        self.write(".build/__pycache__/module.pyc", b"bytecode")
+        normal = self.scan("--apparent")
+        destination = self.root / "profile.json"
+        profiled = self.scan("--apparent", "--profile", str(destination))
+        self.assertEqual(normal["artifacts"], profiled["artifacts"])
+        profile = json.loads(destination.read_text())
+        self.assertEqual(profile["schema_version"], 1)
+        self.assertEqual(profile["sample_interval_ms"], 100)
+        self.assertEqual(profile["status"], "completed")
+        self.assertEqual(profile["size_mode"], "apparent")
+        self.assertEqual(profile["samples"][-1]["measured_bytes"], normal["total_bytes"])
+        self.assertGreater(profile["samples"][-1]["entries"], 0)
+        self.assertGreaterEqual(profile["peak_entries_per_second"], 0)
+
+    def test_profile_output_inside_artifact_does_not_affect_measurement(self):
+        self.write(".build/object.o", b"fixture")
+        normal = self.scan("--apparent")
+        destination = self.root / ".build" / "profile.json"
+        profiled = self.scan("--apparent", "--profile", str(destination))
+        self.assertEqual(profiled["total_bytes"], normal["total_bytes"])
+        self.assertEqual(json.loads(destination.read_text())["samples"][-1]["measured_bytes"], normal["total_bytes"])
+
+    def test_profile_respects_search_filters(self):
+        self.write(".build/object.o")
+        self.write("__pycache__/module.pyc")
+        destination = self.root / "profile.json"
+        report = self.scan("--apparent", "--exclude", "swift.build", "--profile", str(destination))
+        profile = json.loads(destination.read_text())
+        self.assertEqual(profile["samples"][-1]["measured_bytes"], report["total_bytes"])
+        self.assertEqual(profile["samples"][-1]["artifacts"], len(report["artifacts"]))
+
+    def test_profile_requires_path_and_preserves_existing_output(self):
+        destination = self.root / "profile.json"
+        destination.write_text("keep me")
+        result = subprocess.run([str(BINARY), str(self.root), "--profile", str(destination)], capture_output=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(destination.read_text(), "keep me")
+        result = subprocess.run([str(BINARY), str(self.root), "--profile"], capture_output=True)
+        self.assertEqual(result.returncode, 2)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="build-hunter-")
         self.addCleanup(self.temporary.cleanup)

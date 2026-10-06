@@ -31,16 +31,22 @@ struct WindowScanModelTests {
         let source = RustScanEventSource()
         let stream = source.events(for: 41, target: root)
         var artifacts: [ScanArtifact] = []
+        var profiles: [ScanProfileSnapshot] = []
         var terminal: ScanTerminalResult?
         for await event in stream {
             switch event {
             case .discovered(_, let artifact): artifacts.append(artifact)
+            case .profile(_, let sample): profiles.append(sample)
             case .finished(_, let result): terminal = result
             default: break
             }
         }
 
         #expect(terminal == .completed)
+        #expect(profiles.count >= 2)
+        #expect(profiles.last?.pendingTasks == 0)
+        #expect(profiles.last?.artifacts == 2)
+        #expect((profiles.last?.measuredBytes ?? 0) > 0)
         #expect(artifacts.map(\.relativePath).sorted() == ["Package/.build", "Service/target"])
         #expect(artifacts.map(\.language).sorted() == ["Rust", "Swift"])
     }
@@ -620,4 +626,113 @@ struct ScanTableModelTests {
 private struct TableIdleSource: ScanEventSource {
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> { AsyncStream { _ in } }
     func cancel(generation: UInt64) {}
+}
+
+@Suite("Scan profile metrics")
+@MainActor
+struct ScanProfileTests {
+    private func sample(_ seconds: UInt64, entries: UInt64, bytes: UInt64 = 0) -> ScanProfileSnapshot {
+        ScanProfileSnapshot(elapsedMicroseconds: seconds * 1_000_000, entries: entries,
+            directories: 0, measuredBytes: bytes, artifacts: 0, warnings: 0, pendingTasks: 0)
+    }
+
+    @Test("Rates use interval deltas, while means include idle time")
+    func intervalsAndIdleTime() {
+        var history = ScanProfileHistory()
+        history.record(sample(0, entries: 0))
+        history.record(sample(1, entries: 100, bytes: 1_000))
+        history.record(sample(3, entries: 100, bytes: 1_000))
+        #expect(history.points.map(\.entriesPerSecond) == [100, 0])
+        #expect(history.points.map(\.bytesPerSecond) == [1_000, 0])
+        #expect(history.peakEntriesPerSecond == 100)
+        #expect(abs(history.averageEntriesPerSecond - 100.0 / 3) < 0.001)
+    }
+
+    @Test("Rolling history preserves lifetime averages and peaks")
+    func boundedHistory() {
+        var history = ScanProfileHistory()
+        history.record(sample(0, entries: 0))
+        for seconds in 1...1_000 {
+            history.record(sample(UInt64(seconds), entries: UInt64(seconds * 10 + 100)))
+        }
+        #expect(history.points.count == ScanProfileHistory.capacity)
+        #expect(history.peakEntriesPerSecond == 110)
+        #expect(history.averageEntriesPerSecond == 10.1)
+        #expect(history.points.first?.seconds == 401)
+    }
+
+    @Test("Rolling chart points retain absolute identities and values")
+    func rollingChartIdentity() {
+        var history = ScanProfileHistory()
+        history.record(sample(0, entries: 0))
+        for seconds in 1...ScanProfileHistory.capacity {
+            history.record(sample(UInt64(seconds), entries: UInt64(seconds * 10)))
+        }
+        let before = Dictionary(uniqueKeysWithValues: history.points.map { ($0.id, $0) })
+        let next = UInt64(ScanProfileHistory.capacity + 1)
+        history.record(sample(next, entries: next * 10))
+        #expect(history.points.first?.id == 2)
+        #expect(history.points.last?.id == Double(next))
+        for point in history.points where before[point.id] != nil {
+            #expect(before[point.id] == point, "A retained mark must keep the same time and rate")
+        }
+    }
+
+    @Test("Duplicate or backwards samples cannot create invalid chart rates")
+    func invalidSamples() {
+        var history = ScanProfileHistory()
+        history.record(sample(0, entries: 0))
+        #expect(history.averageEntriesPerSecond == 0)
+        history.record(sample(0, entries: 100))
+        history.record(sample(2, entries: 20))
+        history.record(sample(1, entries: 10))
+        history.record(sample(3, entries: 1))
+        #expect(history.points.count == 1)
+        #expect(history.latest?.entries == 20)
+        #expect(history.points.allSatisfy { $0.entriesPerSecond.isFinite && $0.bytesPerSecond.isFinite })
+    }
+
+    @Test("Buffered artifact bursts preserve live samples and terminal results")
+    func bufferedBurst() async {
+        let stream = AsyncStream<ScanEvent> { continuation in
+            continuation.yield(.profile(generation: 1, sample: sample(0, entries: 0)))
+            for index in 1...2_048 {
+                let artifact = ScanArtifact(id: UUID(), relativePath: "project-\(index)/.build",
+                                            language: "Swift", kind: .buildOutput)
+                continuation.yield(.discovered(generation: 1, artifact: artifact))
+                continuation.yield(.completed(generation: 1, artifactID: artifact.id, bytes: 1))
+                if index % 128 == 0 {
+                    continuation.yield(.profile(generation: 1,
+                        sample: sample(UInt64(index / 128), entries: UInt64(index), bytes: UInt64(index))))
+                }
+            }
+            continuation.yield(.finished(generation: 1, result: .completed))
+            continuation.finish()
+        }
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Busy stream")
+        await model.waitForCurrentScan()
+        #expect(model.phase == .completed)
+        #expect(model.rows.count == 2_048)
+        #expect(model.profile.points.count == 16)
+        #expect(model.profile.latest?.entries == 2_048)
+    }
+
+    @Test("Replacing or stopping a target rejects stale profile events")
+    func lifecycle() {
+        let model = WindowScanModel(source: TableIdleSource())
+        model.acceptDemoTarget(named: "first")
+        let firstGeneration = model.generation
+        model.apply(.profile(generation: firstGeneration, sample: sample(0, entries: 0)))
+        model.apply(.profile(generation: firstGeneration, sample: sample(1, entries: 10)))
+        #expect(model.profile.averageEntriesPerSecond == 10)
+        model.acceptDemoTarget(named: "second")
+        #expect(model.profile.latest == nil)
+        model.apply(.profile(generation: firstGeneration, sample: sample(2, entries: 20)))
+        #expect(model.profile.latest == nil)
+        model.apply(.profile(generation: model.generation, sample: sample(0, entries: 0)))
+        model.stop()
+        model.apply(.profile(generation: model.generation, sample: sample(1, entries: 100)))
+        #expect(model.profile.latest?.entries == 0)
+    }
 }

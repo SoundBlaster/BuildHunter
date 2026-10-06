@@ -29,6 +29,52 @@ struct SearchFilterIntegrationTests {
         #expect(emptyPaths.isEmpty, "Disabling all supported filters yields an empty report")
     }
 
+    @Test("Profile warning count includes invalid UTF-8 paths reported by the Swift bridge")
+    func profileIncludesBridgeWarnings() async throws {
+        let suite = "BuildHunter.InvalidUTF8.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let policy = BuildHunterScanPolicy(filters: SearchFilterSettings(userDefaults: defaults).snapshot)
+        let context = RustScanBridgeContext(generation: 91, channel: channel, policy: policy)
+
+        let invalidPath: [UInt8] = [0xFF]
+        invalidPath.withUnsafeBufferPointer { path in
+            var artifactEvent = BHScanEvent()
+            artifactEvent.event_type = 1
+            artifactEvent.artifact_id = 1
+            artifactEvent.path = path.baseAddress
+            artifactEvent.path_len = path.count
+            withUnsafePointer(to: &artifactEvent, context.handle)
+        }
+
+        var rustSample = BHScanProfileSample()
+        rustSample.elapsed_us = 100_000
+        withUnsafePointer(to: &rustSample) { sample in
+            var profileEvent = BHScanEvent()
+            profileEvent.event_type = 5
+            profileEvent.profile = sample
+            withUnsafePointer(to: &profileEvent, context.handle)
+        }
+        context.finish(status: 0)
+        channel.finish()
+
+        var bridgeWarningCount = 0
+        var profiles: [ScanProfileSnapshot] = []
+        for await event in stream {
+            switch event {
+            case .warning(_, let message) where message.contains("not valid UTF-8"):
+                bridgeWarningCount += 1
+            case .profile(_, let sample): profiles.append(sample)
+            default: break
+            }
+        }
+
+        #expect(bridgeWarningCount == 1)
+        #expect(profiles.last?.warnings == 1)
+    }
+
     private func discoveredPaths(_ stream: AsyncStream<ScanEvent>) async -> Set<String> {
         var paths = Set<String>()
         var completed = false
