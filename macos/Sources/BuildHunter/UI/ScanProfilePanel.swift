@@ -15,7 +15,7 @@ struct ScanProfilePanel: View {
     }
 
     var body: some View {
-        DisclosureGroup(isExpanded: $expanded.animation(reduceMotion ? nil : .smooth(duration: 0.25))) {
+        DisclosureGroup(isExpanded: $expanded.animation(disclosureAnimation)) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Picker("Throughput", selection: $metric) {
@@ -79,10 +79,15 @@ struct ScanProfilePanel: View {
             .padding(.top, 8)
         } label: {
             Label("Scan profile", systemImage: "chart.xyaxis.line")
+                // macOS toggles a DisclosureGroup only from its small triangle;
+                // let the whole title toggle the panel as well.
+                .contentShape(Rectangle())
+                .onTapGesture { withAnimation(disclosureAnimation) { expanded.toggle() } }
         }
         .nestedAccessibilityIdentifier("profile")
     }
 
+    private var disclosureAnimation: Animation? { reduceMotion ? nil : .smooth(duration: 0.25) }
     private var sampleAnimation: Animation? { reduceMotion ? nil : .linear(duration: 0.1) }
 
     private var current: Double { profile.points.last.map(rate) ?? 0 }
