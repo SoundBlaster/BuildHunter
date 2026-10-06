@@ -39,12 +39,12 @@ final class BuildHunterUITests: XCTestCase {
         let disclosure = app.descendants(matching: .any)
             .matching(identifier: "buildhunter.report.profile").firstMatch
         XCTAssertTrue(disclosure.waitForExistence(timeout: 5))
-        disclosure.click()
+        clickDisclosureTriangle(disclosure)
         XCTAssertTrue(chart.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average"].exists)
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
         attachScreenshot(named: "scan-profile-completed", from: app)
-        disclosure.click()
+        clickDisclosureTriangle(disclosure)
         let collapsed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"), object: chart)
         wait(for: [collapsed], timeout: 5)
@@ -326,6 +326,13 @@ final class BuildHunterUITests: XCTestCase {
         // incorrect automatic ScrollView repositioning of the header.
         XCTAssertTrue(header.waitForExistence(timeout: 5))
         header.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+    }
+
+    private func clickDisclosureTriangle(_ disclosure: XCUIElement) {
+        // On macOS the DisclosureGroup AX element spans the triangle and its label,
+        // but only the leading triangle toggles. A center click lands on the label.
+        disclosure.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
+            .withOffset(CGVector(dx: 10, dy: 0)).click()
     }
 
     private func expectRowPath(_ path: String, of row: XCUIElement,
