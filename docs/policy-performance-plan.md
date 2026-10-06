@@ -47,7 +47,7 @@ badges) have also merged; neither implements the declarative plugin catalog.
 
 ## Issue 25 status ledger
 
-Snapshot: **2026-10-05**, audited against BuildHunter main `57b9d51`. H1–H21 identify hypotheses and proposed optimizations
+Snapshot: **2026-10-06**, audited against BuildHunter main `f142fdb`. H1–H21 identify hypotheses and proposed optimizations
 from the issue comments, not 21 confirmed bugs. The declarative target/plugin
 proposal in the issue body is a separate scope and remains open.
 
@@ -71,13 +71,19 @@ References: [Swift library PR #16](https://github.com/SoundBlaster/Specification
 All referenced PRs are merged. Swift #16/#17 merged at `3cfe27b`, Rust
 #19/#20 at `043a0ba`, and application #26/#27/#29/#30 through `aaa99f1`.
 Cloud guard #23 and badges #24 bring application main to `57b9d51`.
+Swift [#19](https://github.com/SoundBlaster/SpecificationCore/pull/19)/[#20](https://github.com/SoundBlaster/SpecificationCore/pull/20)
+merged at `3a672ea`; application [#33](https://github.com/SoundBlaster/BuildHunter/pull/33)
+adopts that revision and brings main to `f142fdb`.
 Their final pre-merge CI checks passed and review threads were resolved.
-This is not a claim about post-merge main CI or a completed home-directory scan.
+Post-merge main CI on `f142fdb` (Rust CI, scanner comparison, macOS unit/UI and
+Release performance tests) also passed. This is not a claim about a completed
+home-directory scan.
 
-The app still resolves Swift `perf/balanced-decisions` at `bacc4d6`, containing
-the implemented performance APIs. After the library rebase, that commit was
-preserved by `codex/pinned-performance-baseline` so fresh public HTTPS fetches
-remain possible. Dependency release/version alignment is still pending.
+The app resolves SpecificationCore at merged main revision `3a672ea` (#33)
+instead of the temporary `perf/balanced-decisions` branch. That revision contains
+the balanced builder and the default `AggressiveInlining` trait. No tagged release
+contains these changes yet: the latest Swift tag `2.1.0` (2026-09-24) and Rust tag
+`v0.1.0` (2026-07-10) predate them. Dependency release/version alignment is still pending.
 BuildHunter's Cargo manifest has no dependencies: neither new Rust library API
 has been adopted by the scanner.
 
@@ -102,15 +108,15 @@ has been adopted by the scanner.
 | H17 | Evaluate shared leaves once: **pending** | No DAG/shared-leaf evaluation plan or call-count acceptance tests. |
 | H18 | Cost/selectivity reordering: **pending** | No reordering; purity and observable priority/short-circuit semantics must be preserved. |
 | H19 | Key-aware static dispatch: **partial, Rust library merged** | Rust #20 covers ordered reference parity, construction, unrelated-key skipping, outer generic/lifetime contexts and borrowed non-Clone decisions. CI passed. Scanner adoption and Swift keyed backend remain pending; local 3.84/12.27 ns samples did not beat handwritten dispatch. |
-| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support balanced construction. Forced evaluation inlining has a separate measured effect: on the actual library, in separate-module microbenchmarks, about 57–65x faster nested-chain and about 3x faster balanced evaluation; dynamic `FirstMatchSpec` did not materially improve ([SpecificationCore #20](https://github.com/SoundBlaster/SpecificationCore/pull/20), open, stacked on #19; not yet adopted by the app). *Historical:* the earlier ~0.65% came from a narrow experiment with forced inlining on `And`/`Or`/`Not` only and is not a verdict on the annotation set. No whole-scan speedup is demonstrated. The upstream guard report, resilient ABI support and the compile-time trade-off (clean compilation medians +18.8%, +3.3% and +1.6% across runs, with variable pair costs) remain open. |
+| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support balanced construction. Forced evaluation inlining has a separate measured effect: on the actual library, in separate-module microbenchmarks, about 57–65x faster nested-chain and about 3x faster balanced evaluation; dynamic `FirstMatchSpec` did not materially improve (SpecificationCore #19/#20 merged at `3a672ea`; adopted by app #33, whose Release build confirms `AggressiveInlining` on and Tracing off; post-merge main CI including Release performance tests passed). *Historical:* the earlier ~0.65% came from a narrow experiment with forced inlining on `And`/`Or`/`Not` only and is not a verdict on the annotation set. No whole-scan speedup is demonstrated, and no trait-on/off comparison has been measured in the application itself. The upstream guard report, resilient ABI support and the compile-time trade-off (clean compilation medians +18.8%, +3.3% and +1.6% across runs, with variable pair costs) remain open. |
 | H21 | Avoid parameter-pack iteration here: **guardrail** | Adopted builder uses balanced fixed arities. Reassess only with reproducible new-toolchain evidence. |
 
 
 **Current Swift annotation recommendation.** Balanced construction and forced
-evaluation inlining are separate, measured levers. Adopt forced inlining through
-SpecificationCore's `AggressiveInlining` trait (#20: on by default, consumer
-opt-out, disabled under Tracing, no new `@frozen` types) once it merges and the
-app's Release gates pass. Do not add blanket `@frozen`: it is an ABI commitment
+evaluation inlining are separate, measured levers. Forced inlining is adopted
+through SpecificationCore's `AggressiveInlining` trait (#20: on by default, consumer
+opt-out, disabled under Tracing, no new `@frozen` types), merged upstream and used
+by the app since #33; post-merge Release gates passed. Do not add blanket `@frozen`: it is an ABI commitment
 without a measured need, and library-evolution builds are not yet comparable.
 Replica-library figures in issue 25 comments and the ~0.65% experiment are kept
 as historical evidence only.
@@ -136,17 +142,24 @@ and raw repeated samples; measure whole scans separately from microbenchmarks.
    scanning with #23 cloud guards, verify completion/incomplete warnings, cancellation,
    responsiveness, QoS diagnostics and chart behavior. The previous GUI scan was
    responsive but stalled in iCloud Books filesystem calls. The new guard has CI
-   coverage; its merged home-directory behavior has not been verified yet.
-2. **Shared classifier and catalog contract**: design the shared facts/index seam,
+   coverage; its merged home-directory behavior has not been verified on main.
+   Open [#34](https://github.com/SoundBlaster/BuildHunter/pull/34) adds `--profile`
+   and a GUI scan profile; its description reports a completed `/Users/egor` scan
+   (30.6 s, 2,234,144 evaluated entries, incomplete with 648 warnings). Once merged,
+   it is the measurement tool for H1 and whole-scan comparisons.
+2. **Consumer measurement of forced inlining (H20)**: compare the app's Release
+   policy and whole-scan workloads with `AggressiveInlining` on and off, report
+   compile time, and file the drafted upstream specializer-guard report.
+3. **Shared classifier and catalog contract**: design the shared facts/index seam,
    adopt the appropriate Rust library backend, unify worker prefetch and candidate
    selection (H3/H5/H10/H19), then add the 200-target scanner workload (H2).
    Indexed runtime and keyed static dispatch are alternative backends to compare,
    not two implementations that must both be forced into the same hot path.
-3. **Measured optional backends**: field tables/RuleNode compilation (H11/H12),
+4. **Measured optional backends**: field tables/RuleNode compilation (H11/H12),
    shared leaves (H17), further partial evaluation (H16), then only demonstrated
    hashing/cache/reordering needs (H4/H15/H18). Preserve independent parity tests.
-4. **Release alignment**: tag validated library releases, replace temporary Swift
-   branch pins and any adopted Rust branches with released versions, and rerun
+5. **Release alignment**: tag validated library releases, replace the Swift
+   revision pin `3a672ea` and any adopted Rust branches with released versions, and rerun
    consumer CI/performance gates. Version bumps have not happened.
 
 The issue body's **declarative plugin proposal remains unimplemented**: schema,
@@ -346,3 +359,16 @@ commitment or library-evolution support is adopted. H20 remains partial until
 merge and BuildHunter consumer integration/validation; the H-ledger totals do
 not change. Next: merge the green library stack after review, adopt it in the
 consumer, and measure the actual application separately before release alignment.
+
+## Consumer adoption checkpoint (2026-10-06)
+
+SpecificationCore #19 and #20 merged at `3a672ea`. Application #33 replaced the
+temporary branch dependency with that revision in `project.yml`, the checked-in
+project and `Package.resolved`. Its unsigned arm64 Release build confirmed
+`AggressiveInlining` enabled and Tracing disabled. Post-merge main CI on `f142fdb`
+passed, including the Release static-policy and finite-policy performance gates;
+those gates bound regressions and do not compare trait on/off.
+
+H20 stays partial: the library and consumer integration are done, but the
+application-level effect is unmeasured and the upstream guard report is unfiled.
+The H-ledger totals do not change. No library release or version bump has happened.
