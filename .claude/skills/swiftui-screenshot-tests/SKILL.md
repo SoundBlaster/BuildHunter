@@ -14,9 +14,15 @@ see the UI, not to trust a number.
 Dependencies: `pip install pillow zstandard`. `ffmpeg` is optional; it is
 used to split screen recordings into frames. `gh` downloads CI artifacts.
 
-Scripts live in `.claude/skills/swiftui-screenshot-tests/scripts/` (`$SK` below).
-CI artifacts are downloaded data, so run the scripts with `python3 -I` and keep
-outputs in the scratchpad, never in the repo.
+Set two variables first. Every command below uses them, and absolute paths let
+you run from anywhere:
+
+```bash
+SK="$(git rev-parse --show-toplevel)/.claude/skills/swiftui-screenshot-tests/scripts"
+SCRATCH=<session scratchpad>/screens   # outputs never go in the repo
+```
+
+CI artifacts are downloaded data, so run the scripts with `python3 -I`.
 
 | Evidence | Where it comes from | Tool |
 |---|---|---|
@@ -27,22 +33,34 @@ outputs in the scratchpad, never in the repo.
 
 ## 1. Get the evidence
 
+For a PR, take its head branch and base SHA from the REST API. `gh pr view`
+uses GraphQL, which this environment blocks:
+
 ```bash
-$SK/fetch_ci_evidence.sh "$SCRATCH/ci-pr" --branch my-branch    # latest completed macos.yml run
-$SK/fetch_ci_evidence.sh "$SCRATCH/ci-main" --branch main       # a baseline to compare against
-$SK/fetch_ci_evidence.sh "$SCRATCH/ci-run" --run 37542135009    # one exact run
+gh api repos/SoundBlaster/BuildHunter/pulls/37 --jq '.head.ref, .head.sha, .base.ref, .base.sha'
+gh api repos/SoundBlaster/BuildHunter/pulls/37/files --jq '.[].filename'   # what the PR touches
 ```
 
-Use a fresh directory per run so screenshots from different runs never mix. The
-script prints the run's conclusion and head SHA. Check that the SHA is the
-commit you mean to inspect before drawing conclusions. A run still in progress
-has no artifact yet. Artifacts expire after 7 days. Older runs need a re-run,
-or a local macOS run of `scripts/ci/macos.sh test`.
+```bash
+$SK/fetch_ci_evidence.sh "$SCRATCH/ci-pr" --branch <head.ref>      # newest finished macos.yml run
+$SK/fetch_ci_evidence.sh "$SCRATCH/ci-base" --commit <base.sha>   # baseline: the PR's own base
+$SK/fetch_ci_evidence.sh "$SCRATCH/ci-run" --run 37542135009       # one exact run
+```
+
+- Use a fresh directory per run, so screenshots from different runs never mix.
+- The script prints the run's conclusion, branch and full head SHA. Check that
+  the SHA is the commit you mean before drawing conclusions.
+- Prefer the run at the PR's base SHA as the baseline over "latest main".
+  Otherwise unrelated changes merged since then show up as diffs.
+- Cancelled runs have no evidence, so the script skips them.
+- A run still in progress has no artifact yet.
+- Artifacts expire after 7 days. Older runs need a re-run, or a local macOS
+  run of `scripts/ci/macos.sh test`.
 
 ## 2. Look at a run
 
 ```bash
-python3 -I $SK/contact_sheet.py "$SCRATCH/ci-pr/ui-screenshots" --out "$SCRATCH/pr.png" --title "PR 38 UI"
+python3 -I $SK/contact_sheet.py "$SCRATCH/ci-pr/ui-screenshots" --out "$SCRATCH/pr.png" --title "PR 37 UI"
 ```
 
 `ui-screenshots/` has UUID file names. For readable tiles, export through the
@@ -95,8 +113,10 @@ python3 -I $SK/compare_screenshots.py "$SCRATCH/ci-main/ui-screenshots" "$SCRATC
   `--pixel-threshold` (default 16).
 - An image fails when more than `--tolerance` of its pixels change (default
   0.1%), or when its size changes.
-- Each flagged image gets a `baseline | current | diff` triptych: changed
-  pixels are red on a faded baseline, inside an orange bounding box.
+- Every image with any changed pixel gets a `baseline | current | diff`
+  triptych: changed pixels are red on a faded baseline, inside an orange
+  bounding box. File names start with the status (`fail__`, `size__`, or
+  `pass__` for changes under tolerance), so failures sort first.
 - `report.md` and `report.json` summarize the run.
 - The exit code is 1 if anything failed or went missing.
 
@@ -116,15 +136,21 @@ which.
    the test so it is deterministic. Known noise in this repo:
    - temp-folder names with UUIDs (`BuildHunter UI <UUID>`) in titles, paths
      and the path field (`testFullFolderPathCanBeCopiedAfterOpeningARealTarget`);
-   - system UI that differs between runner images, such as the NSOpenPanel
-     sidebar, which gains "Recents"/"Shared" rows (`testOpenFolderPresentsAndDismissesPicker`);
-   - the menu bar clock and Dock badges.
+   - system UI whose content varies run to run, even on the same OS build. For
+     example, the NSOpenPanel sidebar sometimes gains "Recents"/"Shared" rows
+     (`testOpenFolderPresentsAndDismissesPicker`);
+   - the menu bar clock and Dock badges;
+   - a blinking text caret (about 2×16 px in "Filter folders") and
+     anti-aliasing on toggle edges. These stay under tolerance and show up as
+     `pass__` triptychs.
 3. **Regression.** An unrelated view changed: shifted layout, clipped text, a
    wrong color, a missing element. Report it with the triptych path and the
    bounding box.
 
-When unsure whether a change is intended, read the PR diff for files that
-render that view before calling it a regression.
+When unsure whether a change is intended, read the PR's patch for the files
+that render that view before calling it a regression. Use
+`gh api repos/SoundBlaster/BuildHunter/pulls/<n>/files --jq '.[] | .filename, .patch'`.
+A change in a view the PR never touches is the strongest regression signal.
 
 ## 5. Animations: Screener traces
 

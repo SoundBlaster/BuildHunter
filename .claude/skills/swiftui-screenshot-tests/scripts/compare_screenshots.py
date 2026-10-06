@@ -17,7 +17,8 @@ A pixel counts as changed when any channel differs by more than
 --pixel-threshold (0-255). An image fails when the changed fraction exceeds
 --tolerance, or when sizes differ. Exit status is 1 when anything failed, is
 missing, or is new. DIR gets a baseline|current|diff triptych per changed image,
-plus report.md and report.json.
+plus report.md and report.json. Triptych names start with the status
+(fail__, size__, pass__ for changes under tolerance).
 """
 import argparse
 import json
@@ -143,7 +144,9 @@ def main():
         if info["status"] == "ok":
             info["status"] = "fail" if info["changedFraction"] > args.tolerance else "pass"
         if info["status"] != "pass" or info.get("changedPixels"):
-            diff_path = os.path.join(args.diff_dir, re.sub(r"[^A-Za-z0-9._-]+", "_", key) + ".png")
+            # Below-tolerance changes get a triptych too, prefixed so failures sort first.
+            diff_path = os.path.join(args.diff_dir,
+                                     f"{info['status']}__" + re.sub(r"[^A-Za-z0-9._-]+", "_", key) + ".png")
             triptych(base, cur, mask, info.get("bbox"), diff_path)
             info["diff"] = diff_path
         results.append(info)
