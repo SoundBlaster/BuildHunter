@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """List or export XCTest attachments from an .xcresult bundle without Xcode.
 
-Works on Linux and macOS. The bundle's database.sqlite3 links every attachment
-to its activity, test case run and test case; the payload lives in
-Data/data.<xcResultKitPayloadRefId>, sometimes zstd-compressed.
+Works on Linux and macOS. Two sources of truth, tried in order:
+  * database.sqlite3, which links every attachment to its activity, test case
+    run and test case. xcresulttool creates it the first time it reads the
+    bundle, so a bundle straight from a failed `xcodebuild test` lacks it.
+  * the object graph in Data/: ActionTestSummary objects in Xcode's
+    length-prefixed encoding, which every bundle has.
+Payloads live in Data/data.<id>, sometimes zstd-compressed.
 
 Usage:
   xcresult_attachments.py BUNDLE.xcresult --list
@@ -13,6 +17,7 @@ Usage:
 Export writes DIR/<TestClass>/<testName>/<NN>_<name>.<ext> plus DIR/manifest.json.
 """
 import argparse
+import datetime
 import json
 import os
 import re
@@ -124,6 +129,12 @@ def safe(text):
 
 
 def collect(bundle):
+    if os.path.exists(os.path.join(bundle, "database.sqlite3")):
+        return collect_db(bundle)
+    return collect_object_graph(bundle)
+
+
+def collect_db(bundle):
     db = open_db(bundle)
     items = []
     for row in db.execute(QUERY).fetchall():
@@ -139,6 +150,123 @@ def collect(bundle):
             "payload": row["xcResultKitPayloadRefId"],
         })
     return items
+
+
+# Object-graph fallback ------------------------------------------------------
+# Encoding: an object is "[" + type + fields/items + "]". The type is either
+# "T" followed by a descriptor object ([K2:_nV<n>:Name ...]) or "S<n>:Name" for
+# a type seen before. A field is "K<n>:key" followed by an object or by a raw
+# "V<n>:value". Array elements follow the type directly. Primitives are
+# objects with a single _v field.
+
+def _lp(blob, i):
+    colon = blob.index(b":", i + 1)
+    size = int(blob[i + 1:colon])
+    return blob[colon + 1:colon + 1 + size], colon + 1 + size
+
+
+def _object(blob, i):
+    if blob[i:i + 1] != b"[":
+        raise ValueError(f"expected [ at {i}")
+    i += 1
+    tag = blob[i:i + 1]
+    if tag == b"T":
+        descriptor, i = _object(blob, i + 1)
+        name = descriptor.get("_n") if isinstance(descriptor, dict) else None
+    elif tag == b"S":
+        raw, i = _lp(blob, i)
+        name = raw.decode()
+    else:
+        name = None  # a type descriptor itself
+    obj = {"_type": name}
+    items = []
+    while True:
+        tag = blob[i:i + 1]
+        if tag == b"]":
+            i += 1
+            break
+        if tag == b"K":
+            key, i = _lp(blob, i)
+            if blob[i:i + 1] == b"V":
+                value, i = _lp(blob, i)
+                obj[key.decode()] = value.decode("utf-8", "replace")
+            else:
+                obj[key.decode()], i = _object(blob, i)
+        elif tag == b"[":
+            item, i = _object(blob, i)
+            items.append(item)
+        else:
+            raise ValueError(f"unexpected {tag!r} at {i}")
+    if items:
+        obj["_items"] = items
+    if set(obj) == {"_type", "_v"}:
+        return obj["_v"], i
+    return obj, i
+
+
+def _apple_date(text):
+    try:
+        return datetime.datetime.strptime(text, "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()
+    except (TypeError, ValueError):
+        return 0
+
+
+def collect_object_graph(bundle):
+    data_dir = os.path.join(bundle, "Data")
+    items = []
+    for name in os.listdir(data_dir):
+        if not name.startswith("data."):
+            continue
+        blob = read_payload(bundle, name[len("data."):])
+        if not blob.startswith(b"[") or b"ActionTestAttachment" not in blob:
+            continue
+        try:
+            summary, _ = _object(blob, 0)
+        except (ValueError, IndexError):
+            continue
+        if not isinstance(summary, dict) or summary.get("_type") != "ActionTestSummary":
+            continue
+        test = summary.get("identifier", "(unknown)")
+        result = summary.get("testStatus")
+
+        def walk(node, activity, failure):
+            if isinstance(node, list):
+                for child in node:
+                    walk(child, activity, failure)
+                return
+            if not isinstance(node, dict):
+                return
+            kind = node.get("_type")
+            if kind == "ActionTestActivitySummary":
+                activity = node.get("title", activity)
+                ids = node.get("failureSummaryIDs")
+                failure = failure or bool(isinstance(ids, dict) and ids.get("_items"))
+            elif kind == "ActionTestFailureSummary":
+                failure = True
+            elif kind == "ActionTestAttachment":
+                ref = node.get("payloadRef")
+                ref = ref.get("id") if isinstance(ref, dict) else None
+                if ref:
+                    items.append({
+                        "test": test,
+                        "result": result,
+                        "name": node.get("name") or node.get("filename") or "attachment",
+                        "uti": node.get("uniformTypeIdentifier"),
+                        "activity": activity,
+                        # deleteOnSuccess attachments only survive because the test failed.
+                        "associatedWithFailure": failure or node.get("lifetime") == "deleteOnSuccess",
+                        "timestamp": _apple_date(node.get("timestamp")),
+                        "payload": ref,
+                    })
+                return
+            for key, value in node.items():
+                if key != "_type":
+                    walk(value, activity, failure)
+
+        walk(summary, None, False)
+    if not items:
+        sys.exit("no test attachments found in the object graph")
+    return sorted(items, key=lambda item: item["timestamp"])
 
 
 def extract_frames(video, fps):

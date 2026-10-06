@@ -83,11 +83,21 @@ python3 -I $SK/xcresult_attachments.py test.xcresult --failures-only --list
 python3 -I $SK/xcresult_attachments.py test.xcresult --out "$SCRATCH/fail" --test testName --video-fps 2
 ```
 
+A failed run's evidence has only `test.xcresult` and `test.log`: the CI script
+stops at the failing `xcodebuild`, before `xcresulttool` writes
+`ui-screenshots/`, `test-summary.json` and the bundle's `database.sqlite3`.
+The script then reads the bundle's object graph instead, so the same commands
+work. Grep `test.log` for `error:` to find the failing assertion first.
+
 This exports everything the failing test attached. That covers screenshots
 taken at failure, `kXCTAttachmentScreenRecording` MP4s split into
 `*_frames/frame_NNNN.png`, and text attachments such as the accessibility
 hierarchy (`app.debugDescription`). Read the hierarchy text for the element's
-real identifier, value and frame. Then step through the video frames to see
+real identifier, value and frame. XCTest also attaches a
+`Debug description for <query>` text when a wait fails, which shows what the
+element really reported. Compare it with the video frame: text that changed on
+screen while the element's value stayed old is an accessibility refresh bug,
+not a navigation bug. Then step through the video frames to see
 what was on screen when the assertion fired. Typical root causes found this
 way:
 - a click landed on a label instead of the control;
