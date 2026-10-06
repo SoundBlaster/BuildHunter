@@ -36,9 +36,9 @@ Unsigned build/unit-test evidence does not establish signed sandbox behavior. Op
 
 ### Scan profile
 
-Click **Scan profile** at the right of the report window's status bar to inspect
-live throughput in a popover; while scanning, the entry itself shows current
-entries/s.
+The right of the report window's status bar shows a CPU-history style bar chart
+of recent entries/s: one bar per interval, newest on the right, moving left while
+scanning and kept after completion. Click it to inspect throughput in a popover.
 Choose entries/s or measured bytes/s; current, average, peak and elapsed time
 remain available after completion. Byte throughput describes metadata sizing,
 not disk reads. History is bounded to 600 intervals; lifetime statistics remain

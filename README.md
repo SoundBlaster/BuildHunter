@@ -112,9 +112,9 @@ Schema version 1 includes `size_mode`, `status`, `sample_interval_ms`,
 peaks survive truncation. Consumers can derive interval speeds from differences
 between adjacent cumulative snapshots, avoiding division by zero.
 
-The macOS main window has a **Scan profile** entry at the right of its status
-bar. While scanning it shows the current entries/s; clicking it opens a popover
-with entries/s or measured bytes/s, current/average/peak rates, elapsed time,
+The macOS main window shows a mini bar chart of recent entries/s at the right of
+its status bar. Bars move from right to left while scanning and stay after the
+scan finishes; clicking the chart opens a popover with entries/s or measured bytes/s, current/average/peak rates, elapsed time,
 counters, and a live chart of the latest 600 intervals (about one minute).
 Collecting samples does not depend on whether the popover is open. Stop keeps
 the profile and shows current speed as zero. Rescan/replacing the folder resets

@@ -2,7 +2,8 @@ import SwiftUI
 import Charts
 import NestedA11yIDs
 
-/// Compact status bar entry: live throughput while scanning; opens the full profile.
+/// Status bar entry: a CPU-history style bar chart of recent entries/s that opens
+/// the full profile. Bars persist after the scan; Rescan resets the history.
 struct ScanProfileStatusItem: View {
     let profile: ScanProfileHistory
     let isScanning: Bool
@@ -13,19 +14,12 @@ struct ScanProfileStatusItem: View {
         Button {
             presented.toggle()
         } label: {
-            Label {
-                if isScanning, let rate = profile.points.last?.entriesPerSecond {
-                    Text("Scan profile · \(rate.formatted(.number.precision(.fractionLength(0)))) entries/s")
-                        .monospacedDigit()
-                } else {
-                    Text("Scan profile")
-                }
-            } icon: {
-                Image(systemName: "chart.xyaxis.line").accessibilityHidden(true)
-            }
+            ScanProfileSparkline(points: profile.points)
         }
         .buttonStyle(.borderless)
-        .help("Show scan throughput")
+        .help("Scan profile · \(summary)")
+        .accessibilityLabel("Scan profile")
+        .accessibilityValue(summary)
         .nestedAccessibilityIdentifier("profile")
         .popover(isPresented: $presented, arrowEdge: .top) {
             ScanProfilePanel(profile: profile, isScanning: isScanning)
@@ -35,6 +29,47 @@ struct ScanProfileStatusItem: View {
                 // element claiming the button's own identifier.
                 .environment(\.accessibilityPrefix, prefix.isEmpty ? "profile" : "\(prefix).profile")
         }
+    }
+
+    /// Live rate while scanning; the whole-scan average once it has finished.
+    private var summary: String {
+        let rate = isScanning ? profile.points.last?.entriesPerSecond ?? 0 : profile.averageEntriesPerSecond
+        let text = rate.formatted(.number.precision(.fractionLength(0))) + " entries/s"
+        return isScanning ? text : "average " + text
+    }
+}
+
+/// One bar per profile interval, newest at the trailing edge. New samples push
+/// older bars to the left; the scale follows the tallest visible bar.
+struct ScanProfileSparkline: View {
+    static let barCount = 48
+    private static let barWidth: CGFloat = 2
+    private static let spacing: CGFloat = 1
+    private static let height: CGFloat = 16
+
+    let points: [ScanProfilePoint]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let recent = Array(points.suffix(Self.barCount))
+        let peak = max(recent.map(\.entriesPerSecond).max() ?? 0, 1)
+        HStack(alignment: .bottom, spacing: Self.spacing) {
+            ForEach(recent) { point in
+                Rectangle()
+                    .fill(Color.accentColor)
+                    .frame(width: Self.barWidth,
+                           height: max(1, Self.height * point.entriesPerSecond / peak))
+            }
+        }
+        .frame(width: CGFloat(Self.barCount) * (Self.barWidth + Self.spacing) - Self.spacing,
+               height: Self.height, alignment: .bottomTrailing)
+        .clipped()
+        .padding(3)
+        .background(Color.secondary.opacity(0.12), in: .rect(cornerRadius: 4))
+        .contentShape(Rectangle())
+        // Points keep absolute timestamp identities, so bars slide instead of morphing.
+        .animation(reduceMotion ? nil : .linear(duration: 0.1), value: points.last?.id)
+        .accessibilityHidden(true)
     }
 }
 
