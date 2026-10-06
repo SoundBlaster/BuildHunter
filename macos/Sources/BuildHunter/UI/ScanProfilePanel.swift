@@ -70,7 +70,6 @@ struct ScanProfileSparkline: View {
                height: Self.height, alignment: .bottomTrailing)
         .clipped()
         .padding(3)
-        .background(Color.secondary.opacity(0.12), in: .rect(cornerRadius: 4))
         .contentShape(Rectangle())
         // Points keep absolute timestamp identities, so bars slide instead of morphing.
         .animation(reduceMotion ? nil : .linear(duration: 0.1), value: points.last?.id)
