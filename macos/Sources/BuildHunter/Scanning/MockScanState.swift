@@ -57,11 +57,19 @@ enum MockScanState: String, CaseIterable, Identifiable {
 
     var profileSamples: [ScanProfileSnapshot] {
         guard self != .empty else { return [] }
-        return (0...40).map { index in
-            ScanProfileSnapshot(elapsedMicroseconds: UInt64(index) * 250_000,
-                entries: UInt64(index * index * 50), directories: UInt64(index * 15),
-                measuredBytes: UInt64(index * index) * 1_000_000,
-                artifacts: UInt64(min(index, 3)), warnings: UInt64(warnings.count), pendingTasks: 0)
+        let warningCount = UInt64(warnings.count)
+        return (0...40).map { (index: Int) -> ScanProfileSnapshot in
+            let count = UInt64(index)
+            let squared = count * count
+            return ScanProfileSnapshot(
+                elapsedMicroseconds: count * 250_000,
+                entries: squared * 50,
+                directories: count * 15,
+                measuredBytes: squared * 1_000_000,
+                artifacts: min(count, 3),
+                warnings: warningCount,
+                pendingTasks: 0
+            )
         }
     }
 
