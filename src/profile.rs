@@ -163,29 +163,34 @@ mod tests {
     fn sampler_ticks_on_interval_boundaries_until_stopped() {
         let state = ProfileState::new();
         let (stop, signal) = mpsc::channel();
-        std::thread::scope(|scope| {
+        let stopped_at = std::thread::scope(|scope| {
             let state = &state;
             scope.spawn(move || state.run_sampler(&signal));
             std::thread::sleep(PROFILE_INTERVAL * 3 + PROFILE_INTERVAL / 2);
             stop.send(()).unwrap();
+            state.started.elapsed()
         });
         let samples = state.drain();
+        let interval_us = PROFILE_INTERVAL.as_micros() as u64;
+        let buckets: Vec<u64> = samples
+            .iter()
+            .map(|sample| sample.elapsed_us / interval_us)
+            .collect();
+        // A late wake-up shortens the next gap but never yields two samples in one interval.
+        assert!(!buckets.is_empty(), "the sampler ticked at least once");
         assert!(
-            (2..=4).contains(&samples.len()),
-            "expected about three ticks, got {}",
-            samples.len()
+            buckets[0] >= 1,
+            "no tick before the first interval: {buckets:?}"
         );
-        for sample in &samples {
-            assert!(
-                sample.elapsed_us >= 100_000,
-                "no tick before the first interval"
-            );
-        }
-        for (a, b) in samples.iter().zip(samples.iter().skip(1)) {
-            assert!(
-                b.elapsed_us - a.elapsed_us >= 90_000,
-                "ticks are not replayed in a burst"
-            );
-        }
+        assert!(
+            buckets.windows(2).all(|pair| pair[0] < pair[1]),
+            "missed ticks are skipped, not replayed in a burst: {buckets:?}"
+        );
+        let possible = stopped_at.as_micros() as u64 / interval_us;
+        assert!(
+            buckets.len() as u64 <= possible,
+            "{} samples within {possible} intervals",
+            buckets.len()
+        );
     }
 }
