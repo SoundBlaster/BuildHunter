@@ -96,8 +96,11 @@ filesystem entries/folders, discovered artifacts, warnings, pending worker tasks
 and measured bytes. Initial and terminal snapshots bracket approximately 100 ms
 samples. Entries count processed files and directory listings, including the
 selected root; pruned descendants and skipped cloud placeholders are excluded.
-Directory processing/callback backpressure can delay samples. Idle worker waits
-produce flat intervals. Elapsed time covers the Rust scan through worker join.
+A dedicated sampler thread takes a snapshot on every 100 ms boundary, so slow
+directory processing or a consumer that blocks event delivery delays samples but
+never thins or merges them; each keeps the time it was taken. While the
+coordinator is blocked or workers are idle, counters do not advance and the
+interval is flat. Elapsed time covers the Rust scan through worker join.
 
 **Measured bytes/s is metadata size throughput, not disk read speed.** It uses
 allocated sizes by default (`--apparent` uses logical sizes), counts nested

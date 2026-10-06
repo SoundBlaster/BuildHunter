@@ -1,7 +1,14 @@
-//! Cumulative coordinator progress. Bytes are metadata sizes, never disk-read throughput.
+//! Cumulative coordinator progress, sampled on its own thread so stalls in the coordinator or
+//! in the event consumer cannot thin the timeline. Bytes are metadata sizes, never disk reads.
+use std::collections::VecDeque;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Mutex, PoisonError, mpsc};
 use std::time::{Duration, Instant};
 
 pub const PROFILE_INTERVAL: Duration = Duration::from_millis(100);
+
+/// Samples waiting for the coordinator; a consumer stalled for minutes keeps the latest ones.
+const PENDING_CAPACITY: usize = 4096;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -15,48 +22,103 @@ pub struct ScanProfileSample {
     pub pending_tasks: u64,
 }
 
-pub(crate) struct ProfileClock {
-    started: Instant,
-    last_emitted: Duration,
-    pub counters: ScanProfileSample,
+/// Written only by the coordinator thread and read by the sampler.
+#[derive(Default)]
+pub(crate) struct ProfileCounters {
+    pub entries: AtomicU64,
+    pub directories: AtomicU64,
+    pub measured_bytes: AtomicU64,
+    pub artifacts: AtomicU64,
+    pub warnings: AtomicU64,
+    pub pending_tasks: AtomicU64,
 }
 
-impl ProfileClock {
+/// Single-writer increment: a plain load and store, no read-modify-write on the hot path.
+pub(crate) fn bump(counter: &AtomicU64, amount: u64) {
+    counter.store(
+        counter.load(Ordering::Relaxed).saturating_add(amount),
+        Ordering::Relaxed,
+    );
+}
+
+#[derive(Default)]
+struct Pending {
+    samples: VecDeque<ScanProfileSample>,
+    last_elapsed_us: Option<u64>,
+}
+
+pub(crate) struct ProfileState {
+    started: Instant,
+    pub counters: ProfileCounters,
+    pending: Mutex<Pending>,
+    has_pending: AtomicBool,
+}
+
+impl ProfileState {
     pub fn new() -> Self {
         Self {
             started: Instant::now(),
-            last_emitted: Duration::ZERO,
-            counters: ScanProfileSample::default(),
+            counters: ProfileCounters::default(),
+            pending: Mutex::new(Pending::default()),
+            has_pending: AtomicBool::new(false),
         }
     }
 
-    pub fn remaining_interval(&self) -> Duration {
-        self.remaining_interval_at(self.started.elapsed())
-    }
-
-    fn remaining_interval_at(&self, elapsed: Duration) -> Duration {
-        PROFILE_INTERVAL.saturating_sub(elapsed.saturating_sub(self.last_emitted))
-    }
-
-    pub fn sample(&mut self, force: bool, pending: usize) -> Option<ScanProfileSample> {
-        self.sample_at(self.started.elapsed(), force, pending)
-    }
-
-    fn sample_at(
-        &mut self,
-        elapsed: Duration,
-        force: bool,
-        pending: usize,
-    ) -> Option<ScanProfileSample> {
-        if !force && elapsed.saturating_sub(self.last_emitted) < PROFILE_INTERVAL {
-            return None;
+    /// Queues a snapshot of the counters taken now. The clock is read under the queue lock,
+    /// so queued samples are strictly increasing in time whichever thread records them.
+    pub fn record(&self) {
+        let mut pending = self.pending.lock().unwrap_or_else(PoisonError::into_inner);
+        let now = u64::try_from(self.started.elapsed().as_micros()).unwrap_or(u64::MAX);
+        let elapsed_us = match pending.last_elapsed_us {
+            Some(last) if now <= last => last.saturating_add(1),
+            _ => now,
+        };
+        pending.last_elapsed_us = Some(elapsed_us);
+        let counters = &self.counters;
+        let sample = ScanProfileSample {
+            elapsed_us,
+            entries: counters.entries.load(Ordering::Relaxed),
+            directories: counters.directories.load(Ordering::Relaxed),
+            measured_bytes: counters.measured_bytes.load(Ordering::Relaxed),
+            artifacts: counters.artifacts.load(Ordering::Relaxed),
+            warnings: counters.warnings.load(Ordering::Relaxed),
+            pending_tasks: counters.pending_tasks.load(Ordering::Relaxed),
+        };
+        if pending.samples.len() == PENDING_CAPACITY {
+            pending.samples.pop_front();
         }
-        self.last_emitted = elapsed;
-        Some(ScanProfileSample {
-            elapsed_us: u64::try_from(elapsed.as_micros()).unwrap_or(u64::MAX),
-            pending_tasks: pending as u64,
-            ..self.counters
-        })
+        pending.samples.push_back(sample);
+        self.has_pending.store(true, Ordering::Release);
+    }
+
+    /// Takes queued samples in time order. Cheap when nothing is queued.
+    pub fn drain(&self) -> VecDeque<ScanProfileSample> {
+        if !self.has_pending.load(Ordering::Acquire) {
+            return VecDeque::new();
+        }
+        let mut pending = self.pending.lock().unwrap_or_else(PoisonError::into_inner);
+        self.has_pending.store(false, Ordering::Release);
+        std::mem::take(&mut pending.samples)
+    }
+
+    /// Records one sample per interval boundary until `stop` is dropped or signalled.
+    /// Ticks missed while the thread was descheduled are skipped, never replayed.
+    pub fn run_sampler(&self, stop: &mpsc::Receiver<()>) {
+        let mut tick: u32 = 1;
+        loop {
+            let deadline = PROFILE_INTERVAL.saturating_mul(tick);
+            let wait = deadline.saturating_sub(self.started.elapsed());
+            match stop.recv_timeout(wait) {
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
+                Ok(()) | Err(mpsc::RecvTimeoutError::Disconnected) => return,
+            }
+            self.record();
+            let elapsed_ticks = self.started.elapsed().as_nanos() / PROFILE_INTERVAL.as_nanos();
+            tick = u32::try_from(elapsed_ticks)
+                .unwrap_or(u32::MAX - 1)
+                .saturating_add(1)
+                .max(tick.saturating_add(1));
+        }
     }
 }
 
@@ -65,48 +127,70 @@ mod tests {
     use super::*;
 
     #[test]
-    fn worker_wait_uses_the_remaining_deadline_not_another_full_interval() {
-        let mut clock = ProfileClock::new();
-        clock
-            .sample_at(Duration::from_millis(100), true, 1)
-            .unwrap();
-        assert_eq!(
-            clock.remaining_interval_at(Duration::from_millis(175)),
-            Duration::from_millis(25)
+    fn records_from_any_thread_stay_strictly_ordered() {
+        let state = ProfileState::new();
+        bump(&state.counters.entries, 3);
+        std::thread::scope(|scope| {
+            for _ in 0..4 {
+                scope.spawn(|| {
+                    for _ in 0..50 {
+                        state.record();
+                    }
+                });
+            }
+        });
+        let samples = state.drain();
+        assert_eq!(samples.len(), 200);
+        assert!(
+            samples
+                .iter()
+                .zip(samples.iter().skip(1))
+                .all(|(a, b)| a.elapsed_us < b.elapsed_us)
         );
-        assert_eq!(
-            clock.remaining_interval_at(Duration::from_millis(200)),
-            Duration::ZERO
-        );
-        assert_eq!(
-            clock.remaining_interval_at(Duration::from_millis(225)),
-            Duration::ZERO
-        );
+        assert!(samples.iter().all(|sample| sample.entries == 3));
+        assert!(state.drain().is_empty());
     }
 
     #[test]
-    fn interval_and_forced_terminal_preserve_counters() {
-        let mut clock = ProfileClock::new();
-        clock.counters.entries = 9;
+    fn a_stalled_consumer_keeps_the_latest_samples() {
+        let state = ProfileState::new();
+        for _ in 0..PENDING_CAPACITY + 5 {
+            state.record();
+        }
+        let samples = state.drain();
+        assert_eq!(samples.len(), PENDING_CAPACITY);
+        state.record();
+        let next = state.drain();
+        assert!(next[0].elapsed_us > samples.back().unwrap().elapsed_us);
+    }
+
+    #[test]
+    fn sampler_ticks_on_interval_boundaries_until_stopped() {
+        let state = ProfileState::new();
+        let (stop, signal) = mpsc::channel();
+        std::thread::scope(|scope| {
+            let state = &state;
+            scope.spawn(move || state.run_sampler(&signal));
+            std::thread::sleep(PROFILE_INTERVAL * 3 + PROFILE_INTERVAL / 2);
+            stop.send(()).unwrap();
+        });
+        let samples = state.drain();
         assert!(
-            clock
-                .sample_at(Duration::from_millis(99), false, 3)
-                .is_none()
+            (2..=4).contains(&samples.len()),
+            "expected about three ticks, got {}",
+            samples.len()
         );
-        let sample = clock
-            .sample_at(Duration::from_millis(100), false, 3)
-            .unwrap();
-        assert_eq!(sample.entries, 9);
-        assert_eq!(sample.pending_tasks, 3);
-        assert!(
-            clock
-                .sample_at(Duration::from_millis(101), false, 2)
-                .is_none()
-        );
-        let last = clock
-            .sample_at(Duration::from_millis(101), true, 2)
-            .unwrap();
-        assert_eq!(last.elapsed_us, 101_000);
-        assert_eq!(last.pending_tasks, 2);
+        for sample in &samples {
+            assert!(
+                sample.elapsed_us >= 100_000,
+                "no tick before the first interval"
+            );
+        }
+        for (a, b) in samples.iter().zip(samples.iter().skip(1)) {
+            assert!(
+                b.elapsed_us - a.elapsed_us >= 90_000,
+                "ticks are not replayed in a burst"
+            );
+        }
     }
 }
