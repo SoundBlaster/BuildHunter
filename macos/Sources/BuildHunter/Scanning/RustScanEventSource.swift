@@ -243,6 +243,7 @@ final class RustScanBridgeContext: @unchecked Sendable {
     let policy: BuildHunterScanPolicy
     private let lock = NSLock()
     private var didFinish = false
+    private var bridgeGeneratedWarnings: UInt64 = 0
 
     init(generation: UInt64, channel: ScanEventChannel, policy: BuildHunterScanPolicy) {
         self.generation = generation
@@ -274,6 +275,7 @@ final class RustScanBridgeContext: @unchecked Sendable {
         switch value.event_type {
         case 1:
             if decodeUTF8(value.path, length: value.path_len) == nil {
+                bridgeGeneratedWarnings = bridgeGeneratedWarnings == .max ? .max : bridgeGeneratedWarnings + 1
                 yield(.warning(
                     generation: generation,
                     message: "A detected path is not valid UTF-8; its displayed name may be lossy."
@@ -311,7 +313,10 @@ final class RustScanBridgeContext: @unchecked Sendable {
                 yield(.profile(generation: generation, sample: ScanProfileSnapshot(
                     elapsedMicroseconds: sample.elapsed_us, entries: sample.entries,
                     directories: sample.directories, measuredBytes: sample.measured_bytes,
-                    artifacts: sample.artifacts, warnings: sample.warnings, pendingTasks: sample.pending_tasks
+                    artifacts: sample.artifacts,
+                    warnings: sample.warnings > .max - bridgeGeneratedWarnings
+                        ? .max : sample.warnings + bridgeGeneratedWarnings,
+                    pendingTasks: sample.pending_tasks
                 )))
             }
         default:
