@@ -4,6 +4,7 @@ import Charts
 struct ScanProfilePanel: View {
     let profile: ScanProfileHistory
     let isScanning: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var expanded = false
     @State private var metric = Metric.entries
 
@@ -13,7 +14,7 @@ struct ScanProfilePanel: View {
     }
 
     var body: some View {
-        DisclosureGroup(isExpanded: $expanded) {
+        DisclosureGroup(isExpanded: $expanded.animation(reduceMotion ? nil : .smooth(duration: 0.25))) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Picker("Throughput", selection: $metric) {
@@ -26,6 +27,8 @@ struct ScanProfilePanel: View {
                     Spacer()
                     Text("\(profile.latest?.elapsedSeconds ?? 0, format: .number.precision(.fractionLength(1))) s")
                         .monospacedDigit().foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
                 }
                 HStack(spacing: 24) {
                     statistic("Current", value: isScanning ? current : 0)
@@ -50,6 +53,17 @@ struct ScanProfilePanel: View {
                         }
                     }
                 }
+                // Points keep absolute timestamp identities, including when the rolling
+                // history evicts its oldest interval. Animate new samples, not slot indices.
+                .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: metric)
+                .transaction { transaction in
+                    // A fresh scan resets the timeline; never morph the previous scan into it.
+                    if profile.points.count < 2 {
+                        transaction.animation = nil
+                        transaction.disablesAnimations = true
+                    }
+                }
                 .frame(height: 140)
                 .accessibilityIdentifier("buildhunter.report.profile.chart")
                 if let sample = profile.latest {
@@ -67,6 +81,8 @@ struct ScanProfilePanel: View {
         }
         .accessibilityIdentifier("buildhunter.report.profile")
     }
+
+    private var sampleAnimation: Animation? { reduceMotion ? nil : .linear(duration: 0.2) }
 
     private var current: Double { profile.points.last.map(rate) ?? 0 }
     private var average: Double { metric == .entries ? profile.averageEntriesPerSecond : profile.averageBytesPerSecond }
@@ -88,6 +104,8 @@ struct ScanProfilePanel: View {
             Text(title).font(.caption).foregroundStyle(.secondary)
                 .accessibilityIdentifier("buildhunter.report.profile.\(title.lowercased())")
             Text(formatted(value)).font(.headline).monospacedDigit()
+                .contentTransition(.numericText(value: value))
+                .animation(sampleAnimation, value: value)
         }
     }
 }

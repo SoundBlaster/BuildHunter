@@ -661,6 +661,22 @@ struct ScanProfileTests {
         #expect(history.points.first?.seconds == 761)
     }
 
+    @Test("Rolling chart points retain absolute identities and values")
+    func rollingChartIdentity() {
+        var history = ScanProfileHistory()
+        history.record(sample(0, entries: 0))
+        for seconds in 1...240 {
+            history.record(sample(UInt64(seconds), entries: UInt64(seconds * 10)))
+        }
+        let before = Dictionary(uniqueKeysWithValues: history.points.map { ($0.id, $0) })
+        history.record(sample(241, entries: 2_410))
+        #expect(history.points.first?.id == 2)
+        #expect(history.points.last?.id == 241)
+        for point in history.points where before[point.id] != nil {
+            #expect(before[point.id] == point, "A retained mark must keep the same time and rate")
+        }
+    }
+
     @Test("Duplicate or backwards samples cannot create invalid chart rates")
     func invalidSamples() {
         var history = ScanProfileHistory()
