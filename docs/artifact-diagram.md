@@ -98,7 +98,10 @@ Debug builds can record the diagram with [Screener](https://github.com/SoundBlas
 Launch with `BUILDHUNTER_SCREENER=1` and the diagram writes a `.vtrace` session under
 `Caches/Screener/Traces` (inside the app container when sandboxed): markers for each
 navigation phase and layout change (folder depths and sector counts, never names) and
-window keyframes every 40 ms during a transition and for one second after it. Read a
+window keyframes every 40 ms during a transition and for one second after it. A trace run
+animates even when the machine has Reduce Motion on, so the trace shows the transition;
+`chart.layout` records the system setting, and a navigation that does not animate records
+`navigation.skipped` with its reason. Read a
 trace with `screener-mcp --traces-dir <dir>` (`screener.contact_sheet`, `screener.frame`).
 The UI test `testDiagramNavigationRecordsScreenerTrace` records one descent and one
 return; macOS CI uploads the trace with the test evidence. Release builds contain no

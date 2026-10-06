@@ -11,6 +11,15 @@ struct ArtifactDiagramWindow: View {
     let scan: WindowScanModel
     @State private var diagram: ArtifactDiagramModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Screener trace runs keep navigation animated even when the machine has Reduce Motion
+    /// on, so a trace always contains the transition it was recorded for.
+    private var motionReduced: Bool {
+#if DEBUG
+        reduceMotion && DiagramTraceRecorder.shared == nil
+#else
+        reduceMotion
+#endif
+    }
     @State private var navigation: DiagramNavigationPresentation?
     @State private var fade = 0.0
     @State private var zoom = 0.0
@@ -57,7 +66,7 @@ struct ArtifactDiagramWindow: View {
             if let token = navigation?.id { startNavigation(token: token) }
         }
         .onChange(of: scan.reportID) { cancelNavigation() }
-        .onChange(of: reduceMotion) { if reduceMotion { cancelNavigation() } }
+        .onChange(of: motionReduced) { if motionReduced { cancelNavigation() } }
         .onDisappear { cancelNavigation() }
         .a11yRoot("buildhunter.diagram")
     }
@@ -66,7 +75,13 @@ struct ArtifactDiagramWindow: View {
         guard navigation == nil, path != diagram.focusID, diagram.snapshot.nodes[path] != nil else { return }
         let descending = !path.isEmpty && (diagram.focusID.isEmpty || path.hasPrefix(diagram.focusID + "/"))
         let ascending = path.isEmpty || diagram.focusID.hasPrefix(path + "/")
-        guard descending || ascending, !reduceMotion else {
+        guard descending || ascending, !motionReduced else {
+#if DEBUG
+            DiagramTraceRecorder.shared?.mark("navigation.skipped", [
+                "reason": motionReduced ? "reduceMotion" : "notAdjacent",
+            ])
+            DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
             diagram.navigate(to: path)
             return
         }
@@ -95,6 +110,11 @@ struct ArtifactDiagramWindow: View {
 #endif
                 diagram.setNavigationTransitionActive(true)
                 fade = 0; zoom = 0
+            } else {
+#if DEBUG
+                DiagramTraceRecorder.shared?.mark("navigation.skipped", ["reason": "noPlan"])
+                DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
             }
         }
     }
@@ -360,6 +380,7 @@ private struct ArtifactSunburstChart: View {
             "sectors": "\(layout.sectors.count)",
             "rings": "\((layout.sectors.map(\.depth).max() ?? -1) + 1)",
             "invalid": "\(invalid)",
+            "reduceMotion": "\(reduceMotion)",
         ])
         logger.debug("ChartInput sectors: \(inputs, privacy: .public)")
         if invalid {
