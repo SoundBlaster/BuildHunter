@@ -7,9 +7,6 @@ use std::time::{Duration, Instant};
 
 pub const PROFILE_INTERVAL: Duration = Duration::from_millis(100);
 
-/// Samples waiting for the coordinator; a consumer stalled for minutes keeps the latest ones.
-const PENDING_CAPACITY: usize = 4096;
-
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ScanProfileSample {
@@ -41,6 +38,8 @@ pub(crate) fn bump(counter: &AtomicU64, amount: u64) {
     );
 }
 
+/// Samples waiting for the coordinator. Unbounded on purpose: dropping here would hide
+/// losses from the report's truncation count, and a stall costs only 56 bytes per interval.
 #[derive(Default)]
 struct Pending {
     samples: VecDeque<ScanProfileSample>,
@@ -84,9 +83,6 @@ impl ProfileState {
             warnings: counters.warnings.load(Ordering::Relaxed),
             pending_tasks: counters.pending_tasks.load(Ordering::Relaxed),
         };
-        if pending.samples.len() == PENDING_CAPACITY {
-            pending.samples.pop_front();
-        }
         pending.samples.push_back(sample);
         self.has_pending.store(true, Ordering::Release);
     }
@@ -152,16 +148,15 @@ mod tests {
     }
 
     #[test]
-    fn a_stalled_consumer_keeps_the_latest_samples() {
+    fn a_long_stall_loses_no_samples() {
         let state = ProfileState::new();
-        for _ in 0..PENDING_CAPACITY + 5 {
+        for _ in 0..10_000 {
             state.record();
         }
         let samples = state.drain();
-        assert_eq!(samples.len(), PENDING_CAPACITY);
+        assert_eq!(samples.len(), 10_000);
         state.record();
-        let next = state.drain();
-        assert!(next[0].elapsed_us > samples.back().unwrap().elapsed_us);
+        assert!(state.drain()[0].elapsed_us > samples.back().unwrap().elapsed_us);
     }
 
     #[test]
