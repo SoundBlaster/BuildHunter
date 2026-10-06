@@ -102,7 +102,7 @@ has been adopted by the scanner.
 | H17 | Evaluate shared leaves once: **pending** | No DAG/shared-leaf evaluation plan or call-count acceptance tests. |
 | H18 | Cost/selectivity reordering: **pending** | No reordering; purity and observable priority/short-circuit semantics must be preserved. |
 | H19 | Key-aware static dispatch: **partial, Rust library merged** | Rust #20 covers ordered reference parity, construction, unrelated-key skipping, outer generic/lifetime contexts and borrowed non-Clone decisions. CI passed. Scanner adoption and Swift keyed backend remain pending; local 3.84/12.27 ns samples did not beat handwritten dispatch. |
-| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support balanced construction. Forced evaluation inlining has a separate measured effect: on the actual library, in separate-module microbenchmarks, about 62–65x faster nested-chain and about 3.1x faster balanced evaluation; dynamic `FirstMatchSpec` did not materially improve ([SpecificationCore #20](https://github.com/SoundBlaster/SpecificationCore/pull/20), open, stacked on #19; not yet adopted by the app). *Historical:* the earlier ~0.65% came from a narrow experiment with forced inlining on `And`/`Or`/`Not` only and is not a verdict on the annotation set. No whole-scan speedup is demonstrated. The upstream guard report, resilient ABI support and the compile-time trade-off (one cell +18.8%; a fresh median +3.3% with wide spread) remain open. |
+| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support balanced construction. Forced evaluation inlining has a separate measured effect: on the actual library, in separate-module microbenchmarks, about 57–65x faster nested-chain and about 3x faster balanced evaluation; dynamic `FirstMatchSpec` did not materially improve ([SpecificationCore #20](https://github.com/SoundBlaster/SpecificationCore/pull/20), open, stacked on #19; not yet adopted by the app). *Historical:* the earlier ~0.65% came from a narrow experiment with forced inlining on `And`/`Or`/`Not` only and is not a verdict on the annotation set. No whole-scan speedup is demonstrated. The upstream guard report, resilient ABI support and the compile-time trade-off (clean compilation medians +18.8%, +3.3% and +1.6% across runs, with variable pair costs) remain open. |
 | H21 | Avoid parameter-pack iteration here: **guardrail** | Adopted builder uses balanced fixed arities. Reassess only with reproducible new-toolchain evidence. |
 
 
@@ -324,3 +324,25 @@ Local acceptance: `cargo test --locked` passed 25 tests (including
 denied, and all-targets Linux cross-compilation checks passed. Existing
 macOS/Linux/Windows Rust CI runs this layer without a new workflow. This is
 a runtime scheduling follow-up to issue 25, not resolution of another H row.
+
+## Annotation adoption checkpoint (2026-10-06)
+
+SpecificationCore #19/#20 remain open, with #20 head `90140e3`. All current
+CI checks passed, including defaults, disabled defaults, Tracing-only and both
+traits, separate-module performance, Release builds, Linux/macOS tests and DocC.
+The local DocC build also completed. Documentation describes the default,
+consumer opt-out, additive dependency-graph traits and workload-specific benefits.
+
+Two actual shipping-source trait-on/off repeats measured about 62x and 57x for
+the nested growing-leaf chain, and 3.1x and 3.0x for the balanced chain. Dynamic
+FirstMatchSpec stayed effectively unchanged; combined __TEXT size ratios were
+1.0. Clean compilation medians were +3.3% and +1.6%, following the earlier
++18.8% result. Costs remain variable, not a fixed surcharge. No measured strategy
+had a statistically confirmed runtime regression exceeding 5%.
+
+The owner's decision accepts the observed compilation tradeoff for production;
+the original experiment's 15% cost gate remains unchanged. No new frozen-layout
+commitment or library-evolution support is adopted. H20 remains partial until
+merge and BuildHunter consumer integration/validation; the H-ledger totals do
+not change. Next: merge the green library stack after review, adopt it in the
+consumer, and measure the actual application separately before release alignment.
