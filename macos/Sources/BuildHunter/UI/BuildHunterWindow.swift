@@ -257,14 +257,18 @@ private struct ScanReportFooter: View {
 
     var body: some View {
         WindowStatusBar {
-            Label {
-                Text("BuildHunter only reads files and folders. It never deletes artifacts.")
-                    .nestedAccessibilityIdentifier("readOnlyStatus")
-            } icon: {
-                Image(systemName: "eye.fill").accessibilityHidden(true)
+            // Fill the bar so the profile chart sits at the trailing edge.
+            HStack(alignment: .center, spacing: 12) {
+                Label {
+                    Text("BuildHunter only reads files and folders. It never deletes artifacts.")
+                        .nestedAccessibilityIdentifier("readOnlyStatus")
+                } icon: {
+                    Image(systemName: "eye.fill").accessibilityHidden(true)
+                }
+                Spacer(minLength: 0)
+                ScanProfileStatusItem(profile: profile, isScanning: isScanning)
             }
-            Spacer(minLength: 12)
-            ScanProfileStatusItem(profile: profile, isScanning: isScanning)
+            .frame(maxWidth: .infinity)
         }
     }
 }

@@ -23,6 +23,11 @@ struct ScanProfileStatusItem: View {
         .nestedAccessibilityIdentifier("profile")
         .popover(isPresented: $presented, arrowEdge: .top) {
             ScanProfilePanel(profile: profile, isScanning: isScanning)
+                // The status bar's single-line secondary caption style must not leak
+                // into the popover.
+                .lineLimit(nil)
+                .font(.body)
+                .foregroundStyle(.primary)
                 .padding(14)
                 .frame(width: 520)
                 // Children keep the "<report>.profile.*" identifiers without a second
