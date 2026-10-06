@@ -29,6 +29,9 @@ import sys
 
 from PIL import Image, ImageChops, ImageDraw
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from contact_sheet import flatten  # noqa: E402
+
 UUID = r"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"
 
 
@@ -94,8 +97,8 @@ def parse_rect(text):
 
 
 def compare(base_path, cur_path, threshold, ignore):
-    base = Image.open(base_path).convert("RGB")
-    cur = Image.open(cur_path).convert("RGB")
+    base = flatten(Image.open(base_path))
+    cur = flatten(Image.open(cur_path))
     if base.size != cur.size:
         return {"status": "size", "baseSize": base.size, "currentSize": cur.size}, base, cur, None
     delta = ImageChops.difference(base, cur)

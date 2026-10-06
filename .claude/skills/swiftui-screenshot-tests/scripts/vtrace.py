@@ -17,7 +17,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from contact_sheet import sheet  # noqa: E402
+from contact_sheet import parse_color, sheet  # noqa: E402
 
 FRAME_KINDS = ("keyframe", "thumbnail")
 
@@ -108,7 +108,7 @@ def cmd_sheet(args):
     if not picked:
         sys.exit("no frames matched")
     title = args.title or f"{manifest.get('name')} — {os.path.basename(args.trace)}"
-    sheet(picked, args.out, args.cols, args.width, title)
+    sheet(picked, args.out, args.cols, args.width, title, args.background)
 
 
 def main():
@@ -130,6 +130,8 @@ def main():
     p.add_argument("--cols", type=int, default=5)
     p.add_argument("--width", type=int, default=280)
     p.add_argument("--title")
+    p.add_argument("--background", default="ffffff", type=parse_color,
+                   help="hex color behind transparent pixels; frames omit the window background")
     p.set_defaults(fn=cmd_sheet)
     args = ap.parse_args()
     args.fn(args)

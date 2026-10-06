@@ -42,9 +42,22 @@ def gather(inputs):
     return items
 
 
-def load(path):
+def flatten(img, background=(255, 255, 255)):
+    """Composite transparency onto a solid color. Screener frames come from
+    cacheDisplay of the window's content view, which never draws the window
+    background, so most of a frame is transparent. A bare convert("RGB") turns
+    that into black and hides black text."""
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        rgba = img.convert("RGBA")
+        base = Image.new("RGBA", rgba.size, background + (255,))
+        base.alpha_composite(rgba)
+        return base.convert("RGB")
+    return img.convert("RGB")
+
+
+def load(path, background=(255, 255, 255)):
     try:
-        return Image.open(path).convert("RGB")
+        return flatten(Image.open(path), background)
     except Exception as error:  # HEIC without pillow-heif, truncated PNG, ...
         print(f"skipped {path}: {error}", file=sys.stderr)
         return None
@@ -59,11 +72,16 @@ def fit_label(draw, text, fnt, width, keep_end):
     return "…" + text if keep_end else text + "…"
 
 
-def sheet(items, out, cols=4, width=360, title=None):
+def parse_color(text):
+    text = text.lstrip("#")
+    return tuple(int(text[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def sheet(items, out, cols=4, width=360, title=None, background=(255, 255, 255)):
     """items: (path, label) pairs, or (path, label, highlight) to outline a tile in red."""
     tiles = []
     for item in items:
-        img = load(item[0])
+        img = load(item[0], background)
         if img is None:
             continue
         height = max(1, round(img.height * width / img.width))
@@ -100,8 +118,10 @@ def main():
     ap.add_argument("--cols", type=int, default=4)
     ap.add_argument("--width", type=int, default=360, help="tile width in pixels")
     ap.add_argument("--title")
+    ap.add_argument("--background", default="ffffff", type=parse_color,
+                    help="hex color behind transparent pixels (default ffffff; ececec matches a light window)")
     args = ap.parse_args()
-    sheet(gather(args.inputs), args.out, args.cols, args.width, args.title)
+    sheet(gather(args.inputs), args.out, args.cols, args.width, args.title, args.background)
 
 
 if __name__ == "__main__":

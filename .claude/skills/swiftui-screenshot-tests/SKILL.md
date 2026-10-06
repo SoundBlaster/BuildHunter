@@ -191,8 +191,14 @@ python3 -I $SK/vtrace.py sheet TRACE.vtrace --after navigation.begin --window-ms
 +120ms"), so a sheet reads as a flip-book of the transition. Check that the
 sequence is continuous: no frame where the selection jumps, the ring count
 changes abruptly, or a sector appears from nowhere. Frames are captured with
-`cacheDisplay`. If consecutive frames are identical while the markers say an
-animation is running, that is a capture limitation, not proof the UI froze.
+`cacheDisplay` of the window's content view, which does capture in-flight
+SwiftUI animation. Frames are RGBA, and most of each frame is transparent,
+because the window background belongs to the window frame, not the content
+view. The scripts composite them onto white (`--background ececec` gives a
+light window color). A viewer that drops alpha shows a black window with
+invisible black text; that is the viewer, not the app. If consecutive frames
+are identical while the markers say an animation is running, that is a
+capture limitation, not proof the UI froze.
 
 The `.vtrace` format: `manifest.json`; `timeline.jsonl`, one record per line
 with `sequence`, `monotonicNanoseconds`, `kind`
