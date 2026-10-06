@@ -32,6 +32,18 @@ run_tests() {
   set -e
   return "$status"
 }
+# After a failed test run, evidence extraction is best-effort: a bundle from a build or
+# test-planning failure may hold no test results, and xcresulttool's error must not
+# replace xcodebuild's status. After a passing run, extraction failures still fail.
+evidence() {
+  local status=0
+  "$@" || status=$?
+  if [[ "$status" -ne 0 && "$test_status" -ne 0 ]]; then
+    echo "warning: '$1 ${2:-} ${3:-}' failed with status $status after the failed test run" >&2
+    return 0
+  fi
+  return "$status"
+}
 if [[ "$mode" == test ]]; then
   if [[ -e "$output_dir/test.xcresult" ]]; then
     echo 'test.xcresult already exists. Use a clean CI output directory.' >&2
@@ -49,12 +61,12 @@ if [[ "$mode" == test ]]; then
     echo "xcodebuild test exited $test_status without a result bundle" >&2
     exit "$(( test_status == 0 ? 1 : test_status ))"
   fi
-  xcrun xcresulttool get test-results summary --path "$output_dir/test.xcresult" \
+  evidence xcrun xcresulttool get test-results summary --path "$output_dir/test.xcresult" \
     --format json > "$output_dir/test-summary.json"
-  xcrun xcresulttool export attachments --path "$output_dir/test.xcresult" \
+  evidence xcrun xcresulttool export attachments --path "$output_dir/test.xcresult" \
     --output-path "$screenshot_dir" --filter '*.png'
   if [[ "$test_status" -ne 0 ]]; then
-    echo "xcodebuild test failed with status $test_status; summary and screenshots were exported" >&2
+    echo "xcodebuild test failed with status $test_status; exported what the result bundle holds" >&2
     exit "$test_status"
   fi
   screenshot_count="$(find "$screenshot_dir" -type f -name '*.png' | wc -l | tr -d ' ')"
@@ -84,16 +96,16 @@ elif [[ "$mode" == performance ]]; then
     echo "xcodebuild test exited $test_status without a result bundle" >&2
     exit "$(( test_status == 0 ? 1 : test_status ))"
   fi
-  xcrun xcresulttool get test-results summary --path "$output_dir/performance.xcresult" \
+  evidence xcrun xcresulttool get test-results summary --path "$output_dir/performance.xcresult" \
     --format json > "$output_dir/performance-summary.json"
-  xcrun xcresulttool get test-results metrics --path "$output_dir/performance.xcresult" \
+  evidence xcrun xcresulttool get test-results metrics --path "$output_dir/performance.xcresult" \
     > "$output_dir/performance-metrics.json"
-  xcrun xcresulttool export metrics --path "$output_dir/performance.xcresult" \
+  evidence xcrun xcresulttool export metrics --path "$output_dir/performance.xcresult" \
     --output-path "$output_dir/performance-metrics"
-  xcrun xcresulttool export attachments --path "$output_dir/performance.xcresult" \
+  evidence xcrun xcresulttool export attachments --path "$output_dir/performance.xcresult" \
     --output-path "$output_dir/performance-attachments" --filter '*.json'
   if [[ "$test_status" -ne 0 ]]; then
-    echo "xcodebuild test failed with status $test_status; summary and metrics were exported" >&2
+    echo "xcodebuild test failed with status $test_status; exported what the result bundle holds" >&2
     exit "$test_status"
   fi
   python3 - "$output_dir/performance-summary.json" <<'PY'
