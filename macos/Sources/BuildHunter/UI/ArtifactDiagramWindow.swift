@@ -72,25 +72,11 @@ struct ArtifactDiagramWindow: View {
         .onChange(of: motionReduced) { if motionReduced { cancelNavigation() } }
         .onDisappear { cancelNavigation() }
         .a11yRoot("buildhunter.diagram")
-        .alert("Folder location", isPresented: Binding(
-            get: { finderNotice != nil },
-            set: { if !$0 { finderNotice = nil } }
-        )) {
-            Button("OK", role: .cancel) { finderNotice = nil }
-        } message: {
-            Text(finderNotice ?? "")
-        }
+        .finderNoticeAlert($finderNotice)
     }
 
     private func revealFolder(_ url: URL) {
-        switch ArtifactFolderActions.reveal(url, accessRoot: diagram.targetURL) {
-        case .opened:
-            finderNotice = nil
-        case .openedParent(let parent):
-            finderNotice = "The folder is no longer available. Opened \(parent.path) in Finder instead."
-        case .unavailable:
-            finderNotice = "No existing parent folder is available to open in Finder."
-        }
+        finderNotice = ArtifactFolderActions.reveal(url, accessRoot: diagram.targetURL).notice
     }
 
     private func navigate(to path: String) {
@@ -284,10 +270,15 @@ private struct ArtifactSunburstChart: View {
                                             .allowsHitTesting(false)
                                             .accessibilityHidden(true)
                                     }
+                                    // Hover is suppressed right after a click enters a folder; the
+                                    // sector under the resting pointer still owns the context menu.
+                                    let menuSector = layout.sectors.first(where: { $0.id == hovered })
+                                        ?? hit(pointer, proxy: proxy, geometry: geometry)
+                                    let menuURL = folderURL(for: menuSector)
                                     Rectangle().fill(.clear).contentShape(Rectangle())
                                         .artifactFolderContextMenu(
-                                            url: hoveredSectorURL,
-                                            onReveal: { if let url = hoveredSectorURL { revealFolder(url) } }
+                                            url: menuURL,
+                                            onReveal: { if let menuURL { revealFolder(menuURL) } }
                                         )
                                         .onTapGesture { location in
                                             guard navigation == nil else { return }
@@ -385,10 +376,9 @@ private struct ArtifactSunburstChart: View {
         .onDisappear { setHover(nil) }
     }
 
-    private var hoveredSectorURL: URL? {
-        guard let sector = layout.sectors.first(where: { $0.id == hovered }),
-              let nodeID = sector.nodeID,
-              let targetURL else { return nil }
+    /// A grouped Other sector has no single folder, and a synthetic report has no target URL.
+    private func folderURL(for sector: ArtifactSunburstLayout.Sector?) -> URL? {
+        guard let nodeID = sector?.nodeID, let targetURL else { return nil }
         return targetURL.appendingPathComponent(nodeID, isDirectory: true)
     }
 
@@ -661,14 +651,7 @@ private struct ArtifactDiagramSidebar: View {
             .nestedAccessibilityIdentifier("folders")
         }
         .padding(16)
-        .alert("Folder location", isPresented: Binding(
-            get: { finderNotice != nil },
-            set: { if !$0 { finderNotice = nil } }
-        )) {
-            Button("OK", role: .cancel) { finderNotice = nil }
-        } message: {
-            Text(finderNotice ?? "")
-        }
+        .finderNoticeAlert($finderNotice)
     }
 
     private func revealCurrentFolder() {
@@ -682,14 +665,7 @@ private struct ArtifactDiagramSidebar: View {
     }
 
     private func reveal(url: URL) {
-        switch ArtifactFolderActions.reveal(url, accessRoot: model.targetURL) {
-        case .opened:
-            finderNotice = nil
-        case .openedParent(let parent):
-            finderNotice = "The folder is no longer available. Opened \(parent.path) in Finder instead."
-        case .unavailable:
-            finderNotice = "No existing parent folder is available to open in Finder."
-        }
+        finderNotice = ArtifactFolderActions.reveal(url, accessRoot: model.targetURL).notice
     }
 
     private func sizeDescription(_ state: SizeState) -> String {
