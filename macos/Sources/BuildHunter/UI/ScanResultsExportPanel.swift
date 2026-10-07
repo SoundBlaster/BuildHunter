@@ -94,6 +94,7 @@ final class ScanResultsExportPanel: NSObject {
         grid.rowSpacing = 8
         grid.columnSpacing = 8
         grid.column(at: 0).xPlacement = .trailing
+        grid.rowAlignment = .firstBaseline
         let size = grid.fittingSize
         let container = NSView(frame: NSRect(x: 0, y: 0, width: size.width + 40, height: size.height + 24))
         grid.frame = NSRect(x: 20, y: 12, width: size.width, height: size.height)
