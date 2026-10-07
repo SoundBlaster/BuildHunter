@@ -23,6 +23,7 @@ struct ArtifactDiagramWindow: View {
     @State private var navigation: DiagramNavigationPresentation?
     /// When the overlay's clock started; nil until the transition task runs.
     @State private var navigationStart: Date?
+    @State private var finderNotice: String?
 
     init(scan: WindowScanModel, diagram: ArtifactDiagramModel = ArtifactDiagramModel()) {
         self.scan = scan
@@ -40,9 +41,11 @@ struct ArtifactDiagramWindow: View {
                     ArtifactSunburstChart(layout: diagram.layout, palette: diagram.palette, bytes: diagram.focus.bytes,
                                           isScanning: scan.isScanning, statistics: diagram.focus.statistics,
                                           focusID: diagram.focusID, reportID: scan.reportID,
+                                          targetURL: diagram.targetURL,
                                           canNavigateUp: diagram.canNavigateUp,
                                           navigation: navigation, navigationStart: navigationStart,
                                           goUp: { navigate(to: diagram.focus.parentID ?? "") },
+                                          revealFolder: { revealFolder($0) },
                                           hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
                         navigate(to: sector.nodeID ?? sector.parentID)
                     }
@@ -69,6 +72,25 @@ struct ArtifactDiagramWindow: View {
         .onChange(of: motionReduced) { if motionReduced { cancelNavigation() } }
         .onDisappear { cancelNavigation() }
         .a11yRoot("buildhunter.diagram")
+        .alert("Folder location", isPresented: Binding(
+            get: { finderNotice != nil },
+            set: { if !$0 { finderNotice = nil } }
+        )) {
+            Button("OK", role: .cancel) { finderNotice = nil }
+        } message: {
+            Text(finderNotice ?? "")
+        }
+    }
+
+    private func revealFolder(_ url: URL) {
+        switch ArtifactFolderActions.reveal(url, accessRoot: diagram.targetURL) {
+        case .opened:
+            finderNotice = nil
+        case .openedParent(let parent):
+            finderNotice = "The folder is no longer available. Opened \(parent.path) in Finder instead."
+        case .unavailable:
+            finderNotice = "No existing parent folder is available to open in Finder."
+        }
     }
 
     private func navigate(to path: String) {
@@ -205,10 +227,12 @@ private struct ArtifactSunburstChart: View {
     let statistics: ArtifactSizeStatistics
     var focusID = ""
     var reportID: UUID?
+    var targetURL: URL?
     var canNavigateUp = false
     var navigation: DiagramNavigationPresentation?
     var navigationStart: Date?
     var goUp: () -> Void = {}
+    var revealFolder: (URL) -> Void = { _ in }
     var hover: (ArtifactSunburstLayout.Sector?) -> Void = { _ in }
     let select: (ArtifactSunburstLayout.Sector) -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -247,6 +271,10 @@ private struct ArtifactSunburstChart: View {
                         .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
                     }
                     .chartLegend(.hidden)
+                    .artifactFolderContextMenu(
+                        url: hoveredSectorURL,
+                        onReveal: { if let url = hoveredSectorURL { revealFolder(url) } }
+                    )
                     .chartOverlay { proxy in
                         GeometryReader { geometry in
                             if let anchor = proxy.plotFrame {
@@ -355,6 +383,13 @@ private struct ArtifactSunburstChart: View {
             if !layout.sectors.contains(where: { $0.id == hovered }) { setHover(nil) }
         }
         .onDisappear { setHover(nil) }
+    }
+
+    private var hoveredSectorURL: URL? {
+        guard let sector = layout.sectors.first(where: { $0.id == hovered }),
+              let nodeID = sector.nodeID,
+              let targetURL else { return nil }
+        return targetURL.appendingPathComponent(nodeID, isDirectory: true)
     }
 
     private func recordChartInputs(size: CGSize) {
@@ -548,6 +583,7 @@ private struct DiagramTooltip: View {
 private struct ArtifactDiagramSidebar: View {
     @Bindable var model: ArtifactDiagramModel
     let navigate: (String) -> Void
+    @State private var finderNotice: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -573,9 +609,8 @@ private struct ArtifactDiagramSidebar: View {
                         .nestedAccessibilityIdentifier("focus")
                 }
                 Button("Copy path", systemImage: "document.on.document") {
-                    guard let path = model.displayedURL?.path else { return }
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(path, forType: .string)
+                    guard let url = model.displayedURL else { return }
+                    ArtifactFolderActions.copyPath(url)
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.plain)
@@ -583,8 +618,18 @@ private struct ArtifactDiagramSidebar: View {
                 .disabled(model.displayedURL == nil)
                 .help("Copy full path")
                 .nestedAccessibilityIdentifier("copyPath")
+                Button("Show in Finder", systemImage: "folder.badge.magnifyingglass") {
+                    revealCurrentFolder()
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .disabled(model.displayedURL == nil)
+                .help("Show folder in Finder")
+                .nestedAccessibilityIdentifier("showInFinder")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .artifactFolderContextMenu(url: model.displayedURL, onReveal: revealCurrentFolder)
             Text("\(diagramBytes(model.displayedFolder.bytes)) known · \(model.displayedFolder.statistics.artifactCount) artifacts")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -598,7 +643,12 @@ private struct ArtifactDiagramSidebar: View {
             ScrollView {
                 LazyVStack(spacing: 4) {
                     ForEach(model.filteredChildren) { node in
-                        ArtifactDiagramFolderRow(node: node, swatch: model.palette.color(for: node.id)) {
+                        ArtifactDiagramFolderRow(
+                            node: node,
+                            swatch: model.palette.color(for: node.id),
+                            folderURL: model.targetURL?.appendingPathComponent(node.id, isDirectory: true),
+                            onReveal: { reveal(node.id) }
+                        ) {
                             navigate(node.id)
                         }
                     }
@@ -608,6 +658,35 @@ private struct ArtifactDiagramSidebar: View {
             .nestedAccessibilityIdentifier("folders")
         }
         .padding(16)
+        .alert("Folder location", isPresented: Binding(
+            get: { finderNotice != nil },
+            set: { if !$0 { finderNotice = nil } }
+        )) {
+            Button("OK", role: .cancel) { finderNotice = nil }
+        } message: {
+            Text(finderNotice ?? "")
+        }
+    }
+
+    private func revealCurrentFolder() {
+        guard let url = model.displayedURL else { return }
+        reveal(url: url)
+    }
+
+    private func reveal(_ path: String) {
+        guard let root = model.targetURL else { return }
+        reveal(url: root.appendingPathComponent(path, isDirectory: true))
+    }
+
+    private func reveal(url: URL) {
+        switch ArtifactFolderActions.reveal(url, accessRoot: model.targetURL) {
+        case .opened:
+            finderNotice = nil
+        case .openedParent(let parent):
+            finderNotice = "The folder is no longer available. Opened \(parent.path) in Finder instead."
+        case .unavailable:
+            finderNotice = "No existing parent folder is available to open in Finder."
+        }
     }
 
     private func sizeDescription(_ state: SizeState) -> String {
@@ -622,6 +701,8 @@ private struct ArtifactDiagramSidebar: View {
 private struct ArtifactDiagramFolderRow: View {
     let node: ArtifactSunburstNode
     let swatch: ArtifactSunburstPalette.Swatch?
+    var folderURL: URL? = nil
+    var onReveal: () -> Void = {}
     let select: () -> Void
     @State private var isHovered = false
 
@@ -652,6 +733,7 @@ private struct ArtifactDiagramFolderRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .artifactFolderContextMenu(url: folderURL, onReveal: onReveal)
         .onHover { isHovered = $0 }
         .accessibilityLabel("\(node.id), \(diagramBytes(node.bytes)) known")
         .accessibilityValue(ArtifactLanguage.allCases.filter { node.languages.contains($0) }

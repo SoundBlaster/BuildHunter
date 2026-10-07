@@ -222,6 +222,13 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertFalse(center.isEnabled)
         // Synthetic reports deliberately have no filesystem URL to copy.
         XCTAssertFalse(diagram.buttons["buildhunter.diagram.copyPath"].isEnabled)
+        XCTAssertFalse(diagram.buttons["buildhunter.diagram.showInFinder"].isEnabled)
+
+        center.coordinate(withNormalizedOffset: CGVector(dx: 1.25, dy: 0.5)).rightClick()
+        let revealMockSector = app.menuItems["Show in Finder"]
+        XCTAssertTrue(revealMockSector.waitForExistence(timeout: 5))
+        XCTAssertFalse(revealMockSector.isEnabled)
+        app.typeKey(.escape, modifierFlags: [])
     }
 
     func testDiagramBranchExpansionAndRepeatedDeepReturn() {
@@ -321,6 +328,11 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(table.waitForExistence(timeout: 5))
         let firstRow = table.outlineRows.element(boundBy: 0)
         expectRowPath("Packages/Core/.build", of: firstRow)
+        firstRow.rightClick()
+        let revealMockRow = app.menuItems["Show in Finder"]
+        XCTAssertTrue(revealMockRow.waitForExistence(timeout: 5))
+        XCTAssertFalse(revealMockRow.isEnabled, "Mock rows do not refer to real filesystem folders")
+        app.typeKey(.escape, modifierFlags: [])
         let pathHeader = table.buttons["Path"]
         XCTAssertTrue(pathHeader.waitForExistence(timeout: 5))
         clickTableHeader(pathHeader)
@@ -357,13 +369,33 @@ final class BuildHunterUITests: XCTestCase {
         open.click()
         let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         expectValue("Scan complete", of: scanWindow.staticTexts["buildhunter.report.status"])
+        let resultRow = scanWindow.outlines.firstMatch.outlineRows.element(boundBy: 0)
+        resultRow.rightClick()
+        let revealRealRow = app.menuItems["Show in Finder"]
+        XCTAssertTrue(revealRealRow.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealRealRow.isEnabled, "A real scan row must expose its folder in Finder")
+        app.typeKey(.escape, modifierFlags: [])
         scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
         let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
         XCTAssertTrue(diagram.waitForExistence(timeout: 10))
         let focus = diagram.staticTexts["buildhunter.diagram.focus"]
         expectFilesystemPath(selectedRoot.path, of: focus)
+        let revealPath = diagram.buttons["buildhunter.diagram.showInFinder"]
+        XCTAssertTrue(revealPath.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealPath.isEnabled)
+        focus.rightClick()
+        let revealHeader = app.menuItems["Show in Finder"]
+        XCTAssertTrue(revealHeader.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealHeader.isEnabled, "The path header must offer Finder for a real target")
+        app.typeKey(.escape, modifierFlags: [])
         diagram.buttons["buildhunter.diagram.folders.folder.Package"].click()
         expectFilesystemPath(selectedRoot.appendingPathComponent("Package").path, of: focus)
+        let packageRow = diagram.buttons["buildhunter.diagram.folders.folder.Package"]
+        packageRow.rightClick()
+        let revealRealFolder = app.menuItems["Show in Finder"]
+        XCTAssertTrue(revealRealFolder.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealRealFolder.isEnabled)
+        app.typeKey(.escape, modifierFlags: [])
         // Copy must preserve exactly the absolute path shown by the app.
         let expected = try XCTUnwrap(focus.value as? String)
         diagram.buttons["buildhunter.diagram.copyPath"].click()
