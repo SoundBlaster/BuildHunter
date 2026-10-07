@@ -607,6 +607,7 @@ private struct ArtifactDiagramSidebar: View {
                         // fresh element. It also clears a stale selection on navigation.
                         .id(model.displayedPath)
                         .nestedAccessibilityIdentifier("focus")
+                        .artifactFolderContextMenu(url: model.displayedURL, onReveal: revealCurrentFolder)
                 }
                 Button("Copy path", systemImage: "document.on.document") {
                     guard let url = model.displayedURL else { return }
@@ -629,7 +630,6 @@ private struct ArtifactDiagramSidebar: View {
                 .nestedAccessibilityIdentifier("showInFinder")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .artifactFolderContextMenu(url: model.displayedURL, onReveal: revealCurrentFolder)
             Text("\(diagramBytes(model.displayedFolder.bytes)) known · \(model.displayedFolder.statistics.artifactCount) artifacts")
                 .font(.caption)
                 .foregroundStyle(.secondary)
