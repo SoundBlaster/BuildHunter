@@ -624,6 +624,8 @@ private struct ArtifactDiagramSidebar: View {
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.plain)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
                 .foregroundStyle(.secondary)
                 .disabled(model.displayedURL == nil)
                 .help("Show folder in Finder")
