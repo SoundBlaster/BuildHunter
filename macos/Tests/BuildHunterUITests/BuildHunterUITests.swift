@@ -333,7 +333,8 @@ final class BuildHunterUITests: XCTestCase {
         let notice = app.staticTexts["Scan in progress"]
         XCTAssertTrue(notice.waitForExistence(timeout: 5), "Exporting a running scan should ask to wait")
         XCTAssertFalse(app.popUpButtons["buildhunter.export.format"].exists, "No Save panel while scanning")
-        app.buttons["OK"].click()
+        // The Touch Bar mirrors the alert's OK button, so click the one in the sheet.
+        app.sheets.buttons["OK"].click()
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: notice)
         wait(for: [dismissed], timeout: 5)
     }
