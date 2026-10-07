@@ -399,10 +399,6 @@ private struct ScanWarningsStatusItem: View {
         .help("Review \(warnings.count) scan warnings")
         .accessibilityLabel("\(warnings.count) scan warnings")
         .nestedAccessibilityIdentifier("warnings")
-        .contextMenu {
-            Button("Open in Window", systemImage: "macwindow", action: showWarnings)
-            Button("Show as Popover", systemImage: "text.bubble") { presented = true }
-        }
         .popover(isPresented: $presented, arrowEdge: .top) {
             ScanWarningsPanel(warnings: warnings)
                 .lineLimit(nil)

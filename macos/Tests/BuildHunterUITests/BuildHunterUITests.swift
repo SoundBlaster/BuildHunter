@@ -88,28 +88,27 @@ final class BuildHunterUITests: XCTestCase {
         wait(for: [escaped], timeout: 5)
     }
 
-    func testWarningsPopoverStaysAvailableFromContextMenu() {
-        let app = launchWindow()
+    func testWarningsPopoverIsAvailableBehindTheSetting() {
+        // The argument domain overrides the Settings choice for this launch only.
+        let app = launchWindow(arguments: ["-\(warningsPresentationKey)", "popover"])
         defer { app.terminate() }
         let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         selectMockState("incomplete", in: scanWindow, app: app)
         let warnings = scanWindow.buttons["buildhunter.report.warnings"]
         XCTAssertTrue(warnings.waitForExistence(timeout: 5))
-        // Both presentations stay available while they are compared; the setting picks the click.
-        warnings.rightClick()
-        let showPopover = app.menuItems["Show as Popover"]
-        XCTAssertTrue(showPopover.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.menuItems["Open in Window"].exists)
-        showPopover.click()
+        warnings.click()
         let list = app.scrollViews["buildhunter.report.warnings.list"]
         XCTAssertTrue(list.waitForExistence(timeout: 5), "The popover should list the warnings")
         attachScreenshot(named: "warnings-popover", from: app)
+        XCTAssertEqual(app.windows.containing(.any, identifier: "buildhunter.warnings.table").count, 0,
+                       "The popover setting must not open the warnings window")
         app.typeKey(.escape, modifierFlags: [])
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: list)
         wait(for: [dismissed], timeout: 5)
-        XCTAssertEqual(app.windows.containing(.any, identifier: "buildhunter.warnings.table").count, 0,
-                       "Showing the popover must not open the warnings window")
     }
+
+    /// `ScanWarningsPresentation.storageKey` in the app.
+    private let warningsPresentationKey = "scanWarningsPresentation"
 
     private func openSettings(_ app: XCUIApplication) {
         app.activate()
@@ -563,9 +562,11 @@ final class BuildHunterUITests: XCTestCase {
     }
 
     private func launchWindow(settingsSuite: String = "BuildHunter.UITests.\(UUID().uuidString)",
-                              environment: [String: String] = [:]) -> XCUIApplication {
+                              environment: [String: String] = [:],
+                              arguments: [String] = []) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchArguments += arguments
         app.launchEnvironment["BUILDHUNTER_SETTINGS_SUITE"] = settingsSuite
         app.launchEnvironment.merge(environment) { _, new in new }
         // Register cleanup before asserting, so a failed launch cannot leave

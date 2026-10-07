@@ -50,7 +50,7 @@ struct SearchSettingsWindow: View {
             } header: {
                 Text("Experiments")
             } footer: {
-                Text("Right-click the warnings button in a report to open the other one.")
+                Text("Applies to the warnings button in report windows.")
             }
         }
         .formStyle(.grouped)
