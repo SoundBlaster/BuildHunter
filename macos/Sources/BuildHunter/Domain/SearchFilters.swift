@@ -100,7 +100,8 @@ enum SearchFilterCatalog {
 final class SearchFilterSettings {
     static let shared = SearchFilterSettings(userDefaults: defaultUserDefaults)
 
-    private static var defaultUserDefaults: UserDefaults {
+    /// The app's preferences store; Debug UI tests isolate it with BUILDHUNTER_SETTINGS_SUITE.
+    nonisolated static var defaultUserDefaults: UserDefaults {
 #if DEBUG
         if let suite = ProcessInfo.processInfo.environment["BUILDHUNTER_SETTINGS_SUITE"],
            let defaults = UserDefaults(suiteName: suite) {
