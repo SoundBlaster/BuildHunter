@@ -295,6 +295,7 @@ private struct ScanWarningsStatusItem: View {
         .nestedAccessibilityIdentifier("warnings")
         .popover(isPresented: $presented, arrowEdge: .top) {
             ScanWarningsPanel(warnings: warnings)
+                .lineLimit(nil)
                 .font(.body)
                 .foregroundStyle(.primary)
                 .padding(14)
