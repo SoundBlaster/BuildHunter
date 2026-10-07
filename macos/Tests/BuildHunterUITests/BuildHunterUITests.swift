@@ -394,6 +394,21 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(revealHeader.waitForExistence(timeout: 5))
         XCTAssertTrue(revealHeader.isEnabled, "The path header must offer Finder for a real target")
         app.typeKey(.escape, modifierFlags: [])
+        // Entering a folder by its sector leaves the pointer at rest over the new layout, where
+        // hover stays suppressed until it moves. The sector under it must still offer Finder.
+        let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
+        XCTAssertTrue(center.waitForExistence(timeout: 5))
+        let sectorPoint = center.coordinate(withNormalizedOffset: CGVector(dx: 1.25, dy: 0.5))
+        sectorPoint.click()
+        expectFilesystemPath(selectedRoot.appendingPathComponent("Package").path, of: focus)
+        sectorPoint.rightClick()
+        let revealRestingSector = app.menuItems["Show in Finder"]
+        XCTAssertTrue(revealRestingSector.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealRestingSector.isEnabled, "The sector under a resting pointer must offer Finder")
+        app.typeKey(.escape, modifierFlags: [])
+        waitForEnabled(center)
+        center.click()
+        expectFilesystemPath(selectedRoot.path, of: focus)
         let packageRow = diagram.buttons["buildhunter.diagram.folders.folder.Package"]
         packageRow.rightClick()
         let revealRealFolder = app.menuItems["Show in Finder"]

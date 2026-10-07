@@ -3,12 +3,6 @@ import SwiftUI
 import NestedA11yIDs
 import UniformTypeIdentifiers
 
-enum FinderRevealOutcome {
-    case opened
-    case openedParent(URL)
-    case unavailable
-}
-
 @MainActor
 enum ArtifactFolderActions {
     static func copyPath(_ url: URL) {
@@ -23,27 +17,26 @@ enum ArtifactFolderActions {
         }
 
         let requested = url.standardizedFileURL
-        guard let existingFolder = nearestExistingFolder(to: requested) else { return .unavailable }
+        guard let existingFolder = ArtifactFolderLocation.nearestExistingFolder(to: requested, within: accessRoot)
+        else { return .unavailable }
         NSWorkspace.shared.activateFileViewerSelecting([existingFolder])
         return existingFolder.path == requested.path ? .opened : .openedParent(existingFolder)
-    }
-
-    private static func nearestExistingFolder(to url: URL) -> URL? {
-        let fileManager = FileManager.default
-        var candidate = url
-        while true {
-            var isDirectory: ObjCBool = false
-            if fileManager.fileExists(atPath: candidate.path, isDirectory: &isDirectory), isDirectory.boolValue {
-                return candidate
-            }
-            let parent = candidate.deletingLastPathComponent()
-            guard parent.path != candidate.path else { return nil }
-            candidate = parent
-        }
     }
 }
 
 extension View {
+    /// The alert shown when "Show in Finder" had to fall back to a parent folder or found none.
+    func finderNoticeAlert(_ notice: Binding<String?>) -> some View {
+        alert("Folder location", isPresented: Binding(
+            get: { notice.wrappedValue != nil },
+            set: { if !$0 { notice.wrappedValue = nil } }
+        )) {
+            Button("OK", role: .cancel) { notice.wrappedValue = nil }
+        } message: {
+            Text(notice.wrappedValue ?? "")
+        }
+    }
+
     func artifactFolderContextMenu(
         url: URL?,
         onReveal: @escaping () -> Void
@@ -250,14 +243,7 @@ private struct ArtifactReportTable: View {
             .width(min: 110, ideal: 150)
         }
         .nestedAccessibilityIdentifier("table")
-        .alert("Folder location", isPresented: Binding(
-            get: { finderNotice != nil },
-            set: { if !$0 { finderNotice = nil } }
-        )) {
-            Button("OK", role: .cancel) { finderNotice = nil }
-        } message: {
-            Text(finderNotice ?? "")
-        }
+        .finderNoticeAlert($finderNotice)
         .overlay {
             if scan.rows.isEmpty && scan.isScanning {
                 ProgressView("Searching for build artifacts…")
@@ -274,14 +260,7 @@ private struct ArtifactReportTable: View {
 
     private func reveal(_ row: ScanRow) {
         guard let url = artifactURL(for: row) else { return }
-        switch ArtifactFolderActions.reveal(url, accessRoot: scan.targetURL) {
-        case .opened:
-            finderNotice = nil
-        case .openedParent(let parent):
-            finderNotice = "The folder is no longer available. Opened \(parent.path) in Finder instead."
-        case .unavailable:
-            finderNotice = "No existing parent folder is available to open in Finder."
-        }
+        finderNotice = ArtifactFolderActions.reveal(url, accessRoot: scan.targetURL).notice
     }
 
     private func sizeDescription(_ state: SizeState) -> String {
