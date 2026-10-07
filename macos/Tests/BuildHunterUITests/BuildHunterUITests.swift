@@ -328,7 +328,7 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(table.waitForExistence(timeout: 5))
         let firstRow = table.outlineRows.element(boundBy: 0)
         expectRowPath("Packages/Core/.build", of: firstRow)
-        firstRow.cells.element(boundBy: 0).rightClick()
+        rightClickPath("Packages/Core/.build", in: firstRow)
         let revealMockRow = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealMockRow.waitForExistence(timeout: 5))
         XCTAssertFalse(revealMockRow.isEnabled, "Mock rows do not refer to real filesystem folders")
@@ -370,7 +370,7 @@ final class BuildHunterUITests: XCTestCase {
         let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         expectValue("Scan complete", of: scanWindow.staticTexts["buildhunter.report.status"])
         let resultRow = scanWindow.outlines.firstMatch.outlineRows.element(boundBy: 0)
-        resultRow.cells.element(boundBy: 0).rightClick()
+        rightClickPath("Package/.build", in: resultRow)
         let revealRealRow = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealRealRow.waitForExistence(timeout: 5))
         XCTAssertTrue(revealRealRow.isEnabled, "A real scan row must expose its folder in Finder")
@@ -388,14 +388,15 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(revealHeader.waitForExistence(timeout: 5))
         XCTAssertTrue(revealHeader.isEnabled, "The path header must offer Finder for a real target")
         app.typeKey(.escape, modifierFlags: [])
-        diagram.buttons["buildhunter.diagram.folders.folder.Package"].click()
-        expectFilesystemPath(selectedRoot.appendingPathComponent("Package").path, of: focus)
         let packageRow = diagram.buttons["buildhunter.diagram.folders.folder.Package"]
         packageRow.rightClick()
         let revealRealFolder = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealRealFolder.waitForExistence(timeout: 5))
         XCTAssertTrue(revealRealFolder.isEnabled)
         app.typeKey(.escape, modifierFlags: [])
+        packageRow.click()
+        expectFilesystemPath(selectedRoot.appendingPathComponent("Package").path, of: focus)
+        waitForEnabled(diagram.buttons["buildhunter.diagram.copyPath"])
         // Copy must preserve exactly the absolute path shown by the app.
         let expected = try XCTUnwrap(focus.value as? String)
         diagram.buttons["buildhunter.diagram.copyPath"].click()
@@ -443,6 +444,15 @@ final class BuildHunterUITests: XCTestCase {
         // incorrect automatic ScrollView repositioning of the header.
         XCTAssertTrue(header.waitForExistence(timeout: 5))
         header.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+    }
+
+    private func rightClickPath(_ path: String, in row: XCUIElement) {
+        // Target the rendered Path text, not the enclosing AX cell's center.
+        let text = row.staticTexts.matching(
+            NSPredicate(format: "value == %@ OR label == %@", path, path)
+        ).firstMatch
+        XCTAssertTrue(text.waitForExistence(timeout: 5), "The Path text must exist before opening its menu")
+        text.rightClick()
     }
 
     private func expectRowPath(_ path: String, of row: XCUIElement,
