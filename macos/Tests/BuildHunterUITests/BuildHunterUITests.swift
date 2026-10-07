@@ -94,6 +94,11 @@ final class BuildHunterUITests: XCTestCase {
                         .matching(identifier: "buildhunter.report.warnings").firstMatch
                     XCTAssertTrue(warnings.waitForExistence(timeout: 5),
                                   "The incomplete scenario should expose warning details")
+                    warnings.click()
+                    let warningList = app.scrollViews["buildhunter.report.warnings.list"]
+                    XCTAssertTrue(warningList.waitForExistence(timeout: 5),
+                                  "Warning details should open in a scrollable panel")
+                    app.typeKey(.escape, modifierFlags: [])
                 }
             }
             attachScreenshot(named: String(format: "%02d-%@", index + 2, scenario), from: app)
