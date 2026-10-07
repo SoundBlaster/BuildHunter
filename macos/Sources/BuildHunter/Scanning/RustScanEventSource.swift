@@ -289,7 +289,8 @@ final class RustScanBridgeContext: @unchecked Sendable {
                     id: stableID(value.artifact_id),
                     relativePath: path,
                     language: language,
-                    kind: kind
+                    kind: kind,
+                    scannerKind: scannerKindName(value.kind)
                 )
             ))
         case 2:
@@ -501,6 +502,15 @@ private func languageName(_ code: UInt32) -> String {
     case 2: "Rust"
     case 3: "Python"
     default: "Unknown"
+    }
+}
+
+/// The scanner's name for kinds that `artifactKind` folds into Cache.
+private func scannerKindName(_ code: UInt32) -> String? {
+    switch code {
+    case 5: "bytecode"
+    case 6: "metadata"
+    default: nil
     }
 }
 

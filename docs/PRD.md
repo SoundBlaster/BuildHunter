@@ -7,7 +7,7 @@ BuildHunter помогает разработчику найти локальн�
 ## Цель и платформа
 
 - Native SwiftUI app для macOS 26 и новее, только Apple Silicon (`arm64`).
-- Дистрибуция через Mac App Store; App Sandbox и user-selected read-only file access.
+- Дистрибуция через Mac App Store; App Sandbox и user-selected file access: сканируемая папка только читается, запись — только в файл экспорта, который пользователь сам выбрал в окне сохранения.
 - Существующий Rust CLI сохраняется как отдельный продукт с общим scanner core.
 - SpecificationCore через SPM используется для semantic policy и typed decisions согласно [ADR](adr/0001-macos-app-architecture.md).
 

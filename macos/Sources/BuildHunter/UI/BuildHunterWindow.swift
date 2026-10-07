@@ -54,6 +54,9 @@ extension View {
 
 struct BuildHunterWindow: View {
     @State private var model: WindowScanModel
+    @State private var tableModel = ScanTableModel()
+    @State private var isExportWaitingForScan = false
+    @State private var exportError: String?
     @Environment(\.openWindow) private var openWindow
     private let windowStore: ScanWindowStore?
 
@@ -82,6 +85,15 @@ struct BuildHunterWindow: View {
                         .disabled(windowStore == nil)
                         .help("Show a live diagram of this scan")
                         .nestedAccessibilityIdentifier("openDiagram")
+                }
+                .a11yRoot("buildhunter.toolbar")
+            }
+            ToolbarItem(placement: .automatic) {
+                VStack {
+                    Button("Export", systemImage: "square.and.arrow.up") { exportResults() }
+                        .disabled(model.targetName == nil)
+                        .help("Export results to CSV or JSON (⇧⌘E)")
+                        .nestedAccessibilityIdentifier("export")
                 }
                 .a11yRoot("buildhunter.toolbar")
             }
@@ -123,6 +135,56 @@ struct BuildHunterWindow: View {
         .focusedSceneValue(\.buildHunterShowDiagram, ArtifactDiagramRequest {
             showDiagram()
         })
+        .focusedSceneValue(\.buildHunterExportResults, model.targetName == nil ? nil : ExportResultsRequest {
+            exportResults()
+        })
+        .alert("Scan in progress", isPresented: $isExportWaitingForScan) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Results can be exported once the scan finishes or after you stop it.")
+        }
+        .alert("Export failed", isPresented: Binding(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        )) {
+            Button("OK", role: .cancel) { exportError = nil }
+        } message: {
+            Text(exportError ?? "")
+        }
+    }
+
+    /// Exports a finished report through a Save panel with format and order options.
+    /// While a scan runs, sizes still change, so the command explains why it has to wait.
+    private func exportResults() {
+        guard let targetName = model.targetName else { return }
+        guard let status = ScanReportExport.Status(phase: model.phase) else {
+            isExportWaitingForScan = model.isScanning
+            return
+        }
+        // Snapshot the report now; the panel builds the file from these values.
+        let rows = model.rows
+        let rootURL = model.targetURL
+        let warnings = model.warnings
+        let excluded = model.excludedFilterIDs
+        let elapsed = model.profile.latest?.elapsedSeconds
+        let tableOrder = tableModel.sortOrder
+        let version = Self.appVersion
+        let panel = ScanResultsExportPanel { order in
+            ScanReportExport(rootName: targetName, rootURL: rootURL, status: status, rows: rows, order: order,
+                             tableOrder: tableOrder, warnings: warnings, excludedFilterIDs: excluded,
+                             elapsedSeconds: elapsed, appVersion: version)
+        }
+        let window = NSApp.keyWindow
+        Task {
+            if let message = await panel.run(on: window) { exportError = message }
+        }
+    }
+
+    private static var appVersion: String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let version = info["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 
     private func showDiagram() {
@@ -189,7 +251,7 @@ struct BuildHunterWindow: View {
                     Button("Rescan", systemImage: "arrow.clockwise") { model.rescan() }
                 }
             }
-            ArtifactReportTable(scan: model)
+            ArtifactReportTable(scan: model, model: tableModel)
         }
         .padding(18)
         .a11yRoot("buildhunter.report")
@@ -219,7 +281,8 @@ struct BuildHunterWindow: View {
 
 private struct ArtifactReportTable: View {
     let scan: WindowScanModel
-    @State private var model = ScanTableModel()
+    /// Owned by the window, so export can follow the table's sort order.
+    @Bindable var model: ScanTableModel
     @State private var finderNotice: String?
 
     var body: some View {
@@ -355,7 +418,7 @@ private struct ScanReportFooter: View {
 }
 
 /// How the status bar's warnings button presents warnings. Both stay available while the
-/// two designs are compared; the context menu always offers either one.
+/// two designs are compared; Settings > Experiments picks one.
 enum ScanWarningsPresentation: String, CaseIterable, Identifiable {
     case window
     case popover
