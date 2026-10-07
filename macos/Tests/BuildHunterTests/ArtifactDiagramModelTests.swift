@@ -691,6 +691,24 @@ struct ArtifactDiagramModelTests {
                 "Sorting the sidebar must not reorder diagram sectors")
     }
 
+    @Test("Charts animates measurements only after sector topology is stable")
+    func safeChartInterpolation() {
+        func layout(_ paths: [(String, Int64)], focus: String = "") -> ArtifactSunburstLayout {
+            ArtifactSunburstLayout(snapshot: ArtifactSunburstSnapshot(rows: paths.map { path, bytes in
+                ScanRow(id: UUID(), relativePath: path, language: "Rust", kind: .buildOutput, size: .measured(bytes))
+            }), focusID: focus)
+        }
+        let first = layout([("A/target", 100)])
+        let measured = layout([("A/target", 200)])
+        let discovered = layout([("A/target", 200), ("B/.build", 1)])
+        #expect(ArtifactDiagramAnimationPolicy.topology(of: first) == ArtifactDiagramAnimationPolicy.topology(of: measured))
+        #expect(ArtifactDiagramAnimationPolicy.topology(of: first) != ArtifactDiagramAnimationPolicy.topology(of: discovered))
+        #expect(ArtifactDiagramAnimationPolicy.topology(of: discovered) != ArtifactDiagramAnimationPolicy.topology(of: first))
+        #expect(ArtifactDiagramAnimationPolicy.topology(of: first) != ArtifactDiagramAnimationPolicy.topology(of: layout([("A/target", 100)], focus: "A")))
+        #expect(ArtifactDiagramAnimationPolicy.topology(of: first) != ArtifactDiagramAnimationPolicy.topology(of: layout([])))
+        #expect(ArtifactDiagramAnimationPolicy.topology(of: layout([])) != ArtifactDiagramAnimationPolicy.topology(of: first))
+    }
+
     private func artifact(_ path: String) -> ScanArtifact {
         ScanArtifact(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput)
     }

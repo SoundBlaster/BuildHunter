@@ -315,11 +315,15 @@ private struct ArtifactSunburstChart: View {
                         }
                     }
                     .animation(reduceMotion || navigation != nil ? nil : .smooth(duration: 0.25), value: layout.sectors)
-                    // Preserve Chart identity so streaming insertions and navigation animate.
                     // Debug evidence records our inputs separately from Charts' interpolation.
                     .onAppear { recordChartInputs(size: chartGeometry.size) }
                     .onChange(of: layout.sectors) { recordChartInputs(size: chartGeometry.size) }
                     .onChange(of: chartGeometry.size) { recordChartInputs(size: chartGeometry.size) }
+                    // Recreate Charts when marks are inserted, removed or change rings.
+                    // A fresh chart has no zero-sized geometry to interpolate from.
+                    // Keeping this identity stable for measurements preserves animation;
+                    // folder navigation animates in its own overlay while the Chart is hidden.
+                    .id(ArtifactDiagramAnimationPolicy.topology(of: layout))
                     .nestedAccessibilityIdentifier("chart")
                 }
                 .aspectRatio(1, contentMode: .fit)

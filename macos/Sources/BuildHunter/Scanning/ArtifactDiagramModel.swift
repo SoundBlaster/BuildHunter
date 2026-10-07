@@ -192,3 +192,17 @@ final class ArtifactDiagramModel {
             : children.filter { $0.name.localizedStandardContains(query) }
     }
 }
+
+/// A separate chart identity prevents interpolation across incompatible annular marks.
+/// Measurements within the same hierarchy still use Charts' normal animation.
+struct ArtifactDiagramAnimationPolicy {
+    struct Slot: Hashable {
+        let id: ArtifactSunburstLayout.Sector.ID
+        let parentID: String
+        let depth: Int
+    }
+
+    static func topology(of layout: ArtifactSunburstLayout) -> [Slot] {
+        layout.sectors.map { Slot(id: $0.id, parentID: $0.parentID, depth: $0.depth) }
+    }
+}

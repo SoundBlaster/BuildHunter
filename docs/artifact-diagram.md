@@ -63,8 +63,10 @@ if that folder was previously entered through a differently colored parent view.
 Color helps orientation, while path labels remain authoritative; very dense reports
 have more branches than easily distinguishable hues.
 
-Size updates and sector insertion/removal preserve Chart identity and use a
-250 ms smooth animation. Entering a visible folder works like DaisyDisk's zoom:
+Size updates keep the Chart's identity and use a 250 ms smooth animation. When
+sectors are inserted, removed or change rings (`ArtifactDiagramAnimationPolicy`),
+the Chart gets a new identity instead of interpolating across incompatible marks,
+which is the guard against Charts' nonfinite intermediate geometry. Entering a visible folder works like DaisyDisk's zoom:
 neighbors fade out for 140 ms, then over 550 ms one motion opens the selected
 sector to a full turn while it sinks into the center disc behind the Up button,
 its visible descendants move straight to their new rings, and newly exposed
