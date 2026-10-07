@@ -63,14 +63,98 @@ if that folder was previously entered through a differently colored parent view.
 Color helps orientation, while path labels remain authoritative; very dense reports
 have more branches than easily distinguishable hues.
 
-Measured size updates animate when sector identities, order and hierarchy depth
-remain unchanged. Insertion, removal, navigation and empty/nonempty transitions
-update geometry atomically: interpolating newly created or reparented annular marks
-can produce nonfinite intermediate geometry inside Apple Charts. LLDB captured a
-Charts renderer trap with NaN angle and radius registers during a home-folder scan;
-the exact framework calculation that first produced NaN is not established.
-Reduce Motion disables size animations. Accessible sector descriptions include
-path, size, and partial status; the sidebar offers standard buttons for navigation.
+Size updates keep the Chart's identity and use a 250 ms smooth animation. When
+sectors are inserted, removed or change rings (`ArtifactDiagramAnimationPolicy`),
+the Chart gets a new identity instead of interpolating across incompatible marks,
+which is the guard against Charts' nonfinite intermediate geometry. Entering a visible folder works like DaisyDisk's zoom:
+neighbors fade out for 140 ms, then over 550 ms one motion opens the selected
+sector to a full turn while it sinks into the center disc behind the Up button,
+its visible descendants move straight to their new rings, and newly exposed
+levels slide in from the outer edge. Colors blend from the parent palette to the
+entered folder's palette over the same motion. The same sequence is used for
+chart clicks and sidebar selection. Descents from outer rings are supported.
+Returning with Up, the center, or All artifacts plays the same path backwards:
+the folder grows out of the center into its original angle and ring, then the
+neighbors fade back in. All artifacts can skip
+levels by contracting into the closest visible ancestor. A grouped folder returns
+into its parent's Other sector. The graph and entire sidebar, including filtering
+and Copy path, are locked throughout navigation in both directions.
+
+Navigation uses a SwiftUI path overlay with frozen source/destination layouts; the
+underlying Chart receives the destination without navigation interpolation. A
+`TimelineView` redraws the overlay every display frame from the elapsed time
+(`ArtifactSunburstNavigation.progress(at:)`: cubic ease-out fade, critically damped
+zoom), so every frame lies on the planned trajectory. Animating `fade`/`zoom` state
+instead lost the first phase: the overlay appeared in the same update that started
+its animation, which then had no starting frame, as the first CI Screener trace showed. The scanner continues collecting events, while diagram publication
+pauses until the transition ends and then catches up at the next refresh.
+Reduce Motion skips staged navigation;
+report replacement, closing the window, or enabling Reduce Motion cancels the
+overlay and releases the publication pause. The transition task that marks the
+phases and ends the transition is keyed by the transition identity, so a
+cancelled transition never reaches its next step.
+
+Sector rounding is temporarily disabled (`cornerRadius = 0`) for the renderer
+investigation. Gaps remain. The earlier Charts trap is a known regression risk;
+the local comparison is evidence, not a guarantee of crash freedom.
+Accessible sector descriptions include path, size and partial status.
+
+### Screener traces (pilot)
+
+Debug builds can record the diagram with [Screener](https://github.com/SoundBlaster/Screener).
+Launch with `BUILDHUNTER_SCREENER=1` and the diagram writes a `.vtrace` session under
+`Caches/Screener/Traces` (inside the app container when sandboxed): markers for each
+navigation phase and layout change (folder depths and sector counts, never names) and
+window keyframes every 40 ms during a transition and for one second after it. A trace run
+animates even when the machine has Reduce Motion on, so the trace shows the transition;
+`chart.layout` records the system setting, and a navigation that does not animate records
+`navigation.skipped` with its reason. Read a
+trace with `screener-mcp --traces-dir <dir>` (`screener.contact_sheet`, `screener.frame`).
+The UI test `testDiagramNavigationRecordsScreenerTrace` records one descent and one
+return; macOS CI uploads the trace with the test evidence. Release builds contain no
+recorder code.
+
+### Debugging geometry (2026-10-05)
+
+Debug builds log `ChartInput` frame dimensions and the sector count on layout/size
+changes. Debug-level detail contains indexed sector angles, radius ratios, inset
+and corner values, without filesystem names. Invalid/nonfinite inputs are reported
+at error level. These are endpoint inputs; they do not expose Charts' internal
+animation intermediates. Release builds omit this instrumentation.
+
+With animation restored and rounding enabled, navigation back from a deep folder
+reproduced `EXC_BREAKPOINT` in Charts. LLDB showed `NaN` floating-point registers
+and a nonfinite guard trapping before a floating-point-to-integer conversion.
+The last logged endpoint inputs had `invalid=false`; that does not establish
+where the intermediate `NaN` was first produced. Disassembly/register evidence
+is preserved locally at `/Volumes/FlashCard/BuildHunter-chart-trap-20261005.txt`.
+
+After rebuilding with rounding disabled, the user reported that repeated
+navigation no longer reproduced the crash. That isolates a useful comparison but
+does not prove rounding alone was the cause. Debug builds additionally record
+`ChartNavigation` phase transitions without folder names. Neither diagnostic
+establishes animation frame rate or crash freedom across all reports.
+
+A breakpoint on `_os_log_fault_impl` captured one negative-size runtime warning
+on the main thread with this stack:
+
+```text
+_os_log_fault_impl
+_NSViewValidateGeometry
+NSViewValidateSize
+-[NSView setFrameSize:]
+-[NSThemeFrame _positionSharingIndicator]
+-[NSWindowSharingSessionRecipientIndicator invalidateIntrinsicContentSize]
+...
+-[NSThemeFrame _updateButtons]
+-[NSWindow _updateButtonsForWindowSharingSession]
+-[NSWindow _setIsSelectivelyShared:]
+```
+
+That occurrence comes from AppKit's window-sharing titlebar indicator, not a
+Charts frame. The same warnings were observed before the diagram was opened.
+This does not explain the earlier Charts trap or prove that every geometry warning
+has the same source. Catch subsequent Swift runtime/exception stops separately.
 
 ## Data and window lifecycle
 
@@ -100,7 +184,12 @@ unknown/partial values, dense reports, navigation, stale scan events, and window
 ownership, branch color inheritance, stable streaming membership, hover restoration,
 absolute paths, and sorting alongside late measurements. UI tests exercise the
 companion window lifecycle, hover preview, center navigation, column-header sorting,
-and copying a real selected folder's full path. They also exercise repeated empty/nonempty chart transitions and attach screenshots.
+and copying a real selected folder's full path. Navigation tests check neighbor
+fade, simultaneous angular opening and inward motion into the center disc,
+descendants moving straight to their rings, new levels sliding in from the edge,
+mirrored return, palette blending, finite/bounded intermediate angles and radii, and coalescing of measurements
+while endpoints are held. UI tests exercise repeated graph clicks, three-level
+descent/return, and empty/nonempty chart transitions, with screenshots.
 A Release performance test measures snapshot/layout/palette preparation and table
 sorting for 10,000 rows.
 These checks do not establish animation frame rate or signed sandbox runtime behavior.

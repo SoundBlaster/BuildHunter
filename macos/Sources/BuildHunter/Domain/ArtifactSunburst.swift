@@ -323,6 +323,187 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     }
 }
 
+/// A frozen navigation plan. Scan updates cannot change its geometry midway through.
+/// Entering a folder works like a zoom: neighbors fade, then in one motion the selected
+/// sector opens to a full turn while sinking into the center disc, its descendants move
+/// straight to their new rings, and newly exposed levels slide in from the outer edge.
+/// Returning plays the same path backwards.
+struct ArtifactSunburstNavigation: Sendable {
+    enum Direction: Sendable { case descend, ascend }
+    let direction: Direction
+
+    /// The disc behind the center button, where an entered folder ends up.
+    static let centerRadius = 0.21
+
+    struct Frame: Identifiable, Sendable {
+        let id: ArtifactSunburstLayout.Sector.ID
+        let start: Double
+        let end: Double
+        let innerRadius: Double
+        let outerRadius: Double
+        let opacity: Double
+        let depth: Double
+        let isSelectedBranch: Bool
+    }
+
+    private struct Entry: Sendable {
+        let id: ArtifactSunburstLayout.Sector.ID
+        let source: ArtifactSunburstLayout.Sector?
+        let destination: ArtifactSunburstLayout.Sector?
+        let isSelectedBranch: Bool
+    }
+
+    /// Angles and radii at one end of the motion.
+    private struct Geometry {
+        let start: Double
+        let end: Double
+        let inner: Double
+        let outer: Double
+        let depth: Double
+    }
+
+    private let anchor: ArtifactSunburstLayout.Sector
+    private let entries: [Entry]
+    /// Rings the entered branch moves inward: the anchor's own ring plus the center.
+    private let shift: Int
+
+    init?(source: ArtifactSunburstLayout, destination: ArtifactSunburstLayout, selectedID: String,
+          direction: Direction = .descend) {
+        let parent = direction == .descend ? source : destination
+        let child = direction == .descend ? destination : source
+        // All artifacts can skip levels. Contract into the closest visible ancestor;
+        // a folder grouped out of its parent contracts into that parent's Other.
+        let ancestor = direction == .ascend ? parent.sectors.filter {
+            $0.nodeID.map { selectedID.hasPrefix($0 + "/") } ?? false
+        }.max { ($0.nodeID?.count ?? 0) < ($1.nodeID?.count ?? 0) } : nil
+        let other = direction == .ascend ? parent.sectors.filter {
+            if case .other = $0.id { return $0.parentID.isEmpty || selectedID.hasPrefix($0.parentID + "/") }
+            return false
+        }.max { $0.parentID.count < $1.parentID.count } : nil
+        guard let anchor = parent.sectors.first(where: { $0.nodeID == selectedID }) ?? ancestor ?? other,
+              anchor.start.isFinite, anchor.end.isFinite, anchor.end > anchor.start else { return nil }
+        self.direction = direction
+        self.anchor = anchor
+        shift = anchor.depth + 1
+        let branch = anchor.nodeID ?? selectedID
+        let destinations = Dictionary(uniqueKeysWithValues: child.sectors.map { ($0.id, $0) })
+        var entries = parent.sectors.map { sector in
+            let path = sector.nodeID ?? sector.parentID
+            return Entry(id: sector.id, source: sector, destination: destinations[sector.id],
+                         isSelectedBranch: sector.id == anchor.id || path == branch || path.hasPrefix(branch + "/"))
+        }
+        let sourceIDs = Set(parent.sectors.map(\.id))
+        entries.append(contentsOf: child.sectors.filter { !sourceIDs.contains($0.id) }.map {
+            Entry(id: $0.id, source: nil, destination: $0, isSelectedBranch: true)
+        })
+        self.entries = entries
+    }
+
+    static let fadeDuration = 0.14
+    static let zoomDuration = 0.55
+    static let duration = fadeDuration + zoomDuration
+
+    /// Seconds until the second phase starts: the zoom when entering, the fade when returning.
+    var firstPhaseDuration: Double { direction == .descend ? Self.fadeDuration : Self.zoomDuration }
+
+    /// Eased `fade` and `zoom` progress `elapsed` seconds into the transition. The view
+    /// evaluates this every display frame instead of letting SwiftUI interpolate between
+    /// endpoint states, so every frame lies on the planned trajectory.
+    func progress(at elapsed: Double) -> (fade: Double, zoom: Double) {
+        let time = elapsed.isFinite ? max(0, elapsed) : 0
+        let first = min(1, time / firstPhaseDuration)
+        let second = min(1, max(0, time - firstPhaseDuration) / (Self.duration - firstPhaseDuration))
+        return direction == .descend
+            ? (Self.easeOut(first), Self.smooth(second))
+            : (Self.easeOut(second), Self.smooth(first))
+    }
+
+    /// Cubic ease-out, matching the neighbors' quick fade.
+    static func easeOut(_ x: Double) -> Double { 1 - pow(1 - min(1, max(0, x)), 3) }
+
+    /// A critically damped spring like SwiftUI's `.smooth`, scaled to end exactly at 1.
+    static func smooth(_ x: Double) -> Double {
+        let x = min(1, max(0, x))
+        func spring(_ x: Double) -> Double { 1 - (1 + 2 * .pi * x) * exp(-2 * .pi * x) }
+        return spring(x) / spring(1)
+    }
+
+    /// `fade` and `zoom` each run from 0 to 1 in time order. Entering fades the neighbors,
+    /// then zooms; returning zooms back out, then fades the neighbors in again.
+    func frames(fade: Double, zoom: Double) -> [Frame] {
+        // Both directions share one path, expressed as entering: 0 is the parent view.
+        let hidden = direction == .descend ? unit(fade) : 1 - unit(fade)
+        let progress = direction == .descend ? unit(zoom) : 1 - unit(zoom)
+        return entries.map { entry in
+            let from = startGeometry(entry)
+            let to = endGeometry(entry, from: from)
+            let opacity: Double = if !entry.isSelectedBranch {
+                1 - hidden
+            } else if entry.source == nil {
+                progress
+            } else if entry.destination == nil {
+                1 - progress
+            } else {
+                1
+            }
+            return Frame(id: entry.id,
+                         start: mix(from.start, to.start, progress),
+                         end: mix(from.end, to.end, progress),
+                         innerRadius: mix(from.inner, to.inner, progress),
+                         outerRadius: mix(from.outer, to.outer, progress),
+                         opacity: opacity,
+                         depth: mix(from.depth, to.depth, progress),
+                         isSelectedBranch: entry.isSelectedBranch)
+        }
+    }
+
+    /// The parent view. A newly exposed descendant waits beyond the outer edge, inside the
+    /// angle of the selected sector, so it slides in as the branch moves inward.
+    private func startGeometry(_ entry: Entry) -> Geometry {
+        if let source = entry.source { return geometry(source) }
+        let destination = entry.destination!
+        return ring(Double(destination.depth + shift),
+                    start: mix(anchor.start, anchor.end, destination.start),
+                    end: mix(anchor.start, anchor.end, destination.end))
+    }
+
+    /// The child view. The selected sector without a slot of its own becomes the center
+    /// disc; other branch sectors without a slot keep moving with their ring and fade.
+    private func endGeometry(_ entry: Entry, from: Geometry) -> Geometry {
+        if let destination = entry.destination { return geometry(destination) }
+        guard entry.isSelectedBranch, let source = entry.source else { return from }
+        if entry.id == anchor.id {
+            return Geometry(start: 0, end: 1, inner: 0, outer: Self.centerRadius, depth: 0)
+        }
+        let span = anchor.end - anchor.start
+        return ring(Double(max(0, source.depth - shift)),
+                    start: unit((source.start - anchor.start) / span),
+                    end: unit((source.end - anchor.start) / span))
+    }
+
+    private func geometry(_ sector: ArtifactSunburstLayout.Sector) -> Geometry {
+        Geometry(start: sector.start, end: sector.end, inner: sector.innerRadius,
+                 outer: sector.outerRadius, depth: Double(sector.depth))
+    }
+
+    /// A ring by depth, as in the layout; rings past the plot collapse onto its edge.
+    private func ring(_ depth: Double, start: Double, end: Double) -> Geometry {
+        let template = ArtifactSunburstLayout.Sector(id: .other(""), parentID: "", name: "", bytes: 0,
+                                                     depth: 0, start: 0, end: 1, isPartial: false)
+        let step = ArtifactSunburstLayout.Sector(id: .other(""), parentID: "", name: "", bytes: 0,
+                                                 depth: 1, start: 0, end: 1, isPartial: false).innerRadius
+            - template.innerRadius
+        let inner = min(1, template.innerRadius + depth * step)
+        let outer = min(1, inner + template.outerRadius - template.innerRadius)
+        return Geometry(start: start, end: end, inner: inner, outer: outer, depth: depth)
+    }
+
+    private func unit(_ value: Double) -> Double { value.isFinite ? min(1, max(0, value)) : 0 }
+    private func mix(_ start: Double, _ end: Double, _ progress: Double) -> Double {
+        start * (1 - progress) + end * progress
+    }
+}
+
 /// A palette belongs to one navigation scope. Its immediate branches have distinct
 /// colors, shared by their descendants; the largest branch inherits the entry color.
 struct ArtifactSunburstPalette: Equatable, Sendable {
@@ -332,6 +513,17 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
         var brightness: Double = 0.88
 
         static let other = Swatch(hue: 0, saturation: 0, brightness: 0.55)
+
+        /// Blends toward `target` along the shorter way around the hue circle.
+        func blended(with target: Swatch, by progress: Double) -> Swatch {
+            let t = progress.isFinite ? min(1, max(0, progress)) : 0
+            var delta = (target.hue - hue).truncatingRemainder(dividingBy: 1)
+            if delta > 0.5 { delta -= 1 } else if delta < -0.5 { delta += 1 }
+            let blendedHue = (hue + delta * t).truncatingRemainder(dividingBy: 1)
+            return Swatch(hue: blendedHue < 0 ? blendedHue + 1 : blendedHue,
+                          saturation: saturation + (target.saturation - saturation) * t,
+                          brightness: brightness + (target.brightness - brightness) * t)
+        }
     }
 
     struct Scope: Hashable, Sendable {
