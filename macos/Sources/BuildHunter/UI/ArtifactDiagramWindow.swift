@@ -271,10 +271,6 @@ private struct ArtifactSunburstChart: View {
                         .accessibilityValue("\(diagramBytes(sector.bytes))\(sector.isPartial ? ", partial" : "")")
                     }
                     .chartLegend(.hidden)
-                    .artifactFolderContextMenu(
-                        url: hoveredSectorURL,
-                        onReveal: { if let url = hoveredSectorURL { revealFolder(url) } }
-                    )
                     .chartOverlay { proxy in
                         GeometryReader { geometry in
                             if let anchor = proxy.plotFrame {
@@ -289,6 +285,10 @@ private struct ArtifactSunburstChart: View {
                                             .accessibilityHidden(true)
                                     }
                                     Rectangle().fill(.clear).contentShape(Rectangle())
+                                        .artifactFolderContextMenu(
+                                            url: hoveredSectorURL,
+                                            onReveal: { if let url = hoveredSectorURL { revealFolder(url) } }
+                                        )
                                         .onTapGesture { location in
                                             guard navigation == nil else { return }
                                             if let sector = hit(location, proxy: proxy, geometry: geometry) {

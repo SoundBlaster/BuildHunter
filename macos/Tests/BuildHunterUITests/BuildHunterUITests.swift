@@ -328,7 +328,7 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(table.waitForExistence(timeout: 5))
         let firstRow = table.outlineRows.element(boundBy: 0)
         expectRowPath("Packages/Core/.build", of: firstRow)
-        firstRow.rightClick()
+        firstRow.cells.element(boundBy: 0).rightClick()
         let revealMockRow = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealMockRow.waitForExistence(timeout: 5))
         XCTAssertFalse(revealMockRow.isEnabled, "Mock rows do not refer to real filesystem folders")
@@ -370,7 +370,7 @@ final class BuildHunterUITests: XCTestCase {
         let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         expectValue("Scan complete", of: scanWindow.staticTexts["buildhunter.report.status"])
         let resultRow = scanWindow.outlines.firstMatch.outlineRows.element(boundBy: 0)
-        resultRow.rightClick()
+        resultRow.cells.element(boundBy: 0).rightClick()
         let revealRealRow = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealRealRow.waitForExistence(timeout: 5))
         XCTAssertTrue(revealRealRow.isEnabled, "A real scan row must expose its folder in Finder")
