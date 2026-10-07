@@ -1,0 +1,40 @@
+{
+  "skill_name": "swiftui-screenshot-tests",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Сравни скриншоты UI тестов из PR 37 (ветка claude/affectionate-clarke-8jtg59) с main и скажи, есть ли визуальные регрессии.",
+      "expected_output": "Fetches macos-test-evidence for both branches and runs compare_screenshots.py with menu-bar and Dock masks. Classifies the three flagged images: scan-profile-completed is an intended chart change; diagram-full-path-copy is noise from a temp UUID path; folder-picker is noise from the NSOpenPanel sidebar. Reports no regressions and sends the triptychs.",
+      "files": [],
+      "assertions": [
+        "Both runs' head SHAs are stated",
+        "Menu bar and Dock regions are masked (or their diffs explicitly dismissed)",
+        "scan-profile-completed is classified as an intended change tied to the chart redesign",
+        "diagram-full-path-copy and folder-picker are classified as noise, not regressions",
+        "Diff images or a contact sheet are delivered to the user"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "UI тест testDiagramHoverPreviewAndCenterNavigation упал на CI в последнем прогоне моей ветки. Достань из xcresult что было на экране и иерархию, и объясни почему.",
+      "expected_output": "Runs xcresult_attachments.py --failures-only, exports the screenshots, the screen recording frames (--video-fps) and the hierarchy text, reads them, and explains the failure from the evidence. If the latest run passed, it says so instead of inventing a failure.",
+      "files": [],
+      "assertions": [
+        "Uses xcresult_attachments.py (not hand-rolled zstd/sqlite code)",
+        "Checks the run's actual result before diagnosing",
+        "If the test failed: cites the hierarchy text and a specific frame; if it passed: says so plainly"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Покажи покадрово как работает анимация перехода внутрь папки в диаграмме — есть ли рывки?",
+      "expected_output": "Looks for Screener traces in the CI artifact (vtrace.py list/timeline/sheet --after navigation.begin). If none exist, falls back to the Linux harness plus render_sunburst_frames.py. Delivers a flip-book sheet and judges continuity frame by frame.",
+      "files": [],
+      "assertions": [
+        "Uses vtrace.py sheet with a navigation marker window, or the Linux harness renderer",
+        "Delivers a frame-by-frame image",
+        "Gives an explicit continuity verdict referencing specific frames"
+      ]
+    }
+  ]
+}
