@@ -619,7 +619,7 @@ private struct ArtifactDiagramSidebar: View {
                 .disabled(model.displayedURL == nil)
                 .help("Copy full path")
                 .nestedAccessibilityIdentifier("copyPath")
-                Button("Show in Finder", systemImage: "folder.badge.magnifyingglass") {
+                Button("Show in Finder", systemImage: "folder") {
                     revealCurrentFolder()
                 }
                 .labelStyle(.iconOnly)

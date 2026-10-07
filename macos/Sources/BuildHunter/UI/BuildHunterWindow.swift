@@ -49,7 +49,7 @@ extension View {
         onReveal: @escaping () -> Void
     ) -> some View {
         contextMenu {
-            Button("Show in Finder", systemImage: "folder.badge.magnifyingglass", action: onReveal)
+            Button("Show in Finder", systemImage: "folder", action: onReveal)
                 .disabled(url == nil)
             Button("Copy Path", systemImage: "document.on.document") {
                 if let url { ArtifactFolderActions.copyPath(url) }

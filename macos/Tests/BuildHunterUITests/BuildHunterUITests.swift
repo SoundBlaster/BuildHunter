@@ -383,6 +383,7 @@ final class BuildHunterUITests: XCTestCase {
         let revealPath = diagram.buttons["buildhunter.diagram.showInFinder"]
         XCTAssertTrue(revealPath.waitForExistence(timeout: 5))
         XCTAssertTrue(revealPath.isEnabled)
+        XCTAssertTrue(revealPath.isHittable, "The Finder action must render a clickable icon for a long path")
         revealPath.rightClick()
         let revealHeader = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealHeader.waitForExistence(timeout: 5))
