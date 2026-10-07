@@ -74,7 +74,8 @@ struct BuildHunterWindow: View {
             readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
-                ScanReportFooter(profile: model.profile, isScanning: model.isScanning, warnings: model.warnings)
+                ScanReportFooter(profile: model.profile, isScanning: model.isScanning, warnings: model.warnings,
+                                 showWarnings: showWarnings)
                     .a11yRoot("buildhunter.report")
             } else {
                 emptyState
@@ -135,6 +136,12 @@ struct BuildHunterWindow: View {
         guard let windowStore else { return }
         windowStore.prepareDiagram(for: model)
         openWindow(id: "artifact-diagram", value: model.id)
+    }
+
+    private func showWarnings() {
+        guard let windowStore else { return }
+        windowStore.prepareWarnings(for: model)
+        openWindow(id: "scan-warnings", value: model.id)
     }
 
     private var readOnlyBanner: some View {
@@ -343,6 +350,7 @@ private struct ScanReportFooter: View {
     let profile: ScanProfileHistory
     let isScanning: Bool
     let warnings: [String]
+    let showWarnings: () -> Void
 
     var body: some View {
         WindowStatusBar {
@@ -357,7 +365,7 @@ private struct ScanReportFooter: View {
                 Spacer(minLength: 0)
                 HStack(spacing: 12) {
                     if !warnings.isEmpty {
-                        ScanWarningsStatusItem(warnings: warnings)
+                        ScanWarningsStatusItem(count: warnings.count, showWarnings: showWarnings)
                     }
                     ScanProfileStatusItem(profile: profile, isScanning: isScanning)
                 }
@@ -368,70 +376,25 @@ private struct ScanReportFooter: View {
 }
 
 private struct ScanWarningsStatusItem: View {
-    let warnings: [String]
-    @Environment(\.accessibilityPrefix) private var prefix
-    @State private var presented = false
+    let count: Int
+    let showWarnings: () -> Void
 
     var body: some View {
-        Button {
-            presented.toggle()
-        } label: {
+        Button(action: showWarnings) {
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                     .accessibilityHidden(true)
-                Text("\(warnings.count)")
+                Text("\(count)")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
-        .help("Review \(warnings.count) scan warnings")
-        .accessibilityLabel("\(warnings.count) scan warnings")
+        .help("Review \(count) scan warnings")
+        .accessibilityLabel("\(count) scan warnings")
         .nestedAccessibilityIdentifier("warnings")
-        .popover(isPresented: $presented, arrowEdge: .top) {
-            ScanWarningsPanel(warnings: warnings)
-                .lineLimit(nil)
-                .font(.body)
-                .foregroundStyle(.primary)
-                .padding(14)
-                .frame(width: 440)
-                .environment(\.accessibilityPrefix, prefix.isEmpty ? "warnings" : "\(prefix).warnings")
-        }
-    }
-}
-
-private struct ScanWarningsPanel: View {
-    let warnings: [String]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Scan warnings", systemImage: "exclamationmark.triangle.fill")
-                .font(.headline)
-                .foregroundStyle(.orange)
-
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 10) {
-                    ForEach(Array(warnings.enumerated()), id: \.offset) { _, warning in
-                        HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                                .accessibilityHidden(true)
-                            Text(warning)
-                                .font(.callout)
-                                .textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-            }
-            .scrollIndicators(.visible)
-            .frame(minHeight: 80, maxHeight: 320)
-            .nestedAccessibilityIdentifier("list")
-        }
     }
 }
 

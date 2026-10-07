@@ -1,4 +1,5 @@
 import XCTest
+import AppKit
 
 @MainActor
 final class BuildHunterUITests: XCTestCase {
@@ -49,6 +50,42 @@ final class BuildHunterUITests: XCTestCase {
         wait(for: [closed], timeout: 5)
     }
 
+    func testWarningsTableCopiesRowsAndReopens() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("incomplete", in: scanWindow, app: app)
+        let warnings = scanWindow.buttons["buildhunter.report.warnings"]
+        XCTAssertTrue(warnings.waitForExistence(timeout: 5))
+        warnings.click()
+        let warningWindows = app.windows.containing(.any, identifier: "buildhunter.warnings.table")
+        let window = warningWindows.firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: 5))
+        let row = window.outlines.firstMatch.outlineRows.firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.click()
+        app.typeKey("c", modifierFlags: .command)
+        let expected = "Permission denied while reading Demo Workspace/Private/.build."
+        XCTAssertEqual(NSPasteboard.general.string(forType: .string), expected)
+        row.rightClick()
+        let copy = app.menuItems["Copy"]
+        XCTAssertTrue(copy.waitForExistence(timeout: 5))
+        XCTAssertTrue(copy.isEnabled)
+        copy.click()
+        XCTAssertEqual(NSPasteboard.general.string(forType: .string), expected)
+        attachScreenshot(named: "warnings-table", from: app)
+        app.typeKey("w", modifierFlags: .command)
+        let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: window)
+        wait(for: [closed], timeout: 5)
+        XCTAssertTrue(scanWindow.exists)
+        warnings.click()
+        XCTAssertTrue(window.waitForExistence(timeout: 5))
+        XCTAssertEqual(warningWindows.count, 1)
+        app.typeKey(.escape, modifierFlags: [])
+        let escaped = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: window)
+        wait(for: [escaped], timeout: 5)
+    }
+
     private func openSettings(_ app: XCUIApplication) {
         app.activate()
         app.menuBars.menuBarItems["BuildHunter"].click()
@@ -95,10 +132,11 @@ final class BuildHunterUITests: XCTestCase {
                     XCTAssertTrue(warnings.waitForExistence(timeout: 5),
                                   "The incomplete scenario should expose warning details")
                     warnings.click()
-                    let warningList = app.scrollViews["buildhunter.report.warnings.list"]
-                    XCTAssertTrue(warningList.waitForExistence(timeout: 5),
-                                  "Warning details should open in a scrollable panel")
-                    app.typeKey(.escape, modifierFlags: [])
+                    let warningTable = app.descendants(matching: .any)
+                        .matching(identifier: "buildhunter.warnings.table").firstMatch
+                    XCTAssertTrue(warningTable.waitForExistence(timeout: 5),
+                                  "Warning details should open in a separate table window")
+                    app.typeKey("w", modifierFlags: .command)
                 }
             }
             attachScreenshot(named: String(format: "%02d-%@", index + 2, scenario), from: app)
