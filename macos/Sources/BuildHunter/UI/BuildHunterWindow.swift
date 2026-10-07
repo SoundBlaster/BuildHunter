@@ -418,7 +418,7 @@ private struct ScanReportFooter: View {
 }
 
 /// How the status bar's warnings button presents warnings. Both stay available while the
-/// two designs are compared; the context menu always offers either one.
+/// two designs are compared; Settings > Experiments picks one.
 enum ScanWarningsPresentation: String, CaseIterable, Identifiable {
     case window
     case popover
