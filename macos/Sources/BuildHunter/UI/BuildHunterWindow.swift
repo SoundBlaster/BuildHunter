@@ -1,6 +1,63 @@
+import AppKit
 import SwiftUI
 import NestedA11yIDs
 import UniformTypeIdentifiers
+
+enum FinderRevealOutcome {
+    case opened
+    case openedParent(URL)
+    case unavailable
+}
+
+@MainActor
+enum ArtifactFolderActions {
+    static func copyPath(_ url: URL) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(url.path, forType: .string)
+    }
+
+    static func reveal(_ url: URL, accessRoot: URL?) -> FinderRevealOutcome {
+        let startedAccess = accessRoot?.startAccessingSecurityScopedResource() ?? false
+        defer {
+            if startedAccess { accessRoot?.stopAccessingSecurityScopedResource() }
+        }
+
+        let requested = url.standardizedFileURL
+        guard let existingFolder = nearestExistingFolder(to: requested) else { return .unavailable }
+        NSWorkspace.shared.activateFileViewerSelecting([existingFolder])
+        return existingFolder.path == requested.path ? .opened : .openedParent(existingFolder)
+    }
+
+    private static func nearestExistingFolder(to url: URL) -> URL? {
+        let fileManager = FileManager.default
+        var candidate = url
+        while true {
+            var isDirectory: ObjCBool = false
+            if fileManager.fileExists(atPath: candidate.path, isDirectory: &isDirectory), isDirectory.boolValue {
+                return candidate
+            }
+            let parent = candidate.deletingLastPathComponent()
+            guard parent.path != candidate.path else { return nil }
+            candidate = parent
+        }
+    }
+}
+
+extension View {
+    func artifactFolderContextMenu(
+        url: URL?,
+        onReveal: @escaping () -> Void
+    ) -> some View {
+        contextMenu {
+            Button("Show in Finder", systemImage: "folder", action: onReveal)
+                .disabled(url == nil)
+            Button("Copy Path", systemImage: "document.on.document") {
+                if let url { ArtifactFolderActions.copyPath(url) }
+            }
+            .disabled(url == nil)
+        }
+    }
+}
 
 struct BuildHunterWindow: View {
     @State private var model: WindowScanModel
@@ -163,27 +220,44 @@ struct BuildHunterWindow: View {
 private struct ArtifactReportTable: View {
     let scan: WindowScanModel
     @State private var model = ScanTableModel()
+    @State private var finderNotice: String?
 
     var body: some View {
         Table(model.rows, sortOrder: $model.sortOrder) {
             TableColumn("Path", sortUsing: ScanRowComparator(column: .path)) { row in
-                ArtifactReportCell(text: row.relativePath)
+                ArtifactReportCell(text: row.relativePath, folderURL: artifactURL(for: row)) {
+                    reveal(row)
+                }
             }
             .width(min: 240, ideal: 360)
             TableColumn("Size", sortUsing: ScanRowComparator(column: .size)) { row in
-                ArtifactReportCell(text: sizeDescription(row.size)).monospacedDigit()
+                ArtifactReportCell(text: sizeDescription(row.size), folderURL: artifactURL(for: row)) {
+                    reveal(row)
+                }
+                .monospacedDigit()
             }
             .width(min: 100, ideal: 125)
             TableColumn("Language", sortUsing: ScanRowComparator(column: .language)) { row in
-                ArtifactReportCell(text: row.language, language: ArtifactLanguage(rawValue: row.language))
+                ArtifactReportCell(text: row.language, language: ArtifactLanguage(rawValue: row.language),
+                                   folderURL: artifactURL(for: row)) { reveal(row) }
             }
             .width(min: 90, ideal: 120)
             TableColumn("Kind", sortUsing: ScanRowComparator(column: .kind)) { row in
-                ArtifactReportCell(text: row.kind.rawValue)
+                ArtifactReportCell(text: row.kind.rawValue, folderURL: artifactURL(for: row)) {
+                    reveal(row)
+                }
             }
             .width(min: 110, ideal: 150)
         }
         .nestedAccessibilityIdentifier("table")
+        .alert("Folder location", isPresented: Binding(
+            get: { finderNotice != nil },
+            set: { if !$0 { finderNotice = nil } }
+        )) {
+            Button("OK", role: .cancel) { finderNotice = nil }
+        } message: {
+            Text(finderNotice ?? "")
+        }
         .overlay {
             if scan.rows.isEmpty && scan.isScanning {
                 ProgressView("Searching for build artifacts…")
@@ -192,6 +266,22 @@ private struct ArtifactReportTable: View {
             }
         }
         .task { await model.follow(scan) }
+    }
+
+    private func artifactURL(for row: ScanRow) -> URL? {
+        scan.targetURL?.appendingPathComponent(row.relativePath, isDirectory: true)
+    }
+
+    private func reveal(_ row: ScanRow) {
+        guard let url = artifactURL(for: row) else { return }
+        switch ArtifactFolderActions.reveal(url, accessRoot: scan.targetURL) {
+        case .opened:
+            finderNotice = nil
+        case .openedParent(let parent):
+            finderNotice = "The folder is no longer available. Opened \(parent.path) in Finder instead."
+        case .unavailable:
+            finderNotice = "No existing parent folder is available to open in Finder."
+        }
     }
 
     private func sizeDescription(_ state: SizeState) -> String {
@@ -208,6 +298,8 @@ private struct ArtifactReportTable: View {
 private struct ArtifactReportCell: View {
     let text: String
     var language: ArtifactLanguage? = nil
+    var folderURL: URL? = nil
+    var onReveal: () -> Void = {}
     @State private var isHovered = false
 
     var body: some View {
@@ -219,6 +311,11 @@ private struct ArtifactReportCell: View {
             .background(Color.accentColor.opacity(isHovered ? 0.16 : 0), in: .rect(cornerRadius: 4))
             .contentShape(Rectangle())
             .onHover { isHovered = $0 }
+            .artifactFolderContextMenu(url: folderURL, onReveal: onReveal)
+            .onTapGesture(count: 2) {
+                guard folderURL != nil else { return }
+                onReveal()
+            }
     }
 }
 
