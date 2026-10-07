@@ -628,6 +628,7 @@ private struct ArtifactDiagramSidebar: View {
                 .disabled(model.displayedURL == nil)
                 .help("Show folder in Finder")
                 .nestedAccessibilityIdentifier("showInFinder")
+                .artifactFolderContextMenu(url: model.displayedURL, onReveal: revealCurrentFolder)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Text("\(diagramBytes(model.displayedFolder.bytes)) known · \(model.displayedFolder.statistics.artifactCount) artifacts")

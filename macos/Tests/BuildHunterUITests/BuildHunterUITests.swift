@@ -383,7 +383,7 @@ final class BuildHunterUITests: XCTestCase {
         let revealPath = diagram.buttons["buildhunter.diagram.showInFinder"]
         XCTAssertTrue(revealPath.waitForExistence(timeout: 5))
         XCTAssertTrue(revealPath.isEnabled)
-        focus.rightClick()
+        revealPath.rightClick()
         let revealHeader = app.menuItems["Show in Finder"]
         XCTAssertTrue(revealHeader.waitForExistence(timeout: 5))
         XCTAssertTrue(revealHeader.isEnabled, "The path header must offer Finder for a real target")
