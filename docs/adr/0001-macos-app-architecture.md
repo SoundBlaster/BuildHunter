@@ -78,7 +78,7 @@ Rust source доставляет события через bounded `ScanEventCha
 
 ## Sandbox и доступ
 
-App target использует `com.apple.security.app-sandbox` и `com.apple.security.files.user-selected.read-only`. Target URL получают через system folder selection или поддерживаемый drag-and-drop URL mechanism. URL должен сохранять предоставленный системой доступ; восстановление URL из текстового path не заменяет access grant.
+App target использует `com.apple.security.app-sandbox` и `com.apple.security.files.user-selected.read-write`. Запись нужна только для экспорта результатов в файл, выбранный пользователем в NSSavePanel; target приложение по-прежнему только читает. Target URL получают через system folder selection или поддерживаемый drag-and-drop URL mechanism. URL должен сохранять предоставленный системой доступ; восстановление URL из текстового path не заменяет access grant.
 
 Swift platform adapter удерживает session access на весь lifetime нуждающегося в нём worker и window actions. При замене/закрытии прекращает доступ после завершения соответствующей работы. Не трактовать один Bool от `startAccessingSecurityScopedResource()` как универсальное доказательство доступности или недоступности: реальные read errors остаются источником runtime результата.
 

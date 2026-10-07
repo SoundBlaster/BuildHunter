@@ -13,6 +13,7 @@ struct BuildHunterApp: App {
         .commands {
             OpenFolderCommands()
             ArtifactDiagramCommands()
+            ExportResultsCommands()
         }
 
         Settings {
@@ -56,6 +57,33 @@ struct ArtifactDiagramCommands: Commands {
         CommandGroup(after: .sidebar) {
             Button("Show Artifact Diagram") { request?.perform() }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
+                .disabled(request == nil)
+        }
+    }
+}
+
+struct ExportResultsRequest {
+    let perform: @MainActor () -> Void
+}
+
+private struct ExportResultsFocusedValueKey: FocusedValueKey {
+    typealias Value = ExportResultsRequest
+}
+
+extension FocusedValues {
+    var buildHunterExportResults: ExportResultsRequest? {
+        get { self[ExportResultsFocusedValueKey.self] }
+        set { self[ExportResultsFocusedValueKey.self] = newValue }
+    }
+}
+
+struct ExportResultsCommands: Commands {
+    @FocusedValue(\.buildHunterExportResults) private var request
+
+    var body: some Commands {
+        CommandGroup(replacing: .importExport) {
+            Button("Export Results…") { request?.perform() }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
                 .disabled(request == nil)
         }
     }

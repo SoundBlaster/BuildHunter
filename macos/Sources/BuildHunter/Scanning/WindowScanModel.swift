@@ -12,19 +12,23 @@ final class WindowScanModel {
     private(set) var profile = ScanProfileHistory()
     private(set) var generation: UInt64 = 0
     private(set) var phase: ScanPhase = .idle
+    /// Filter IDs the current report was scanned without, captured when its scan began.
+    private(set) var excludedFilterIDs: Set<String> = []
     var isScanning: Bool { phase == .scanning }
     var isChoosingFolder = false
     @ObservationIgnored private(set) var reportRevision: UInt64 = 0
     @ObservationIgnored private(set) var reportID = UUID()
 
     private let source: any ScanEventSource
+    private let filterSettings: SearchFilterSettings
     private var scanTask: Task<Void, Never>?
     @ObservationIgnored private var rowIndices: [UUID: Int] = [:]
     /// Mirrors `warnings` so deduplication stays O(1) for scans with many unreadable paths.
     @ObservationIgnored private var warningSet: Set<String> = []
 
-    init(source: any ScanEventSource = RustScanEventSource()) {
+    init(source: any ScanEventSource = RustScanEventSource(), filterSettings: SearchFilterSettings = .shared) {
         self.source = source
+        self.filterSettings = filterSettings
     }
 
     func acceptDemoTarget(named name: String) {
@@ -53,6 +57,7 @@ final class WindowScanModel {
         targetName = mockState.targetName
         targetURL = nil
         clearReport()
+        excludedFilterIDs = []
         phase = mockState.targetName == nil ? .idle : .scanning
 
         guard targetName != nil else { return }
@@ -149,6 +154,7 @@ final class WindowScanModel {
 
     private func beginScan() {
         phase = .scanning
+        excludedFilterIDs = filterSettings.excludedFilterIDs
         let activeGeneration = generation
         let stream = source.events(for: activeGeneration, target: targetURL)
         scanTask = Task { [weak self] in

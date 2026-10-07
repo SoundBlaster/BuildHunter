@@ -322,6 +322,67 @@ final class BuildHunterUITests: XCTestCase {
                        "Navigation controls must be re-enabled after branch expansion")
     }
 
+    func testExportAsksToWaitWhileScanning() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("scanning", in: scanWindow, app: app)
+        let export = scanWindow.buttons["buildhunter.toolbar.export"]
+        XCTAssertTrue(export.waitForExistence(timeout: 5))
+        export.click()
+        let notice = app.staticTexts["Scan in progress"]
+        XCTAssertTrue(notice.waitForExistence(timeout: 5), "Exporting a running scan should ask to wait")
+        XCTAssertFalse(app.popUpButtons["buildhunter.export.format"].exists, "No Save panel while scanning")
+        app.buttons["OK"].click()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: notice)
+        wait(for: [dismissed], timeout: 5)
+    }
+
+    func testExportWritesTheChosenFormatAndOrder() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BuildHunter Export \(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let app = launchWindow(environment: ["BUILDHUNTER_EXPORT_DIRECTORY": directory.path])
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("results", in: scanWindow, app: app)
+
+        app.menuBars.menuBarItems["File"].click()
+        let command = app.menuItems["Export Results…"]
+        XCTAssertTrue(command.waitForExistence(timeout: 5))
+        command.click()
+        let format = app.popUpButtons["buildhunter.export.format"]
+        let order = app.popUpButtons["buildhunter.export.order"]
+        XCTAssertTrue(format.waitForExistence(timeout: 5), "The Save panel should offer a format choice")
+        XCTAssertTrue(order.exists, "The Save panel should offer a row order choice")
+        format.click()
+        app.menuItems["JSON"].click()
+        order.click()
+        app.menuItems["Largest first"].click()
+        attachScreenshot(named: "export-panel", from: app)
+        let save = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        save.click()
+
+        func exported() -> [URL] {
+            ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [])
+                .filter { $0.pathExtension == "json" }
+        }
+        let written = expectation(for: NSPredicate { _, _ in !exported().isEmpty }, evaluatedWith: nil)
+        wait(for: [written], timeout: 10)
+        let file = try XCTUnwrap(exported().first)
+        XCTAssertTrue(file.lastPathComponent.hasPrefix("BuildHunter-Demo Workspace-"))
+        let object = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any])
+        XCTAssertEqual(object["status"] as? String, "complete")
+        XCTAssertEqual(object["root"] as? String, "Demo Workspace")
+        let artifacts = try XCTUnwrap(object["artifacts"] as? [[String: Any]])
+        // Largest first differs from the table's path order (Services sorts before Tools).
+        XCTAssertEqual(artifacts.compactMap { $0["relative_path"] as? String },
+                       ["Packages/Core/.build", "Tools/Indexer/target", "Services/API/.pytest_cache"])
+        XCTAssertEqual(artifacts.first?["language"] as? String, "swift")
+    }
+
     func testTableHeadersSortRowsInBothDirections() {
         let app = launchWindow()
         defer { app.terminate() }

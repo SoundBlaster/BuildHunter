@@ -37,13 +37,16 @@
 		BAF5BA137472C47B6D3DDF79 /* BuildHunterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */; };
 		DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */; };
 		A1E002A28D54711EAC9EB204 /* ScanProfilePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */; };
+		91CB2453895DE6C2851E621F /* ScanResultsExportPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DBB6E34233323ABC3AA42A8 /* ScanResultsExportPanel.swift */; };
 		E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B58340DBC91862752743D7 /* ScanEvent.swift */; };
 		A1E002A28D54711EAC9EB202 /* ScanProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E002A28D54711EAC9EB201 /* ScanProfile.swift */; };
+		23F7603A1D0DA0B5621231D6 /* ScanReportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A25E123266D8CCC357CFCA /* ScanReportExport.swift */; };
 		E5BE11BE7273D4EAFFE06E47 /* NestedA11yIDs in Frameworks */ = {isa = PBXBuildFile; productRef = 350BA0250A13F735F168EA0F /* NestedA11yIDs */; };
 		5C3EE0A1B2C3D4E5F6071801 /* ScreenerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3EE0A1B2C3D4E5F6071802 /* ScreenerKit */; };
 		EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */; };
 		F60DE588B31B83267DD5B91A /* ArtifactDiagramWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */; };
 		FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */; };
+		53EC7743337E7FA19C61E117 /* ScanReportExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74B5C0CD6A3C51F3AE5A70C2 /* ScanReportExportTests.swift */; };
 		5E7355CF4914369049DC0C8B /* StaticPolicyPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C89B196E8D9B39274884B6 /* StaticPolicyPerformanceTests.swift */; };
 		37D9507A6AEB0C2E154FACD7 /* FinitePolicyTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF5266816D8A7DC4BAA3C16 /* FinitePolicyTableTests.swift */; };
 		EDD0A04C6416742933F94E65 /* FinitePolicyScanPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DAF11AB598498405126921 /* FinitePolicyScanPerformanceTests.swift */; };
@@ -82,6 +85,7 @@
 		25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterUITests.swift; sourceTree = "<group>"; };
 		2AF4D0C88B566535118385F4 /* BuildHunterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowScanModelTests.swift; sourceTree = "<group>"; };
+		74B5C0CD6A3C51F3AE5A70C2 /* ScanReportExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReportExportTests.swift; sourceTree = "<group>"; };
 		468C96DD92C2663CDF234F16 /* BuildHunter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BuildHunter.entitlements; sourceTree = "<group>"; };
 		498B67ECBD9BDEC0A9021CA0 /* ClassifyArtifactRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifyArtifactRoot.swift; sourceTree = "<group>"; };
 		52F6FF88DD87579E03C9A48D /* BuildHunterFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BuildHunterFFI.h; sourceTree = "<group>"; };
@@ -103,11 +107,13 @@
 		CB9B8170CF5287EF2881E029 /* ArtifactDiagramModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiagramModelTests.swift; sourceTree = "<group>"; };
 		D1B58340DBC91862752743D7 /* ScanEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEvent.swift; sourceTree = "<group>"; };
 		A1E002A28D54711EAC9EB201 /* ScanProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProfile.swift; sourceTree = "<group>"; };
+		C3A25E123266D8CCC357CFCA /* ScanReportExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReportExport.swift; sourceTree = "<group>"; };
 		D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RustScanEventSource.swift; sourceTree = "<group>"; };
 		D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPerformanceTests.swift; sourceTree = "<group>"; };
 		DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterWindow.swift; sourceTree = "<group>"; };
 		A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProfilePanel.swift; sourceTree = "<group>"; };
+		4DBB6E34233323ABC3AA42A8 /* ScanResultsExportPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultsExportPanel.swift; sourceTree = "<group>"; };
 		F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiagramWindow.swift; sourceTree = "<group>"; };
 		F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWindowStore.swift; sourceTree = "<group>"; };
 		FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburst.swift; sourceTree = "<group>"; };
@@ -180,6 +186,7 @@
 				D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */,
 				D1B58340DBC91862752743D7 /* ScanEvent.swift */,
 				A1E002A28D54711EAC9EB201 /* ScanProfile.swift */,
+				C3A25E123266D8CCC357CFCA /* ScanReportExport.swift */,
 				F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */,
 				7D7F949A7C221A08BBD76D8A /* WindowScanModel.swift */,
 			);
@@ -245,6 +252,7 @@
 				6CF5266816D8A7DC4BAA3C16 /* FinitePolicyTableTests.swift */,
 				5B057B0645AC397544AEED89 /* SearchFilterSettingsTests.swift */,
 				381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */,
+				74B5C0CD6A3C51F3AE5A70C2 /* ScanReportExportTests.swift */,
 			);
 			path = BuildHunterTests;
 			sourceTree = "<group>";
@@ -285,6 +293,7 @@
 				B019A5055F3DE5234638768B /* BuildHunterApp.swift */,
 				DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */,
 				A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */,
+				4DBB6E34233323ABC3AA42A8 /* ScanResultsExportPanel.swift */,
 				FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */,
 			);
 			path = UI;
@@ -486,6 +495,7 @@
 				37D9507A6AEB0C2E154FACD7 /* FinitePolicyTableTests.swift in Sources */,
 				408B063A95E7BD973C0302C0 /* SearchFilterSettingsTests.swift in Sources */,
 				FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */,
+				53EC7743337E7FA19C61E117 /* ScanReportExportTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -500,6 +510,7 @@
 				A44DAE4AC0757409C7DD5BE9 /* BuildHunterApp.swift in Sources */,
 				DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */,
 				A1E002A28D54711EAC9EB204 /* ScanProfilePanel.swift in Sources */,
+				91CB2453895DE6C2851E621F /* ScanResultsExportPanel.swift in Sources */,
 				492FF4DC3A0256639F9696D5 /* ClassifyArtifactRoot.swift in Sources */,
 				0749941185285C61B5082D39 /* DemoScanSource.swift in Sources */,
 				2D32AFF98741BF5F6ABE3259 /* IsOuterArtifactRoot.swift in Sources */,
@@ -508,6 +519,7 @@
 				80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */,
 				E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */,
 				A1E002A28D54711EAC9EB202 /* ScanProfile.swift in Sources */,
+				23F7603A1D0DA0B5621231D6 /* ScanReportExport.swift in Sources */,
 				EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */,
 				75D5EA75D01F77A33BD58A99 /* SearchFilters.swift in Sources */,
 				25E92515531DAA164DE50BFB /* ArtifactFolderLocation.swift in Sources */,
