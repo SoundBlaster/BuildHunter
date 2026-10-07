@@ -64,31 +64,53 @@ Color helps orientation, while path labels remain authoritative; very dense repo
 have more branches than easily distinguishable hues.
 
 Size updates and sector insertion/removal preserve Chart identity and use a
-250 ms smooth animation. Entering a visible folder has a deliberate sequence:
-neighbors fade out for 140 ms, the selected branch and its visible descendants
-expand from their current angular interval to the full circle over 460 ms,
-then children move into the inner rings over 180 ms. The same sequence is used
-for chart clicks and sidebar selection. Descents from outer rings are supported.
-Returning with Up, the center, or All artifacts reverses the same geometric path:
-restore the parent branch's rings for 180 ms, contract into its original angular
-interval over 460 ms, then reveal neighbors over 140 ms. All artifacts can skip
+250 ms smooth animation. Entering a visible folder works like DaisyDisk's zoom:
+neighbors fade out for 140 ms, then over 550 ms one motion opens the selected
+sector to a full turn while it sinks into the center disc behind the Up button,
+its visible descendants move straight to their new rings, and newly exposed
+levels slide in from the outer edge. Colors blend from the parent palette to the
+entered folder's palette over the same motion. The same sequence is used for
+chart clicks and sidebar selection. Descents from outer rings are supported.
+Returning with Up, the center, or All artifacts plays the same path backwards:
+the folder grows out of the center into its original angle and ring, then the
+neighbors fade back in. All artifacts can skip
 levels by contracting into the closest visible ancestor. A grouped folder returns
 into its parent's Other sector. The graph and entire sidebar, including filtering
 and Copy path, are locked throughout navigation in both directions.
 
-Navigation uses an animatable SwiftUI path overlay with frozen source/destination
-layouts; the underlying Chart receives the destination without navigation
-interpolation. The scanner continues collecting events, while diagram publication
+Navigation uses a SwiftUI path overlay with frozen source/destination layouts; the
+underlying Chart receives the destination without navigation interpolation. A
+`TimelineView` redraws the overlay every display frame from the elapsed time
+(`ArtifactSunburstNavigation.progress(at:)`: cubic ease-out fade, critically damped
+zoom), so every frame lies on the planned trajectory. Animating `fade`/`zoom` state
+instead lost the first phase: the overlay appeared in the same update that started
+its animation, which then had no starting frame, as the first CI Screener trace showed. The scanner continues collecting events, while diagram publication
 pauses until the transition ends and then catches up at the next refresh.
 Reduce Motion skips staged navigation;
 report replacement, closing the window, or enabling Reduce Motion cancels the
-overlay and releases the publication pause. Completion callbacks are guarded by
-a transition identity so a cancelled animation cannot start its next phase.
+overlay and releases the publication pause. The transition task that marks the
+phases and ends the transition is keyed by the transition identity, so a
+cancelled transition never reaches its next step.
 
 Sector rounding is temporarily disabled (`cornerRadius = 0`) for the renderer
 investigation. Gaps remain. The earlier Charts trap is a known regression risk;
 the local comparison is evidence, not a guarantee of crash freedom.
 Accessible sector descriptions include path, size and partial status.
+
+### Screener traces (pilot)
+
+Debug builds can record the diagram with [Screener](https://github.com/SoundBlaster/Screener).
+Launch with `BUILDHUNTER_SCREENER=1` and the diagram writes a `.vtrace` session under
+`Caches/Screener/Traces` (inside the app container when sandboxed): markers for each
+navigation phase and layout change (folder depths and sector counts, never names) and
+window keyframes every 40 ms during a transition and for one second after it. A trace run
+animates even when the machine has Reduce Motion on, so the trace shows the transition;
+`chart.layout` records the system setting, and a navigation that does not animate records
+`navigation.skipped` with its reason. Read a
+trace with `screener-mcp --traces-dir <dir>` (`screener.contact_sheet`, `screener.frame`).
+The UI test `testDiagramNavigationRecordsScreenerTrace` records one descent and one
+return; macOS CI uploads the trace with the test evidence. Release builds contain no
+recorder code.
 
 ### Debugging geometry (2026-10-05)
 
@@ -161,8 +183,9 @@ ownership, branch color inheritance, stable streaming membership, hover restorat
 absolute paths, and sorting alongside late measurements. UI tests exercise the
 companion window lifecycle, hover preview, center navigation, column-header sorting,
 and copying a real selected folder's full path. Navigation tests check neighbor
-fade, full-circle expansion, destination geometry, newly exposed descendants,
-finite/bounded intermediate angles and radii, and coalescing of measurements
+fade, simultaneous angular opening and inward motion into the center disc,
+descendants moving straight to their rings, new levels sliding in from the edge,
+mirrored return, palette blending, finite/bounded intermediate angles and radii, and coalescing of measurements
 while endpoints are held. UI tests exercise repeated graph clicks, three-level
 descent/return, and empty/nonempty chart transitions, with screenshots.
 A Release performance test measures snapshot/layout/palette preparation and table

@@ -3,15 +3,26 @@ import SwiftUI
 import Charts
 import OSLog
 import NestedA11yIDs
+#if DEBUG
+import ScreenerKit
+#endif
 
 struct ArtifactDiagramWindow: View {
     let scan: WindowScanModel
     @State private var diagram: ArtifactDiagramModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Screener trace runs keep navigation animated even when the machine has Reduce Motion
+    /// on, so a trace always contains the transition it was recorded for.
+    private var motionReduced: Bool {
+#if DEBUG
+        reduceMotion && DiagramTraceRecorder.shared == nil
+#else
+        reduceMotion
+#endif
+    }
     @State private var navigation: DiagramNavigationPresentation?
-    @State private var fade = 0.0
-    @State private var expansion = 0.0
-    @State private var reveal = 0.0
+    /// When the overlay's clock started; nil until the transition task runs.
+    @State private var navigationStart: Date?
 
     init(scan: WindowScanModel, diagram: ArtifactDiagramModel = ArtifactDiagramModel()) {
         self.scan = scan
@@ -30,7 +41,7 @@ struct ArtifactDiagramWindow: View {
                                           isScanning: scan.isScanning, statistics: diagram.focus.statistics,
                                           focusID: diagram.focusID, reportID: scan.reportID,
                                           canNavigateUp: diagram.canNavigateUp,
-                                          navigation: navigation, fade: fade, expansion: expansion, reveal: reveal,
+                                          navigation: navigation, navigationStart: navigationStart,
                                           goUp: { navigate(to: diagram.focus.parentID ?? "") },
                                           hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
                         navigate(to: sector.nodeID ?? sector.parentID)
@@ -52,10 +63,10 @@ struct ArtifactDiagramWindow: View {
         .navigationTitle("\(scan.targetName ?? "BuildHunter") — Artifact Diagram")
         .task { await diagram.follow(scan) }
         .task(id: navigation?.id) {
-            if let token = navigation?.id { fadeNeighbors(token: token) }
+            if let token = navigation?.id { await runNavigation(token: token) }
         }
         .onChange(of: scan.reportID) { cancelNavigation() }
-        .onChange(of: reduceMotion) { if reduceMotion { cancelNavigation() } }
+        .onChange(of: motionReduced) { if motionReduced { cancelNavigation() } }
         .onDisappear { cancelNavigation() }
         .a11yRoot("buildhunter.diagram")
     }
@@ -64,12 +75,19 @@ struct ArtifactDiagramWindow: View {
         guard navigation == nil, path != diagram.focusID, diagram.snapshot.nodes[path] != nil else { return }
         let descending = !path.isEmpty && (diagram.focusID.isEmpty || path.hasPrefix(diagram.focusID + "/"))
         let ascending = path.isEmpty || diagram.focusID.hasPrefix(path + "/")
-        guard descending || ascending, !reduceMotion else {
+        guard descending || ascending, !motionReduced else {
+#if DEBUG
+            DiagramTraceRecorder.shared?.mark("navigation.skipped", [
+                "reason": motionReduced ? "reduceMotion" : "notAdjacent",
+            ])
+            DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
             diagram.navigate(to: path)
             return
         }
         let source = diagram.layout
         let palette = diagram.palette
+        let sourceFocus = diagram.focusID
         let selectedID = ascending ? diagram.focusID : path
         let direction: ArtifactSunburstNavigation.Direction = ascending ? .ascend : .descend
         // The normal Chart receives the final layout without interpolating navigation.
@@ -81,58 +99,68 @@ struct ArtifactDiagramWindow: View {
             if let plan = ArtifactSunburstNavigation(source: source, destination: diagram.layout,
                                                      selectedID: selectedID, direction: direction) {
                 navigation = DiagramNavigationPresentation(plan: plan, sourcePalette: palette, destinationPalette: diagram.palette)
+#if DEBUG
+                // Folder depths only; traces never carry folder names.
+                DiagramTraceRecorder.shared?.mark("navigation.begin", [
+                    "direction": ascending ? "ascend" : "descend",
+                    "fromDepth": "\(sourceFocus.isEmpty ? 0 : sourceFocus.split(separator: "/").count)",
+                    "toDepth": "\(path.isEmpty ? 0 : path.split(separator: "/").count)",
+                ])
+                DiagramTraceRecorder.shared?.capture(for: 2)
+#endif
                 diagram.setNavigationTransitionActive(true)
-                fade = 0; expansion = 0; reveal = 0
+                navigationStart = nil
+            } else {
+#if DEBUG
+                DiagramTraceRecorder.shared?.mark("navigation.skipped", ["reason": "noPlan"])
+                DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
             }
         }
     }
 
-    private func fadeNeighbors(token: UUID) {
-        guard navigation?.id == token else { return }
-        let ascending = navigation?.plan.direction == .ascend
-        recordNavigationPhase(ascending ? "restore-branch" : "fade")
-        withAnimation(.easeOut(duration: ascending ? 0.18 : 0.14), completionCriteria: .removed) {
-            fade = 1
-        } completion: {
-            expandBranch(token: token)
-        }
+    /// Entering fades the neighbors, then zooms in one motion; returning zooms back out,
+    /// then fades the neighbors in. The overlay draws each frame from the elapsed time;
+    /// this task only starts the clock, marks the phases and ends the transition. A
+    /// cancelled transition cancels the task, which never reaches its next step.
+    private func runNavigation(token: UUID) async {
+        guard let plan = navigation?.plan, navigation?.id == token else { return }
+        navigationStart = .now
+        let descending = plan.direction == .descend
+        recordNavigationPhase(descending ? "fade" : "zoom")
+        try? await Task.sleep(for: .seconds(plan.firstPhaseDuration))
+        guard !Task.isCancelled, navigation?.id == token else { return }
+        recordNavigationPhase(descending ? "zoom" : "fade")
+        try? await Task.sleep(for: .seconds(ArtifactSunburstNavigation.duration - plan.firstPhaseDuration))
+        guard !Task.isCancelled else { return }
+        finishNavigation(token: token)
     }
 
-    private func expandBranch(token: UUID) {
-        guard navigation?.id == token else { return }
-        recordNavigationPhase(navigation?.plan.direction == .ascend ? "contract" : "expand")
-        withAnimation(.smooth(duration: 0.46), completionCriteria: .removed) {
-            expansion = 1
-        } completion: {
-            revealChildren(token: token)
-        }
-    }
-
-    private func revealChildren(token: UUID) {
-        guard navigation?.id == token else { return }
-        let ascending = navigation?.plan.direction == .ascend
-        recordNavigationPhase(ascending ? "reveal-neighbors" : "reveal")
-        withAnimation(.easeInOut(duration: ascending ? 0.14 : 0.18), completionCriteria: .removed) {
-            reveal = 1
-        } completion: {
-            if navigation?.id == token { cancelNavigation() }
-        }
+    private func finishNavigation(token: UUID) {
+        if navigation?.id == token { cancelNavigation() }
     }
 
     private func cancelNavigation() {
-        if navigation != nil { recordNavigationPhase("finished-or-cancelled") }
+        if navigation != nil {
+            recordNavigationPhase("finished-or-cancelled")
+#if DEBUG
+            // Keep recording after the overlay hands over to the chart.
+            DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
+        }
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         withTransaction(transaction) {
             navigation = nil
             diagram.setNavigationTransitionActive(false)
-            fade = 0; expansion = 0; reveal = 0
+            navigationStart = nil
         }
     }
 
     private func recordNavigationPhase(_ phase: String) {
 #if DEBUG
         Logger(subsystem: "BuildHunter", category: "ChartNavigation").notice("ChartNavigation phase=\(phase, privacy: .public)")
+        DiagramTraceRecorder.shared?.mark("navigation.\(phase)")
 #endif
     }
 }
@@ -179,9 +207,7 @@ private struct ArtifactSunburstChart: View {
     var reportID: UUID?
     var canNavigateUp = false
     var navigation: DiagramNavigationPresentation?
-    var fade = 0.0
-    var expansion = 0.0
-    var reveal = 0.0
+    var navigationStart: Date?
     var goUp: () -> Void = {}
     var hover: (ArtifactSunburstLayout.Sector?) -> Void = { _ in }
     let select: (ArtifactSunburstLayout.Sector) -> Void
@@ -223,8 +249,7 @@ private struct ArtifactSunburstChart: View {
                                 let centerDiameter = min(frame.width, frame.height) * 0.21
                                 ZStack(alignment: .topLeading) {
                                     if let navigation {
-                                        DiagramNavigationLayer(presentation: navigation, fade: fade,
-                                                               expansion: expansion, reveal: reveal)
+                                        DiagramNavigationLayer(presentation: navigation, start: navigationStart)
                                             .frame(width: frame.width, height: frame.height)
                                             .position(x: frame.midX, y: frame.midY)
                                             .allowsHitTesting(false)
@@ -335,6 +360,12 @@ private struct ArtifactSunburstChart: View {
             return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=0"
         }.joined(separator: ";")
         logger.notice("ChartInput size=\(size.width)x\(size.height) sectors=\(layout.sectors.count) invalid=\(invalid) reduceMotion=\(reduceMotion)")
+        DiagramTraceRecorder.shared?.mark("chart.layout", [
+            "sectors": "\(layout.sectors.count)",
+            "rings": "\((layout.sectors.map(\.depth).max() ?? -1) + 1)",
+            "invalid": "\(invalid)",
+            "reduceMotion": "\(reduceMotion)",
+        ])
         logger.debug("ChartInput sectors: \(inputs, privacy: .public)")
         if invalid {
             logger.error("Invalid ChartInput sectors: \(inputs, privacy: .public)")
@@ -387,10 +418,12 @@ private struct DiagramNavigationPresentation: Identifiable {
     let sourcePalette: ArtifactSunburstPalette
     let destinationPalette: ArtifactSunburstPalette
 
-    func color(for frame: ArtifactSunburstNavigation.Frame, reveal: Double) -> Color {
+    /// Colors blend from the palette before navigation to the one after it as the zoom runs.
+    func color(for frame: ArtifactSunburstNavigation.Frame, zoom: Double) -> Color {
         guard case .node(let path) = frame.id else { return diagramColor(.other) }
         let source = sourcePalette.color(for: path) ?? .other
-        return diagramColor(reveal == 0 ? source : destinationPalette.color(for: path) ?? source)
+        let destination = destinationPalette.color(for: path) ?? source
+        return diagramColor(source.blended(with: destination, by: zoom))
     }
 }
 
@@ -398,20 +431,25 @@ private struct DiagramNavigationPresentation: Identifiable {
 /// Keeping both endpoint layouts fixed prevents producer events from retargeting a zoom.
 private struct DiagramNavigationLayer: View {
     let presentation: DiagramNavigationPresentation
-    let fade: Double
-    let expansion: Double
-    let reveal: Double
+    /// Nil until the transition task starts the clock; the source layout shows until then.
+    let start: Date?
 
     var body: some View {
-        GeometryReader { geometry in
-            let radius = min(geometry.size.width, geometry.size.height) / 2
-            ZStack {
-                ForEach(presentation.plan.frames(fade: fade, expansion: expansion, reveal: reveal)) { frame in
-                    DiagramNavigationSector(start: frame.start, end: frame.end,
-                                            inner: frame.innerRadius, outer: frame.outerRadius,
-                                            inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
-                        .fill(presentation.color(for: frame, reveal: presentation.plan.direction == .ascend ? fade : reveal))
-                        .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
+        // Driving progress from the display clock, rather than animating fade/zoom state,
+        // keeps the first phase from collapsing when the overlay appears in the same
+        // update that would start its animation.
+        TimelineView(.animation) { context in
+            let progress = presentation.plan.progress(at: start.map { context.date.timeIntervalSince($0) } ?? 0)
+            GeometryReader { geometry in
+                let radius = min(geometry.size.width, geometry.size.height) / 2
+                ZStack {
+                    ForEach(presentation.plan.frames(fade: progress.fade, zoom: progress.zoom)) { frame in
+                        DiagramNavigationSector(start: frame.start, end: frame.end,
+                                                inner: frame.innerRadius, outer: frame.outerRadius,
+                                                inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
+                            .fill(presentation.color(for: frame, zoom: progress.zoom))
+                            .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
+                    }
                 }
             }
         }
@@ -513,6 +551,10 @@ private struct ArtifactDiagramSidebar: View {
                         .font(.headline)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
+                        // macOS 27 keeps a selectable Text's old AXValue after its content
+                        // changes; a new identity per path gives VoiceOver and UI tests a
+                        // fresh element. It also clears a stale selection on navigation.
+                        .id(model.displayedPath)
                         .nestedAccessibilityIdentifier("focus")
                 }
                 Button("Copy path", systemImage: "document.on.document") {
@@ -760,3 +802,67 @@ private struct DiagramPreviewSource: ScanEventSource {
     .padding()
     .frame(width: 380)
 }
+
+#if DEBUG
+/// Screener pilot, Debug builds only. With `BUILDHUNTER_SCREENER=1` the diagram records a
+/// `.vtrace` session under Caches/Screener/Traces: navigation and layout markers, plus window
+/// keyframes every 40 ms while a transition runs and for a second after it. Inspect a trace
+/// later, for example with `screener-mcp`.
+@MainActor
+final class DiagramTraceRecorder {
+    static let shared: DiagramTraceRecorder? =
+        ProcessInfo.processInfo.environment["BUILDHUNTER_SCREENER"] == "1" ? DiagramTraceRecorder() : nil
+
+    private let screener = Screener()
+    private var session: Task<Void, Never>?
+    private var captureUntil = ContinuousClock.now
+    private var capturing = false
+
+    func mark(_ name: String, _ metadata: [String: String] = [:]) {
+        let started = startedSession()
+        let screener = screener
+        Task {
+            await started.value
+            try? await screener.mark(name, metadata: metadata)
+        }
+    }
+
+    /// Captures until `seconds` from now; overlapping requests extend the same loop.
+    func capture(for seconds: Double) {
+        captureUntil = max(captureUntil, ContinuousClock.now + .milliseconds(Int(seconds * 1000)))
+        guard !capturing else { return }
+        capturing = true
+        let started = startedSession()
+        Task {
+            await started.value
+            while ContinuousClock.now < captureUntil {
+                recordFrame()
+                try? await Task.sleep(for: .milliseconds(40))
+            }
+            capturing = false
+        }
+    }
+
+    private func startedSession() -> Task<Void, Never> {
+        if let session { return session }
+        let screener = screener
+        let traces = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appending(path: "Screener/Traces")
+        let started = Task {
+            _ = try? await screener.startSession(name: "diagram-navigation",
+                                                 appBundleID: Bundle.main.bundleIdentifier ?? "BuildHunter",
+                                                 tracesDirectory: traces)
+        }
+        session = started
+        return started
+    }
+
+    private func recordFrame() {
+        guard let view = NSApp.windows.first(where: {
+            $0.isVisible && $0.title.hasSuffix("Artifact Diagram")
+        })?.contentView, let image = try? AppKitCaptureSource(view: view).capture() else { return }
+        let screener = screener
+        Task { try? await screener.recordFrame(image, reason: "diagram") }
+    }
+}
+#endif

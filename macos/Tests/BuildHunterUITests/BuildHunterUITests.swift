@@ -255,6 +255,33 @@ final class BuildHunterUITests: XCTestCase {
         attachScreenshot(named: "diagram-branch-expansion-return", from: app)
     }
 
+    /// Screener pilot: records a `.vtrace` of one descent and one return. CI uploads the
+    /// trace so the animation frames can be inspected without a local Mac.
+    func testDiagramNavigationRecordsScreenerTrace() {
+        let app = launchWindow(environment: ["BUILDHUNTER_SCREENER": "1"])
+        defer { app.terminate() }
+        let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
+        selectMockState("results", in: scanWindow, app: app)
+        scanWindow.buttons["buildhunter.toolbar.openDiagram"].click()
+        let diagram = app.windows.containing(.staticText, identifier: "buildhunter.diagram.target").firstMatch
+        XCTAssertTrue(diagram.waitForExistence(timeout: 10))
+        let focus = diagram.staticTexts["buildhunter.diagram.focus"]
+        let center = diagram.buttons["buildhunter.diagram.chart.centerUp"]
+        XCTAssertTrue(center.waitForExistence(timeout: 5))
+        center.coordinate(withNormalizedOffset: CGVector(dx: 1.25, dy: 0.5)).click()
+        expectValue("Packages", of: focus)
+        pause(seconds: 2) // the recorder keeps capturing after the transition ends
+        waitForEnabled(center)
+        center.click()
+        expectValue("Demo Workspace", of: focus)
+        pause(seconds: 2)
+        XCTAssertEqual(app.state, .runningForeground)
+    }
+
+    private func pause(seconds: TimeInterval) {
+        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "pause")], timeout: seconds)
+    }
+
     private func waitForEnabled(_ element: XCUIElement) {
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed,
@@ -387,10 +414,12 @@ final class BuildHunterUITests: XCTestCase {
                        "Expected absolute fixture path: \(path); got \(element.value ?? "nil")", file: file, line: line)
     }
 
-    private func launchWindow(settingsSuite: String = "BuildHunter.UITests.\(UUID().uuidString)") -> XCUIApplication {
+    private func launchWindow(settingsSuite: String = "BuildHunter.UITests.\(UUID().uuidString)",
+                              environment: [String: String] = [:]) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchEnvironment["BUILDHUNTER_SETTINGS_SUITE"] = settingsSuite
+        app.launchEnvironment.merge(environment) { _, new in new }
         // Register cleanup before asserting, so a failed launch cannot leave
         // a windowless process behind for the next test.
         addTeardownBlock { app.terminate() }
