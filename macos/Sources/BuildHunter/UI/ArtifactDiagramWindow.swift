@@ -214,6 +214,11 @@ private struct ArtifactSunburstChart: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovered: ArtifactSunburstLayout.Sector.ID?
     @State private var pointer = CGPoint.zero
+    /// Where the pointer rested when a sector was clicked. Navigating can rebuild the Chart
+    /// (its identity follows the sector topology) under a still pointer, and the rebuilt
+    /// overlay reports hover at once: without this, the sector that lands under the pointer
+    /// would immediately replace the folder the user just entered with its preview.
+    @State private var hoverSuppressedAt: CGPoint?
 
     var body: some View {
         VStack(spacing: 12) {
@@ -260,6 +265,7 @@ private struct ArtifactSunburstChart: View {
                                             guard navigation == nil else { return }
                                             if let sector = hit(location, proxy: proxy, geometry: geometry) {
                                                 setHover(nil)
+                                                hoverSuppressedAt = pointer
                                                 select(sector)
                                             }
                                         }
@@ -305,6 +311,11 @@ private struct ArtifactSunburstChart: View {
                                     switch phase {
                                     case .active(let location):
                                         guard navigation == nil else { return }
+                                        if let resting = hoverSuppressedAt {
+                                            // Preview again only once the pointer really moves.
+                                            guard hypot(location.x - resting.x, location.y - resting.y) >= 2 else { return }
+                                            hoverSuppressedAt = nil
+                                        }
                                         pointer = location
                                         setHover(hit(location, proxy: proxy, geometry: geometry))
                                     case .ended:
