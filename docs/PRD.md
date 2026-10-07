@@ -1,6 +1,6 @@
 # BuildHunter macOS PRD
 
-Дата: 2026-10-02. Статус: требования MVP согласованы; SwiftUI skeleton и in-process Rust scanner integration реализованы. Signed sandbox runtime, Finder/clipboard actions и Store readiness остаются открытыми этапами.
+Дата: 2026-10-02. Статус: требования MVP согласованы; SwiftUI skeleton и in-process Rust scanner integration реализованы. Finder/clipboard actions (Show in Finder, Copy Path) реализованы. Signed sandbox runtime и Store readiness остаются открытыми этапами.
 
 BuildHunter помогает разработчику найти локальные build artifacts, кеши и environments, случайно или намеренно созданные внутри дерева проектов. Основной сценарий — обнаружить занимающие место папки после работы инструментов и агентов, оценить их размеры и перейти к ним в Finder. Приложение не определяет, что можно безопасно удалить, и не удаляет данные.
 
@@ -104,7 +104,7 @@ Environments включены по умолчанию в GUI и обознача
 
 1. **Skeleton — implemented:** app target arm64/macOS 26, window model, Table, mock states, SpecificationCore policies и sandbox entitlements. Проверка: policy/state tests и UI screenshots.
 2. **Rust integration — implemented:** общий scanner core, streaming, cancellation и FFI adapter. Проверка: Rust tests/Clippy/CLI fixtures, arm64 static-library build, Swift test по настоящему Rust FFI scanner; подпись и sandbox runtime ещё не подтверждены.
-3. **Runtime UX — in progress:** настоящий drop/open запускает read-only scan; завершить Finder/clipboard actions и подтвердить доступ в signed sandboxed build на macOS 26 с несколькими окнами.
+3. **Runtime UX — in progress:** настоящий drop/open запускает read-only scan; Finder/clipboard actions реализованы (контекстное меню, двойной клик по строке, кнопки у пути; для удалённой папки открывается ближайшая существующая родительская внутри target). Осталось подтвердить доступ в signed sandboxed build на macOS 26 с несколькими окнами.
 4. **Store readiness:** signing, bundle identity, icon, metadata, screenshots и release archive. Конкретные account, bundle ID и коммерческая модель ещё не выбраны. Публикация — отдельная задача.
 5. **После MVP:** Java/Kotlin и Go; правила и доказательства обнаружения проектируются отдельно, без заранее обещанных directory heuristics.
 
