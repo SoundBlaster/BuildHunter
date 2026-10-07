@@ -106,7 +106,8 @@ final class WindowScanModel {
             guard rowIndices[artifact.id] == nil else { return }
             rowIndices[artifact.id] = rows.count
             rows.append(ScanRow(id: artifact.id, relativePath: artifact.relativePath,
-                                language: artifact.language, kind: artifact.kind, size: .measuring))
+                                language: artifact.language, kind: artifact.kind, size: .measuring,
+                                scannerKind: artifact.scannerKind))
             reportRevision &+= 1
         case .completed(_, let artifactID, let bytes, let partial):
             guard let index = rowIndices[artifactID] else { return }

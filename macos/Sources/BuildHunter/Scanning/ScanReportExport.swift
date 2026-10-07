@@ -180,7 +180,7 @@ struct ScanReportExport: Sendable {
             try container.encode(report.absolutePath(of: row) ?? row.relativePath, forKey: .path)
             try container.encode(row.relativePath, forKey: .relativePath)
             try container.encode(row.language.lowercased(), forKey: .language)
-            try container.encode(ScanReportExport.cliKind(row.kind), forKey: .kind)
+            try container.encode(row.scannerKind ?? ScanReportExport.cliKind(row.kind), forKey: .kind)
             try container.encode(ScanReportExport.bytes(of: row.size), forKey: .bytes)
             try container.encode(ScanReportExport.sizeState(row.size), forKey: .sizeState)
             // The app reports only outermost artifact roots, never nested ones.

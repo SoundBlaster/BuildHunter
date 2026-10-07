@@ -5,8 +5,9 @@ import Testing
 @Suite("Scan results export")
 struct ScanReportExportTests {
     private func row(_ path: String, _ size: SizeState, language: String = "Swift",
-                     kind: ArtifactKind = .buildOutput) -> ScanRow {
-        ScanRow(id: UUID(), relativePath: path, language: language, kind: kind, size: size)
+                     kind: ArtifactKind = .buildOutput, scannerKind: String? = nil) -> ScanRow {
+        ScanRow(id: UUID(), relativePath: path, language: language, kind: kind, size: size,
+                scannerKind: scannerKind)
     }
 
     private func export(_ rows: [ScanRow], order: ScanReportExport.Order = .table,
@@ -58,11 +59,12 @@ struct ScanReportExportTests {
         let data = try export([
             row("App/.build", .measured(2_048)),
             row("Lib/.venv", .partial(nil), language: "Python", kind: .testEnvironment),
+            row("Lib/__pycache__", .measured(8), language: "Python", kind: .cache, scannerKind: "bytecode"),
         ], status: .stopped).json()
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         // CLI keys: root, total_bytes, elapsed_seconds, artifacts, errors.
         #expect(object["root"] as? String == "/Users/me/Projects")
-        #expect((object["total_bytes"] as? NSNumber)?.int64Value == 2_048)
+        #expect((object["total_bytes"] as? NSNumber)?.int64Value == 2_056)
         #expect((object["elapsed_seconds"] as? NSNumber)?.doubleValue == 1.235)
         #expect(object["errors"] as? [String] == ["Permission denied: /x"])
         // Additions.
@@ -73,8 +75,11 @@ struct ScanReportExportTests {
         #expect((object["generated_at"] as? String)?.hasPrefix("2026-") == true)
 
         let artifacts = try #require(object["artifacts"] as? [[String: Any]])
-        #expect(artifacts.count == 2)
-        let build = artifacts[0]
+        #expect(artifacts.count == 3)
+        func artifact(_ path: String) -> [String: Any] {
+            artifacts.first { $0["relative_path"] as? String == path } ?? [:]
+        }
+        let build = artifact("App/.build")
         #expect(build["path"] as? String == "/Users/me/Projects/App/.build")
         #expect(build["relative_path"] as? String == "App/.build")
         #expect(build["language"] as? String == "swift")
@@ -82,11 +87,13 @@ struct ScanReportExportTests {
         #expect((build["bytes"] as? NSNumber)?.int64Value == 2_048)
         #expect(build["size_state"] as? String == "measured")
         #expect((build["nested"] as? NSNumber)?.boolValue == false)
-        let venv = artifacts[1]
+        let venv = artifact("Lib/.venv")
         #expect(venv["kind"] as? String == "test-environment")
         // An unknown size stays a present key with null, like every other CLI field.
         #expect(venv.keys.contains("bytes") && venv["bytes"] is NSNull)
         #expect(venv["size_state"] as? String == "partial")
+        // The app shows bytecode as Cache, but the export keeps the scanner's name.
+        #expect(artifact("Lib/__pycache__")["kind"] as? String == "bytecode")
     }
 
     @Test("Rows follow the table order or go largest first with unknown sizes last")

@@ -5,6 +5,9 @@ struct ScanArtifact: Identifiable, Equatable, Sendable {
     let relativePath: String
     let language: String
     let kind: ArtifactKind
+    /// The scanner's kind name where `kind` merges several (Python `bytecode` and
+    /// `metadata` show as Cache); exports keep it so they match `build-hunter --json`.
+    var scannerKind: String? = nil
 }
 
 enum SizeState: Equatable, Sendable {
@@ -48,6 +51,8 @@ struct ScanRow: Identifiable, Equatable, Sendable {
     let language: String
     let kind: ArtifactKind
     var size: SizeState
+    /// See `ScanArtifact.scannerKind`.
+    var scannerKind: String? = nil
 }
 
 /// Table sorting is a projection: the scanner retains its append-only row indices.
