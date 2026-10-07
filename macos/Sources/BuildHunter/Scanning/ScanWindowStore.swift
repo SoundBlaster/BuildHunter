@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// Owns only live windows. A diagram shares its scan's model and never starts a second scan.
+/// Owns live windows. Companion windows share their scan's model and never start another scan.
 @MainActor
 @Observable
 final class ScanWindowStore {
@@ -9,12 +9,14 @@ final class ScanWindowStore {
         let model: WindowScanModel
         var hasScanWindow: Bool
         var hasDiagramWindow: Bool
+        var hasWarningsWindow: Bool
     }
     private var entries: [UUID: Entry] = [:]
 
     func register(_ model: WindowScanModel) {
         if entries[model.id] == nil {
-            entries[model.id] = Entry(model: model, hasScanWindow: true, hasDiagramWindow: false)
+            entries[model.id] = Entry(model: model, hasScanWindow: true, hasDiagramWindow: false,
+                                      hasWarningsWindow: false)
         } else {
             entries[model.id]?.hasScanWindow = true
         }
@@ -26,6 +28,16 @@ final class ScanWindowStore {
     }
 
     func model(for id: UUID) -> WindowScanModel? { entries[id]?.model }
+
+    func prepareWarnings(for model: WindowScanModel) {
+        register(model)
+        entries[model.id]?.hasWarningsWindow = true
+    }
+
+    func warningsWindowClosed(_ id: UUID) {
+        entries[id]?.hasWarningsWindow = false
+        removeIfUnused(id)
+    }
 
     func scanWindowClosed(_ id: UUID) {
         entries[id]?.model.stop()
@@ -39,7 +51,8 @@ final class ScanWindowStore {
     }
 
     private func removeIfUnused(_ id: UUID) {
-        guard let entry = entries[id], !entry.hasScanWindow, !entry.hasDiagramWindow else { return }
+        guard let entry = entries[id], !entry.hasScanWindow, !entry.hasDiagramWindow,
+              !entry.hasWarningsWindow else { return }
         entries.removeValue(forKey: id)
     }
 }

@@ -3,6 +3,8 @@ import NestedA11yIDs
 
 struct SearchSettingsWindow: View {
     @Bindable private var settings: SearchFilterSettings
+    @AppStorage(ScanWarningsPresentation.storageKey, store: SearchFilterSettings.defaultUserDefaults)
+    private var warningsPresentation = ScanWarningsPresentation.window
 
     init(settings: SearchFilterSettings = .shared) {
         self.settings = settings
@@ -39,9 +41,20 @@ struct SearchSettingsWindow: View {
                 Button("Enable All") { settings.enableAll() }
                     .nestedAccessibilityIdentifier("enableAll")
             }
+
+            Section {
+                Picker("Show scan warnings in", selection: $warningsPresentation) {
+                    ForEach(ScanWarningsPresentation.allCases) { Text($0.title).tag($0) }
+                }
+                .nestedAccessibilityIdentifier("warningsPresentation")
+            } header: {
+                Text("Experiments")
+            } footer: {
+                Text("Applies to the warnings button in report windows.")
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 420, height: 460)
+        .frame(width: 420, height: 540)
         .a11yRoot("buildhunter.settings.search")
     }
 }

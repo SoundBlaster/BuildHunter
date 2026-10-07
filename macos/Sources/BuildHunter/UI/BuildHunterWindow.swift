@@ -70,7 +70,8 @@ struct BuildHunterWindow: View {
             readOnlyBanner
             if let targetName = model.targetName {
                 report(targetName: targetName)
-                ScanReportFooter(profile: model.profile, isScanning: model.isScanning, warnings: model.warnings)
+                ScanReportFooter(profile: model.profile, isScanning: model.isScanning, warnings: model.warnings,
+                                 showWarnings: showWarnings)
                     .a11yRoot("buildhunter.report")
             } else {
                 emptyState
@@ -190,6 +191,12 @@ struct BuildHunterWindow: View {
         guard let windowStore else { return }
         windowStore.prepareDiagram(for: model)
         openWindow(id: "artifact-diagram", value: model.id)
+    }
+
+    private func showWarnings() {
+        guard let windowStore else { return }
+        windowStore.prepareWarnings(for: model)
+        openWindow(id: "scan-warnings", value: model.id)
     }
 
     private var readOnlyBanner: some View {
@@ -385,6 +392,7 @@ private struct ScanReportFooter: View {
     let profile: ScanProfileHistory
     let isScanning: Bool
     let warnings: [String]
+    let showWarnings: () -> Void
 
     var body: some View {
         WindowStatusBar {
@@ -399,7 +407,7 @@ private struct ScanReportFooter: View {
                 Spacer(minLength: 0)
                 HStack(spacing: 12) {
                     if !warnings.isEmpty {
-                        ScanWarningsStatusItem(warnings: warnings)
+                        ScanWarningsStatusItem(warnings: warnings, showWarnings: showWarnings)
                     }
                     ScanProfileStatusItem(profile: profile, isScanning: isScanning)
                 }
@@ -409,14 +417,36 @@ private struct ScanReportFooter: View {
     }
 }
 
+/// How the status bar's warnings button presents warnings. Both stay available while the
+/// two designs are compared; the context menu always offers either one.
+enum ScanWarningsPresentation: String, CaseIterable, Identifiable {
+    case window
+    case popover
+
+    static let storageKey = "scanWarningsPresentation"
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .window: "Separate window"
+        case .popover: "Popover"
+        }
+    }
+}
+
 private struct ScanWarningsStatusItem: View {
     let warnings: [String]
+    let showWarnings: () -> Void
+    @AppStorage(ScanWarningsPresentation.storageKey, store: SearchFilterSettings.defaultUserDefaults)
+    private var presentation = ScanWarningsPresentation.window
     @Environment(\.accessibilityPrefix) private var prefix
     @State private var presented = false
 
     var body: some View {
         Button {
-            presented.toggle()
+            switch presentation {
+            case .window: showWarnings()
+            case .popover: presented.toggle()
+            }
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.triangle.fill")

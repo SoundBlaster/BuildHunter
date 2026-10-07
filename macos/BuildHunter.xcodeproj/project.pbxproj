@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09B87DD084F674EF99C7780D /* ScanWarningsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF1B4700243426D331A9592 /* ScanWarningsTests.swift */; };
+		A0F20FA27712E27D5256F0F3 /* ScanWarningsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD61710E623082F3C253AFFA /* ScanWarningsWindow.swift */; };
 		4C3286B8E715EA2A06E954DB /* LanguageIcons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7259337C0C79F54B8B54057A /* LanguageIcons.xcassets */; };
 		EDDD6C54E3E04CDDFFB0D81F /* LanguageIcons-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7E4DE14CFBB529855CE4C158 /* LanguageIcons-LICENSE.txt */; };
 		030D8A083791B92C0E600782 /* ArtifactSunburstTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95843E8BD5AD3180718D17BB /* ArtifactSunburstTests.swift */; };
@@ -77,6 +79,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9DF1B4700243426D331A9592 /* ScanWarningsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWarningsTests.swift; sourceTree = "<group>"; };
+		DD61710E623082F3C253AFFA /* ScanWarningsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWarningsWindow.swift; sourceTree = "<group>"; };
 		7259337C0C79F54B8B54057A /* LanguageIcons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LanguageIcons.xcassets; sourceTree = "<group>"; };
 		7E4DE14CFBB529855CE4C158 /* LanguageIcons-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LanguageIcons-LICENSE.txt"; sourceTree = "<group>"; };
 		0C149EA27D5336E450EAFCB0 /* IsScannableArtifactCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsScannableArtifactCandidate.swift; sourceTree = "<group>"; };
@@ -253,6 +257,7 @@
 				5B057B0645AC397544AEED89 /* SearchFilterSettingsTests.swift */,
 				381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */,
 				74B5C0CD6A3C51F3AE5A70C2 /* ScanReportExportTests.swift */,
+				9DF1B4700243426D331A9592 /* ScanWarningsTests.swift */,
 			);
 			path = BuildHunterTests;
 			sourceTree = "<group>";
@@ -295,6 +300,7 @@
 				A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */,
 				4DBB6E34233323ABC3AA42A8 /* ScanResultsExportPanel.swift */,
 				FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */,
+				DD61710E623082F3C253AFFA /* ScanWarningsWindow.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -496,6 +502,7 @@
 				408B063A95E7BD973C0302C0 /* SearchFilterSettingsTests.swift in Sources */,
 				FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */,
 				53EC7743337E7FA19C61E117 /* ScanReportExportTests.swift in Sources */,
+				09B87DD084F674EF99C7780D /* ScanWarningsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -524,6 +531,7 @@
 				75D5EA75D01F77A33BD58A99 /* SearchFilters.swift in Sources */,
 				25E92515531DAA164DE50BFB /* ArtifactFolderLocation.swift in Sources */,
 				2B9BC3EB581C5067D5379DA7 /* SearchSettingsWindow.swift in Sources */,
+				A0F20FA27712E27D5256F0F3 /* ScanWarningsWindow.swift in Sources */,
 				122D646DB6D67209C1050792 /* WindowScanModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

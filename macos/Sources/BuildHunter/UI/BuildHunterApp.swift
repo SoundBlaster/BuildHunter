@@ -32,6 +32,19 @@ struct BuildHunterApp: App {
         .defaultSize(width: 1_000, height: 700)
         .restorationBehavior(.disabled)
         .commandsRemoved()
+
+        WindowGroup("Scan Warnings", id: "scan-warnings", for: UUID.self) { $scanID in
+            if let scanID, let model = windows.model(for: scanID) {
+                ScanWarningsWindow(scan: model)
+                    .onDisappear { windows.warningsWindowClosed(scanID) }
+            } else {
+                ContentUnavailableView("Report unavailable", systemImage: "exclamationmark.triangle",
+                                       description: Text("Open warnings from a scan window."))
+            }
+        }
+        .defaultSize(width: 760, height: 420)
+        .restorationBehavior(.disabled)
+        .commandsRemoved()
     }
 }
 
