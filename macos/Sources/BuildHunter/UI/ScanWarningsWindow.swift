@@ -24,6 +24,23 @@ struct ScanWarningsWindow: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            warningsTable
+        }
+        .toolbar {
+            Button("Copy selected warnings", systemImage: "document.on.document") { copy(selection) }
+                .disabled(selection.isEmpty)
+                .help("Copy selected warnings (⌘C)")
+                .nestedAccessibilityIdentifier("copy")
+        }
+        .frame(minWidth: 420, minHeight: 240)
+        .navigationTitle("\(scan.targetName ?? "BuildHunter") — Scan Warnings")
+        .onChange(of: scan.reportID) { selection.removeAll() }
+        .onExitCommand { dismissWindow(id: "scan-warnings", value: scan.id) }
+        .environment(\.accessibilityPrefix, "buildhunter.warnings")
+    }
+
+    private var warningsTable: some View {
         Table(rows, selection: $selection) {
             TableColumn("#") { row in
                 Text("\(row.id + 1)").foregroundStyle(.secondary).monospacedDigit()
@@ -49,17 +66,6 @@ struct ScanWarningsWindow: View {
                 ContentUnavailableView("No warnings", systemImage: "checkmark.circle")
             }
         }
-        .toolbar {
-            Button("Copy selected warnings", systemImage: "document.on.document") { copy(selection) }
-                .disabled(selection.isEmpty)
-                .help("Copy selected warnings (⌘C)")
-                .nestedAccessibilityIdentifier("copy")
-        }
-        .frame(minWidth: 420, minHeight: 240)
-        .navigationTitle("\(scan.targetName ?? "BuildHunter") — Scan Warnings")
-        .onChange(of: scan.reportID) { selection.removeAll() }
-        .onExitCommand { dismissWindow(id: "scan-warnings", value: scan.id) }
-        .a11yRoot("buildhunter.warnings")
     }
 
     private func copy(_ selectedRows: Set<Int>) {

@@ -63,12 +63,14 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(window.waitForExistence(timeout: 5))
         let row = window.outlines.firstMatch.outlineRows.firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.click()
+        let message = row.staticTexts.element(boundBy: 1)
+        XCTAssertTrue(message.isHittable)
+        message.click()
         app.typeKey("c", modifierFlags: .command)
         let expected = "Permission denied while reading Demo Workspace/Private/.build."
         XCTAssertEqual(NSPasteboard.general.string(forType: .string), expected)
-        row.rightClick()
-        let copy = app.menuItems["Copy"]
+        message.rightClick()
+        let copy = window.menuItems["Copy"]
         XCTAssertTrue(copy.waitForExistence(timeout: 5))
         XCTAssertTrue(copy.isEnabled)
         copy.click()
