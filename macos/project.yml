@@ -14,7 +14,7 @@ packages:
   # Pilot: Debug-only animation traces (BUILDHUNTER_SCREENER=1).
   Screener:
     url: https://github.com/SoundBlaster/Screener.git
-    revision: 4df92367fc04be039fdcfa9fe40e42f9df29a1e6
+    revision: e447751afd8815de0ad1ec50ba2e4ca7c469d68e
 targets:
   BuildHunter:
     type: application
