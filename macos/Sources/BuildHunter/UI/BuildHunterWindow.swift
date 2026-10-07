@@ -344,7 +344,7 @@ private struct ScanReportFooter: View {
                 Spacer(minLength: 0)
                 HStack(spacing: 12) {
                     if !warnings.isEmpty {
-                        ScanWarningsStatusItem(count: warnings.count, showWarnings: showWarnings)
+                        ScanWarningsStatusItem(warnings: warnings, showWarnings: showWarnings)
                     }
                     ScanProfileStatusItem(profile: profile, isScanning: isScanning)
                 }
@@ -354,26 +354,97 @@ private struct ScanReportFooter: View {
     }
 }
 
+/// How the status bar's warnings button presents warnings. Both stay available while the
+/// two designs are compared; the context menu always offers either one.
+enum ScanWarningsPresentation: String, CaseIterable, Identifiable {
+    case window
+    case popover
+
+    static let storageKey = "scanWarningsPresentation"
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .window: "Separate window"
+        case .popover: "Popover"
+        }
+    }
+}
+
 private struct ScanWarningsStatusItem: View {
-    let count: Int
+    let warnings: [String]
     let showWarnings: () -> Void
+    @AppStorage(ScanWarningsPresentation.storageKey, store: SearchFilterSettings.defaultUserDefaults)
+    private var presentation = ScanWarningsPresentation.window
+    @Environment(\.accessibilityPrefix) private var prefix
+    @State private var presented = false
 
     var body: some View {
-        Button(action: showWarnings) {
+        Button {
+            switch presentation {
+            case .window: showWarnings()
+            case .popover: presented.toggle()
+            }
+        } label: {
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                     .accessibilityHidden(true)
-                Text("\(count)")
+                Text("\(warnings.count)")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
-        .help("Review \(count) scan warnings")
-        .accessibilityLabel("\(count) scan warnings")
+        .help("Review \(warnings.count) scan warnings")
+        .accessibilityLabel("\(warnings.count) scan warnings")
         .nestedAccessibilityIdentifier("warnings")
+        .contextMenu {
+            Button("Open in Window", systemImage: "macwindow", action: showWarnings)
+            Button("Show as Popover", systemImage: "text.bubble") { presented = true }
+        }
+        .popover(isPresented: $presented, arrowEdge: .top) {
+            ScanWarningsPanel(warnings: warnings)
+                .lineLimit(nil)
+                .font(.body)
+                .foregroundStyle(.primary)
+                .padding(14)
+                .frame(width: 440)
+                .environment(\.accessibilityPrefix, prefix.isEmpty ? "warnings" : "\(prefix).warnings")
+        }
+    }
+}
+
+private struct ScanWarningsPanel: View {
+    let warnings: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Scan warnings", systemImage: "exclamationmark.triangle.fill")
+                .font(.headline)
+                .foregroundStyle(.orange)
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array(warnings.enumerated()), id: \.offset) { _, warning in
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                                .accessibilityHidden(true)
+                            Text(warning)
+                                .font(.callout)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .scrollIndicators(.visible)
+            .frame(minHeight: 80, maxHeight: 320)
+            .nestedAccessibilityIdentifier("list")
+        }
     }
 }
 
