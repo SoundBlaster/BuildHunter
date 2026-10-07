@@ -5,7 +5,8 @@ addenda, including the corrected Swift specialization diagnosis.
 
 The existing main branches are the baselines. Library changes use feature
 branches/local checkouts during development; releases and version bumps happen
-after integration validation. PRs 23 and 24 are independent and remain untouched.
+after integration validation. Independent PRs 23 (cloud guards) and 24 (language
+badges) have also merged; neither implements the declarative plugin catalog.
 
 ## Ordered delivery
 
@@ -46,7 +47,7 @@ after integration validation. PRs 23 and 24 are independent and remain untouched
 
 ## Issue 25 status ledger
 
-Snapshot: **2026-10-04**. H1–H21 identify hypotheses and proposed optimizations
+Snapshot: **2026-10-06**, audited against BuildHunter main `f142fdb`. H1–H21 identify hypotheses and proposed optimizations
 from the issue comments, not 21 confirmed bugs. The declarative target/plugin
 proposal in the issue body is a separate scope and remains open.
 
@@ -67,34 +68,62 @@ References: [Swift library PR #16](https://github.com/SoundBlaster/Specification
 [application PR #26](https://github.com/SoundBlaster/BuildHunter/pull/26),
 [balanced Swift PR #17](https://github.com/SoundBlaster/SpecificationCore/pull/17),
 [keyed static Rust PR #20](https://github.com/SoundBlaster/specification-core-rs/pull/20).
-These PRs are open. Their published CI checks passed at Swift `596aa71`,
-Rust `b3a02b9`, and application `6edcdb8`; subsequent commits require their own
-checks. Rust #20 checks passed at `d58b32a`; Swift #17 checks passed at
-`bacc4d6`; application #27 checks passed at `2b620c8`. No row below is marked resolved yet.
+All referenced PRs are merged. Swift #16/#17 merged at `3cfe27b`, Rust
+#19/#20 at `043a0ba`, and application #26/#27/#29/#30 through `aaa99f1`.
+Cloud guard #23 and badges #24 bring application main to `57b9d51`.
+Swift [#19](https://github.com/SoundBlaster/SpecificationCore/pull/19)/[#20](https://github.com/SoundBlaster/SpecificationCore/pull/20)
+merged at `3a672ea`; application [#33](https://github.com/SoundBlaster/BuildHunter/pull/33)
+adopts that revision and brings main to `f142fdb`.
+Their final pre-merge CI checks passed and review threads were resolved.
+Post-merge main CI on `f142fdb` (Rust CI, scanner comparison, macOS unit/UI and
+Release performance tests) also passed. This is not a claim about a completed
+home-directory scan.
+
+The app resolves SpecificationCore at merged main revision `3a672ea` (#33)
+instead of the temporary `perf/balanced-decisions` branch. That revision contains
+the balanced builder and the default `AggressiveInlining` trait. No tagged release
+contains these changes yet: the latest Swift tag `2.1.0` (2026-09-24) and Rust tag
+`v0.1.0` (2026-07-10) predate them. Dependency release/version alignment is still pending.
+BuildHunter's Cargo manifest has no dependencies: neither new Rust library API
+has been adopted by the scanner.
 
 | ID | Scope and current state | Evidence and remaining acceptance work |
 | --- | --- | --- |
-| H1 | Candidate-level specification cost: **partial measurement** | Scanner fixtures record callback counts. A representative real-tree profile is still needed before calling the cost negligible. |
-| H2 | Large runtime catalogs: **library benchmark only** | PR #19 compares 14/214 rules. The application catalog and a 200-target scanner scenario are not integrated. |
-| H3 | Indexed first-match: **Rust PR #19; app pending** | Ordered keyed/unkeyed parity, duplicate keys, one projection per candidate and shared-worker tests pass. Swift indexing and application adoption remain pending. |
-| H4 | Faster hashing: **pending** | No hash replacement or demonstrated need. Compare with the existing index before accepting added complexity. |
-| H5 | Static first-match: **Swift PR #17 / Rust PR #20** | Concrete macro and balanced fixed-arity builder have semantic tests and Release consumers. Rust CI passed; Swift CI is pending. Swift application adoption is under Release validation; Rust app adoption remains pending. |
-| H6 | Swift cross-module body visibility: **PR #16; PR #26 uses its branch** | Actual-library first-match consumer improved about 1.76x in the recorded baseline comparison. Other composition APIs showed no material gain. Merge/release and final dependency alignment remain pending. |
-| H7 | Existential storage overhead: **Swift PR #17; app integration in progress** | BuildHunter now uses the balanced builder for its nine fixed classification rules, retaining concrete adapter types instead of the FirstMatchSpec collection. Predicate closures remain. Release comparison against the former implementation is pending. |
-| H8 | Per-call construction/allocation: **partial PR #26** | Candidate/filter specifications are reused and marker literals become masks. Exhaustive policy/filter tests pass. Descriptor lookup is still linear; allocation counts have not been measured. |
-| H9 | Swift bridge cost: **partial PR #26** | Marker Set conversion is removed. The 10,000-input projection/classification fixture measured 5.09 vs 0.20 ms. String decoding and FFI callbacks remain; this is not a whole-scan speedup. |
-| H10 | Exact shared worker classifier: **pending** | Worker prefetch has not been switched to the shared catalog classifier. Require classification/prefetch parity and bounded candidate counts. |
-| H11 | Compiled field-table leaves: **pending** | No field-table implementation in specification-core-serde yet; app marker masks alone do not satisfy this item. |
-| H12 | RuleNode evaluation-plan compiler: **pending** | No compiler yet. Require independent direct/compiled semantic parity before flattening, folding or reordering. |
-| H13 | Finite Swift policy tables: **application PR #29 / validated, unmerged** | [PR #29](https://github.com/SoundBlaster/BuildHunter/pull/29), `015376a`: Rust tests and all eight app CI checks pass, including 98 unit/UI tests and 13 Release performance tests. Local whole-scan parity passed: policy callbacks 640 → 0, 897 events in both paths. No material whole-scan speedup demonstrated; merge/release remains pending. |
-| H14 | Avoid classifier memoization without useful reuse: **guardrail** | No unbounded classifier cache is being added. A real hit-rate study has not established the hypothesis universally. |
-| H15 | Bounded memoization at an expensive boundary: **pending** | Deferred until finite-table work and a pure policy projection contract. No boundary cache is implemented. |
-| H16 | Partial evaluation of scan constants: **partial app foundation** | An immutable filter snapshot exists. A compiled plan that removes scan-constant rules remains pending. |
-| H17 | Evaluate shared leaves once: **pending** | No DAG/shared-leaf evaluation plan yet. Verify leaf-call counts and parity when implemented. |
-| H18 | Cost/selectivity reordering: **pending** | No reordering. Preserve observable first-match/short-circuit behavior and establish leaf purity before changing evaluation order. |
-| H19 | Key-aware static dispatch: **Rust PR #20; Swift pending** | Macro tests cover linear-reference parity, construction order, unrelated-key skipping and borrowed non-Clone decisions. CI passed on Linux/macOS; a later local sample gave 3.84/12.27 ns for 14/214 rules and did not beat handwritten dispatch. No Rust app adoption yet. |
-| H20 | Swift specialization and balanced construction: **PR #17; app validation in progress** | Five process samples of the growing-leaf benchmark measured right-nested/balanced medians 162.50/8.33 ns. A separate real-library inline-always experiment improved only about 0.65% and retained specialization remarks. The exact guard diagnosis, binary-size/compile-time impact, remote CI and final integration remain open. |
-| H21 | Avoid parameter-pack iteration for this backend: **guardrail** | The local Swift builder uses balanced fixed arities, not pack iteration. Reassess pack support only against a reproducible consumer on a new toolchain. |
+| H1 | Candidate-level specification cost: **partial** | Fixture callback counts exist. A representative completed real-tree profile remains necessary; the previous home scan stalled in cloud filesystem calls. |
+| H2 | Large runtime catalogs: **partial, library only** | Merged Rust #19 benchmarks 14/214 rules. No application catalog or 200-target scanner scenario yet. |
+| H3 | Indexed first-match: **partial, library merged** | Rust #19 has ordered keyed/unkeyed parity, duplicate-key, projection-count and shared-worker tests. Scanner adoption and Swift indexing remain pending. |
+| H4 | Faster hashing: **pending** | No replacement or measured need; compare against the existing index first. |
+| H5 | Static first-match: **partial** | Swift #17 and Rust #20 are merged with semantic and Release consumer tests. Swift app adoption merged in #27 and passed CI. Rust scanner adoption remains pending. |
+| H6 | Swift cross-module body visibility: **resolved for the adopted source-package path** | Swift #16 and app #26 are merged. Recorded actual-library first-match medians 346.82/197.34 ns establish about 1.76x on that consumer, not a scan-speed gain. App uses the implemented branch revision; releases remain separate. Resilient binary support is not established. |
+| H7 | Existential first-match storage: **resolved for the nine fixed app rules** | App #27 replaces the FirstMatchSpec collection with concrete balanced builder types. Exhaustive parity and hosted Release regression tests passed. Predicate closures remain; no claim of eliminating all closure costs. |
+| H8 | Per-call construction/allocation: **partial** | #26 reuses candidate/filter specifications and replaces marker literals with masks. Descriptor lookup remains linear on the callback/table-construction path; allocation counts have not been measured. |
+| H9 | Swift bridge cost: **partial** | #26 removes marker Set conversion; the 10,000-input fixture measured 5.09/0.20 ms. #29 removes policy callbacks for supported finite policies. Event decoding and custom-policy callbacks remain; no whole-scan speedup demonstrated. |
+| H10 | Exact shared worker classifier: **pending** | `may_classify_directory` remains separate handwritten prefetch logic. Worker-thread listing (#21) does not satisfy shared-classifier adoption. Require classification/prefetch parity and bounded counts. |
+| H11 | Compiled field-table leaves: **pending** | No specification-core-serde field-table implementation. App marker masks and finite decision cells do not implement this generic backend. |
+| H12 | RuleNode evaluation-plan compiler: **pending** | No direct/compiled RuleNode backend or parity suite yet. |
+| H13 | Finite Swift policy tables: **resolved for supported finite policies** | #29 merged. Exhaustive cell/exclusion parity, ownership, cancellation, invalid-input and fallback tests passed. Whole-scan fixture: policy callbacks 640 → 0, 897 events in both paths. No material whole-scan speedup demonstrated; custom descriptors retain callbacks. |
+| H14 | Avoid memoization without useful reuse: **guardrail** | No unbounded classifier cache added; no universal hit-rate conclusion. |
+| H15 | Bounded memoization at an expensive boundary: **pending** | No boundary cache. Measure reuse/cost after finite-table adoption before implementing one. |
+| H16 | Partial evaluation of scan constants: **partial** | #29 compiles the captured filter snapshot into per-scan finite decisions. No generic constant-folding/plan compiler; unrestricted policies retain callbacks. |
+| H17 | Evaluate shared leaves once: **pending** | No DAG/shared-leaf evaluation plan or call-count acceptance tests. |
+| H18 | Cost/selectivity reordering: **pending** | No reordering; purity and observable priority/short-circuit semantics must be preserved. |
+| H19 | Key-aware static dispatch: **partial, Rust library merged** | Rust #20 covers ordered reference parity, construction, unrelated-key skipping, outer generic/lifetime contexts and borrowed non-Clone decisions. CI passed. Scanner adoption and Swift keyed backend remain pending; local 3.84/12.27 ns samples did not beat handwritten dispatch. |
+| H20 | Swift specialization/balanced construction: **partial** | Swift #17 and app #27 merged with CI parity/performance gates. Growing-leaf right-nested/balanced medians 162.50/8.33 ns support balanced construction. Forced evaluation inlining has a separate measured effect: on the actual library, in separate-module microbenchmarks, about 57–65x faster nested-chain and about 3x faster balanced evaluation; dynamic `FirstMatchSpec` did not materially improve (SpecificationCore #19/#20 merged at `3a672ea`; adopted by app #33, whose Release build confirms `AggressiveInlining` on and Tracing off; post-merge main CI including Release performance tests passed). *Historical:* the earlier ~0.65% came from a narrow experiment with forced inlining on `And`/`Or`/`Not` only and is not a verdict on the annotation set. No whole-scan speedup is demonstrated, and no trait-on/off comparison has been measured in the application itself. The upstream guard report, resilient ABI support and the compile-time trade-off (clean compilation medians +18.8%, +3.3% and +1.6% across runs, with variable pair costs) remain open. |
+| H21 | Avoid parameter-pack iteration here: **guardrail** | Adopted builder uses balanced fixed arities. Reassess only with reproducible new-toolchain evidence. |
+
+
+**Current Swift annotation recommendation.** Balanced construction and forced
+evaluation inlining are separate, measured levers. Forced inlining is adopted
+through SpecificationCore's `AggressiveInlining` trait (#20: on by default, consumer
+opt-out, disabled under Tracing, no new `@frozen` types), merged upstream and used
+by the app since #33; post-merge Release gates passed. Do not add blanket `@frozen`: it is an ABI commitment
+without a measured need, and library-evolution builds are not yet comparable.
+Replica-library figures in issue 25 comments and the ~0.65% experiment are kept
+as historical evidence only.
+
+Within the explicitly scoped H ledger: **3 resolved, 9 partial, 7 pending,
+2 guardrails**. These are hypotheses and engineering tasks, not a count of
+confirmed bugs. Library API completion, app adoption and releases remain distinct.
 
 For each implementation PR, list **Addresses H…**, the affected layer, named
 semantic tests and the benchmark fixture/baseline. Update this ledger when a PR
@@ -107,14 +136,56 @@ performance tests. A green check does not verify an unimplemented hypothesis.
 Each performance claim must retain its workload, compiler/settings, source SHAs
 and raw repeated samples; measure whole scans separately from microbenchmarks.
 
-Next acceptance checkpoint: validate the finite-table application layer, then
-implement exact shared worker classification. Swift static-library and application
-#27 CI passed; the latter local hosted runner hung before establishing a connection.
-CI and local runtime evidence remain distinct. Align released versions only
-after consumer validation. The catalog/schema/plugin architecture still needs
-its own acceptance checklist before the whole issue can be closed.
+## Remaining work in dependency order
 
-## First checkpoint (2026-10-04)
+1. **Finish runtime acceptance**: rebuild current main, repeat `/Users/egor`
+   scanning with #23 cloud guards, verify completion/incomplete warnings, cancellation,
+   responsiveness, QoS diagnostics and chart behavior. The previous GUI scan was
+   responsive but stalled in iCloud Books filesystem calls. The new guard has CI
+   coverage; its merged home-directory behavior has not been verified on main.
+   Open [#34](https://github.com/SoundBlaster/BuildHunter/pull/34) adds `--profile`
+   and a GUI scan profile; its description reports a completed `/Users/egor` scan
+   (30.6 s, 2,234,144 evaluated entries, incomplete with 648 warnings). Once merged,
+   it is the measurement tool for H1 and whole-scan comparisons.
+2. **Consumer measurement of forced inlining (H20)**: compare the app's Release
+   policy and whole-scan workloads with `AggressiveInlining` on and off, report
+   compile time, and file the drafted upstream specializer-guard report.
+3. **Shared classifier and catalog contract**: design the shared facts/index seam,
+   adopt the appropriate Rust library backend, unify worker prefetch and candidate
+   selection (H3/H5/H10/H19), then add the 200-target scanner workload (H2).
+   Indexed runtime and keyed static dispatch are alternative backends to compare,
+   not two implementations that must both be forced into the same hot path.
+4. **Measured optional backends**: field tables/RuleNode compilation (H11/H12),
+   shared leaves (H17), further partial evaluation (H16), then only demonstrated
+   hashing/cache/reordering needs (H4/H15/H18). Preserve independent parity tests.
+5. **Release alignment**: tag validated library releases, replace the Swift
+   revision pin `3a672ea` and any adopted Rust branches with released versions, and rerun
+   consumer CI/performance gates. Version bumps have not happened.
+
+The issue body's **declarative plugin proposal remains unimplemented**: schema,
+manifest fixtures, catalog loader/linter/index, target-ID FFI, plugin Settings,
+new ecosystem manifests and user-plugin loading/diagnostics are all pending.
+ADR 0002 in this repository describes the finite policy table; it is not the
+plugin ADR proposed in the issue. Allocate a new ADR number for that design.
+
+## Merged runtime and UI optimizations outside the H ledger
+
+- #13/#14: avoid metadata reads outside artifacts and derive marker facts from listings.
+- #15/#22: lossless bounded event delivery; ring slots release consumed payloads.
+- #16: set-based warning deduplication; #17: pure suffix bytecode classification.
+- #18/#19/#20: incremental sorted rows, byte-based stable IDs, incremental diagram snapshot.
+- #21: worker-thread directory listing; #30: propagate requested macOS worker QoS.
+- #23: skip known cloud-managed roots before filesystem probes, emit warnings and
+  mark the scan incomplete. This is a targeted guard, not universal File Provider detection.
+- #24: descendant language badges; a UX change, not a claimed scanner optimization.
+
+The QoS production-bridge harness verified all eight workers at User Initiated
+and a responsive heartbeat. The previous GUI run had no observed priority-inversion
+message, but never completed. Negative-size AppKit diagnostics remain a separate
+unresolved runtime investigation; neither cloud guards nor QoS propagation prove
+those diagnostics fixed.
+
+## Historical evidence: first checkpoint (2026-10-04)
 
 Library feature branches and PRs:
 
@@ -185,7 +256,7 @@ stored fields to the binary ABI and needs a separate compatibility decision.
 Balanced construction and keyed dispatch remain independently useful; their
 measured effects must be reassessed after future annotation changes.
 
-## Second checkpoint: static backends (2026-10-04)
+## Historical evidence: second checkpoint (2026-10-04)
 
 The static library PRs target their foundation branches: Swift #17 over #16,
 Rust #20 over #19. Existing APIs and versions remain unchanged. New CI jobs
@@ -210,7 +281,7 @@ and no local timing result was produced. No signed UI/home-directory scan or
 whole-scan improvement is claimed by this checkpoint.
 
 
-## Third checkpoint: finite scan policy table
+## Historical evidence: third checkpoint (2026-10-04)
 
 Addresses H13, and the per-scan filter binding portion of H16. Application [PR #29](https://github.com/SoundBlaster/BuildHunter/pull/29)
 targets `codex/static-policy` above application #27; library release versions
@@ -266,3 +337,38 @@ Local acceptance: `cargo test --locked` passed 25 tests (including
 denied, and all-targets Linux cross-compilation checks passed. Existing
 macOS/Linux/Windows Rust CI runs this layer without a new workflow. This is
 a runtime scheduling follow-up to issue 25, not resolution of another H row.
+
+## Annotation adoption checkpoint (2026-10-06)
+
+SpecificationCore #19/#20 remain open, with #20 head `90140e3`. All current
+CI checks passed, including defaults, disabled defaults, Tracing-only and both
+traits, separate-module performance, Release builds, Linux/macOS tests and DocC.
+The local DocC build also completed. Documentation describes the default,
+consumer opt-out, additive dependency-graph traits and workload-specific benefits.
+
+Two actual shipping-source trait-on/off repeats measured about 62x and 57x for
+the nested growing-leaf chain, and 3.1x and 3.0x for the balanced chain. Dynamic
+FirstMatchSpec stayed effectively unchanged; combined __TEXT size ratios were
+1.0. Clean compilation medians were +3.3% and +1.6%, following the earlier
++18.8% result. Costs remain variable, not a fixed surcharge. No measured strategy
+had a statistically confirmed runtime regression exceeding 5%.
+
+The owner's decision accepts the observed compilation tradeoff for production;
+the original experiment's 15% cost gate remains unchanged. No new frozen-layout
+commitment or library-evolution support is adopted. H20 remains partial until
+merge and BuildHunter consumer integration/validation; the H-ledger totals do
+not change. Next: merge the green library stack after review, adopt it in the
+consumer, and measure the actual application separately before release alignment.
+
+## Consumer adoption checkpoint (2026-10-06)
+
+SpecificationCore #19 and #20 merged at `3a672ea`. Application #33 replaced the
+temporary branch dependency with that revision in `project.yml`, the checked-in
+project and `Package.resolved`. Its unsigned arm64 Release build confirmed
+`AggressiveInlining` enabled and Tracing disabled. Post-merge main CI on `f142fdb`
+passed, including the Release static-policy and finite-policy performance gates;
+those gates bound regressions and do not compare trait on/off.
+
+H20 stays partial: the library and consumer integration are done, but the
+application-level effect is unmeasured and the upstream guard report is unfiled.
+The H-ledger totals do not change. No library release or version bump has happened.

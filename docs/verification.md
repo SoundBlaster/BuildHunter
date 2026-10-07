@@ -27,7 +27,9 @@ No persistent Xcode trust defaults are changed.
 
 The test script checks `.xcresult` for at least one passing executed test, so a
 successful build with zero discovered tests cannot pass as test evidence. Test
-results, summary and logs live under ignored `macos/.build/ci/`. A repeat test run
+results, summary and logs live under ignored `macos/.build/ci/`. When tests fail, the
+script still writes the summary, exports the screenshots (or the performance metrics)
+and only then exits with `xcodebuild`'s status, so a failed run's evidence is complete. A repeat test run
 requires moving the prior result bundle aside or using a clean output directory.
 
 ## GitHub checks

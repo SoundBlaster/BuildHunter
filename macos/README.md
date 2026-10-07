@@ -4,7 +4,7 @@ This macOS 26+ arm64 SwiftUI app implements the scanner described by [the PRD](.
 
 The default source reads the selected folder through the Rust static library and C FFI. GUI classification uses SpecificationCore, and includes Python environments with their own `pyvenv.cfg`. Only outer artifact roots appear as rows. Sizes estimate allocated blocks, including directory metadata; they do not promise reclaimable space. Partial measurements and read errors keep the report incomplete. The app never deletes files.
 
-Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to upstream revision `483214469828c42f7b615654aa70d0acbecc4dbf` (SpecificationCore 2.1.0).
+Artifact classification policy is expressed with SpecificationCore using immutable facts. The source is pinned to merged upstream revision `3a672ea9a081853bb0500c96a85243f01e39bcdd` pending release alignment. Its default `AggressiveInlining` trait favors synchronous evaluation speed; Tracing disables forced inlining. See the upstream [performance configuration guide](https://github.com/SoundBlaster/SpecificationCore/blob/3a672ea9a081853bb0500c96a85243f01e39bcdd/Sources/SpecificationCore/Documentation.docc/EvaluationPerformance.md) for consumer opt-out and measured tradeoffs. Library microbenchmark gains do not establish a whole-scan speedup.
 
 Open **BuildHunter → Settings…** (⌘,) to select the artifact types searched in new
 scans and Rescan. All current types are enabled initially. Preferences persist
@@ -33,3 +33,19 @@ xcodebuild test -project BuildHunter.xcodeproj -scheme BuildHunter -destination 
 `-skipMacroValidation` is the user-authorized invocation-scoped bypass for the pinned macro dependency. It skips every macro's validation in that invocation and does not change global trust settings. [Verification instructions](../docs/verification.md) describe the Rust, CLI, Swift unit, UI, and Release checks.
 
 Unsigned build/unit-test evidence does not establish signed sandbox behavior. Open/drop grants, window replacement/close, Finder integration, clipboard actions, and App Store readiness remain separate runtime/delivery gates. Finder and Copy Path actions have not been implemented yet.
+
+### Scan profile
+
+The right of the report window's status bar shows a CPU-history style bar chart
+of recent entries/s: one bar per interval, newest on the right, moving left while
+scanning and kept after completion. Click it to inspect throughput in a popover.
+A second line with a gradient fill shows the total found volume (cumulative
+measured bytes) on the trailing axis. Choose entries/s or measured bytes/s for the
+rate line; current, average, peak and elapsed time
+remain available after completion. Byte throughput describes metadata sizing,
+not disk reads. History is bounded to 600 intervals; lifetime statistics remain
+intact. Mock scanning/completed/stopped states include deterministic profile
+samples, and UI tests capture the opened completed profile. Incoming
+chart samples, metric selection and numeric readouts animate smoothly; Reduce
+Motion disables these animations. Rolling points retain absolute timestamp
+identities, and a fresh scan resets the chart without morphing the old timeline.

@@ -76,3 +76,51 @@ cargo build --release
 Однопроходный scan исключает subprocess `du`, но ускорение не гарантируется:
 большинство времени может уходить на filesystem I/O и metadata. Сравнивайте release
 build на одном дереве; результаты зависят от filesystem cache и активных сборок.
+
+## Scan performance profile
+
+```sh
+build-hunter ~/Development --profile /tmp/buildhunter-profile.json
+build-hunter ~/Development --apparent --json --profile /tmp/buildhunter-profile-apparent.json
+```
+
+Profiling is opt-in. `--profile FILE` saves a separate versioned JSON report;
+normal terminal/`--json` artifact output and search filters stay unchanged.
+The destination must not already exist; parent folders must exist. The report
+is created after scanning, so even a destination inside an artifact does not
+change its measured size during that scan. Incomplete scans still save a report
+and retain exit code 1. A hard process termination does not save a final report.
+
+The report contains cumulative snapshots, elapsed microseconds, evaluated
+filesystem entries/folders, discovered artifacts, warnings, pending worker tasks,
+and measured bytes. Initial and terminal snapshots bracket approximately 100 ms
+samples. Entries count processed files and directory listings, including the
+selected root; pruned descendants and skipped cloud placeholders are excluded.
+A dedicated sampler thread takes a snapshot on every 100 ms boundary, so slow
+directory processing or a consumer that blocks event delivery delays samples but
+never thins or merges them; each keeps the time it was taken. While the
+coordinator is blocked or workers are idle, counters do not advance and the
+interval is flat. Elapsed time covers the Rust scan through worker join.
+
+**Measured bytes/s is metadata size throughput, not disk read speed.** It uses
+allocated sizes by default (`--apparent` uses logical sizes), counts nested
+artifacts only once, and excludes unrelated files. It can legitimately reach
+GB/s without reading file contents. Average rates divide cumulative counters by
+elapsed scan time; peak rates are the largest adjacent-snapshot delta/time.
+
+Schema version 1 includes `size_mode`, `status`, `sample_interval_ms`,
+`average_entries_per_second`, `peak_entries_per_second`, and corresponding
+`*_measured_bytes_per_second` fields. `samples` holds the latest 4,096 snapshots;
+`truncated_samples` reports discarded earlier snapshots. Lifetime averages and
+peaks survive truncation. Consumers can derive interval speeds from differences
+between adjacent cumulative snapshots, avoiding division by zero.
+
+The macOS main window shows a mini bar chart of recent entries/s at the right of
+its status bar. Bars move from right to left while scanning and stay after the
+scan finishes; clicking the chart opens a popover with entries/s or measured bytes/s, current/average/peak rates, elapsed time,
+counters, and a live chart of the latest 600 intervals (about one minute). A second
+line with a gradient fill shows the total found volume (cumulative measured bytes),
+labelled on the chart's trailing axis.
+Collecting samples does not depend on whether the popover is open. Stop keeps
+the profile and shows current speed as zero. Rescan/replacing the folder resets
+it and rejects stale events. Profiles are kept only for the current window.

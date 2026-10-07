@@ -34,7 +34,9 @@
 		A44DAE4AC0757409C7DD5BE9 /* BuildHunterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B019A5055F3DE5234638768B /* BuildHunterApp.swift */; };
 		BAF5BA137472C47B6D3DDF79 /* BuildHunterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25405AB22826A4168DE50FD9 /* BuildHunterUITests.swift */; };
 		DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */; };
+		A1E002A28D54711EAC9EB204 /* ScanProfilePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */; };
 		E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B58340DBC91862752743D7 /* ScanEvent.swift */; };
+		A1E002A28D54711EAC9EB202 /* ScanProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E002A28D54711EAC9EB201 /* ScanProfile.swift */; };
 		E5BE11BE7273D4EAFFE06E47 /* NestedA11yIDs in Frameworks */ = {isa = PBXBuildFile; productRef = 350BA0250A13F735F168EA0F /* NestedA11yIDs */; };
 		5C3EE0A1B2C3D4E5F6071801 /* ScreenerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3EE0A1B2C3D4E5F6071802 /* ScreenerKit */; };
 		EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */; };
@@ -96,10 +98,12 @@
 		C404E32AE24EC6E7D5F08472 /* BuildHunter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BuildHunter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB9B8170CF5287EF2881E029 /* ArtifactDiagramModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiagramModelTests.swift; sourceTree = "<group>"; };
 		D1B58340DBC91862752743D7 /* ScanEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEvent.swift; sourceTree = "<group>"; };
+		A1E002A28D54711EAC9EB201 /* ScanProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProfile.swift; sourceTree = "<group>"; };
 		D29E367285B6D97235708471 /* BuildHunterPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BuildHunterPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RustScanEventSource.swift; sourceTree = "<group>"; };
 		D6D93AA9C6742D0031265A17 /* ScanPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPerformanceTests.swift; sourceTree = "<group>"; };
 		DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHunterWindow.swift; sourceTree = "<group>"; };
+		A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProfilePanel.swift; sourceTree = "<group>"; };
 		F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiagramWindow.swift; sourceTree = "<group>"; };
 		F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWindowStore.swift; sourceTree = "<group>"; };
 		FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburst.swift; sourceTree = "<group>"; };
@@ -170,6 +174,7 @@
 				7A77916C3F0626CB5FB1CA7A /* MockScanState.swift */,
 				D3F8E3695957D08FBE09CF9A /* RustScanEventSource.swift */,
 				D1B58340DBC91862752743D7 /* ScanEvent.swift */,
+				A1E002A28D54711EAC9EB201 /* ScanProfile.swift */,
 				F8BDA77C5C24AAE950B0CFB1 /* ScanWindowStore.swift */,
 				7D7F949A7C221A08BBD76D8A /* WindowScanModel.swift */,
 			);
@@ -273,6 +278,7 @@
 				F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */,
 				B019A5055F3DE5234638768B /* BuildHunterApp.swift */,
 				DC96463CFA3BE6EBFC9A4E83 /* BuildHunterWindow.swift */,
+				A1E002A28D54711EAC9EB203 /* ScanProfilePanel.swift */,
 				FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */,
 			);
 			path = UI;
@@ -429,6 +435,7 @@
 				"$(SRCROOT)/../Cargo.lock",
 				"$(SRCROOT)/../src/lib.rs",
 				"$(SRCROOT)/../src/policy_table.rs",
+				"$(SRCROOT)/../src/profile.rs",
 			);
 			name = "Build Rust scanner (Apple Silicon)";
 			outputFileListPaths = (
@@ -485,6 +492,7 @@
 				5E7E76D2BF16CF6D32936F92 /* ArtifactSunburst.swift in Sources */,
 				A44DAE4AC0757409C7DD5BE9 /* BuildHunterApp.swift in Sources */,
 				DF7787641A411A2C03E8FC30 /* BuildHunterWindow.swift in Sources */,
+				A1E002A28D54711EAC9EB204 /* ScanProfilePanel.swift in Sources */,
 				492FF4DC3A0256639F9696D5 /* ClassifyArtifactRoot.swift in Sources */,
 				0749941185285C61B5082D39 /* DemoScanSource.swift in Sources */,
 				2D32AFF98741BF5F6ABE3259 /* IsOuterArtifactRoot.swift in Sources */,
@@ -492,6 +500,7 @@
 				8A2C578935C319EBCB0ADDF4 /* MockScanState.swift in Sources */,
 				80116234EF904B8AAD3B61AF /* RustScanEventSource.swift in Sources */,
 				E3A7AAD86D5612894E4C4BB8 /* ScanEvent.swift in Sources */,
+				A1E002A28D54711EAC9EB202 /* ScanProfile.swift in Sources */,
 				EDA8158F8F557B112574DF4F /* ScanWindowStore.swift in Sources */,
 				75D5EA75D01F77A33BD58A99 /* SearchFilters.swift in Sources */,
 				2B9BC3EB581C5067D5379DA7 /* SearchSettingsWindow.swift in Sources */,
@@ -886,8 +895,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SoundBlaster/SpecificationCore.git";
 			requirement = {
-				kind = branch;
-				branch = "perf/balanced-decisions";
+				kind = revision;
+				revision = 3a672ea9a081853bb0500c96a85243f01e39bcdd;
 			};
 		};
 		2703E9F55B2A7C822A8641A8 /* XCRemoteSwiftPackageReference "NestedA11yIDs" */ = {

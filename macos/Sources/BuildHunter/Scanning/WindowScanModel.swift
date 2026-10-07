@@ -9,6 +9,7 @@ final class WindowScanModel {
     private(set) var targetURL: URL?
     private(set) var rows: [ScanRow] = []
     private(set) var warnings: [String] = []
+    private(set) var profile = ScanProfileHistory()
     private(set) var generation: UInt64 = 0
     private(set) var phase: ScanPhase = .idle
     var isScanning: Bool { phase == .scanning }
@@ -65,6 +66,9 @@ final class WindowScanModel {
         for warning in mockState.warnings {
             apply(.warning(generation: activeGeneration, message: warning))
         }
+        for sample in mockState.profileSamples {
+            apply(.profile(generation: activeGeneration, sample: sample))
+        }
         if let terminalResult = mockState.terminalResult {
             apply(.finished(generation: activeGeneration, result: terminalResult))
         }
@@ -104,6 +108,8 @@ final class WindowScanModel {
             guard rows[index].size == .measuring else { return }
             rows[index].size = partial ? .partial(bytes) : .measured(bytes)
             reportRevision &+= 1
+        case .profile(_, let sample):
+            profile.record(sample)
         case .warning(_, let message):
             appendWarning(message)
         case .finished(_, let result):
@@ -130,6 +136,7 @@ final class WindowScanModel {
     private func clearReport() {
         reportID = UUID()
         rows = []
+        profile = ScanProfileHistory()
         rowIndices = [:]
         warnings = []
         warningSet = []
@@ -147,6 +154,9 @@ final class WindowScanModel {
         scanTask = Task { [weak self] in
             var terminalResult: ScanTerminalResult?
             var receivedTerminalResult = false
+            var eventsSinceRenderCheck = 0
+            let renderClock = ContinuousClock()
+            var lastRenderPause = renderClock.now
             for await event in stream {
                 guard !Task.isCancelled, let self else { return }
                 guard event.generation == activeGeneration else { continue }
@@ -162,6 +172,16 @@ final class WindowScanModel {
                 guard !receivedTerminalResult else { continue }
                 self.apply(event)
                 guard self.phase == .scanning else { return }
+                eventsSinceRenderCheck += 1
+                if eventsSinceRenderCheck == 256 {
+                    eventsSinceRenderCheck = 0
+                    if renderClock.now - lastRenderPause >= .milliseconds(8) {
+                        // A perpetually occupied stream can resume synchronously. Park
+                        // briefly so the run loop can draw profile frames and accept Stop.
+                        do { try await Task.sleep(for: .milliseconds(1)) } catch { return }
+                        lastRenderPause = renderClock.now
+                    }
+                }
             }
             guard !Task.isCancelled, let self,
                   self.generation == activeGeneration, self.phase == .scanning else { return }
