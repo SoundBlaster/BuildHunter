@@ -156,6 +156,9 @@ Charts frame. The same warnings were observed before the diagram was opened.
 This does not explain the earlier Charts trap or prove that every geometry warning
 has the same source. Catch subsequent Swift runtime/exception stops separately.
 
+A later [plain AppKit control-window check](diagnostics/appkit-sharing-geometry-20261008.md)
+reproduced this warning and preserves the captured LLDB output in the repository.
+
 ## Data and window lifecycle
 
 - `WindowScanModel` remains the only scan owner and event reducer. Opening the

@@ -1,0 +1,53 @@
+Second capture confirmed frame 4 NSThemeFrame window title via LLDB: AppKit Geometry Control.
+The indicator's own window was nil during insertion; identifying the enclosing NSThemeFrame resolved that ambiguity.
+
+{
+  "experiment": "Plain NSWindow created in BuildHunter process through LLDB; no SwiftUI/Charts or custom controls in this window. Screenshot capture via Computer Use triggered selective window sharing.",
+  "window": {
+    "debugSessionActive": true,
+    "isWaitingForMore": true,
+    "output": "nil",
+    "processIdentifier": 43888
+  },
+  "size": {
+    "debugSessionActive": true,
+    "isWaitingForMore": true,
+    "output": "(CGSize) $2 = (width = -1, height = -1)",
+    "processIdentifier": 43888
+  },
+  "stack": {
+    "debugSessionActive": true,
+    "isWaitingForMore": true,
+    "output": "* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 3.1\n   * frame #0: 0x00000001971bf2b0 libsystem_trace.dylib`_os_log_fault_impl\n     frame #1: 0x000000019cd78a8c AppKit`_NSViewValidateGeometry + 656\n     frame #2: 0x000000019c7d9974 AppKit`NSViewValidateSize + 32\n     frame #3: 0x000000019bb42e3c AppKit`-[NSView setFrameSize:] + 64\n     frame #4: 0x000000019c4a4cc8 AppKit`-[NSThemeFrame _positionSharingIndicator] + 64\n     frame #5: 0x000000019bfa6ae8 AppKit`-[NSWindowSharingSessionRecipientIndicator invalidateIntrinsicContentSize] + 80\n     frame #6: 0x000000019bb350e8 AppKit`-[NSView _viewDidChangeAppearance:] + 248\n     frame #7: 0x000000019bb33ef0 AppKit`-[NSView _setSuperview:] + 1412\n     frame #8: 0x000000019bb33760 AppKit`-[NSView addSubview:] + 180\n     frame #9: 0x000000019bb4374c AppKit`-[NSThemeFrame addTitlebarSubview:] + 80\n     frame #10: 0x000000019bb3cc24 AppKit`-[NSThemeFrame _updateButtons] + 2096\n     frame #11: 0x000000019c55c5c0 AppKit`-[NSWindow _updateButtonsForWindowSharingSession] + 28\n     frame #12: 0x000000019c55c834 AppKit`-[NSWindow _setIsSelectivelyShared:] + 420\n     frame #13: 0x000000019c56f1f8 AppKit`___windowSelectiveSharingStateChangedNotification_block_invoke + 292",
+    "processIdentifier": 43888
+  }
+}
+
+
+Second capture: command/output transcription from Xcode MCP InvokeDebuggerCommand
+(2026-10-08, PID 43888). Preserved from the diagnostic conversation; not a new run.
+
+(lldb) process status
+Process 43888 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 4.1
+       frame #0: 0x00000001971bf2b0 libsystem_trace.dylib`_os_log_fault_impl
+libsystem_trace.dylib`_os_log_fault_impl:
+->  0x1971bf2b0 <+0>:  pacibsp
+    0x1971bf2b4 <+4>:  stp    x29, x30, [sp, #-0x10]!
+    0x1971bf2b8 <+8>:  mov    x29, sp
+    0x1971bf2bc <+12>: mov    x6, x30
+
+(lldb) frame select 4
+frame #4: 0x000000019c4a4cc8 AppKit`-[NSThemeFrame _positionSharingIndicator] + 64
+AppKit`-[NSThemeFrame _positionSharingIndicator]:
+->  0x19c4a4cc8 <+64>: mov    x0, x19
+    0x19c4a4ccc <+68>: mov.16b v0, v8
+    0x19c4a4cd0 <+72>: mov.16b v1, v9
+    0x19c4a4cd4 <+76>: bl     0x19ec77f70
+
+(lldb) expression -l objc++ -O -- [[(id)$x19 window] title]
+AppKit Geometry Control
+
+No numeric register dump was taken in this second capture. The title expression
+used x19 in the selected NSThemeFrame frame; the register dump from the first
+capture belongs to frame 3 and must not be substituted for it.
