@@ -250,7 +250,7 @@ private struct ArtifactSunburstChart: View {
                             outerRadius: .ratio(sector.outerRadius),
                             angularInset: CGFloat(decoration.angularInset)
                         )
-                        .cornerRadius(0) // Diagnostic comparison: keep animation and gap, disable rounding.
+                        .cornerRadius(CGFloat(decoration.cornerRadius))
                         .foregroundStyle(diagramColor(palette.color(for: sector)))
                         .opacity(navigation == nil ? max(0.7, 1 - Double(sector.depth) * 0.14) : 0)
                         .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")

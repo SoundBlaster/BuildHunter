@@ -94,9 +94,11 @@ overlay and releases the publication pause. The transition task that marks the
 phases and ends the transition is keyed by the transition identity, so a
 cancelled transition never reaches its next step.
 
-Sector rounding is temporarily disabled (`cornerRadius = 0`) for the renderer
-investigation. Gaps remain. The earlier Charts trap is a known regression risk;
-the local comparison is evidence, not a guarantee of crash freedom.
+Sector rounding is enabled again for transition testing, using the calculated
+corner radius bounded by each sector's inner-edge width. Gaps remain. The earlier
+Charts trap is a known regression risk; a passing navigation test is evidence,
+not a guarantee of crash freedom. The custom navigation overlay retains its
+existing straight corners; rounding applies to the Swift Charts sectors.
 Accessible sector descriptions include path, size and partial status.
 
 ### Screener traces (pilot)
