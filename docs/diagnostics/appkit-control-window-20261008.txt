@@ -22,3 +22,32 @@ The indicator's own window was nil during insertion; identifying the enclosing N
     "processIdentifier": 43888
   }
 }
+
+
+Second capture: command/output transcription from Xcode MCP InvokeDebuggerCommand
+(2026-10-08, PID 43888). Preserved from the diagnostic conversation; not a new run.
+
+(lldb) process status
+Process 43888 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 4.1
+       frame #0: 0x00000001971bf2b0 libsystem_trace.dylib`_os_log_fault_impl
+libsystem_trace.dylib`_os_log_fault_impl:
+->  0x1971bf2b0 <+0>:  pacibsp
+    0x1971bf2b4 <+4>:  stp    x29, x30, [sp, #-0x10]!
+    0x1971bf2b8 <+8>:  mov    x29, sp
+    0x1971bf2bc <+12>: mov    x6, x30
+
+(lldb) frame select 4
+frame #4: 0x000000019c4a4cc8 AppKit`-[NSThemeFrame _positionSharingIndicator] + 64
+AppKit`-[NSThemeFrame _positionSharingIndicator]:
+->  0x19c4a4cc8 <+64>: mov    x0, x19
+    0x19c4a4ccc <+68>: mov.16b v0, v8
+    0x19c4a4cd0 <+72>: mov.16b v1, v9
+    0x19c4a4cd4 <+76>: bl     0x19ec77f70
+
+(lldb) expression -l objc++ -O -- [[(id)$x19 window] title]
+AppKit Geometry Control
+
+No numeric register dump was taken in this second capture. The title expression
+used x19 in the selected NSThemeFrame frame; the register dump from the first
+capture belongs to frame 3 and must not be substituted for it.
