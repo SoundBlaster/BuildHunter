@@ -396,7 +396,7 @@ private struct ScanReportFooter: View {
 
     var body: some View {
         WindowStatusBar {
-            // Fill the bar so the profile chart sits at the trailing edge.
+            // Keep the profile chart and warnings at the trailing edge.
             HStack(alignment: .center, spacing: 12) {
                 Label {
                     Text("BuildHunter only reads files and folders. It never deletes artifacts.")
@@ -406,10 +406,10 @@ private struct ScanReportFooter: View {
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: 12) {
+                    ScanProfileStatusItem(profile: profile, isScanning: isScanning)
                     if !warnings.isEmpty {
                         ScanWarningsStatusItem(warnings: warnings, showWarnings: showWarnings)
                     }
-                    ScanProfileStatusItem(profile: profile, isScanning: isScanning)
                 }
             }
             .frame(maxWidth: .infinity)
