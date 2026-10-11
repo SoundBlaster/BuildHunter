@@ -97,8 +97,10 @@ cancelled transition never reaches its next step.
 Sector rounding is enabled again for transition testing, using the calculated
 corner radius bounded by each sector's inner-edge width. Gaps remain. The earlier
 Charts trap is a known regression risk; a passing navigation test is evidence,
-not a guarantee of crash freedom. The custom navigation overlay retains its
-existing straight corners; rounding applies to the Swift Charts sectors.
+not a guarantee of crash freedom. The custom navigation overlay also rounds its corners, bounding the radius
+on every frame by the current inner-edge width and ring thickness. Full-circle
+rings have no artificial rounded seam. Debug ChartInput diagnostics record the
+actual corner radius supplied to Swift Charts.
 Accessible sector descriptions include path, size and partial status.
 
 ### Screener traces (pilot)

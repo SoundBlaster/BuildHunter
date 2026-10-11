@@ -390,14 +390,14 @@ private struct ArtifactSunburstChart: View {
         let inputs = layout.sectors.enumerated().map { index, sector in
             let decoration = sector.decoration(plotRadius: radius)
             let values = [sector.start, sector.end, sector.innerRadiusRelativeToOuter,
-                          sector.outerRadius, decoration.angularInset, 0]
+                          sector.outerRadius, decoration.angularInset, decoration.cornerRadius]
             if !values.allSatisfy(\.isFinite) || sector.end <= sector.start
                 || sector.innerRadiusRelativeToOuter < 0 || sector.innerRadiusRelativeToOuter >= 1
                 || sector.outerRadius <= 0 || sector.outerRadius > 1
-                || decoration.angularInset < 0 {
+                || decoration.angularInset < 0 || decoration.cornerRadius < 0 {
                 invalid = true
             }
-            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=0"
+            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=\(decoration.cornerRadius)"
         }.joined(separator: ";")
         logger.notice("ChartInput size=\(size.width)x\(size.height) sectors=\(layout.sectors.count) invalid=\(invalid) reduceMotion=\(reduceMotion)")
         DiagramTraceRecorder.shared?.mark("chart.layout", [
@@ -496,7 +496,7 @@ private struct DiagramNavigationLayer: View {
     }
 }
 
-private struct DiagramNavigationSector: Shape {
+struct DiagramNavigationSector: Shape {
     var start: Double
     var end: Double
     var inner: Double
@@ -514,24 +514,45 @@ private struct DiagramNavigationSector: Shape {
 
     func path(in rect: CGRect) -> Path {
         guard [start, end, inner, outer, inset].allSatisfy(\.isFinite), end > start,
-              outer > inner, inner >= 0, outer <= 1 else { return Path() }
+              outer > inner, inner >= 0, outer <= 1, inset >= 0,
+              [rect.minX, rect.minY, rect.width, rect.height].allSatisfy(\.isFinite) else { return Path() }
         let radius = min(rect.width, rect.height) / 2
         guard radius > 0 else { return Path() }
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let gap = end - start >= 1 - 1e-12 ? 0 : min((end - start) / 8, inset / (max(1, inner * radius) * 2 * .pi))
         let lower = (start + gap) * 2 * .pi - .pi / 2
         let upper = (end - gap) * 2 * .pi - .pi / 2
+        let innerRadius = inner * radius
+        let outerRadius = outer * radius
+        let span = upper - lower
+        let isFullCircle = end - start >= 1 - 1e-12
+        // Match the chart's decoration budget at every display-clock frame.
+        let innerEdgeWidth = 2 * innerRadius * sin(min(.pi / 2, span / 2))
+        let corner = isFullCircle ? 0 : min(4, max(0, innerEdgeWidth / 8),
+                                          (outerRadius - innerRadius) / 4)
+        let innerTrim = innerRadius > 0 ? corner / innerRadius : 0
+        let outerTrim = corner / outerRadius
+        func point(_ r: Double, _ angle: Double) -> CGPoint {
+            CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
+        }
         var path = Path()
-        path.move(to: CGPoint(x: center.x + cos(lower) * inner * radius,
-                              y: center.y + sin(lower) * inner * radius))
-        path.addLine(to: CGPoint(x: center.x + cos(lower) * outer * radius,
-                                y: center.y + sin(lower) * outer * radius))
-        path.addArc(center: center, radius: outer * radius,
-                    startAngle: .radians(lower), endAngle: .radians(upper), clockwise: false)
-        path.addLine(to: CGPoint(x: center.x + cos(upper) * inner * radius,
-                                y: center.y + sin(upper) * inner * radius))
-        path.addArc(center: center, radius: inner * radius,
-                    startAngle: .radians(upper), endAngle: .radians(lower), clockwise: true)
+        path.move(to: point(innerRadius + corner, lower))
+        path.addLine(to: point(outerRadius - corner, lower))
+        path.addQuadCurve(to: point(outerRadius, lower + outerTrim),
+                          control: point(outerRadius, lower))
+        path.addArc(center: center, radius: outerRadius,
+                    startAngle: .radians(lower + outerTrim),
+                    endAngle: .radians(upper - outerTrim), clockwise: false)
+        path.addQuadCurve(to: point(outerRadius - corner, upper),
+                          control: point(outerRadius, upper))
+        path.addLine(to: point(innerRadius + corner, upper))
+        path.addQuadCurve(to: point(innerRadius, upper - innerTrim),
+                          control: point(innerRadius, upper))
+        path.addArc(center: center, radius: innerRadius,
+                    startAngle: .radians(upper - innerTrim),
+                    endAngle: .radians(lower + innerTrim), clockwise: true)
+        path.addQuadCurve(to: point(innerRadius + corner, lower),
+                          control: point(innerRadius, lower))
         path.closeSubpath()
         return path
     }
