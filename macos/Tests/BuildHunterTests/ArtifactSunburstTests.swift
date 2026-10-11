@@ -35,6 +35,22 @@ struct ArtifactSunburstTests {
         #expect(!path.contains(CGPoint(x: 160, y: 160)))
     }
 
+    @Test("Tiny navigation sectors retain the chart's constant-width edge gap")
+    @MainActor
+    func navigationEndpointGap() {
+        let radius = 160.0
+        let decoration = ArtifactSunburstLayout.Sector.decoration(
+            start: 0, end: 0.01, inner: 0.22, outer: 0.48, plotRadius: radius)
+        let path = DiagramNavigationSector(start: 0, end: 0.01, inner: 0.22,
+                                           outer: 0.48, inset: 2)
+            .path(in: CGRect(x: 0, y: 0, width: 320, height: 320))
+        for fraction in [0.28, 0.35, 0.42] {
+            let y = radius - fraction * radius
+            #expect(!path.contains(CGPoint(x: radius + decoration.angularInset / 2, y: y)))
+            #expect(path.contains(CGPoint(x: radius + decoration.angularInset + 0.05, y: y)))
+        }
+    }
+
     @Test("Invalid navigation geometry produces no drawable path")
     @MainActor
     func invalidNavigationPath() {

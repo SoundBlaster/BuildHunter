@@ -481,12 +481,11 @@ private struct DiagramNavigationLayer: View {
         TimelineView(.animation) { context in
             let progress = presentation.plan.progress(at: start.map { context.date.timeIntervalSince($0) } ?? 0)
             GeometryReader { geometry in
-                let radius = min(geometry.size.width, geometry.size.height) / 2
                 ZStack {
                     ForEach(presentation.plan.frames(fade: progress.fade, zoom: progress.zoom)) { frame in
                         DiagramNavigationSector(start: frame.start, end: frame.end,
                                                 inner: frame.innerRadius, outer: frame.outerRadius,
-                                                inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
+                                                inset: 2)
                             .fill(presentation.color(for: frame, zoom: progress.zoom))
                             .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
                     }
@@ -519,40 +518,50 @@ struct DiagramNavigationSector: Shape {
         let radius = min(rect.width, rect.height) / 2
         guard radius > 0 else { return Path() }
         let center = CGPoint(x: rect.midX, y: rect.midY)
-        let gap = end - start >= 1 - 1e-12 ? 0 : min((end - start) / 8, inset / (max(1, inner * radius) * 2 * .pi))
-        let lower = (start + gap) * 2 * .pi - .pi / 2
-        let upper = (end - gap) * 2 * .pi - .pi / 2
         let innerRadius = inner * radius
         let outerRadius = outer * radius
-        let span = upper - lower
+        let decoration = ArtifactSunburstLayout.Sector.decoration(
+            start: start, end: end, inner: inner, outer: outer, plotRadius: radius)
         let isFullCircle = end - start >= 1 - 1e-12
-        // Match the chart's decoration budget at every display-clock frame.
-        let innerEdgeWidth = 2 * innerRadius * sin(min(.pi / 2, span / 2))
-        let corner = isFullCircle ? 0 : min(4, max(0, innerEdgeWidth / 8),
-                                          (outerRadius - innerRadius) / 4)
-        let innerTrim = innerRadius > 0 ? corner / innerRadius : 0
-        let outerTrim = corner / outerRadius
+        let gap = isFullCircle ? 0 : min(inset, decoration.angularInset)
+        let corner = isFullCircle ? 0 : decoration.cornerRadius
+        let lower = start * 2 * .pi - .pi / 2
+        let upper = end * 2 * .pi - .pi / 2
+        // Charts offsets radial edges by points, rather than trimming one angle
+        // from both radii. Use parallel edges so tiny sectors do not grow at handoff.
+        func offset(_ r: Double) -> Double {
+            r > 0 ? asin(min(1, gap / r)) : 0
+        }
         func point(_ r: Double, _ angle: Double) -> CGPoint {
             CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
         }
+        func edge(_ r: Double, _ angle: Double, _ sign: Double) -> CGPoint {
+            point(r, angle + sign * offset(r))
+        }
+        let innerTrim = innerRadius > 0 ? corner / innerRadius : 0
+        let outerTrim = corner / outerRadius
+        let innerLower = lower + offset(innerRadius)
+        let innerUpper = upper - offset(innerRadius)
+        let outerLower = lower + offset(outerRadius)
+        let outerUpper = upper - offset(outerRadius)
         var path = Path()
-        path.move(to: point(innerRadius + corner, lower))
-        path.addLine(to: point(outerRadius - corner, lower))
-        path.addQuadCurve(to: point(outerRadius, lower + outerTrim),
-                          control: point(outerRadius, lower))
+        path.move(to: edge(innerRadius + corner, lower, 1))
+        path.addLine(to: edge(outerRadius - corner, lower, 1))
+        path.addQuadCurve(to: point(outerRadius, outerLower + outerTrim),
+                          control: point(outerRadius, outerLower))
         path.addArc(center: center, radius: outerRadius,
-                    startAngle: .radians(lower + outerTrim),
-                    endAngle: .radians(upper - outerTrim), clockwise: false)
-        path.addQuadCurve(to: point(outerRadius - corner, upper),
-                          control: point(outerRadius, upper))
-        path.addLine(to: point(innerRadius + corner, upper))
-        path.addQuadCurve(to: point(innerRadius, upper - innerTrim),
-                          control: point(innerRadius, upper))
+                    startAngle: .radians(outerLower + outerTrim),
+                    endAngle: .radians(outerUpper - outerTrim), clockwise: false)
+        path.addQuadCurve(to: edge(outerRadius - corner, upper, -1),
+                          control: point(outerRadius, outerUpper))
+        path.addLine(to: edge(innerRadius + corner, upper, -1))
+        path.addQuadCurve(to: point(innerRadius, innerUpper - innerTrim),
+                          control: point(innerRadius, innerUpper))
         path.addArc(center: center, radius: innerRadius,
-                    startAngle: .radians(upper - innerTrim),
-                    endAngle: .radians(lower + innerTrim), clockwise: true)
-        path.addQuadCurve(to: point(innerRadius + corner, lower),
-                          control: point(innerRadius, lower))
+                    startAngle: .radians(innerUpper - innerTrim),
+                    endAngle: .radians(innerLower + innerTrim), clockwise: true)
+        path.addQuadCurve(to: edge(innerRadius + corner, lower, 1),
+                          control: point(innerRadius, innerLower))
         path.closeSubpath()
         return path
     }
