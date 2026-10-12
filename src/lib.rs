@@ -12,6 +12,10 @@ use std::{
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
+mod materialization;
+/// Thread-scoped protection for filesystem preflight before starting a scan.
+/// On macOS this refuses materialization; other platforms use a no-op guard.
+pub use materialization::Guard as NonMaterializingIoGuard;
 mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
@@ -459,6 +463,24 @@ pub fn scan_with_policy(
     mut emit: impl FnMut(&ScanEvent),
 ) -> ScanReport {
     let probes = Probes::default();
+    let _materialization = match materialization::Guard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            let warning = ScanWarning {
+                relative_path: PathBuf::from("."),
+                message: format!("Cannot prevent cloud downloads; scan was not started: {error}"),
+            };
+            emit(&ScanEvent::Warning(warning.clone()));
+            emit(&ScanEvent::Finished(ScanStatus::Failed));
+            return ScanReport {
+                artifacts: Vec::new(),
+                warnings: vec![warning],
+                status: ScanStatus::Failed,
+                #[cfg(test)]
+                probes: probes.counts(),
+            };
+        }
+    };
     let queue = WorkQueue::default();
     let workers = std::thread::available_parallelism()
         .map_or(1, std::num::NonZeroUsize::get)
@@ -653,6 +675,7 @@ struct ListTask {
 }
 
 enum WorkerMessage {
+    SetupFailed(std::io::Error),
     /// Sent before any metadata is read, so discovery does not wait for measurement.
     Listed {
         node: usize,
@@ -732,6 +755,13 @@ fn run_worker(
     // A panicking worker would never send its pending messages; closing the queue lets the
     // other workers exit, which disconnects the channel and releases the caller.
     let _close = CloseOnPanic(queue);
+    let _materialization = match materialization::Guard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            let _ = results.send(WorkerMessage::SetupFailed(error));
+            return;
+        }
+    };
     while let Some(task) = queue.pop() {
         let listing = list_directory(&task.path, control, probes);
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
@@ -825,11 +855,16 @@ fn list_directory(path: &Path, control: &ScanControl, probes: &Probes) -> Listin
             Ok(file_type) => {
                 let marker = child.file_name().map_or(0, marker_flag);
                 // A marker must be a file; only a symlinked marker needs resolving.
-                if marker != 0
-                    && (file_type.is_file()
-                        || (file_type.is_symlink() && probes.marker_is_file(&child)))
-                {
-                    listing.markers |= marker;
+                if marker != 0 {
+                    if file_type.is_file() {
+                        listing.markers |= marker;
+                    } else if file_type.is_symlink() {
+                        match probes.marker_is_file(&child) {
+                            Ok(true) => listing.markers |= marker,
+                            Ok(false) => {}
+                            Err(error) => listing.errors.push((child.clone(), error)),
+                        }
+                    }
                 }
                 listing.children.push((child, file_type));
             }
@@ -991,6 +1026,14 @@ where
                 break;
             }
             match message {
+                WorkerMessage::SetupFailed(error) => {
+                    self.warn(
+                        self.root,
+                        format!("Cannot prevent cloud downloads on scanner worker: {error}"),
+                        &[],
+                    );
+                    self.control.fail();
+                }
                 WorkerMessage::Listed {
                     node,
                     listing,
@@ -1130,7 +1173,7 @@ where
         }
     }
 
-    fn process_listing(&mut self, node: usize, listing: Listing, measuring: bool) {
+    fn process_listing(&mut self, node: usize, mut listing: Listing, measuring: bool) {
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.entries, 1);
             profile::bump(&profile.counters.directories, 1);
@@ -1151,9 +1194,11 @@ where
         let own_markers = listing.markers & MARKER_PYVENV_CFG;
         let parent_markers = if matches!(name.as_ref(), b"target" | b"build" | b"dist") {
             parent_markers.unwrap_or_else(|| {
-                path.parent()
-                    .map(|parent| marker_flags(parent, self.probes))
-                    .unwrap_or_default()
+                path.parent().map_or(0, |parent| {
+                    let (flags, errors) = marker_flags(parent, self.probes);
+                    listing.errors.extend(errors);
+                    flags
+                })
             }) & !MARKER_PYVENV_CFG
         } else {
             0
@@ -1321,6 +1366,8 @@ fn marker_flag(name: &OsStr) -> u32 {
 /// Filesystem probes. Tests read per-scan counts, which also cover worker threads.
 #[derive(Default)]
 struct Probes {
+    #[cfg(all(test, target_os = "macos"))]
+    materialization_policies: std::sync::Mutex<Vec<i32>>,
     #[cfg(test)]
     metadata: std::sync::atomic::AtomicUsize,
     #[cfg(test)]
@@ -1330,33 +1377,53 @@ struct Probes {
 }
 
 impl Probes {
-    fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
-        #[cfg(test)]
-        self.metadata.fetch_add(1, Ordering::Relaxed);
-        fs::symlink_metadata(path)
+    #[cfg(test)]
+    fn record_policy(&self) {
+        #[cfg(target_os = "macos")]
+        self.materialization_policies
+            .lock()
+            .unwrap()
+            .push(materialization::current_policy());
     }
 
-    fn marker_is_file(&self, path: &Path) -> bool {
+    fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
         #[cfg(test)]
-        self.marker_probes.fetch_add(1, Ordering::Relaxed);
-        path.is_file()
+        {
+            self.record_policy();
+            self.metadata.fetch_add(1, Ordering::Relaxed);
+        }
+        fs::symlink_metadata(path).map_err(|error| materialization::describe_error(path, error))
+    }
+
+    fn marker_is_file(&self, path: &Path) -> std::io::Result<bool> {
+        #[cfg(test)]
+        {
+            self.record_policy();
+            self.marker_probes.fetch_add(1, Ordering::Relaxed);
+        }
+        fs::metadata(path)
+            .map(|metadata| metadata.is_file())
+            .map_err(|error| materialization::describe_error(path, error))
     }
 
     fn read_dir(&self, path: &Path) -> std::io::Result<fs::ReadDir> {
         #[cfg(test)]
         {
+            self.record_policy();
             let thread = std::thread::current().id();
             let mut threads = self.listing_threads.lock().unwrap();
             if !threads.contains(&thread) {
                 threads.push(thread);
             }
         }
-        fs::read_dir(path)
+        fs::read_dir(path).map_err(|error| materialization::describe_error(path, error))
     }
 
     #[cfg(test)]
     fn counts(&self) -> ProbeCounts {
         ProbeCounts {
+            #[cfg(target_os = "macos")]
+            materialization_policies: self.materialization_policies.lock().unwrap().clone(),
             metadata: self.metadata.load(Ordering::Relaxed),
             marker_probes: self.marker_probes.load(Ordering::Relaxed),
             listing_threads: self.listing_threads.lock().unwrap().clone(),
@@ -1367,6 +1434,8 @@ impl Probes {
 #[cfg(test)]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ProbeCounts {
+    #[cfg(target_os = "macos")]
+    pub materialization_policies: Vec<i32>,
     pub metadata: usize,
     pub marker_probes: usize,
     pub listing_threads: Vec<std::thread::ThreadId>,
@@ -1386,21 +1455,26 @@ fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
     }
 }
 
-fn marker_flags(path: &Path, probes: &Probes) -> u32 {
+fn marker_flags(path: &Path, probes: &Probes) -> (u32, Vec<(PathBuf, std::io::Error)>) {
     let mut flags = 0;
-    if probes.marker_is_file(&path.join("Cargo.toml")) {
-        flags |= MARKER_CARGO_TOML;
+    let mut errors = Vec::new();
+    for (name, flag) in [
+        ("Cargo.toml", MARKER_CARGO_TOML),
+        ("pyproject.toml", MARKER_PYPROJECT_TOML),
+        ("setup.py", MARKER_SETUP_PY),
+        ("setup.cfg", MARKER_SETUP_CFG),
+    ] {
+        let marker = path.join(name);
+        match probes.marker_is_file(&marker) {
+            Ok(true) => flags |= flag,
+            Ok(false) => {}
+            Err(error)
+                if error.kind() == std::io::ErrorKind::NotFound
+                    && !materialization::is_dataless_error(&error) => {}
+            Err(error) => errors.push((marker, error)),
+        }
     }
-    if probes.marker_is_file(&path.join("pyproject.toml")) {
-        flags |= MARKER_PYPROJECT_TOML;
-    }
-    if probes.marker_is_file(&path.join("setup.py")) {
-        flags |= MARKER_SETUP_PY;
-    }
-    if probes.marker_is_file(&path.join("setup.cfg")) {
-        flags |= MARKER_SETUP_CFG;
-    }
-    flags
+    (flags, errors)
 }
 
 fn is_policy_candidate(name: &[u8], is_directory: bool, own_markers: u32) -> bool {
@@ -1771,10 +1845,10 @@ mod tests {
         sync::atomic::{AtomicBool, AtomicU64, Ordering},
     };
 
-    struct TempTree(PathBuf);
+    pub(crate) struct TempTree(pub(crate) PathBuf);
 
     impl TempTree {
-        fn new() -> Self {
+        pub(crate) fn new() -> Self {
             static NEXT_ID: AtomicU64 = AtomicU64::new(0);
             loop {
                 let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
@@ -2665,6 +2739,27 @@ mod tests {
 
         assert_eq!(paths, [PathBuf::from("linked/target")]);
         assert_eq!(probes, 2, "only symlinked markers are resolved");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unreadable_symlinked_marker_is_visible_for_parent_and_selected_artifact() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join("target")).unwrap();
+        std::os::unix::fs::symlink("Cargo.toml", tree.0.join("Cargo.toml")).unwrap();
+        for root in [&tree.0, &tree.0.join("target")] {
+            let report = scan_with_policy(
+                root,
+                ScanOptions::default(),
+                &ScanControl::new(),
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            );
+            assert_eq!(report.status, ScanStatus::Incomplete);
+            assert_eq!(report.warnings.len(), 1);
+            assert!(report.warnings[0].relative_path.ends_with("Cargo.toml"));
+            assert!(report.artifacts.is_empty());
+        }
     }
 
     #[test]
