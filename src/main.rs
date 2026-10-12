@@ -154,6 +154,15 @@ fn main() {
         print_filter_catalog(json);
         return;
     }
+    // Root canonicalization and profile preflight can encounter evicted objects
+    // before the scanner installs its own per-thread protection.
+    let _materialization_guard = match build_hunter::NonMaterializingIoGuard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            eprintln!("Could not disable cloud downloads: {error}");
+            process::exit(1);
+        }
+    };
     let root = match fs::canonicalize(root.unwrap_or_else(|| PathBuf::from("."))) {
         Ok(path) if path.is_dir() => path,
         _ => {

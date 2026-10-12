@@ -34,13 +34,13 @@ mod darwin {
     }
 
     /// Must be dropped on the thread whose policy it changed, including unwind.
-    pub(crate) struct Guard {
+    pub struct Guard {
         previous: i32,
         _same_thread: PhantomData<Rc<()>>,
     }
 
     impl Guard {
-        pub(crate) fn enter() -> io::Result<Self> {
+        pub fn enter() -> io::Result<Self> {
             let previous = current()?;
             set(OFF)?;
             Ok(Self {
@@ -154,7 +154,7 @@ mod darwin {
 }
 
 #[cfg(target_os = "macos")]
-pub(crate) use darwin::Guard;
+pub use darwin::Guard;
 
 #[cfg(all(test, target_os = "macos"))]
 pub(crate) fn current_policy() -> i32 {
@@ -162,11 +162,11 @@ pub(crate) fn current_policy() -> i32 {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub(crate) struct Guard;
+pub struct Guard;
 
 #[cfg(not(target_os = "macos"))]
 impl Guard {
-    pub(crate) fn enter() -> std::io::Result<Self> {
+    pub fn enter() -> std::io::Result<Self> {
         Ok(Self)
     }
 }
@@ -180,13 +180,51 @@ pub(crate) fn describe_error(path: &std::path::Path, error: std::io::Error) -> s
         if std::fs::symlink_metadata(path)
             .is_ok_and(|metadata| metadata.st_flags() & SF_DATALESS != 0)
         {
-            return std::io::Error::new(
-                error.kind(),
-                format!("Skipped dataless cloud object; contents were not downloaded: {error}"),
-            );
+            return dataless_error(error);
         }
     }
     #[cfg(not(target_os = "macos"))]
     let _ = path;
     error
+}
+
+#[cfg(target_os = "macos")]
+#[derive(Debug)]
+struct DatalessError(std::io::Error);
+
+#[cfg(target_os = "macos")]
+impl std::fmt::Display for DatalessError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "Skipped dataless cloud object; contents were not downloaded: {}",
+            self.0
+        )
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl std::error::Error for DatalessError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub(crate) fn dataless_error(error: std::io::Error) -> std::io::Error {
+    std::io::Error::new(error.kind(), DatalessError(error))
+}
+
+pub(crate) fn is_dataless_error(error: &std::io::Error) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        error
+            .get_ref()
+            .is_some_and(|source| source.is::<DatalessError>())
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = error;
+        false
+    }
 }
