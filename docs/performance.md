@@ -150,3 +150,6 @@ development build and sequential warm scans, not a controlled speed claim.
 The live tree changed between scans (entry and byte totals differ), so these
 real-tree samples do not establish report parity. Owned paired fixtures provide
 that check. The source-tree paths and contents are not stored in this document.
+
+The controlled seven-pair result and raw evidence are saved in
+[diagnostics/bulk-metadata-20261012.md](diagnostics/bulk-metadata-20261012.md).
