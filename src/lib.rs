@@ -12,6 +12,7 @@ use std::{
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
+mod materialization;
 mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
@@ -459,6 +460,24 @@ pub fn scan_with_policy(
     mut emit: impl FnMut(&ScanEvent),
 ) -> ScanReport {
     let probes = Probes::default();
+    let _materialization = match materialization::Guard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            let warning = ScanWarning {
+                relative_path: PathBuf::from("."),
+                message: format!("Cannot prevent cloud downloads; scan was not started: {error}"),
+            };
+            emit(&ScanEvent::Warning(warning.clone()));
+            emit(&ScanEvent::Finished(ScanStatus::Failed));
+            return ScanReport {
+                artifacts: Vec::new(),
+                warnings: vec![warning],
+                status: ScanStatus::Failed,
+                #[cfg(test)]
+                probes: probes.counts(),
+            };
+        }
+    };
     let queue = WorkQueue::default();
     let workers = std::thread::available_parallelism()
         .map_or(1, std::num::NonZeroUsize::get)
@@ -653,6 +672,7 @@ struct ListTask {
 }
 
 enum WorkerMessage {
+    SetupFailed(std::io::Error),
     /// Sent before any metadata is read, so discovery does not wait for measurement.
     Listed {
         node: usize,
@@ -732,6 +752,13 @@ fn run_worker(
     // A panicking worker would never send its pending messages; closing the queue lets the
     // other workers exit, which disconnects the channel and releases the caller.
     let _close = CloseOnPanic(queue);
+    let _materialization = match materialization::Guard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            let _ = results.send(WorkerMessage::SetupFailed(error));
+            return;
+        }
+    };
     while let Some(task) = queue.pop() {
         let listing = list_directory(&task.path, control, probes);
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
@@ -991,6 +1018,14 @@ where
                 break;
             }
             match message {
+                WorkerMessage::SetupFailed(error) => {
+                    self.warn(
+                        self.root,
+                        format!("Cannot prevent cloud downloads on scanner worker: {error}"),
+                        &[],
+                    );
+                    self.control.fail();
+                }
                 WorkerMessage::Listed {
                     node,
                     listing,
@@ -1321,6 +1356,8 @@ fn marker_flag(name: &OsStr) -> u32 {
 /// Filesystem probes. Tests read per-scan counts, which also cover worker threads.
 #[derive(Default)]
 struct Probes {
+    #[cfg(all(test, target_os = "macos"))]
+    materialization_policies: std::sync::Mutex<Vec<i32>>,
     #[cfg(test)]
     metadata: std::sync::atomic::AtomicUsize,
     #[cfg(test)]
@@ -1330,33 +1367,51 @@ struct Probes {
 }
 
 impl Probes {
+    #[cfg(test)]
+    fn record_policy(&self) {
+        #[cfg(target_os = "macos")]
+        self.materialization_policies
+            .lock()
+            .unwrap()
+            .push(materialization::current_policy());
+    }
+
     fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
         #[cfg(test)]
-        self.metadata.fetch_add(1, Ordering::Relaxed);
-        fs::symlink_metadata(path)
+        {
+            self.record_policy();
+            self.metadata.fetch_add(1, Ordering::Relaxed);
+        }
+        fs::symlink_metadata(path).map_err(|error| materialization::describe_error(path, error))
     }
 
     fn marker_is_file(&self, path: &Path) -> bool {
         #[cfg(test)]
-        self.marker_probes.fetch_add(1, Ordering::Relaxed);
+        {
+            self.record_policy();
+            self.marker_probes.fetch_add(1, Ordering::Relaxed);
+        }
         path.is_file()
     }
 
     fn read_dir(&self, path: &Path) -> std::io::Result<fs::ReadDir> {
         #[cfg(test)]
         {
+            self.record_policy();
             let thread = std::thread::current().id();
             let mut threads = self.listing_threads.lock().unwrap();
             if !threads.contains(&thread) {
                 threads.push(thread);
             }
         }
-        fs::read_dir(path)
+        fs::read_dir(path).map_err(|error| materialization::describe_error(path, error))
     }
 
     #[cfg(test)]
     fn counts(&self) -> ProbeCounts {
         ProbeCounts {
+            #[cfg(target_os = "macos")]
+            materialization_policies: self.materialization_policies.lock().unwrap().clone(),
             metadata: self.metadata.load(Ordering::Relaxed),
             marker_probes: self.marker_probes.load(Ordering::Relaxed),
             listing_threads: self.listing_threads.lock().unwrap().clone(),
@@ -1367,6 +1422,8 @@ impl Probes {
 #[cfg(test)]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ProbeCounts {
+    #[cfg(target_os = "macos")]
+    pub materialization_policies: Vec<i32>,
     pub metadata: usize,
     pub marker_probes: usize,
     pub listing_threads: Vec<std::thread::ThreadId>,
@@ -1771,10 +1828,10 @@ mod tests {
         sync::atomic::{AtomicBool, AtomicU64, Ordering},
     };
 
-    struct TempTree(PathBuf);
+    pub(crate) struct TempTree(pub(crate) PathBuf);
 
     impl TempTree {
-        fn new() -> Self {
+        pub(crate) fn new() -> Self {
             static NEXT_ID: AtomicU64 = AtomicU64::new(0);
             loop {
                 let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
