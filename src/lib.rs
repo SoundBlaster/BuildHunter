@@ -305,6 +305,8 @@ pub struct ScanWarning {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ScanStatus {
     Completed,
+    /// Traversal finished, but observed entries disappeared before measurement.
+    CompletedWithChanges,
     Cancelled,
     Incomplete,
     Failed,
@@ -459,10 +461,20 @@ pub fn scan_with_policy(
     root: &Path,
     options: ScanOptions,
     control: &ScanControl,
+    policy: impl FnMut(&CandidateFacts) -> CandidateAction,
+    emit: impl FnMut(&ScanEvent),
+) -> ScanReport {
+    scan_with_probes(root, options, control, policy, emit, &Probes::default())
+}
+
+fn scan_with_probes(
+    root: &Path,
+    options: ScanOptions,
+    control: &ScanControl,
     mut policy: impl FnMut(&CandidateFacts) -> CandidateAction,
     mut emit: impl FnMut(&ScanEvent),
+    probes: &Probes,
 ) -> ScanReport {
-    let probes = Probes::default();
     let _materialization = match materialization::Guard::enter() {
         Ok(guard) => guard,
         Err(error) => {
@@ -492,7 +504,7 @@ pub fn scan_with_policy(
         .load(Ordering::Acquire)
         .then(profile::ProfileState::new);
     let profile = profile_state.as_ref();
-    let (artifacts, warnings) = std::thread::scope(|scope| {
+    let (artifacts, warnings, had_errors, changed) = std::thread::scope(|scope| {
         // Closing on every exit, including a panicking callback, lets the workers finish.
         let _close = CloseOnDrop(&queue);
         // Dropping the sender, also during unwinding, stops the sampler before the join.
@@ -506,7 +518,7 @@ pub fn scan_with_policy(
         });
         for _ in 0..workers {
             let sender = sender.clone();
-            let (queue, probes) = (&queue, &probes);
+            let queue = &queue;
             scope.spawn(move || {
                 thread_qos::apply(worker_qos);
                 run_worker(queue, &sender, control, probes)
@@ -519,28 +531,37 @@ pub fn scan_with_policy(
             control,
             policy: &mut policy,
             emit: &mut emit,
-            probes: &probes,
+            probes,
             queue: &queue,
             receiver,
             artifacts: Vec::new(),
             progress: Vec::new(),
             warnings: Vec::new(),
+            had_errors: false,
+            changed: false,
             nodes: Vec::new(),
             awaiting: std::collections::HashMap::new(),
             outstanding: 0,
             profile,
         };
         scanner.run();
-        (scanner.artifacts, scanner.warnings)
+        (
+            scanner.artifacts,
+            scanner.warnings,
+            scanner.had_errors,
+            scanner.changed,
+        )
     });
     let status = if control.is_failed() {
         ScanStatus::Failed
     } else if control.is_cancelled() {
         ScanStatus::Cancelled
-    } else if warnings.is_empty() {
-        ScanStatus::Completed
-    } else {
+    } else if had_errors {
         ScanStatus::Incomplete
+    } else if changed {
+        ScanStatus::CompletedWithChanges
+    } else {
+        ScanStatus::Completed
     };
     if let Some(profile) = profile {
         profile.counters.pending_tasks.store(0, Ordering::Relaxed);
@@ -871,6 +892,10 @@ fn list_directory(path: &Path, control: &ScanControl, probes: &Probes) -> Listin
             Err(error) => listing.errors.push((child, error)),
         }
     }
+    #[cfg(test)]
+    if let Err(error) = probes.hook(ProbePoint::Listed, path) {
+        listing.errors.push((path.to_owned(), error));
+    }
     listing
 }
 
@@ -921,6 +946,8 @@ struct Scanner<'a, P, E> {
     artifacts: Vec<Artifact>,
     progress: Vec<ArtifactProgress>,
     warnings: Vec<ScanWarning>,
+    had_errors: bool,
+    changed: bool,
     nodes: Vec<Option<DirNode>>,
     /// `None` marks a speculative measurement nobody needs.
     awaiting: std::collections::HashMap<usize, Option<PendingMeasure>>,
@@ -956,9 +983,27 @@ where
     }
 
     fn warn(&mut self, path: &Path, error: impl std::fmt::Display, chain: &[u64]) {
+        self.had_errors = true;
+        self.notice(path, error, chain);
+    }
+
+    fn io_error(&mut self, path: &Path, error: std::io::Error, chain: &[u64]) {
+        if error.kind() == std::io::ErrorKind::NotFound && path != self.root {
+            self.changed = true;
+            self.notice(
+                path,
+                "Changed during scan: entry disappeared before it could be measured",
+                chain,
+            );
+        } else {
+            self.warn(path, error, chain);
+        }
+    }
+
+    fn notice(&mut self, path: &Path, message: impl std::fmt::Display, chain: &[u64]) {
         let warning = ScanWarning {
             relative_path: relative_path(self.root, path),
-            message: error.to_string(),
+            message: message.to_string(),
         };
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.warnings, 1);
@@ -1156,7 +1201,7 @@ where
             Err(error) => {
                 let mut affected = chain.to_vec();
                 affected.extend(slot.artifact);
-                self.warn(&slot.path, error, &affected);
+                self.io_error(&slot.path, error, &affected);
                 0
             }
         };
@@ -1233,7 +1278,7 @@ where
             if index % 32 == 0 {
                 self.emit_profile();
             }
-            self.warn(&error_path, error, &chain);
+            self.io_error(&error_path, error, &chain);
         }
         let mut files = Vec::new();
         for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
@@ -1313,7 +1358,7 @@ where
                         progress.bytes = progress.bytes.saturating_add(bytes);
                     }
                 }
-                Err(error) => self.warn(&path, error, &chain),
+                Err(error) => self.io_error(&path, error, &chain),
             }
         }
         for (index, slot) in slots.iter().enumerate() {
@@ -1366,6 +1411,8 @@ fn marker_flag(name: &OsStr) -> u32 {
 /// Filesystem probes. Tests read per-scan counts, which also cover worker threads.
 #[derive(Default)]
 struct Probes {
+    #[cfg(test)]
+    hook: Option<Box<ProbeHook>>,
     #[cfg(all(test, target_os = "macos"))]
     materialization_policies: std::sync::Mutex<Vec<i32>>,
     #[cfg(test)]
@@ -1377,6 +1424,10 @@ struct Probes {
 }
 
 impl Probes {
+    #[cfg(test)]
+    fn hook(&self, point: ProbePoint, path: &Path) -> std::io::Result<()> {
+        self.hook.as_ref().map_or(Ok(()), |hook| hook(point, path))
+    }
     #[cfg(test)]
     fn record_policy(&self) {
         #[cfg(target_os = "macos")]
@@ -1391,6 +1442,7 @@ impl Probes {
         {
             self.record_policy();
             self.metadata.fetch_add(1, Ordering::Relaxed);
+            self.hook(ProbePoint::Metadata, path)?;
         }
         fs::symlink_metadata(path).map_err(|error| materialization::describe_error(path, error))
     }
@@ -1410,6 +1462,7 @@ impl Probes {
         #[cfg(test)]
         {
             self.record_policy();
+            self.hook(ProbePoint::ReadDir, path)?;
             let thread = std::thread::current().id();
             let mut threads = self.listing_threads.lock().unwrap();
             if !threads.contains(&thread) {
@@ -1429,6 +1482,17 @@ impl Probes {
             listing_threads: self.listing_threads.lock().unwrap().clone(),
         }
     }
+}
+
+#[cfg(test)]
+type ProbeHook = dyn Fn(ProbePoint, &Path) -> std::io::Result<()> + Send + Sync;
+
+#[cfg(test)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ProbePoint {
+    Metadata,
+    ReadDir,
+    Listed,
 }
 
 #[cfg(test)]
@@ -1831,6 +1895,7 @@ fn path_bytes(path: &Path) -> Vec<u8> {
 fn status_code(status: ScanStatus) -> i32 {
     match status {
         ScanStatus::Completed => 0,
+        ScanStatus::CompletedWithChanges => 4,
         ScanStatus::Cancelled => 1,
         ScanStatus::Incomplete => 2,
         ScanStatus::Failed => 3,
@@ -1867,6 +1932,165 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn vanished_file_marks_its_artifact_partial_without_failing_the_scan() {
+        let tree = TempTree::new();
+        let file = tree.0.join(".build/object.o");
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(&file, b"temporary object").unwrap();
+        let removed = AtomicBool::new(false);
+        let probes = Probes {
+            hook: Some(Box::new(move |point, path| {
+                if point == ProbePoint::Metadata
+                    && path == file
+                    && !removed.swap(true, Ordering::SeqCst)
+                {
+                    fs::remove_file(path)?;
+                }
+                Ok(())
+            })),
+            ..Probes::default()
+        };
+        let report = scan_with_probes(
+            &tree.0,
+            ScanOptions::default(),
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+            &probes,
+        );
+        assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+        assert!(report.artifacts[0].partial);
+        assert!(report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    fn scan_hooked(
+        tree: &TempTree,
+        hook: impl Fn(ProbePoint, &Path) -> std::io::Result<()> + Send + Sync + 'static,
+    ) -> ScanReport {
+        scan_with_probes(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+            &Probes {
+                hook: Some(Box::new(hook)),
+                ..Probes::default()
+            },
+        )
+    }
+
+    #[test]
+    fn vanished_directory_marks_ancestors_but_not_other_artifacts() {
+        let tree = TempTree::new();
+        let removed = tree.0.join(".build/__pycache__");
+        fs::create_dir_all(&removed).unwrap();
+        fs::write(removed.join("module.pyc"), b"temporary").unwrap();
+        fs::create_dir_all(tree.0.join(".pytest_cache")).unwrap();
+        let once = AtomicBool::new(false);
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::ReadDir && path == removed && !once.swap(true, Ordering::SeqCst)
+            {
+                fs::remove_dir_all(path)?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+        assert_eq!(report.artifacts.len(), 3);
+        for artifact in &report.artifacts {
+            assert_eq!(
+                artifact.partial,
+                artifact.relative_path.starts_with(".build")
+            );
+        }
+        assert_eq!(status_code(report.status), 4);
+    }
+
+    #[test]
+    fn renamed_file_is_reported_as_changed_without_counting_its_new_name_twice() {
+        let tree = TempTree::new();
+        let old = tree.0.join(".build/old.o");
+        fs::create_dir_all(old.parent().unwrap()).unwrap();
+        fs::write(&old, b"temporary").unwrap();
+        let once = AtomicBool::new(false);
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::Metadata && path == old && !once.swap(true, Ordering::SeqCst) {
+                fs::rename(path, path.with_file_name("new.o"))?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+        assert!(report.artifacts[0].partial);
+        assert_eq!(
+            report.total_bytes(),
+            fs::symlink_metadata(tree.0.join(".build")).unwrap().len()
+        );
+    }
+
+    #[test]
+    fn new_files_before_listing_are_included_and_after_listing_wait_for_rescan() {
+        for point in [ProbePoint::ReadDir, ProbePoint::Listed] {
+            let tree = TempTree::new();
+            let build = tree.0.join(".build");
+            fs::create_dir(&build).unwrap();
+            fs::write(build.join("old.o"), b"old").unwrap();
+            let once = AtomicBool::new(false);
+            let report = scan_hooked(&tree, move |observed, path| {
+                if observed == point && path == build && !once.swap(true, Ordering::SeqCst) {
+                    fs::write(path.join("new.o"), b"new object")?;
+                }
+                Ok(())
+            });
+            let directory_bytes = fs::symlink_metadata(tree.0.join(".build")).unwrap().len();
+            let new_bytes = if point == ProbePoint::ReadDir { 10 } else { 0 };
+            assert_eq!(report.total_bytes(), directory_bytes + 3 + new_bytes);
+            assert_eq!(report.status, ScanStatus::Completed);
+            assert!(report.warnings.is_empty());
+            assert!(!report.artifacts[0].partial);
+        }
+    }
+
+    #[test]
+    fn disappearance_of_selected_root_remains_an_error() {
+        let tree = TempTree::new();
+        let root = tree.0.clone();
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::ReadDir && path == root {
+                fs::remove_dir(path)?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert!(!report.warnings.is_empty());
+        assert!(!report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    #[test]
+    fn real_errors_still_make_a_changing_scan_incomplete() {
+        let tree = TempTree::new();
+        let build = tree.0.join(".build");
+        fs::create_dir(&build).unwrap();
+        fs::write(build.join("vanish.o"), b"gone").unwrap();
+        fs::write(build.join("denied.o"), b"denied").unwrap();
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::Metadata {
+                if path.file_name() == Some(OsStr::new("vanish.o")) {
+                    return Err(std::io::Error::from(std::io::ErrorKind::NotFound));
+                }
+                if path.file_name() == Some(OsStr::new("denied.o")) {
+                    return Err(std::io::Error::from(std::io::ErrorKind::PermissionDenied));
+                }
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert_eq!(report.warnings.len(), 2);
+        assert!(report.artifacts[0].partial);
     }
 
     #[test]

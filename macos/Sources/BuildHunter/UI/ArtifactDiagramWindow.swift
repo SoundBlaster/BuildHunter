@@ -58,7 +58,7 @@ struct ArtifactDiagramWindow: View {
                 }
             }
             WindowStatusBar {
-                Label("Known artifact sizes. Tiny folders are enlarged for visibility; partial sizes are lower bounds.",
+                Label("Known artifact sizes. Tiny folders are enlarged for visibility; partial sizes may change.",
                       systemImage: "chart.pie.fill")
             }
         }

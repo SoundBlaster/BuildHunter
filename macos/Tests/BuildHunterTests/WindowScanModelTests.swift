@@ -325,6 +325,27 @@ struct WindowScanModelTests {
         #expect(!model.warnings.isEmpty)
     }
 
+    @Test("Rust changed-tree completion keeps notices and partial rows without failing the scan")
+    func changedTreeCompletionKeepsPartialRows() async {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel,
+                                           policy: BuildHunterScanPolicy(filters: SearchFilterSnapshot(
+                                            excludedFilterIDs: [], catalog: [])))
+        let artifact = makeArtifact()
+        channel.send(.discovered(generation: 1, artifact: artifact))
+        channel.send(.completed(generation: 1, artifactID: artifact.id, bytes: 20, partial: true))
+        channel.send(.warning(generation: 1, message: "Changed during scan: temporary file disappeared"))
+        bridge.finish(status: 4)
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Changing tree")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .completed)
+        #expect(model.rows.first?.size == .partial(20))
+        #expect(model.warnings.count == 1)
+    }
+
     @Test("Duplicate and out-of-order events do not duplicate rows or invent a size")
     func duplicateAndOutOfOrderEventsAreSafe() {
         let model = WindowScanModel(source: ControlledScanSource())

@@ -43,3 +43,26 @@ On a Mac with iCloud Desktop & Documents and Optimize Mac Storage enabled:
 
 Policy unit tests prove thread setup/restoration, not live File Provider behavior
 or sandbox acceptance. The exact denial errno has not been observed yet.
+
+## Changes during traversal (#50)
+
+An observed child that returns `NotFound` during listing/measurement produces a
+"Changed during scan" notice and marks its affected artifact ancestry partial.
+If traversal otherwise finishes, the terminal status is `CompletedWithChanges`
+(C ABI status 4), rather than `Incomplete`. Missing selected roots, permission
+errors and other I/O failures still make the scan incomplete; failure/cancellation
+take precedence over changed-tree completion. The GUI retains notices and partial
+rows. The CLI returns success for changed-tree completion and includes `partial`
+in each JSON artifact, or a partial/changed suffix in its text table.
+
+This is a best-effort observation, not an atomic filesystem snapshot: creations
+before a directory listing can be included, creations after it wait for a rescan.
+A rename observed between listing and measurement is treated like disappearance
+of the old name; the new name is not invented or counted again. Undetected
+replacements and changes after measurement are not claimed to be detected.
+Partial/changed byte sums are estimates, not guaranteed lower bounds.
+
+Deterministic per-scan probe hooks test deletion, directory removal, rename,
+creation before/after listing, selected-root disappearance and real error
+precedence without sleeps or a racing test thread. These tests define the
+contract that any experimental traversal must preserve.

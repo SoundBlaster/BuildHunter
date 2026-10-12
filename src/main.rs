@@ -227,6 +227,7 @@ fn main() {
             });
         let status = match report.status {
             build_hunter::ScanStatus::Completed => "completed",
+            build_hunter::ScanStatus::CompletedWithChanges => "completed_with_changes",
             build_hunter::ScanStatus::Cancelled => "cancelled",
             build_hunter::ScanStatus::Incomplete => "incomplete",
             build_hunter::ScanStatus::Failed => "failed",
@@ -263,13 +264,14 @@ fn main() {
         );
         for (i, row) in rows.iter().enumerate() {
             println!(
-                "{}{{\"path\":{},\"language\":{},\"kind\":{},\"bytes\":{},\"nested\":{}}}",
+                "{}{{\"path\":{},\"language\":{},\"kind\":{},\"bytes\":{},\"nested\":{},\"partial\":{}}}",
                 if i == 0 { "" } else { "," },
                 quoted(&root.join(&row.relative_path).to_string_lossy()),
                 quoted(row.language),
                 quoted(row.kind),
                 row.bytes,
-                row.nested
+                row.nested,
+                row.partial
             );
         }
         println!(
@@ -297,12 +299,17 @@ fn main() {
         );
         for row in &rows {
             println!(
-                "{:>14}  {:<7}  {:<11}  {}{}",
+                "{:>14}  {:<7}  {:<11}  {}{}{}",
                 human(row.bytes),
                 row.language,
                 row.kind,
                 row.relative_path.display(),
-                if row.nested { " [nested]" } else { "" }
+                if row.nested { " [nested]" } else { "" },
+                if row.partial {
+                    " [partial / changed]"
+                } else {
+                    ""
+                }
             );
         }
         println!(
@@ -319,7 +326,10 @@ fn main() {
             );
         }
     }
-    if !report.warnings.is_empty() {
+    if matches!(
+        report.status,
+        build_hunter::ScanStatus::Incomplete | build_hunter::ScanStatus::Failed
+    ) {
         process::exit(1);
     }
 }
