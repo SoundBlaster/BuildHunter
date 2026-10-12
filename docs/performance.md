@@ -7,6 +7,28 @@ the timed operations. No user project is used as test data.
 
 ## Rust scanner
 
+### CPU, RAM and profiling overhead
+
+```sh
+python3 scripts/profile_resources.py
+```
+
+This builds one Release `profile_tree` binary and scans an owned fixture (128
+folders, 131,072 files). After warm-up it runs seven profiling-on/off pairs in
+alternating order, requiring identical full artifact reports. `report.json`
+includes per-run process CPU/RSS timelines, CPU time, core-equivalent utilization,
+time-weighted RSS, sampled peak RSS, elapsed-time medians/p95/MAD and paired
+profiling overhead. The performance CI job publishes both JSON and a Markdown
+summary on macOS and Linux. The existing backend comparison also records CPU/RSS
+for portable and bulk scans; its `/usr/bin/time` lifetime peak stays separate.
+
+Compare within one machine/run: host, architecture, compiler, source SHA, dirty
+state and harness hash are recorded. Do not compare absolute CI times or memory
+with a developer Mac. CPU 100% means one logical core; RSS includes runtime memory
+and can fluctuate with the allocator. Sampling at ~100 ms can miss short peaks;
+missing readings remain unavailable. These are process resource metrics, not
+energy measurements. Profiling-off scans create no resource sampler or probes.
+
 ```sh
 cargo bench --locked --bench scanner
 python3 scripts/compare_performance.py --baseline-ref origin/main

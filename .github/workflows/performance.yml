@@ -30,6 +30,8 @@ jobs:
       - name: Compare opt-in macOS batch metadata backend
         if: runner.os == 'macOS'
         run: python3 scripts/compare_backends.py
+      - name: Record process CPU and RAM and profiling overhead
+        run: python3 scripts/profile_resources.py
       - name: Publish job summary
         if: always()
         run: |
@@ -38,6 +40,9 @@ jobs:
           fi
           if test -f target/performance/bulk/report.md; then
             cat target/performance/bulk/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if test -f target/performance/resources/report.md; then
+            cat target/performance/resources/report.md >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Publish raw samples and comparison
         if: always()
@@ -49,5 +54,7 @@ jobs:
             target/performance/report.md
             target/performance/bulk/report.json
             target/performance/bulk/report.md
+            target/performance/resources/report.json
+            target/performance/resources/report.md
           if-no-files-found: warn
           retention-days: 7

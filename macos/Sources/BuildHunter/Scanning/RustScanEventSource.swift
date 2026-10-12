@@ -313,7 +313,10 @@ final class RustScanBridgeContext: @unchecked Sendable {
                     artifacts: sample.artifacts,
                     warnings: sample.warnings > .max - bridgeGeneratedWarnings
                         ? .max : sample.warnings + bridgeGeneratedWarnings,
-                    pendingTasks: sample.pending_tasks
+                    pendingTasks: sample.pending_tasks,
+                    cpuUserNanoseconds: sample.resource_flags & 1 != 0 ? sample.cpu_user_ns : nil,
+                    cpuSystemNanoseconds: sample.resource_flags & 1 != 0 ? sample.cpu_system_ns : nil,
+                    residentBytes: sample.resource_flags & 2 != 0 ? sample.resident_bytes : nil
                 )))
             }
         default:

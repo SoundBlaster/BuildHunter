@@ -68,7 +68,10 @@ enum MockScanState: String, CaseIterable, Identifiable {
                 measuredBytes: squared * 1_000_000,
                 artifacts: min(count, 3),
                 warnings: warningCount,
-                pendingTasks: 0
+                pendingTasks: 0,
+                cpuUserNanoseconds: count * 50_000_000,
+                cpuSystemNanoseconds: count * 10_000_000,
+                residentBytes: (64 + count) * 1_048_576
             )
         }
     }

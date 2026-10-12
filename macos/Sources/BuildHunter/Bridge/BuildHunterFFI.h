@@ -31,6 +31,12 @@ typedef struct BHScanProfileSample {
     uint64_t artifacts;
     uint64_t warnings;
     uint64_t pending_tasks;
+    /* Process CPU deltas since scan start, in nanoseconds; RSS is current bytes.
+     * resource_flags: bit 0 CPU available, bit 1 RSS available. Rebuild with Rust. */
+    uint64_t cpu_user_ns;
+    uint64_t cpu_system_ns;
+    uint64_t resident_bytes;
+    uint64_t resource_flags;
 } BHScanProfileSample;
 
 typedef struct BHScanEvent {

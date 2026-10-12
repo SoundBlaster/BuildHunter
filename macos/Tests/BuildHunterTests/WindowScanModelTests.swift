@@ -47,6 +47,8 @@ struct WindowScanModelTests {
         #expect(profiles.last?.pendingTasks == 0)
         #expect(profiles.last?.artifacts == 2)
         #expect((profiles.last?.measuredBytes ?? 0) > 0)
+        #expect(profiles.last?.cpuUserNanoseconds != nil)
+        #expect((profiles.last?.residentBytes ?? 0) > 0)
         #expect(artifacts.map(\.relativePath).sorted() == ["Package/.build", "Service/target"])
         #expect(artifacts.map(\.language).sorted() == ["Rust", "Swift"])
     }
@@ -686,6 +688,60 @@ private struct TableIdleSource: ScanEventSource {
 @Suite("Scan profile metrics")
 @MainActor
 struct ScanProfileTests {
+    private func resourceSample(_ seconds: UInt64, user: UInt64?, system: UInt64?, rss: UInt64?) -> ScanProfileSnapshot {
+        ScanProfileSnapshot(elapsedMicroseconds: seconds * 1_000_000, entries: seconds,
+            directories: 0, measuredBytes: 0, artifacts: 0, warnings: 0, pendingTasks: 0,
+            cpuUserNanoseconds: user.map { $0 * 1_000_000_000 },
+            cpuSystemNanoseconds: system.map { $0 * 1_000_000_000 }, residentBytes: rss)
+    }
+
+    @Test("Process CPU can exceed 100 percent; RSS average is weighted by time")
+    func processResources() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        history.record(resourceSample(1, user: 3, system: 1, rss: 300))
+        history.record(resourceSample(3, user: 4, system: 2, rss: 100))
+        #expect(history.points.map(\.cpuPercent) == [400, 100])
+        #expect(history.averageCPUPercent == 200)
+        #expect(history.peakCPUPercent == 400)
+        #expect(history.initialResidentBytes == 100)
+        #expect(history.peakResidentBytes == 300)
+        #expect(history.averageResidentBytes == 200)
+        #expect(history.residentObservedSeconds == 3)
+    }
+
+    @Test("Missing resources are gaps; counter regressions cannot underflow")
+    func resourceGaps() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        history.record(resourceSample(1, user: 4, system: 1, rss: 300))
+        history.record(resourceSample(2, user: 3, system: 2, rss: nil))
+        #expect(history.points.last?.cpuPercent == nil)
+        #expect(history.averageCPUPercent == nil)
+        history.record(resourceSample(3, user: 6, system: 3, rss: 200))
+        history.record(resourceSample(4, user: 7, system: 4, rss: 400))
+        #expect(history.peakCPUPercent == 500)
+        #expect(history.averageResidentBytes == 250)
+        #expect(history.residentObservedSeconds == 2)
+        #expect(history.points.first?.cpuSeries != history.points.last?.cpuSeries)
+        #expect(history.points.first?.memorySeries != history.points.last?.memorySeries)
+    }
+
+    @Test("Evicting chart samples preserves resource peaks for the whole scan")
+    func resourceWindow() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        for second in 1...1_000 {
+            let time = UInt64(second)
+            history.record(resourceSample(time, user: time + 3, system: time,
+                                          rss: second == 1 ? 9999 : 100))
+        }
+        #expect(history.points.count == ScanProfileHistory.capacity)
+        #expect(history.peakResidentBytes == 9999)
+        #expect(history.peakCPUPercent == 500)
+        #expect(abs((history.averageCPUPercent ?? 0) - 200.3) < 0.0001)
+    }
+
     private func sample(_ seconds: UInt64, entries: UInt64, bytes: UInt64 = 0) -> ScanProfileSnapshot {
         ScanProfileSnapshot(elapsedMicroseconds: seconds * 1_000_000, entries: entries,
             directories: 0, measuredBytes: bytes, artifacts: 0, warnings: 0, pendingTasks: 0)
