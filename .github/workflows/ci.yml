@@ -37,3 +37,4 @@ jobs:
         run: |
           python scripts/test_performance_report.py
           python scripts/test_backend_comparison.py
+          python scripts/test_analyze_allocations.py

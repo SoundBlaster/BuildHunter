@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 
 def analyze(path):
     frames = {}
+    backtraces = {}
     categories = defaultdict(lambda: [0, 0])
     stacks = defaultdict(lambda: [0, 0])
     large = []
@@ -24,10 +25,17 @@ def analyze(path):
         if row.tag != "row":
             continue
         names = []
-        for frame in row.findall("./backtrace/frame"):
-            if "id" in frame.attrib:
-                frames[frame.attrib["id"]] = frame.attrib.get("name", "?")
-            names.append(frames.get(frame.attrib.get("ref"), frame.attrib.get("name", "?")))
+        backtrace = row.find("backtrace")
+        if backtrace is not None:
+            if "ref" in backtrace.attrib:
+                names = backtraces[backtrace.attrib["ref"]]
+            else:
+                for frame in backtrace.findall("frame"):
+                    if "id" in frame.attrib:
+                        frames[frame.attrib["id"]] = frame.attrib.get("name", "?")
+                    names.append(frames.get(frame.attrib.get("ref"), frame.attrib.get("name", "?")))
+            if "id" in backtrace.attrib:
+                backtraces[backtrace.attrib["id"]] = names
         if row.attrib.get("live") == "true":
             category = row.attrib.get("category", "?")
             size = int(row.attrib.get("size", "0"))

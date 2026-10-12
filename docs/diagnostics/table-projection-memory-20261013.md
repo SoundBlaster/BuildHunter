@@ -76,7 +76,8 @@ python3 scripts/analyze_allocations.py allocations.xml \
   --statistics statistics.xml --output analysis.json
 ```
 
-The analyzer streams the XML, resolves frame references and optionally checks
+The analyzer streams the XML, resolves individual frame and whole-backtrace
+references and optionally checks
 that summed live bytes match Statistics exactly. Raw traces and Memory Graphs
 stay local: they may contain user paths, object contents and process environment.
 The capture discarded freed events, so its exported total bytes do not represent
@@ -125,7 +126,10 @@ RSS alone can fall while retained objects are compressed or paged out.
 - All 133 Swift Testing unit tests passed.
 - UI column sorting passed for Path, Size and Language, including disabled
   Finder actions on mock rows.
-- The analyzer smoke check covers live/freed rows and backtrace frame references.
+- Three analyzer regression tests cover live/freed rows, frame references and
+  whole-backtrace references, including large-allocation attribution. The Rust CI
+  helper-test step runs them on all three platforms.
+- A final repeat of the rendered-table memory guard passed (3.786 seconds).
 - Computer Use: a real 4 KiB `.build` fixture completed scanning; the row's
   context menu opened Finder with the correct `.build` folder selected.
 - Local automated real-folder UI test did not pass the system Open panel. It
