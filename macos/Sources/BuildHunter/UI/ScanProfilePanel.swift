@@ -113,7 +113,7 @@ struct ScanProfilePanel: View {
                     .contentTransition(.numericText())
                     .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
             }
-            HStack(spacing: 24) {
+            HStack(spacing: 12) {
                 statistic("Current", value: metric.isResource || isScanning ? current : 0)
                 statistic("Average", value: average)
                 statistic("Peak", value: peak)
@@ -278,13 +278,21 @@ struct ScanProfilePanel: View {
     }
 
     private func statistic(_ title: String, value: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(title)
+                .fixedSize()
                 .nestedAccessibilityIdentifier(title.lowercased())
-            Text(value.map(formatted) ?? "—").font(.headline).monospacedDigit()
+            Text(value.map(formatted) ?? "—")
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
                 .nestedAccessibilityIdentifier("\(title.lowercased()).value")
                 .contentTransition(.numericText(value: value ?? 0))
                 .animation(sampleAnimation, value: value)
         }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        // Each statistic owns an equal column, independent of live digit counts.
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
 }
