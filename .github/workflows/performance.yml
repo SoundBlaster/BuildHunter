@@ -27,11 +27,17 @@ jobs:
         env:
           BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
         run: python3 scripts/compare_performance.py --baseline-ref "$BASELINE_REF"
+      - name: Compare opt-in macOS batch metadata backend
+        if: runner.os == 'macOS'
+        run: python3 scripts/compare_backends.py
       - name: Publish job summary
         if: always()
         run: |
           if test -f target/performance/report.md; then
             cat target/performance/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if test -f target/performance/bulk/report.md; then
+            cat target/performance/bulk/report.md >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Publish raw samples and comparison
         if: always()
@@ -41,5 +47,7 @@ jobs:
           path: |
             target/performance/report.json
             target/performance/report.md
+            target/performance/bulk/report.json
+            target/performance/bulk/report.md
           if-no-files-found: warn
           retention-days: 7

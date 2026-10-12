@@ -66,3 +66,17 @@ Deterministic per-scan probe hooks test deletion, directory removal, rename,
 creation before/after listing, selected-root disappearance and real error
 precedence without sleeps or a racing test thread. These tests define the
 contract that any experimental traversal must preserve.
+
+## Batch measurement experiment (#51)
+
+The optional `macos-bulk-metadata` feature accelerates only measured file sizes;
+ordinary CLI/GUI builds continue to use the portable implementation. It retains
+the worker's portable discovery listing, then reads batch metadata relative to
+an owned directory descriptor opened with `O_NOFOLLOW | O_DIRECTORY | O_CLOEXEC`.
+There is no persistent cache or watcher. Batch cancellation is checked between
+256 KiB calls. Missing entries are re-probed to distinguish disappeared files
+from unsupported metadata, using the same changed-tree semantics as above.
+All churn tests run with the feature enabled as well as disabled. See
+[performance.md](performance.md#opt-in-macos-batch-metadata-experiment-51) for the
+paired report-equality and timing harness. Full replacement of directory discovery
+and live iCloud/sandbox acceptance remain outside this initial experiment.
