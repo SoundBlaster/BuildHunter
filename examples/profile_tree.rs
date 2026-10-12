@@ -1,5 +1,7 @@
 //! Read-only, bounded real-tree phase measurement for the bulk-metadata experiment.
-use build_hunter::{ScanControl, ScanEvent, ScanOptions, rust_cli_policy, scan_with_policy};
+use build_hunter::{
+    ResourceHistory, ScanControl, ScanEvent, ScanOptions, rust_cli_policy, scan_with_policy,
+};
 #[cfg(unix)]
 use std::os::unix::ffi::OsStrExt;
 use std::{
@@ -11,24 +13,26 @@ fn main() {
     let args: Vec<_> = std::env::args().collect();
     assert!(
         args.len() >= 2,
-        "Usage: profile_tree PATH [--apparent] [--environments] [--cancel-on-first] [--report]"
+        "Usage: profile_tree PATH [--apparent] [--environments] [--cancel-on-first] [--report] [--no-profile]"
     );
     for flag in &args[2..] {
         assert!(
             matches!(
                 flag.as_str(),
-                "--apparent" | "--environments" | "--cancel-on-first" | "--report"
+                "--apparent" | "--environments" | "--cancel-on-first" | "--report" | "--no-profile"
             ),
             "Unknown option: {flag}"
         );
     }
     let control = ScanControl::new();
-    control.set_profiling(true);
+    control.set_profiling(!args.iter().any(|arg| arg == "--no-profile"));
     let start = Instant::now();
     let mut first_ns = None;
     let mut cancelled_at = None;
     let mut last_progress = Duration::ZERO;
     let mut last_sample = None;
+    let mut resources = ResourceHistory::default();
+    let mut samples = std::collections::VecDeque::new();
     let report = scan_with_policy(
         Path::new(&args[1]),
         ScanOptions {
@@ -46,6 +50,11 @@ fn main() {
             }
             if let ScanEvent::Profile(sample) = event {
                 last_sample = Some(*sample);
+                resources.record(*sample);
+                if samples.len() == 4096 {
+                    samples.pop_front();
+                }
+                samples.push_back(*sample);
                 if start.elapsed().saturating_sub(last_progress) >= Duration::from_secs(5) {
                     last_progress = start.elapsed();
                     eprintln!(
@@ -63,7 +72,7 @@ fn main() {
     );
     let timings = control.work_timings();
     println!(
-        "{{\"status\":\"{:?}\",\"elapsed_ns\":{},\"first_artifact_ns\":{},\"cancellation_latency_ns\":{},\"artifacts\":{},\"warnings\":{},\"bytes\":{},\"entries\":{},\"listing_worker_ns\":{},\"measurement_worker_ns\":{},\"bulk_directories\":{},\"bulk_fallbacks\":{},\"report\":{}}}",
+        "{{\"status\":\"{:?}\",\"elapsed_ns\":{},\"first_artifact_ns\":{},\"cancellation_latency_ns\":{},\"artifacts\":{},\"warnings\":{},\"bytes\":{},\"entries\":{},\"listing_worker_ns\":{},\"measurement_worker_ns\":{},\"bulk_directories\":{},\"bulk_fallbacks\":{},\"resources\":{},\"resource_samples\":[{}],\"report\":{}}}",
         report.status,
         start.elapsed().as_nanos(),
         first_ns.unwrap_or(0),
@@ -76,6 +85,16 @@ fn main() {
         timings.measurement_ns,
         timings.bulk_directories,
         timings.bulk_fallbacks,
+        resources.summary().json(),
+        samples
+            .iter()
+            .map(|sample| format!(
+                "{{\"elapsed_us\":{},{}}}",
+                sample.elapsed_us,
+                sample.resource_json_fields()
+            ))
+            .collect::<Vec<_>>()
+            .join(","),
         if args.iter().any(|arg| arg == "--report") {
             canonical_report(&report)
         } else {

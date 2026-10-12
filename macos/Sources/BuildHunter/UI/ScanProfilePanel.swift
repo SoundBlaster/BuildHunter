@@ -85,24 +85,28 @@ struct ScanProfilePanel: View {
 
     private enum Metric: String, CaseIterable {
         case entries = "Entries/s"
-        case bytes = "Measured bytes/s"
+        case bytes = "Bytes/s"
+        case cpu = "CPU"
+        case memory = "RAM"
+        var isResource: Bool { self == .cpu || self == .memory }
     }
 
     var body: some View {
         // Computed once per render; the chart reads them for every point.
-        let rateTop = max(1, profile.points.map(rate).max() ?? 0)
+        let rateTop = max(1, profile.points.compactMap(rate).max() ?? 0)
         // Found volume is cumulative, so the newest point is the largest.
         let foundTop = max(1, Double(profile.points.last?.measuredBytes ?? 0))
         let foundScale = rateTop / foundTop
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Picker("Throughput", selection: $metric) {
+                Picker("Metric", selection: $metric) {
                     ForEach(Metric.allCases, id: \.self) { value in
                         Text(value.rawValue).tag(value)
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: 320)
+                .frame(maxWidth: 400)
+                .nestedAccessibilityIdentifier("metric")
                 Spacer()
                 Text("\(profile.latest?.elapsedSeconds ?? 0, format: .number.precision(.fractionLength(1))) s")
                     .monospacedDigit().foregroundStyle(.secondary)
@@ -110,35 +114,45 @@ struct ScanProfilePanel: View {
                     .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
             }
             HStack(spacing: 24) {
-                statistic("Current", value: isScanning ? current : 0)
+                statistic("Current", value: metric.isResource || isScanning ? current : 0)
                 statistic("Average", value: average)
                 statistic("Peak", value: peak)
             }
             HStack(spacing: 16) {
                 legend(metric.rawValue, color: Self.rateColor)
-                legend("Found volume", color: Self.foundColor)
+                if !metric.isResource { legend("Found volume", color: Self.foundColor) }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
             Chart(profile.points) { point in
-                // Total found volume shares the plot; the trailing axis labels it in bytes.
-                AreaMark(x: .value("Elapsed seconds", point.seconds),
-                         y: .value("Found volume", Double(point.measuredBytes) * foundScale))
-                    .foregroundStyle(LinearGradient(colors: [Self.foundColor.opacity(0.35),
-                                                             Self.foundColor.opacity(0.02)],
-                                                    startPoint: .top, endPoint: .bottom))
-                LineMark(x: .value("Elapsed seconds", point.seconds),
-                         y: .value("Found volume", Double(point.measuredBytes) * foundScale),
-                         series: .value("Series", "Found volume"))
-                    .foregroundStyle(Self.foundColor)
-                    .accessibilityLabel("Found volume at \(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
-                    .accessibilityValue(bytesLabel(Double(point.measuredBytes)))
-                LineMark(x: .value("Elapsed seconds", point.seconds),
-                         y: .value(metric.rawValue, rate(point)),
-                         series: .value("Series", "Rate"))
-                    .foregroundStyle(Self.rateColor)
-                    .accessibilityLabel("\(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
-                    .accessibilityValue(formatted(rate(point)))
+                if !metric.isResource {
+                    // Total found volume shares throughput plots only.
+                    AreaMark(x: .value("Elapsed seconds", point.seconds),
+                             y: .value("Found volume", Double(point.measuredBytes) * foundScale))
+                        .foregroundStyle(LinearGradient(colors: [Self.foundColor.opacity(0.35),
+                                                                 Self.foundColor.opacity(0.02)],
+                                                        startPoint: .top, endPoint: .bottom))
+                    LineMark(x: .value("Elapsed seconds", point.seconds),
+                             y: .value("Found volume", Double(point.measuredBytes) * foundScale),
+                             series: .value("Series", "Found volume"))
+                        .foregroundStyle(Self.foundColor)
+                        .accessibilityLabel("Found volume at \(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
+                        .accessibilityValue(bytesLabel(Double(point.measuredBytes)))
+                }
+                if let value = rate(point) {
+                    LineMark(x: .value("Elapsed seconds", point.seconds),
+                             y: .value(metric.rawValue, value),
+                             series: .value("Series", series(point)))
+                        .foregroundStyle(Self.rateColor)
+                        .accessibilityLabel("\(point.seconds, format: .number.precision(.fractionLength(1))) seconds")
+                        .accessibilityValue(formatted(value))
+                    if metric.isResource {
+                        PointMark(x: .value("Elapsed seconds", point.seconds),
+                                  y: .value(metric.rawValue, value))
+                            .symbolSize(8).foregroundStyle(Self.rateColor)
+                            .accessibilityHidden(true)
+                    }
+                }
             }
             .chartYScale(domain: 0...rateTop)
             .chartXAxisLabel("Elapsed seconds")
@@ -149,10 +163,12 @@ struct ScanProfilePanel: View {
                         if let number = value.as(Double.self) { Text(formatted(number)) }
                     }
                 }
-                AxisMarks(position: .trailing, values: [0, rateTop / 2, rateTop]) { value in
-                    AxisValueLabel {
-                        if let number = value.as(Double.self) {
-                            Text(bytesLabel(number / foundScale))
+                if !metric.isResource {
+                    AxisMarks(position: .trailing, values: [0, rateTop / 2, rateTop]) { value in
+                        AxisValueLabel {
+                            if let number = value.as(Double.self) {
+                                Text(bytesLabel(number / foundScale))
+                            }
                         }
                     }
                 }
@@ -169,6 +185,13 @@ struct ScanProfilePanel: View {
                 }
             }
             .frame(height: 140)
+            .overlay {
+                if metric.isResource && profile.points.compactMap(rate).isEmpty {
+                    Text("No resource readings available").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            // Units change between metrics; never interpolate bytes into CPU percentages.
+            .id(metric)
             .nestedAccessibilityIdentifier("chart")
             if let sample = profile.latest {
                 Text("\(sample.entries) entries · \(sample.directories) folders · \(sample.artifacts) artifacts · \(sample.warnings) warnings · \(sample.pendingTasks) pending tasks")
@@ -176,7 +199,14 @@ struct ScanProfilePanel: View {
             } else {
                 Text("Waiting for scan samples…").font(.caption).foregroundStyle(.secondary)
             }
-            Text("Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks cover the entire scan.")
+            if metric == .cpu, let sample = profile.latest,
+               let user = sample.cpuUserNanoseconds, let system = sample.cpuSystemNanoseconds {
+                Text("CPU time: \(Double(user) / 1e9, format: .number.precision(.fractionLength(2))) s user · \(Double(system) / 1e9, format: .number.precision(.fractionLength(2))) s system")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Text(metric.isResource
+                 ? "Entire BuildHunter process, including UI and other scans. CPU 100% = one logical core. RAM is resident memory (RSS); sampled peaks can miss brief spikes. Averages and peaks cover the entire scan."
+                 : "Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks cover the entire scan.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -200,27 +230,60 @@ struct ScanProfilePanel: View {
         }
     }
 
-    private var current: Double { profile.points.last.map(rate) ?? 0 }
-    private var average: Double { metric == .entries ? profile.averageEntriesPerSecond : profile.averageBytesPerSecond }
-    private var peak: Double { metric == .entries ? profile.peakEntriesPerSecond : profile.peakBytesPerSecond }
+    private var current: Double? {
+        if metric == .memory { return profile.latest?.residentBytes.map { Double($0) } }
+        return profile.points.last.flatMap(rate)
+    }
+    private var average: Double? {
+        switch metric {
+        case .entries: profile.averageEntriesPerSecond
+        case .bytes: profile.averageBytesPerSecond
+        case .cpu: profile.averageCPUPercent
+        case .memory: profile.averageResidentBytes
+        }
+    }
+    private var peak: Double? {
+        switch metric {
+        case .entries: profile.peakEntriesPerSecond
+        case .bytes: profile.peakBytesPerSecond
+        case .cpu: profile.peakCPUPercent
+        case .memory: profile.peakResidentBytes.map { Double($0) }
+        }
+    }
 
-    private func rate(_ point: ScanProfilePoint) -> Double {
-        metric == .entries ? point.entriesPerSecond : point.bytesPerSecond
+    private func rate(_ point: ScanProfilePoint) -> Double? {
+        switch metric {
+        case .entries: point.entriesPerSecond
+        case .bytes: point.bytesPerSecond
+        case .cpu: point.cpuPercent
+        case .memory: point.residentBytes.map { Double($0) }
+        }
+    }
+
+    private func series(_ point: ScanProfilePoint) -> String {
+        switch metric {
+        case .cpu: "CPU-\(point.cpuSeries)"
+        case .memory: "RAM-\(point.memorySeries)"
+        default: "Rate"
+        }
     }
 
     private func formatted(_ value: Double) -> String {
-        if metric == .bytes {
-            return ByteCountFormatter.string(fromByteCount: Int64(clamping: UInt64(min(value, Double(UInt64.max / 2)))), countStyle: .binary) + "/s"
+        switch metric {
+        case .bytes: return bytesLabel(value) + "/s"
+        case .memory: return bytesLabel(value)
+        case .cpu: return value.formatted(.number.precision(.fractionLength(0))) + "%"
+        case .entries: return value.formatted(.number.precision(.fractionLength(0))) + " entries/s"
         }
-        return value.formatted(.number.precision(.fractionLength(0))) + " entries/s"
     }
 
-    private func statistic(_ title: String, value: Double) -> some View {
+    private func statistic(_ title: String, value: Double?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.caption).foregroundStyle(.secondary)
                 .nestedAccessibilityIdentifier(title.lowercased())
-            Text(formatted(value)).font(.headline).monospacedDigit()
-                .contentTransition(.numericText(value: value))
+            Text(value.map(formatted) ?? "—").font(.headline).monospacedDigit()
+                .nestedAccessibilityIdentifier("\(title.lowercased()).value")
+                .contentTransition(.numericText(value: value ?? 0))
                 .animation(sampleAnimation, value: value)
         }
     }

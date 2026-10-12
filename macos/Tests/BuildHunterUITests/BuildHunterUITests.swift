@@ -44,6 +44,15 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average"].exists)
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
         attachScreenshot(named: "scan-profile-completed", from: app)
+        app.radioButtons["CPU"].click()
+        let current = app.staticTexts["buildhunter.report.profile.current.value"]
+        XCTAssertTrue(current.waitForExistence(timeout: 5))
+        expectValue("24%", of: current)
+        attachScreenshot(named: "scan-profile-cpu", from: app)
+        app.radioButtons["RAM"].click()
+        let terminalRAM = ByteCountFormatter.string(fromByteCount: 104 * 1_048_576, countStyle: .binary)
+        expectValue(terminalRAM, of: current)
+        attachScreenshot(named: "scan-profile-ram", from: app)
         app.typeKey(.escape, modifierFlags: [])
         let closed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"), object: chart)

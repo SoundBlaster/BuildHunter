@@ -13,7 +13,22 @@ import subprocess
 import tempfile
 
 
-METRICS = ("elapsed_ns", "first_artifact_ns", "cancellation_latency_ns", "listing_worker_ns", "measurement_worker_ns", "peak_rss_bytes")
+RESOURCE_METRICS = ("cpu_total_ns", "average_cpu_cores", "peak_cpu_cores", "average_rss_bytes", "sampled_peak_rss_bytes")
+METRICS = ("elapsed_ns", "first_artifact_ns", "cancellation_latency_ns", "listing_worker_ns", "measurement_worker_ns", "peak_rss_bytes") + RESOURCE_METRICS
+
+
+def resource_metrics(data):
+    """Fail explicitly on unavailable accounting, rather than reporting zero use."""
+    resources = data["resources"]
+    if resources.get("scope") != "process":
+        raise ValueError("Resource accounting must be process-wide")
+    keys = ("cpu_user_ns", "cpu_system_ns") + RESOURCE_METRICS[1:]
+    for key in keys:
+        value = resources.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            raise ValueError(f"Unavailable or invalid process resource metric: {key}")
+    return {"cpu_total_ns": resources["cpu_user_ns"] + resources["cpu_system_ns"],
+            **{key: resources[key] for key in RESOURCE_METRICS[1:]}}
 
 
 def summary(values):
@@ -107,6 +122,7 @@ def main():
             if not match:
                 raise ValueError("Missing macOS peak RSS measurement")
             data["peak_rss_bytes"] = int(match[1])
+            data.update(resource_metrics(data))
             return data
 
         for name, mode in scenarios:
@@ -140,9 +156,15 @@ def main():
     for scenario, variants in summaries.items():
         old, new = variants["portable"], variants["bulk"]
         lines.append(f"| {scenario} | {old['elapsed_ns']['median']/1e6:.3f} | {new['elapsed_ns']['median']/1e6:.3f} | {new['elapsed_ns']['median']/old['elapsed_ns']['median']:.2f} | {old['peak_rss_bytes']['median']/2**20:.2f} | {new['peak_rss_bytes']['median']/2**20:.2f} |")
+    lines += ["", "| Scenario | Portable CPU ms | Bulk CPU ms | Portable mean CPU | Bulk mean CPU | Portable mean RSS MiB | Bulk mean RSS MiB |",
+              "|---|---:|---:|---:|---:|---:|---:|"]
+    for scenario, variants in summaries.items():
+        old, new = variants["portable"], variants["bulk"]
+        lines.append(f"| {scenario} | {old['cpu_total_ns']['median']/1e6:.3f} | {new['cpu_total_ns']['median']/1e6:.3f} | {old['average_cpu_cores']['median']*100:.0f}% | {new['average_cpu_cores']['median']*100:.0f}% | {old['average_rss_bytes']['median']/2**20:.2f} | {new['average_rss_bytes']['median']/2**20:.2f} |")
     lines += ["", "All paired reports match exactly. Experimental feature is disabled by default.",
               "Timing ratios are diagnostic; this job gates report equality and real batch usage.",
-              "Raw samples include first discovery, cancellation-to-return latency and aggregate worker phase times."]
+              "Raw samples include CPU/RSS timelines, sampled peaks, first discovery, cancellation-to-return latency and aggregate worker phase times.",
+              "CPU 100% is one logical core. RSS is process-wide; /usr/bin/time peak includes startup/serialization, unlike the scan's sampled RSS."]
     markdown = "\n".join(lines) + "\n"
     (output / "report.md").write_text(markdown)
     print(markdown)

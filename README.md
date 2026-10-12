@@ -133,6 +133,29 @@ scan finishes; clicking the chart opens a popover with entries/s or measured byt
 counters, and a live chart of the latest 600 intervals (about one minute). A second
 line with a gradient fill shows the total found volume (cumulative measured bytes),
 labelled on the chart's trailing axis.
+The same picker offers **CPU** and **RAM** timelines. CPU percentages use 100%
+per logical core (600% means six cores), with cumulative user/system CPU seconds.
+RAM shows current resident memory (RSS), its time-weighted mean and sampled peak.
+These readings describe the entire BuildHunter process, including its UI and
+other concurrent scans; they are not attributed to a single window. Completed
+scans retain their last resource readings. Missing OS readings show a gap/“—”.
 Collecting samples does not depend on whether the popover is open. Stop keeps
 the profile and shows current speed as zero. Rescan/replacing the folder resets
 it and rejects stale events. Profiles are kept only for the current window.
+
+CLI profile schema 1 adds a `resources` summary and nullable `cpu_user_ns`,
+`cpu_system_ns`, `resident_bytes` to each sample. CPU counters are process-time
+deltas from scan start; interval CPU cores are `(Δuser_ns + Δsystem_ns) /
+(Δelapsed_us * 1000)`. `average_cpu_cores` includes idle/permission-prompt time.
+`average_rss_bytes` integrates adjacent valid RSS readings with trapezoids;
+`rss_observed_us` reports that coverage and excludes missing intervals.
+RSS includes baseline runtime memory; it is not bytes newly allocated by scanning
+or disk cache. `sampled_peak_rss_bytes` can miss spikes shorter than the ~100 ms
+cadence. It differs from the process-lifetime peak reported by `/usr/bin/time`.
+macOS, 64-bit Linux and Windows supply process accounting; unsupported platforms
+or failed OS queries produce `null`, never a fabricated zero. Linux RSS uses the
+kernel's approximate `/proc/self/statm` accounting. Without `--profile`, resource
+probes and the sampler are not created. None of these readings measures energy.
+
+The internal C profile payload now has 11 `uint64_t` fields (88 bytes); rebuild
+the Rust static library and Swift bridge from matching sources together.

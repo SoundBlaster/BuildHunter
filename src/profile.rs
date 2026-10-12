@@ -17,6 +17,12 @@ pub struct ScanProfileSample {
     pub artifacts: u64,
     pub warnings: u64,
     pub pending_tasks: u64,
+    /// Process CPU time since this scan's baseline, not per-window attribution.
+    pub cpu_user_ns: u64,
+    pub cpu_system_ns: u64,
+    /// Current process RSS; resource_flags marks availability, never guessed zero.
+    pub resident_bytes: u64,
+    pub resource_flags: u64,
 }
 
 /// Written only by the coordinator thread and read by the sampler.
@@ -39,7 +45,7 @@ pub(crate) fn bump(counter: &AtomicU64, amount: u64) {
 }
 
 /// Samples waiting for the coordinator. Unbounded on purpose: dropping here would hide
-/// losses from the report's truncation count, and a stall costs only 56 bytes per interval.
+/// losses from the report's truncation count, and a stall costs only 88 bytes per interval.
 #[derive(Default)]
 struct Pending {
     samples: VecDeque<ScanProfileSample>,
@@ -48,6 +54,7 @@ struct Pending {
 
 pub(crate) struct ProfileState {
     started: Instant,
+    cpu_baseline: Option<(u64, u64)>,
     pub counters: ProfileCounters,
     pending: Mutex<Pending>,
     has_pending: AtomicBool,
@@ -55,8 +62,11 @@ pub(crate) struct ProfileState {
 
 impl ProfileState {
     pub fn new() -> Self {
+        let started = Instant::now();
+        let cpu_baseline = crate::process_resources::read().cpu;
         Self {
-            started: Instant::now(),
+            started,
+            cpu_baseline,
             counters: ProfileCounters::default(),
             pending: Mutex::new(Pending::default()),
             has_pending: AtomicBool::new(false),
@@ -67,6 +77,11 @@ impl ProfileState {
     /// so queued samples are strictly increasing in time whichever thread records them.
     pub fn record(&self) {
         let mut pending = self.pending.lock().unwrap_or_else(PoisonError::into_inner);
+        let resources = crate::process_resources::read();
+        let cpu = self
+            .cpu_baseline
+            .zip(resources.cpu)
+            .and_then(|((u0, s0), (u1, s1))| Some((u1.checked_sub(u0)?, s1.checked_sub(s0)?)));
         let now = u64::try_from(self.started.elapsed().as_micros()).unwrap_or(u64::MAX);
         let elapsed_us = match pending.last_elapsed_us {
             Some(last) if now <= last => last.saturating_add(1),
@@ -82,6 +97,18 @@ impl ProfileState {
             artifacts: counters.artifacts.load(Ordering::Relaxed),
             warnings: counters.warnings.load(Ordering::Relaxed),
             pending_tasks: counters.pending_tasks.load(Ordering::Relaxed),
+            cpu_user_ns: cpu.map_or(0, |value| value.0),
+            cpu_system_ns: cpu.map_or(0, |value| value.1),
+            resident_bytes: resources.rss.unwrap_or(0),
+            resource_flags: if cpu.is_some() {
+                crate::resources::CPU_AVAILABLE
+            } else {
+                0
+            } | if resources.rss.is_some() {
+                crate::resources::RSS_AVAILABLE
+            } else {
+                0
+            },
         };
         pending.samples.push_back(sample);
         self.has_pending.store(true, Ordering::Release);

@@ -1,4 +1,4 @@
-use build_hunter::{PROFILE_INTERVAL, ScanProfileSample};
+use build_hunter::{PROFILE_INTERVAL, ResourceHistory, ScanProfileSample};
 use std::collections::VecDeque;
 
 const CAPACITY: usize = 4096;
@@ -9,6 +9,7 @@ pub struct ProfileReport {
     dropped: u64,
     peak_entries: f64,
     peak_bytes: f64,
+    resources: ResourceHistory,
 }
 
 impl ProfileReport {
@@ -28,6 +29,7 @@ impl ProfileReport {
                     / seconds,
             );
         }
+        self.resources.record(sample);
         if self.samples.len() == CAPACITY {
             self.samples.pop_front();
             self.dropped += 1;
@@ -46,11 +48,11 @@ impl ProfileReport {
             }
         };
         let samples = self.samples.iter().map(|s| format!(
-            "{{\"elapsed_us\":{},\"entries\":{},\"directories\":{},\"measured_bytes\":{},\"artifacts\":{},\"warnings\":{},\"pending_tasks\":{}}}",
-            s.elapsed_us, s.entries, s.directories, s.measured_bytes, s.artifacts, s.warnings, s.pending_tasks
+            "{{\"elapsed_us\":{},\"entries\":{},\"directories\":{},\"measured_bytes\":{},\"artifacts\":{},\"warnings\":{},\"pending_tasks\":{},{}}}",
+            s.elapsed_us, s.entries, s.directories, s.measured_bytes, s.artifacts, s.warnings, s.pending_tasks, s.resource_json_fields()
         )).collect::<Vec<_>>().join(",");
         format!(
-            "{{\"schema_version\":1,\"root\":{},\"status\":{},\"size_mode\":{},\"sample_interval_ms\":{},\"truncated_samples\":{},\"average_entries_per_second\":{},\"average_measured_bytes_per_second\":{},\"peak_entries_per_second\":{},\"peak_measured_bytes_per_second\":{},\"samples\":[{}]}}\n",
+            "{{\"schema_version\":1,\"root\":{},\"status\":{},\"size_mode\":{},\"sample_interval_ms\":{},\"truncated_samples\":{},\"average_entries_per_second\":{},\"average_measured_bytes_per_second\":{},\"peak_entries_per_second\":{},\"peak_measured_bytes_per_second\":{},\"resources\":{},\"samples\":[{}]}}\n",
             crate::quoted(root),
             crate::quoted(status),
             crate::quoted(size_mode),
@@ -60,6 +62,7 @@ impl ProfileReport {
             rate(last.measured_bytes),
             self.peak_entries,
             self.peak_bytes,
+            self.resources.summary().json(),
             samples
         )
     }
@@ -79,6 +82,8 @@ mod tests {
         assert!(!json.contains("NaN"));
         assert!(!json.contains("inf"));
         assert!(json.contains("a\\u000a\\\"b"));
+        assert!(json.contains("\"resident_bytes\":null"));
+        assert!(json.contains("\"average_cpu_cores\":null"));
     }
 
     #[test]
@@ -89,12 +94,20 @@ mod tests {
                 elapsed_us: i * 1_000_000,
                 entries: i * 10,
                 measured_bytes: i * 100,
+                cpu_user_ns: i * 1_000_000_000,
+                resident_bytes: if i == 1 { 9999 } else { 100 },
+                resource_flags: 3,
                 ..Default::default()
             });
         }
         assert_eq!(profile.samples.len(), CAPACITY);
         assert_eq!(profile.dropped, 904);
         assert_eq!(profile.peak_entries, 10.0);
+        assert_eq!(
+            profile.resources.summary().sampled_peak_rss_bytes,
+            Some(9999)
+        );
+        assert_eq!(profile.resources.summary().average_cpu_cores, Some(1.0));
         assert!(
             profile
                 .json("root", "completed", "allocated")

@@ -12,6 +12,9 @@ use std::{
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
+mod process_resources;
+mod resources;
+pub use resources::{ResourceHistory, ResourceSummary};
 #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
 mod bulk_metadata;
 mod materialization;
@@ -2483,8 +2486,15 @@ mod tests {
             elapsed_us: 1_000_000,
             entries: 42,
             measured_bytes: 99,
+            cpu_user_ns: 2_000_000,
+            cpu_system_ns: 1_000_000,
+            resident_bytes: 4096,
+            resource_flags: 3,
             ..ScanProfileSample::default()
         };
+        assert_eq!(size_of::<ScanProfileSample>(), 88);
+        assert_eq!(std::mem::offset_of!(ScanProfileSample, cpu_user_ns), 56);
+        assert_eq!(std::mem::offset_of!(ScanProfileSample, resource_flags), 80);
         let mut copied = ScanProfileSample::default();
         unsafe {
             send_ffi_event(
