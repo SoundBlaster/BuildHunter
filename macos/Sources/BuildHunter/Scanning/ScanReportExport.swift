@@ -190,7 +190,7 @@ struct ScanReportExport: Sendable {
 
     // MARK: Shared values
 
-    /// Known bytes; a partial size is a lower bound and still counts.
+    /// Observed bytes; a partial or changed size is an estimate and still counts.
     var totalBytes: Int64 { rows.reduce(0) { $0 + (Self.bytes(of: $1.size) ?? 0) } }
 
     func absolutePath(of row: ScanRow) -> String? {

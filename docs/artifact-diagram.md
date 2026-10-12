@@ -8,7 +8,7 @@ The animated Swift Charts sunburst groups table rows by relative path. The inner
 ring contains folders under the selected target; successive rings show descendants.
 Sector angles follow known artifact sizes, with a six-degree minimum for visibility;
 tiny folders therefore occupy more angle than their byte share. Partial sizes are
-lower bounds. Source files and unreported folders do not contribute. Measuring,
+estimates: files may have grown, shrunk or disappeared. Source files and unreported folders do not contribute. Measuring,
 unknown, and zero-byte artifacts remain in the counts and folder list without
 invented sector area. The footer explains these limits.
 

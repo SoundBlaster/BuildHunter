@@ -124,6 +124,11 @@ final class WindowScanModel {
                 markMeasuringRowsPartial()
                 let hasPartialRows = rows.contains { if case .partial = $0.size { true } else { false } }
                 phase = warnings.isEmpty && !hasPartialRows ? .completed : .incomplete
+            case .completedWithChanges:
+                // The scanner distinguishes expected churn from I/O failures. Keep
+                // affected rows partial and notices visible without failing the scan.
+                markMeasuringRowsPartial()
+                phase = .completed
             case .stopped:
                 phase = .stopped
                 markMeasuringRowsPartial()
