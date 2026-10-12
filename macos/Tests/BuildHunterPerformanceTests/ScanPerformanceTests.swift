@@ -1,10 +1,78 @@
 import Foundation
+import AppKit
+import SwiftUI
+import Darwin
 import XCTest
 @testable import BuildHunter
 
 /// Run separately in Release: fixture construction and validation are outside measurements.
 @MainActor
 final class ScanPerformanceTests: XCTestCase {
+    /// Exercise the rendered table, not just the reducer: SwiftUI row traits used to
+    /// retain the complete sorted array from every refresh that introduced a row.
+    func testRenderedTableDoesNotRetainPreviousProjections() async {
+        let scan = WindowScanModel(source: TableMemoryIdleSource())
+        let table = ScanTableModel()
+        scan.acceptDemoTarget(named: "Table memory fixture")
+        let generation = scan.generation
+        let artifacts = (0..<10_800).map { index in
+            ScanArtifact(id: UUID(), relativePath: "Project\(index)/.build",
+                         language: "Swift", kind: .buildOutput)
+        }
+        for artifact in artifacts.prefix(10_000) {
+            scan.apply(.discovered(generation: generation, artifact: artifact))
+        }
+        await table.refresh(from: scan)
+        let host = NSHostingView(rootView: ArtifactReportTable(scan: scan, model: table))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 600),
+                              styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = host
+        window.orderFront(nil)
+        defer { window.orderOut(nil); window.contentView = nil; scan.stop() }
+        renderTable(host, expectedRows: 10_000)
+        let before = liveMallocBytes()
+        for round in 0..<80 {
+            for artifact in artifacts[(10_000 + round * 10)..<(10_000 + (round + 1) * 10)] {
+                scan.apply(.discovered(generation: generation, artifact: artifact))
+            }
+            await table.refresh(from: scan)
+            renderTable(host, expectedRows: table.rows.count)
+        }
+        let growth = Int64(liveMallocBytes()) - Int64(before)
+        let data = Data("{\"refreshes\":80,\"initial_rows\":10000,\"final_rows\":10800,\"live_malloc_growth_bytes\":\(growth)}".utf8)
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "rendered-table-memory.json"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        XCTAssertEqual(table.rows.count, 10_800)
+        // Old snapshots add >60 MiB here. Allow 24 MiB for new rows, UI caches and
+        // allocator noise; this checks live bytes rather than RSS or reserved pages.
+        XCTAssertLessThan(growth, 24 * 1_024 * 1_024,
+                          "Rendered table must release historical full-array projections")
+    }
+
+    private func liveMallocBytes() -> UInt64 {
+        var statistics = malloc_statistics_t()
+        malloc_zone_statistics(nil, &statistics)
+        return UInt64(statistics.size_in_use)
+    }
+
+    private func renderTable(_ host: NSView, expectedRows: Int) {
+        let deadline = Date().addingTimeInterval(2)
+        repeat {
+            host.layoutSubtreeIfNeeded()
+            host.displayIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.01))
+            if let table = nativeTable(in: host), table.numberOfRows == expectedRows { return }
+        } while Date() < deadline
+        XCTFail("Rendered table did not publish \(expectedRows) rows")
+    }
+
+    private func nativeTable(in view: NSView) -> NSTableView? {
+        if let table = view as? NSTableView { return table }
+        return view.subviews.lazy.compactMap { self.nativeTable(in: $0) }.first
+    }
+
     func testApply1000ArtifactRows() async {
         measureRows(count: 1_000)
     }
@@ -389,5 +457,12 @@ private struct PerformanceIdleSource: ScanEventSource {
         AsyncStream { $0.finish() }
     }
 
+    func cancel(generation: UInt64) {}
+}
+
+private struct TableMemoryIdleSource: ScanEventSource {
+    func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
+        AsyncStream { _ in }
+    }
     func cancel(generation: UInt64) {}
 }
