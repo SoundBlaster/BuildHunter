@@ -992,6 +992,19 @@ where
             && path != self.root
             && !materialization::is_dataless_error(&error)
         {
+            // A vanished child is expected on a live tree, but losing the
+            // selected root invalidates the scan rather than just that entry.
+            match self.probes.metadata(self.root) {
+                Ok(metadata) if metadata.is_dir() => {}
+                Ok(_) => {
+                    self.warn(self.root, "Selected root is no longer a directory", chain);
+                    return;
+                }
+                Err(root_error) => {
+                    self.warn(self.root, root_error, chain);
+                    return;
+                }
+            }
             self.changed = true;
             self.notice(
                 path,
@@ -2071,6 +2084,27 @@ mod tests {
         assert_eq!(report.status, ScanStatus::Incomplete);
         assert!(!report.warnings.is_empty());
         assert!(!report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    #[test]
+    fn selected_root_vanishing_after_listing_is_not_ordinary_child_churn() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/object.o"), b"temporary").unwrap();
+        let root = tree.0.clone();
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::Listed && path == root {
+                fs::remove_dir_all(path)?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert!(
+            report
+                .warnings
+                .iter()
+                .any(|warning| warning.relative_path == Path::new("."))
+        );
     }
 
     #[test]
