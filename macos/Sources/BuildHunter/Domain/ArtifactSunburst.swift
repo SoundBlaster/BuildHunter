@@ -197,15 +197,22 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
         }
 
         func decoration(plotRadius: Double) -> Decoration {
-            guard plotRadius.isFinite, plotRadius > 0 else {
+            Self.decoration(start: start, end: end, inner: innerRadius, outer: outerRadius,
+                            plotRadius: plotRadius)
+        }
+
+        static func decoration(start: Double, end: Double, inner: Double, outer: Double,
+                               plotRadius: Double) -> Decoration {
+            guard [start, end, inner, outer, plotRadius].allSatisfy(\.isFinite),
+                  end > start, inner >= 0, outer > inner, plotRadius > 0 else {
                 return Decoration(angularInset: 0, cornerRadius: 0)
             }
             // Bound decoration at the narrowest (inner) edge. Keeping each inset
             // and corner below one eighth of that width leaves room for the fill,
             // even when a folder occupies only a fraction of a percent.
             let halfAngle = .pi * min(0.5, max(0, end - start))
-            let innerEdgeWidth = 2 * innerRadius * plotRadius * sin(halfAngle)
-            let thickness = (outerRadius - innerRadius) * plotRadius
+            let innerEdgeWidth = 2 * inner * plotRadius * sin(halfAngle)
+            let thickness = (outer - inner) * plotRadius
             let allowance = min(innerEdgeWidth / 8, thickness / 4)
             return Decoration(angularInset: min(2, allowance), cornerRadius: min(4, allowance))
         }
