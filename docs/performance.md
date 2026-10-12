@@ -100,3 +100,53 @@ Native macOS CI at `ccd234b` passed all four Release performance tests. Its scal
 medians were 1.18 ms for 1,000 rows and 12.39 ms for 10,000 rows on an Apple Silicon
 runner. The same-host Rust comparisons passed on both Ubuntu and macOS. These are
 recorded observations for that run, not portable absolute timing limits.
+
+## Opt-in macOS batch metadata experiment (#51)
+
+```sh
+python3 scripts/compare_backends.py
+python3 scripts/test_backend_comparison.py
+cargo test --locked --all-features
+cargo run --locked --release --example profile_tree -- /path/to/local/projects
+```
+
+`macos-bulk-metadata` is an experimental Cargo feature, disabled in ordinary CLI
+and GUI builds. It batches file sizes inside measured directories with
+`getattrlistbulk`, using `ATTR_FILE_ALLOCSIZE` (all forks) and `ATTR_FILE_DATALENGTH`
+(apparent bytes). Directory own sizes and discovery listings retain the portable
+implementation. This first prototype deliberately reads a measured directory a
+second time; it does not replace discovery with a new full traversal engine.
+Missing/unsupported per-file attributes fall back to `symlink_metadata`, as does
+an unsupported filesystem syscall. Other syscall and per-entry errors propagate;
+the parser checks returned attribute masks, record lengths, name references and
+nonnegative sizes. Symlinks are not followed and hard links count as before.
+
+The comparison builds both backends from the same revision, warms them, then
+interleaves seven paired scans of owned fixtures in allocated/apparent modes:
+8,192 files in one artifact, 128 artifact subdirectories, a Swift/Rust/Python
+mixture with nesting, hard links, a sparse file, resource fork and symlink, plus
+cancellation at discovery. It requires exact equality of canonical report paths,
+languages, kinds, bytes, nesting, partial flags, warnings and terminal status.
+Non-cancelled bulk samples must actually use batch calls without fallback.
+
+Raw samples include scan time, first discovery, cancellation-to-return latency,
+peak process RSS (`/usr/bin/time -l`, bytes on macOS), and aggregate worker wall
+times for listing and measurement. Worker times overlap and must not be added to
+or interpreted as a partition of scan wall time. Normal scans read no phase
+clocks unless profiling is enabled. Fixture preparation, compilation and report
+serialization are outside scanner timing; process peak RSS includes the driver.
+
+The macOS **Scanner comparison** job uploads `bulk/report.json` and
+`bulk/report.md`. Equality, fixture counts and actual batch usage are gates;
+timing ratios remain diagnostic while the feature is disabled by default.
+The existing default-backend performance regression budget remains enforced.
+
+An initial read-only profile of the user's real development tree on 2026-10-12
+observed 686,319 entries and 4,512 artifacts, `Completed` with no warnings, in
+3.070 s. Aggregate worker listing/measurement times were 17.865/6.234 s, so about
+26% of observed worker time was measurement. A subsequent experimental scan took
+2.578 s with 16.543/3.669 s worker times. This was an exploratory, uncommitted
+development build and sequential warm scans, not a controlled speed claim.
+The live tree changed between scans (entry and byte totals differ), so these
+real-tree samples do not establish report parity. Owned paired fixtures provide
+that check. The source-tree paths and contents are not stored in this document.

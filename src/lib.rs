@@ -12,6 +12,8 @@ use std::{
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
+#[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+mod bulk_metadata;
 mod materialization;
 /// Thread-scoped protection for filesystem preflight before starting a scan.
 /// On macOS this refuses materialization; other platforms use a no-op guard.
@@ -344,6 +346,20 @@ pub struct ScanControl {
     profiling: AtomicBool,
     cancelled: AtomicBool,
     failed: AtomicBool,
+    listing_ns: std::sync::atomic::AtomicU64,
+    measurement_ns: std::sync::atomic::AtomicU64,
+    bulk_directories: std::sync::atomic::AtomicU64,
+    bulk_fallbacks: std::sync::atomic::AtomicU64,
+}
+
+/// Aggregate worker wall time, including overlapping work on different threads.
+/// Populated only when profiling is enabled; not a partition of total scan time.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ScanWorkTimings {
+    pub listing_ns: u64,
+    pub measurement_ns: u64,
+    pub bulk_directories: u64,
+    pub bulk_fallbacks: u64,
 }
 
 impl ScanControl {
@@ -352,6 +368,10 @@ impl ScanControl {
             profiling: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
             failed: AtomicBool::new(false),
+            listing_ns: std::sync::atomic::AtomicU64::new(0),
+            measurement_ns: std::sync::atomic::AtomicU64::new(0),
+            bulk_directories: std::sync::atomic::AtomicU64::new(0),
+            bulk_fallbacks: std::sync::atomic::AtomicU64::new(0),
         }
     }
 
@@ -362,6 +382,30 @@ impl ScanControl {
 
     pub fn cancel(&self) {
         self.cancelled.store(true, Ordering::Release);
+    }
+
+    pub fn work_timings(&self) -> ScanWorkTimings {
+        ScanWorkTimings {
+            listing_ns: self.listing_ns.load(Ordering::Relaxed),
+            measurement_ns: self.measurement_ns.load(Ordering::Relaxed),
+            bulk_directories: self.bulk_directories.load(Ordering::Relaxed),
+            bulk_fallbacks: self.bulk_fallbacks.load(Ordering::Relaxed),
+        }
+    }
+
+    fn timer(&self) -> Option<std::time::Instant> {
+        self.profiling
+            .load(Ordering::Relaxed)
+            .then(std::time::Instant::now)
+    }
+
+    fn record_time(counter: &std::sync::atomic::AtomicU64, start: Option<std::time::Instant>) {
+        if let Some(start) = start {
+            counter.fetch_add(
+                u64::try_from(start.elapsed().as_nanos()).unwrap_or(u64::MAX),
+                Ordering::Relaxed,
+            );
+        }
     }
 
     fn is_cancelled(&self) -> bool {
@@ -707,7 +751,7 @@ enum WorkerMessage {
     Measured {
         node: usize,
         directory: std::io::Result<fs::Metadata>,
-        files: Vec<Option<std::io::Result<fs::Metadata>>>,
+        files: Vec<Option<std::io::Result<MeasuredSize>>>,
     },
 }
 
@@ -784,7 +828,9 @@ fn run_worker(
         }
     };
     while let Some(task) = queue.pop() {
+        let listing_started = control.timer();
         let listing = list_directory(&task.path, control, probes);
+        ScanControl::record_time(&control.listing_ns, listing_started);
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
         // Speculatively measure likely artifact roots; the coordinator reads anything missed.
         let measuring =
@@ -812,17 +858,67 @@ fn run_worker(
             return;
         }
         if measuring {
+            let measurement_started = control.timer();
             let directory = probes.metadata(&task.path);
             let mut measured = Vec::with_capacity(files.len());
+            #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
+            let mut injected = std::collections::HashMap::new();
+            #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
+            for file in files.iter().flatten() {
+                if let Err(error) = probes.hook(ProbePoint::Metadata, file) {
+                    injected.insert(file.clone(), error);
+                }
+            }
+            #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+            let mut bulk = if files.iter().any(Option::is_some) {
+                if control.profiling.load(Ordering::Relaxed) {
+                    control.bulk_directories.fetch_add(1, Ordering::Relaxed);
+                }
+                #[cfg(test)]
+                probes.record_policy();
+                Some(bulk_metadata::read(&task.path, control))
+            } else {
+                None
+            };
             for file in files {
                 // A stopped scan needs no more sizes, but the caller may be waiting for this
                 // message, so the partial result is still sent.
                 if control.should_stop() {
                     break;
                 }
-                measured.push(file.map(|file| probes.metadata(&file)));
+                measured.push(file.map(|file| {
+                    #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+                    if let Some(result) = &mut bulk {
+                        #[cfg(test)]
+                        if let Some(error) = injected.remove(&file) {
+                            return Err(error);
+                        }
+                        match result {
+                            Ok(entries) => {
+                                let name = file.file_name().map(os_str_bytes).unwrap_or_default();
+                                if let Some(size) = entries.remove(name.as_ref()) {
+                                    return size;
+                                }
+                            }
+                            Err(error) if error.kind() == std::io::ErrorKind::Unsupported => {}
+                            Err(error) => {
+                                return Err(error.raw_os_error().map_or_else(
+                                    || std::io::Error::new(error.kind(), error.to_string()),
+                                    std::io::Error::from_raw_os_error,
+                                ));
+                            }
+                        }
+                        if control.profiling.load(Ordering::Relaxed) {
+                            control.bulk_fallbacks.fetch_add(1, Ordering::Relaxed);
+                        }
+                        // No complete metadata was returned; the portable probe decides
+                        // whether this is unsupported metadata or a vanished entry.
+                    }
+                    probes.metadata(&file).map(MeasuredSize::from)
+                }));
             }
             let files = measured;
+            ScanControl::record_time(&control.measurement_ns, measurement_started);
             let message = WorkerMessage::Measured {
                 node,
                 directory,
@@ -1062,7 +1158,7 @@ where
                 // A selected file or symlink is its own candidate, measured if classified.
                 let file_type = metadata.file_type();
                 if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
-                    self.measure_file(&slot, Some(Ok(metadata)), &[]);
+                    self.measure_file(&slot, Some(Ok(metadata.into())), &[]);
                 }
             }
         }
@@ -1208,12 +1304,13 @@ where
     fn measure_file(
         &mut self,
         slot: &FileSlot,
-        metadata: Option<std::io::Result<fs::Metadata>>,
+        metadata: Option<std::io::Result<MeasuredSize>>,
         chain: &[u64],
     ) {
-        let metadata = metadata.unwrap_or_else(|| self.probes.metadata(&slot.path));
+        let metadata =
+            metadata.unwrap_or_else(|| self.probes.metadata(&slot.path).map(MeasuredSize::from));
         let bytes = match metadata {
-            Ok(metadata) => metadata_bytes(&metadata, self.options.apparent_size),
+            Ok(metadata) => metadata.bytes(self.options.apparent_size),
             Err(error) => {
                 let mut affected = chain.to_vec();
                 affected.extend(slot.artifact);
@@ -1349,7 +1446,7 @@ where
         &mut self,
         pending: PendingMeasure,
         directory: Option<std::io::Result<fs::Metadata>>,
-        mut files: Vec<Option<std::io::Result<fs::Metadata>>>,
+        mut files: Vec<Option<std::io::Result<MeasuredSize>>>,
     ) {
         let PendingMeasure {
             path,
@@ -1596,6 +1693,31 @@ fn metadata_bytes(metadata: &fs::Metadata, apparent_size: bool) -> u64 {
     {
         let _ = apparent_size;
         metadata.len()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct MeasuredSize {
+    apparent: u64,
+    allocated: u64,
+}
+
+impl From<fs::Metadata> for MeasuredSize {
+    fn from(metadata: fs::Metadata) -> Self {
+        Self {
+            apparent: metadata_bytes(&metadata, true),
+            allocated: metadata_bytes(&metadata, false),
+        }
+    }
+}
+
+impl MeasuredSize {
+    fn bytes(self, apparent: bool) -> u64 {
+        if apparent {
+            self.apparent
+        } else {
+            self.allocated
+        }
     }
 }
 
@@ -1980,6 +2102,35 @@ mod tests {
         assert_eq!(report.status, ScanStatus::CompletedWithChanges);
         assert!(report.artifacts[0].partial);
         assert!(report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    #[test]
+    fn worker_phase_timings_are_opt_in_and_preserve_the_report() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/object.o"), b"fixture").unwrap();
+        let plain = ScanControl::new();
+        let measured = ScanControl::new();
+        measured.set_profiling(true);
+        let scan = |control: &ScanControl| {
+            scan_with_policy(
+                &tree.0,
+                ScanOptions::default(),
+                control,
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            )
+        };
+        let old = scan(&plain);
+        let new = scan(&measured);
+        assert_eq!(plain.work_timings(), ScanWorkTimings::default());
+        assert!(measured.work_timings().listing_ns > 0);
+        assert!(measured.work_timings().measurement_ns > 0);
+        assert_eq!(old.artifacts, new.artifacts);
+        assert_eq!(old.status, new.status);
+        assert!(old.warnings.is_empty() && new.warnings.is_empty());
+        #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+        assert!(measured.work_timings().bulk_directories > 0);
     }
 
     fn scan_hooked(
@@ -2940,7 +3091,12 @@ mod tests {
         );
 
         // The selected root, then `.build`, `debug`, `object.o` and `manifest` are measured.
-        assert_eq!(report.probes.metadata, 5);
+        let expected = if cfg!(all(target_os = "macos", feature = "macos-bulk-metadata")) {
+            3
+        } else {
+            5
+        };
+        assert_eq!(report.probes.metadata, expected);
         assert_eq!(report.artifacts.len(), 1);
         let build = tree.0.join(".build");
         assert_eq!(

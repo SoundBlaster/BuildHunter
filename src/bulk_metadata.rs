@@ -1,0 +1,315 @@
+//! Opt-in Darwin batch measurement. Discovery still uses the portable listing.
+//! No persistent index; all names and sizes belong to this one directory pass.
+use crate::{MeasuredSize, ScanControl};
+use std::{
+    collections::HashMap,
+    fs::OpenOptions,
+    io,
+    os::{fd::AsRawFd, unix::fs::OpenOptionsExt},
+    path::Path,
+};
+
+const NAME: u32 = 0x1;
+const OBJTYPE: u32 = 0x8;
+const ERROR: u32 = 0x2000_0000;
+const RETURNED: u32 = 0x8000_0000;
+const ALLOCSIZE: u32 = 0x4;
+const DATALENGTH: u32 = 0x200;
+const COMMON: u32 = NAME | OBJTYPE | ERROR | RETURNED;
+const FILE: u32 = ALLOCSIZE | DATALENGTH;
+
+#[repr(C)]
+struct AttrList {
+    bitmap_count: u16,
+    reserved: u16,
+    common: u32,
+    volume: u32,
+    directory: u32,
+    file: u32,
+    fork: u32,
+}
+
+unsafe extern "C" {
+    fn getattrlistbulk(
+        fd: i32,
+        attrs: *mut AttrList,
+        buffer: *mut std::ffi::c_void,
+        size: usize,
+        options: u64,
+    ) -> i32;
+}
+
+type Sizes = HashMap<Vec<u8>, io::Result<MeasuredSize>>;
+
+pub(super) fn read(path: &Path, control: &ScanControl) -> io::Result<Sizes> {
+    // Public <sys/fcntl.h>: no symlink following for the opened directory.
+    const OPEN_FLAGS: i32 = 0x100 | 0x10_0000 | 0x100_0000;
+    let directory = OpenOptions::new()
+        .read(true)
+        .custom_flags(OPEN_FLAGS)
+        .open(path)?;
+    let mut attrs = AttrList {
+        bitmap_count: 5,
+        reserved: 0,
+        common: COMMON,
+        volume: 0,
+        directory: 0,
+        file: FILE,
+        fork: 0,
+    };
+    // u64 elements provide the alignment Darwin requires for each record.
+    let mut buffer = vec![0u64; 32_768];
+    let mut result = HashMap::new();
+    while !control.should_stop() {
+        // SAFETY: fd owns an open directory; attrlist has the documented C layout;
+        // the initialized, aligned buffer is writable for the supplied byte count.
+        let count = unsafe {
+            getattrlistbulk(
+                directory.as_raw_fd(),
+                &mut attrs,
+                buffer.as_mut_ptr().cast(),
+                buffer.len() * 8,
+                0,
+            )
+        };
+        if count == -1 {
+            return Err(io::Error::last_os_error());
+        }
+        if count == 0 {
+            break;
+        }
+        // SAFETY: buffer consists of initialized u64 values; borrowing its bytes
+        // is valid until the next syscall. Parsing below checks every range.
+        let bytes =
+            unsafe { std::slice::from_raw_parts(buffer.as_ptr().cast::<u8>(), buffer.len() * 8) };
+        parse_batch(bytes, count as usize, &mut result)?;
+    }
+    Ok(result)
+}
+
+fn invalid() -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        "Invalid getattrlistbulk metadata record",
+    )
+}
+
+struct Cursor<'a> {
+    bytes: &'a [u8],
+    offset: usize,
+}
+impl Cursor<'_> {
+    fn take<const N: usize>(&mut self) -> io::Result<[u8; N]> {
+        let end = self.offset.checked_add(N).ok_or_else(invalid)?;
+        let value = self
+            .bytes
+            .get(self.offset..end)
+            .ok_or_else(invalid)?
+            .try_into()
+            .map_err(|_| invalid())?;
+        self.offset = end;
+        Ok(value)
+    }
+    fn u32(&mut self) -> io::Result<u32> {
+        Ok(u32::from_ne_bytes(self.take()?))
+    }
+    fn size(&mut self) -> io::Result<u64> {
+        u64::try_from(i64::from_ne_bytes(self.take()?)).map_err(|_| invalid())
+    }
+}
+
+fn parse_batch(bytes: &[u8], count: usize, result: &mut Sizes) -> io::Result<()> {
+    let mut offset = 0usize;
+    for _ in 0..count {
+        let length = u32::from_ne_bytes(
+            bytes
+                .get(offset..offset.checked_add(4).ok_or_else(invalid)?)
+                .ok_or_else(invalid)?
+                .try_into()
+                .map_err(|_| invalid())?,
+        ) as usize;
+        if length < 24 || !length.is_multiple_of(8) {
+            return Err(invalid());
+        }
+        let end = offset.checked_add(length).ok_or_else(invalid)?;
+        let record = bytes.get(offset..end).ok_or_else(invalid)?;
+        offset = end;
+        let mut cursor = Cursor {
+            bytes: record,
+            offset: 4,
+        };
+        let common = cursor.u32()?;
+        let volume = cursor.u32()?;
+        let directory = cursor.u32()?;
+        let file = cursor.u32()?;
+        let fork = cursor.u32()?;
+        if common & !COMMON != 0
+            || common & (RETURNED | NAME) != (RETURNED | NAME)
+            || volume != 0
+            || directory != 0
+            || fork != 0
+            || file & !FILE != 0
+        {
+            return Err(invalid());
+        }
+        // ATTR_CMN_ERROR is specially packed immediately after RETURNED_ATTRS.
+        let error = if common & ERROR != 0 {
+            cursor.u32()?
+        } else {
+            0
+        };
+        let reference = cursor.offset;
+        let displacement = i32::from_ne_bytes(cursor.take()?);
+        let name_len = cursor.u32()? as usize;
+        let name_start = reference
+            .checked_add_signed(displacement as isize)
+            .ok_or_else(invalid)?;
+        let name_end = name_start.checked_add(name_len).ok_or_else(invalid)?;
+        let kind = if common & OBJTYPE != 0 {
+            Some(cursor.u32()?)
+        } else {
+            None
+        };
+        let allocated = if file & ALLOCSIZE != 0 {
+            Some(cursor.size()?)
+        } else {
+            None
+        };
+        let apparent = if file & DATALENGTH != 0 {
+            Some(cursor.size()?)
+        } else {
+            None
+        };
+        if name_start < cursor.offset {
+            return Err(invalid());
+        }
+        let name = record.get(name_start..name_end).ok_or_else(invalid)?;
+        let Some((&0, name)) = name.split_last() else {
+            return Err(invalid());
+        };
+        if name.is_empty() || name.contains(&0) || name.contains(&b'/') {
+            return Err(invalid());
+        }
+        if error != 0 {
+            result.insert(
+                name.to_vec(),
+                Err(io::Error::from_raw_os_error(error as i32)),
+            );
+        } else if kind.is_some_and(|kind| kind != 2 && kind != 5)
+            && let (Some(apparent), Some(allocated)) = (apparent, allocated)
+        {
+            // VDIR=2 and VLNK=5: neither is measured as a regular file slot.
+            result.insert(
+                name.to_vec(),
+                Ok(MeasuredSize {
+                    apparent,
+                    allocated,
+                }),
+            );
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        fs,
+        os::unix::fs::{MetadataExt, symlink},
+    };
+
+    #[test]
+    fn batch_sizes_match_stat_for_files_sparse_files_and_hard_links() {
+        let tree = crate::tests::TempTree::new();
+        fs::write(tree.0.join("small"), b"payload").unwrap();
+        fs::write(tree.0.join("small/..namedfork/rsrc"), vec![42; 128 * 1024]).unwrap();
+        fs::hard_link(tree.0.join("small"), tree.0.join("hard-link")).unwrap();
+        fs::File::create(tree.0.join("sparse"))
+            .unwrap()
+            .set_len(32 * 1024 * 1024)
+            .unwrap();
+        fs::create_dir(tree.0.join("directory")).unwrap();
+        symlink("small", tree.0.join("link")).unwrap();
+        let mut sizes = read(&tree.0, &ScanControl::new()).unwrap();
+        for name in ["small", "hard-link", "sparse"] {
+            let actual = sizes.remove(name.as_bytes()).unwrap().unwrap();
+            let metadata = fs::symlink_metadata(tree.0.join(name)).unwrap();
+            assert_eq!(actual.apparent, metadata.len());
+            assert_eq!(actual.allocated, metadata.blocks() * 512);
+        }
+        assert!(!sizes.contains_key(b"link".as_slice()));
+        assert!(!sizes.contains_key(b"directory".as_slice()));
+    }
+
+    #[test]
+    fn rejects_truncated_overflowing_and_negative_records() {
+        for bytes in [
+            vec![],
+            vec![0; 64],
+            vec![255; 64],
+            24u32.to_ne_bytes().to_vec(),
+        ] {
+            assert!(parse_batch(&bytes, 1, &mut HashMap::new()).is_err());
+        }
+        assert!(
+            Cursor {
+                bytes: &(-1i64).to_ne_bytes(),
+                offset: 0
+            }
+            .size()
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn does_not_open_a_symlinked_directory() {
+        let tree = crate::tests::TempTree::new();
+        fs::create_dir(tree.0.join("real")).unwrap();
+        symlink("real", tree.0.join("link")).unwrap();
+        assert!(read(&tree.0.join("link"), &ScanControl::new()).is_err());
+    }
+
+    fn record(error: u32) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        for value in [64u32, COMMON, 0, 0, FILE, 0, error, 28, 5, 1] {
+            bytes.extend(value.to_ne_bytes());
+        }
+        bytes.extend(4096i64.to_ne_bytes());
+        bytes.extend(7i64.to_ne_bytes());
+        bytes.extend(b"name\0");
+        bytes.resize(64, 0);
+        bytes
+    }
+
+    #[test]
+    fn validates_name_references_sizes_and_per_entry_errors() {
+        let mut sizes = HashMap::new();
+        parse_batch(&record(0), 1, &mut sizes).unwrap();
+        assert_eq!(
+            sizes.remove(b"name".as_slice()).unwrap().unwrap(),
+            MeasuredSize {
+                apparent: 7,
+                allocated: 4096
+            }
+        );
+        parse_batch(&record(13), 1, &mut sizes).unwrap();
+        assert_eq!(
+            sizes
+                .remove(b"name".as_slice())
+                .unwrap()
+                .unwrap_err()
+                .raw_os_error(),
+            Some(13)
+        );
+        for (offset, value) in [(28, u32::MAX), (32, u32::MAX)] {
+            let mut bytes = record(0);
+            bytes[offset..offset + 4].copy_from_slice(&value.to_ne_bytes());
+            assert!(parse_batch(&bytes, 1, &mut sizes).is_err());
+        }
+        let mut bytes = record(0);
+        bytes[40..48].copy_from_slice(&(-1i64).to_ne_bytes());
+        assert!(parse_batch(&bytes, 1, &mut sizes).is_err());
+        assert!(parse_batch(&record(0)[..63], 1, &mut sizes).is_err());
+    }
+}
