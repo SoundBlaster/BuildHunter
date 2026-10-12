@@ -897,15 +897,18 @@ fn run_worker(
                             Ok(entries) => {
                                 let name = file.file_name().map(os_str_bytes).unwrap_or_default();
                                 if let Some(size) = entries.remove(name.as_ref()) {
-                                    return size;
+                                    return size.map_err(|error| {
+                                        materialization::describe_error(&file, error)
+                                    });
                                 }
                             }
                             Err(error) if error.kind() == std::io::ErrorKind::Unsupported => {}
                             Err(error) => {
-                                return Err(error.raw_os_error().map_or_else(
+                                let error = error.raw_os_error().map_or_else(
                                     || std::io::Error::new(error.kind(), error.to_string()),
                                     std::io::Error::from_raw_os_error,
-                                ));
+                                );
+                                return Err(materialization::describe_error(&file, error));
                             }
                         }
                         if control.profiling.load(Ordering::Relaxed) {
