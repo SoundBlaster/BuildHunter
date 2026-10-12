@@ -346,6 +346,40 @@ struct WindowScanModelTests {
         #expect(model.warnings.count == 1)
     }
 
+    @Test("Bridge warnings keep both ordinary and changed-tree reports incomplete",
+          arguments: [UInt32(0), 4], [UInt32(1), 99])
+    func bridgeWarningsPreventSuccessfulCompletion(status: UInt32, eventType: UInt32) async {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel,
+            policy: BuildHunterScanPolicy(filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: [])))
+        let invalidPath: [UInt8] = [0xFF]
+        invalidPath.withUnsafeBufferPointer { path in
+            var event = BHScanEvent()
+            event.event_type = eventType
+            event.artifact_id = 1
+            event.path = path.baseAddress
+            event.path_len = path.count
+            withUnsafePointer(to: &event, bridge.handle)
+        }
+        // Give any discovered row a complete measurement: the warning, rather
+        // than an unfinished row, must be what prevents successful completion.
+        var measured = BHScanEvent()
+        measured.event_type = 2
+        measured.artifact_id = 1
+        measured.bytes = 20
+        withUnsafePointer(to: &measured, bridge.handle)
+        channel.send(.warning(generation: 1, message: "Changed during scan: temporary file disappeared"))
+        bridge.finish(status: status)
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Bridge warning")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .incomplete)
+        #expect(model.warnings.contains { $0.contains("not valid UTF-8") || $0.contains("unknown event") })
+        #expect(model.rows.allSatisfy { $0.size == .measured(20) })
+    }
+
     @Test("Duplicate and out-of-order events do not duplicate rows or invent a size")
     func duplicateAndOutOfOrderEventsAreSafe() {
         let model = WindowScanModel(source: ControlledScanSource())

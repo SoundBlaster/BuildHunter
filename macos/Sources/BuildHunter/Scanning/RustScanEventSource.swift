@@ -275,11 +275,7 @@ final class RustScanBridgeContext: @unchecked Sendable {
         switch value.event_type {
         case 1:
             if decodeUTF8(value.path, length: value.path_len) == nil {
-                bridgeGeneratedWarnings = bridgeGeneratedWarnings == .max ? .max : bridgeGeneratedWarnings + 1
-                yield(.warning(
-                    generation: generation,
-                    message: "A detected path is not valid UTF-8; its displayed name may be lossy."
-                ))
+                warnAboutBridge("A detected path is not valid UTF-8; its displayed name may be lossy.")
             }
             let language = languageName(value.language)
             let kind = artifactKind(value.kind)
@@ -321,8 +317,13 @@ final class RustScanBridgeContext: @unchecked Sendable {
                 )))
             }
         default:
-            yield(.warning(generation: generation, message: "Rust scanner emitted an unknown event."))
+            warnAboutBridge("Rust scanner emitted an unknown event.")
         }
+    }
+
+    private func warnAboutBridge(_ message: String) {
+        bridgeGeneratedWarnings = bridgeGeneratedWarnings == .max ? .max : bridgeGeneratedWarnings + 1
+        yield(.warning(generation: generation, message: message))
     }
 
     func finish(status: UInt32) {
@@ -332,13 +333,20 @@ final class RustScanBridgeContext: @unchecked Sendable {
         lock.unlock()
         guard shouldFinish else { return }
 
-        let result: ScanTerminalResult = switch status {
-        case 0: .completed
-        case 4: .completedWithChanges
-        case 1: .stopped
-        case 2: .failed("Some paths were skipped or could not be read; results are incomplete.")
-        case 3: .failed("The scanner could not complete the scan.")
-        default: .failed("The Rust scanner returned an unknown status \(status).")
+        // Rust knows only its own warnings. A lossy path or unknown bridge event
+        // must still make a completed/changed report incomplete in the GUI.
+        let result: ScanTerminalResult
+        if (status == 0 || status == 4), bridgeGeneratedWarnings > 0 {
+            result = .failed("The Swift bridge could not preserve all scanner data; results are incomplete.")
+        } else {
+            result = switch status {
+            case 0: .completed
+            case 4: .completedWithChanges
+            case 1: .stopped
+            case 2: .failed("Some paths were skipped or could not be read; results are incomplete.")
+            case 3: .failed("The scanner could not complete the scan.")
+            default: .failed("The Rust scanner returned an unknown status \(status).")
+            }
         }
         yield(.finished(generation: generation, result: result))
         channel.finish()
