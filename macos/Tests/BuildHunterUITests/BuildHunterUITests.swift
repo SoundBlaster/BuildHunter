@@ -47,10 +47,17 @@ final class BuildHunterUITests: XCTestCase {
         app.radioButtons["CPU"].click()
         let current = app.staticTexts["buildhunter.report.profile.current.value"]
         XCTAssertTrue(current.waitForExistence(timeout: 5))
-        XCTAssertEqual(current.label, "24%")
+        // Numeric text remains in the accessibility tree while the metric changes,
+        // but its label can be empty during the transition. Wait for the value,
+        // rather than treating element existence as completion of the switch.
+        let cpuValue = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label == %@", "24%"), object: current)
+        wait(for: [cpuValue], timeout: 5)
         attachScreenshot(named: "scan-profile-cpu", from: app)
         app.radioButtons["RAM"].click()
-        XCTAssertTrue(current.label.contains("104"), "RAM retains the terminal RSS after scanning")
+        let ramValue = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label CONTAINS %@", "104"), object: current)
+        wait(for: [ramValue], timeout: 5)
         attachScreenshot(named: "scan-profile-ram", from: app)
         app.typeKey(.escape, modifierFlags: [])
         let closed = XCTNSPredicateExpectation(
