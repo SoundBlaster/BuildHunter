@@ -988,7 +988,10 @@ where
     }
 
     fn io_error(&mut self, path: &Path, error: std::io::Error, chain: &[u64]) {
-        if error.kind() == std::io::ErrorKind::NotFound && path != self.root {
+        if error.kind() == std::io::ErrorKind::NotFound
+            && path != self.root
+            && !materialization::is_dataless_error(&error)
+        {
             self.changed = true;
             self.notice(
                 path,
@@ -2091,6 +2094,28 @@ mod tests {
         assert_eq!(report.status, ScanStatus::Incomplete);
         assert_eq!(report.warnings.len(), 2);
         assert!(report.artifacts[0].partial);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn identified_cloud_skip_is_not_mistaken_for_temporary_file_churn() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/cloud.o"), b"fixture").unwrap();
+        let report = scan_hooked(&tree, |point, path| {
+            if point == ProbePoint::Metadata && path.file_name() == Some(OsStr::new("cloud.o")) {
+                return Err(materialization::dataless_error(std::io::Error::from(
+                    std::io::ErrorKind::NotFound,
+                )));
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert!(
+            report.warnings[0]
+                .message
+                .contains("contents were not downloaded")
+        );
     }
 
     #[test]
