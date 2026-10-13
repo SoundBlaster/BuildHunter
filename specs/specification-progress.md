@@ -136,3 +136,13 @@ Updated `buildhunter.design.product/plugin_adapter`; current implementation
 contracts and map composition are unchanged. Added a schema rejection regression
 for ancestor bindings. No new binding, runtime behavior or owner acceptance.
 Fresh evidence: [vocabulary review](validation/plugin-vocabulary-review-20261013/README.md).
+
+## CI scheduling — 2026-10-14
+
+Added conservative job-level change classification and tests. Documentation/spec
+changes retain lightweight schema validation while heavy Rust/macOS/performance
+jobs depend on the complete event diff. Manual/unknown comparisons run full CI.
+See [policy](../docs/ci-change-policy.md). All current/target BoundarySpec claims
+and HC maps remain unchanged: scheduling affects validation execution, not product
+behavior, module composition or accepted contracts. Historical evidence is retained;
+fresh checks are in [CI validation](validation/ci-gating-20261014/README.md).

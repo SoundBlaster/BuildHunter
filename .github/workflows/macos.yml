@@ -10,7 +10,11 @@ concurrency:
   group: macos-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  changes:
+    uses: ./.github/workflows/changes.yml
   tests:
+    needs: changes
+    if: needs.changes.outputs.heavy == 'true'
     name: macOS unit and UI tests
     runs-on: xcode-27
     timeout-minutes: 35
@@ -45,6 +49,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   performance:
+    needs: changes
+    if: needs.changes.outputs.heavy == 'true'
     name: macOS performance tests
     runs-on: xcode-27
     timeout-minutes: 35
@@ -70,6 +76,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   release:
+    needs: changes
+    if: needs.changes.outputs.heavy == 'true'
     name: macOS Release build
     runs-on: xcode-27
     timeout-minutes: 35
