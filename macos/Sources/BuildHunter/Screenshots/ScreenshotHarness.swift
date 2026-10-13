@@ -10,6 +10,7 @@ final class MacScreenshotRecorder {
     static let activated = ProcessInfo.processInfo.environment["SCREENER_SCREENSHOTS"] == "1"
         && UUID(uuidString: ProcessInfo.processInfo.environment["SCREENER_RUN_ID"] ?? "") != nil
     private struct Entry {
+        weak var owner: NSView?
         weak var window: NSWindow?
         var ready: Bool
     }
@@ -21,9 +22,12 @@ final class MacScreenshotRecorder {
         return caches.appending(path: "Screener/Screenshots/\(id)", directoryHint: .isDirectory)
     }
 
-    func register(_ window: NSWindow?, presentation: String, ready: Bool) {
+    func register(_ window: NSWindow?, owner: NSView, presentation: String, ready: Bool) {
         guard Self.activated else { return }
-        entries[presentation] = Entry(window: window, ready: ready)
+        guard window != nil else { unregister(owner); return }
+        // A reused probe can change presentation; retire only its own old entry.
+        entries = entries.filter { $0.key == presentation || $0.value.owner !== owner }
+        entries[presentation] = Entry(owner: owner, window: window, ready: ready)
         if let window, let dimensions = ProcessInfo.processInfo.environment["SCREENER_WINDOW_POINTS"],
            let size = try? JSONDecoder().decode([Double].self, from: Data(dimensions.utf8)), size.count == 2 {
             let wanted = NSSize(width: size[0], height: size[1])
@@ -39,6 +43,12 @@ final class MacScreenshotRecorder {
         if task == nil, let directory, window != nil {
             task = Task { await record(in: directory) }
         }
+    }
+
+    func unregister(_ owner: NSView) {
+        // A replacement may already own the same presentation when the old view
+        // is dismantled or detached. Its registration must survive that callback.
+        entries = entries.filter { $0.value.owner !== owner }
     }
 
     private func record(in run: URL) async {
@@ -81,7 +91,7 @@ final class MacScreenshotRecorder {
         var previousFrame: NSRect?
         var previousScale: CGFloat?
         while seconds(since: started) < 12 {
-            guard let entry = entries[request.presentation], let window = entry.window,
+            guard let entry = entries[request.presentation], entry.owner != nil, let window = entry.window,
                   let frameView = window.contentView?.superview else {
                 stableSince = .now
                 try await Task.sleep(for: .milliseconds(100))
@@ -140,7 +150,7 @@ struct MacScreenshotProbe: NSViewRepresentable {
         view.register()
     }
     static func dismantleNSView(_ view: ProbeView, coordinator: ()) {
-        MacScreenshotRecorder.shared.register(nil, presentation: view.presentation, ready: false)
+        MacScreenshotRecorder.shared.unregister(view)
     }
     final class ProbeView: NSView {
         var ready = false
@@ -153,7 +163,7 @@ struct MacScreenshotProbe: NSViewRepresentable {
             setAccessibilityLabel("Screener screenshot capture")
             setAccessibilityIdentifier("screener.capture.directory")
             setAccessibilityValue(MacScreenshotRecorder.shared.directory?.path)
-            MacScreenshotRecorder.shared.register(window, presentation: presentation, ready: ready)
+            MacScreenshotRecorder.shared.register(window, owner: self, presentation: presentation, ready: ready)
         }
     }
 }

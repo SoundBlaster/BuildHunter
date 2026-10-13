@@ -12,7 +12,7 @@
   {
     "source": "assets/ScreenshotHarnessMac.swift",
     "target": "macos/Sources/BuildHunter/Screenshots/ScreenshotHarness.swift",
-    "sha256": "cf5ce65edf1cef79b7ee68f5edd9c0aacec05b8cc0e28929953f19fa612291b2"
+    "sha256": "e79eb22ec46983a8a3513a8d68fc1341c34c5f8e926b749bfda01762255e4fc5"
   },
   {
     "source": "assets/ScreenshotScenarioMac.swift",

@@ -106,6 +106,20 @@ are pilot assets rather than a claim of final App Store marketing readiness.
 Other locales, dark theme, other window/display sizes, GPU fidelity and Apple
 acceptance remain unchecked.
 
+## Probe ownership review follow-up
+
+Screener PR #17 review thread `PRRT_kwDOU9DjLc6r-d-m` identified a lifetime race:
+dismantling an old probe could clear a new probe's registry entry for the same
+presentation. The synchronized adapter now keeps a weak owner identity and
+unregisters only entries belonging to that exact view. A probe changing presentation
+retires its own previous entry, while capture rejects entries with no live owner.
+
+The successful batches above remain bound to `final-source-identity.json`; those
+records and native PNGs are unchanged. They do not prove overlapping-probe
+replacement on this repaired implementation. Current validation consists of source
+review, equality with the skill asset, syntax/structure checks and the screenshot
+app build. No application tests were added or rerun for this review fix.
+
 ## Artifacts
 
 Raw logs, manifests and xcresults are retained under `screenshots/output/` with
