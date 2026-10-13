@@ -1,0 +1,200 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.current.application
+  title: Current client assembly
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
+    and profile differences.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - CLI scan/output/profile path; macOS session generation, shared companion reports, table/diagram, warnings, preferences,
+    Finder and export.
+  excludes:
+  - Full Charts geometry/animation conformance.
+  - Store publishing, licensing enforcement or commercial plugins.
+  - Persistent target restoration, index, LLM or background maintenance.
+provides:
+  capabilities:
+  - id: buildhunter.current.application
+    role: primary
+    summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
+      and profile differences.
+requires:
+  capabilities:
+  - id: buildhunter.current.scan
+    optional: false
+    summary: Shared Rust scan mechanics; CLI consumes directly, GUI through its bridge.
+  - id: buildhunter.current.bridge
+    optional: true
+    summary: Required for the GUI profile only; CLI calls the Rust scanner directly.
+  - id: buildhunter.current.classification
+    optional: false
+    summary: Client policies and filters determine report eligibility.
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: Existing CLI main and WindowScanModel.accept/rescan/stop/apply; App scenes and user-selected export/Finder
+      operations are separate adapters.
+    operations:
+    - name: accept_target
+      summary: Existing CLI main and WindowScanModel.accept/rescan/stop/apply; App scenes and user-selected export/Finder
+        operations are separate adapters.
+  outbound: []
+constraints:
+- id: generation
+  level: MUST
+  statement: Replacing/rescanning/stopping invalidates prior events by generation; only current scanning generation
+    mutates rows. Terminal reduction preserves stopped/partial or incomplete semantics.
+- id: shared_report
+  level: MUST
+  statement: Diagram and warning windows resolve the same scan model via ScanWindowStore and never initiate another
+    scan; closing the main scan window stops its scan.
+- id: effects_scope
+  level: MUST
+  statement: Read-only means no mutation of the scanned target by built-in scan/actions. Settings write UserDefaults
+    and user-requested exports write a selected output; CLI --profile also creates a separate output file.
+- id: finder_handoff
+  level: MUST
+  statement: NSWorkspace.activateFileViewerSelecting requests Finder selection; the .opened outcome describes a handoff
+    request, not observed Finder completion. Fallback stays within the specified accessRoot check.
+- id: view_projection
+  level: MUST
+  statement: Sorting is a presentation projection; the native table data source owns current row objects. The known
+    memory regression was tested historically, not re-executed in this recovery pass.
+- id: cli_profile
+  level: MUST
+  statement: CLI JSON formats paths lossily and lists nested findings while summing only outer roots; language/exclusion/environment
+    options and process exit codes belong to this adapter, not generic traversal.
+effects:
+  sideEffects:
+  - id: user_export
+    kind: filesystem_write
+    summary: Write a separate user-selected report/profile output, not clean targets.
+  - id: finder_request
+    kind: event_emit
+    summary: Request Finder selection; completion is external.
+  - id: preferences
+    kind: state_mutation
+    summary: Update exclusions/preferences and clipboard on user actions.
+evidence:
+- id: source_0
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/WindowScanModel.swift
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.generation
+  - constraints.view_projection
+- id: source_1
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/ScanWindowStore.swift
+  supports:
+  - scope
+  - constraints.shared_report
+- id: source_2
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/ScanEvent.swift
+  supports:
+  - scope
+- id: source_3
+  kind: source
+  path: macos/Sources/BuildHunter/UI/BuildHunterApp.swift
+  supports:
+  - scope
+- id: source_4
+  kind: source
+  path: macos/Sources/BuildHunter/UI/BuildHunterWindow.swift
+  supports:
+  - scope
+  - constraints.effects_scope
+  - constraints.finder_handoff
+  - constraints.view_projection
+- id: source_5
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift
+  supports:
+  - scope
+  - constraints.finder_handoff
+- id: source_6
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/ScanReportExport.swift
+  supports:
+  - scope
+- id: source_7
+  kind: source
+  path: macos/Sources/BuildHunter/UI/ScanResultsExportPanel.swift
+  supports:
+  - scope
+  - constraints.effects_scope
+- id: source_8
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/ArtifactDiagramModel.swift
+  supports:
+  - scope
+- id: source_9
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/ArtifactSunburst.swift
+  supports:
+  - scope
+- id: source_10
+  kind: source
+  path: src/main.rs
+  supports:
+  - scope
+  - constraints.effects_scope
+  - constraints.cli_profile
+- id: source_11
+  kind: source
+  path: src/profile_report.rs
+  supports:
+  - scope
+- id: test_source_0
+  kind: test
+  path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
+  supports:
+  - scope
+- id: test_source_1
+  kind: test
+  path: macos/Tests/BuildHunterPerformanceTests/ScanPerformanceTests.swift
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: medium
+  notes:
+  - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings:
+- id: implementation
+  language: swift
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+  files:
+    owned:
+    - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift
+    - macos/Sources/BuildHunter/Scanning/ScanWindowStore.swift
+    - macos/Sources/BuildHunter/Scanning/ScanEvent.swift
+    - macos/Sources/BuildHunter/UI/BuildHunterApp.swift
+    - macos/Sources/BuildHunter/UI/BuildHunterWindow.swift
+    - macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift
+    - macos/Sources/BuildHunter/Scanning/ScanReportExport.swift
+    - macos/Sources/BuildHunter/UI/ScanResultsExportPanel.swift
+    - macos/Sources/BuildHunter/Scanning/ArtifactDiagramModel.swift
+    - macos/Sources/BuildHunter/Domain/ArtifactSunburst.swift
+    - src/main.rs
+    - src/profile_report.rs
+    border:
+    - macos/Tests/BuildHunterTests/WindowScanModelTests.swift
+    - macos/Tests/BuildHunterPerformanceTests/ScanPerformanceTests.swift

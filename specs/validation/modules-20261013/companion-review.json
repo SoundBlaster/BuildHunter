@@ -1,0 +1,14 @@
+{
+  "errors": [],
+  "checked_specs": 8,
+  "implementation_baseline": "48badf9e097783505151dd47fbafe290f0af25e2",
+  "checks": [
+    "draft status",
+    "constraint evidence support",
+    "binding/evidence paths",
+    "Markdown links/fences",
+    "source digests/Git baseline",
+    "map snapshot identity"
+  ],
+  "runtime_tests_run": false
+}

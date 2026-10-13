@@ -1,0 +1,102 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.design.scan
+  title: Hunter target boundary
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Provide reusable filesystem traversal, requested metadata/measurement and scan lifecycle without artifact
+    knowledge.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - Traversal, sizing, platform/cloud guards, QoS, streaming/cancellation and optional resource accounting.
+  excludes:
+  - Artifact names, ecosystems, filter IDs, plugin interpretation, UI, Store licensing, indexing and LLM.
+provides:
+  capabilities:
+  - id: hunter.design.scan
+    role: primary
+    summary: Provide reusable filesystem traversal, requested metadata/measurement and scan lifecycle without artifact
+      knowledge.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: Host grants effective filesystem access; Hunter cannot elevate permissions.
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: 'Proposed data contract: root/permissions held by host, opaque selection plan and measurement options;
+      outputs owned node IDs/raw paths, bytes, notices and terminal status. No ABI frozen.'
+    operations:
+    - name: proposed_scan_plan
+      summary: 'Proposed data contract: root/permissions held by host, opaque selection plan and measurement options;
+        outputs owned node IDs/raw paths, bytes, notices and terminal status. No ABI frozen.'
+  outbound: []
+constraints:
+- id: generic_facts
+  level: MUST
+  statement: Move fixed artifact candidate/prefetch/marker vocabulary out of Hunter. Hunter acquires only facts declared
+    by a bounded host plan and returns raw filesystem identity without language/kind codes.
+- id: no_product_dependency
+  level: MUST
+  statement: Hunter MUST NOT import Rifle or BuildHunter. A product-owned in-process adapter supplies selection decisions
+    through a generic seam; no dependency cycle.
+- id: lifecycle
+  level: MUST
+  statement: Cancellation requests stop further useful work, unblock app-owned queues and preserve partial outcomes;
+    completion means workers and borrowed callbacks have ended before host access is released.
+- id: io_contract
+  level: MUST
+  statement: Preserve size units, live-tree/cloud semantics and host permissions. Define symlink marker behavior explicitly
+    before extraction; do not silently alter it under a code move.
+- id: memory_budget
+  level: MUST
+  statement: Separate bounded transport from retained result storage and pending-work/arena budgets. Establish measured
+    acceptance before claiming bounded whole-scan memory.
+effects:
+  sideEffects:
+  - id: metadata_reads
+    kind: filesystem_read
+    summary: Intended authorized metadata enumeration; actual extraction is pending.
+  - id: scan_events
+    kind: event_emit
+    summary: Intended owned streaming outcomes.
+evidence:
+- id: source_0
+  kind: documentation
+  path: docs/modular-architecture.md
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.generic_facts
+  - constraints.no_product_dependency
+  - constraints.lifecycle
+  - constraints.io_contract
+  - constraints.memory_budget
+- id: source_1
+  kind: adr
+  path: docs/adr/0003-declarative-plugins-and-product-boundaries.md
+  supports:
+  - scope
+- id: source_2
+  kind: documentation
+  path: docs/plugin-delivery-plan.md
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: unknown
+  notes:
+  - Target requirement, not an implemented API. Names/product direction accepted; detailed requirements remain draft.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings: []

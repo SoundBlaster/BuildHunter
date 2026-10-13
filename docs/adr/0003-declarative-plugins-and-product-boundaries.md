@@ -3,6 +3,11 @@
 Дата: 2026-10-13. Статус: направление согласовано владельцем продукта;
 реализация не начата. Формат schema v1 и API SDK требуют отдельного review.
 
+Утверждены **Hunter / Rifle / BuildHunter / Arsenal** (Rifle с одной `f`).
+[Модульная архитектура](../modular-architecture.md) и
+[maps/BoundarySpecs](../../specs/specification-progress.md) отделяют текущую
+реализацию от целевого разделения.
+
 ## Контекст
 
 [Issue #25](https://github.com/SoundBlaster/BuildHunter/issues/25) предлагает
@@ -25,9 +30,9 @@ BuildHunter остаётся приложением для поиска лока
 
 | Часть | Доступ и назначение |
 |---|---|
-| Scanner, CLI, GUI и Plugin SDK | Open source; публичная сборка работает самостоятельно |
+| Hunter, Rifle SDK/runtime и BuildHunter CLI/GUI | Open source; публичная сборка работает самостоятельно |
 | Базовый каталог | Open source; нынешние Swift, Rust и Python проверки переводятся в плагины |
-| Расширенный каталог | Отдельный private repository; готовые пакеты популярных экосистем |
+| Расширенный каталог Arsenal | Отдельный private repository; готовые пакеты популярных экосистем |
 | Store distribution | Платная сборка общего приложения с расширенным каталогом в app bundle |
 
 Не поддерживать отдельный fork GUI или scanner для платной версии.
@@ -35,7 +40,7 @@ BuildHunter остаётся приложением для поиска лока
 Store-сборка, напротив, должна завершаться ошибкой при отсутствии обязательного
 каталога, а не незаметно выпускать базовую комплектацию.
 
-Стоимость, точный состав платного набора, финальные имена репозиториев и
+Стоимость, точный состав платного набора, имя Store composition repository и
 дополнительные варианты оплаты пока не выбраны. Первый целевой сценарий —
 платное приложение с включённым каталогом; подписка, аккаунты и отдельные
 покупки пакетов не требуются этим решением.
@@ -86,7 +91,9 @@ Swift DSL строит данные, а не сериализует arbitrary Sw
 Генератор работает при подготовке пакета/сборке. Установленному приложению
 не нужны Swift compiler, Xcode или аккаунт LLM-провайдера.
 
-Runtime один: Rust интерпретирует общий IR. Не создавать второй Swift
+Runtime правил один: Rifle на Rust интерпретирует общий IR. Hunter отвечает
+за filesystem mechanics; BuildHunter — за artifact facts/policy и адаптер.
+Hunter и Rifle не импортируют друг друга. Не создавать второй Swift
 интерпретатор правил и не вызывать Swift callback на каждый filesystem entry
 ради выполнения plugin predicates. Подготовка execution plan — компиляция
 структуры данных, не машинного кода. JIT, embedded scripting runtime,
@@ -144,13 +151,15 @@ CPU, peak/live memory и cancellation. Корпус из 200 targets нужен 
 
 ## Репозитории, сборка и лицензирование
 
-Предварительная структура (репозитории этим ADR не создаются):
+Утверждённые имена и целевая структура (репозитории этим ADR не создаются):
 
 | Репозиторий | Состав |
 |---|---|
-| `BuildHunter` — public | Общее приложение, scanner, SDK, базовые plugins и тесты |
-| `BuildHunterCatalog` — private | Коммерческие plugins, fixtures и пояснения |
-| `BuildHunterStore` — private | Composition/release pipeline, закрепляющий обе версии |
+| `Hunter` — public | Generic traversal/metadata/measurement/lifecycle; без артефактов |
+| `Rifle` — public | Abstract rule engine/schema/validation/evaluation и Swift authoring SDK; без filesystem I/O |
+| `BuildHunter` — public | Artifact policy, базовые plugins, Hunter/Rifle adapter, CLI/macOS GUI и тесты |
+| `Arsenal` — private | Коммерческие plugins, fixtures и пояснения |
+| Store composition — private, имя открыто | Pipeline, закрепляющий public modules и Arsenal; без второго GUI fork |
 
 Private Store pipeline фиксирует source revisions, SDK/schema versions и
 catalog digest; публичный CI не нуждается в private credentials. Секреты и
@@ -186,15 +195,16 @@ plugins не обещают доступ ко всему диску. Повто�
 
 ## Отдельный будущий продукт
 
-Универсальное приложение использует тот же движок, но имеет другое имя,
+Универсальное приложение использует Hunter/Rifle, но имеет другое имя,
 позиционирование и UI. В его будущем scope могут входить произвольные
 пользовательские запросы, persistent index и LLM для составления запросов.
 Ни сроки, ни имя, ни модель индекса, ни LLM provider сейчас не выбраны.
 
 BuildHunter не получает индекс, LLM, универсальный query UI, accounts или
 background indexing в рамках plugins. Достаточно отделить mechanics от
-artifact catalog, policy и presentation. Выделять новый общий crate/SDK
-или универсализировать scanner сверх реальной потребности пока не обязательно.
+artifact catalog, policy и presentation. Hunter/Rifle выделяются по утверждённым
+границам после parity/performance validation; преждевременная универсализация
+для будущего продукта не требуется.
 LLM, если появится, не должен автоматически превращать пользовательский
 запрос в произвольный исполняемый код с filesystem access.
 

@@ -1,0 +1,94 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: rifle.design.rules
+  title: Rifle target boundary
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Validate and evaluate abstract declarative rules over supplied facts, independently of filesystem traversal
+    or artifact taxonomy.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - Versioned IR/schema, linter/conflicts, immutable plan/indexes, deterministic matching, catalog identity and Swift
+    authoring/export SDK.
+  excludes:
+  - Filesystem I/O, Hunter imports, artifact vocabulary, arbitrary executable hooks/JIT, UI and Store access control.
+provides:
+  capabilities:
+  - id: rifle.design.rules
+    role: primary
+    summary: Validate and evaluate abstract declarative rules over supplied facts, independently of filesystem traversal
+      or artifact taxonomy.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: 'Proposed pure interfaces: validated rule data + typed supplied facts -> match IDs/diagnostics; Swift
+      authoring produces data, not runtime closures. Names/layout remain draft.'
+    operations:
+    - name: proposed_compile_and_evaluate
+      summary: 'Proposed pure interfaces: validated rule data + typed supplied facts -> match IDs/diagnostics; Swift
+        authoring produces data, not runtime closures. Names/layout remain draft.'
+  outbound: []
+constraints:
+- id: pure_evaluation
+  level: MUST
+  statement: Rifle MUST NOT read paths, invoke commands, fetch facts or import Hunter/BuildHunter. Missing facts and
+    unsupported predicates need explicit diagnostics/outcomes rather than hidden I/O.
+- id: bounded_plan
+  level: MUST
+  statement: Validate versions, unique IDs, conflicts and complexity limits before evaluation. Exact-name acceleration
+    is optional generic planning, not a promise of constant time for arbitrary rules.
+- id: swift_authoring
+  level: MUST
+  statement: Swift DSL constructs portable IR offline/build-time. Installed apps execute the Rust evaluator without
+    a Swift compiler, per-node Swift callback, JIT or serialized arbitrary closure.
+- id: reproducibility
+  level: MUST
+  statement: Compile an immutable plan with canonical digest; facts/settings versions must match its declared vocabulary.
+    Unknown fields/versions and conflict ordering are schema review decisions, not silent defaults.
+- id: domain_ownership
+  level: MUST
+  statement: Rule names and result payloads can be product data, but meanings such as Rust target, artifact ancestor
+    policy and cache category are owned by BuildHunter, not Rifle.
+effects:
+  sideEffects: []
+evidence:
+- id: source_0
+  kind: documentation
+  path: docs/modular-architecture.md
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.pure_evaluation
+  - constraints.bounded_plan
+  - constraints.swift_authoring
+  - constraints.reproducibility
+  - constraints.domain_ownership
+- id: source_1
+  kind: adr
+  path: docs/adr/0003-declarative-plugins-and-product-boundaries.md
+  supports:
+  - scope
+- id: source_2
+  kind: documentation
+  path: docs/plugin-delivery-plan.md
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: unknown
+  notes:
+  - Target requirement, not an implemented API. Names/product direction accepted; detailed requirements remain draft.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings: []

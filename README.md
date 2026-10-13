@@ -159,3 +159,15 @@ probes and the sampler are not created. None of these readings measures energy.
 
 The internal C profile payload now has 11 `uint64_t` fields (88 bytes); rebuild
 the Rust static library and Swift bridge from matching sources together.
+
+## Architecture and maintained contracts
+
+[Module architecture](docs/modular-architecture.md) defines the intended public
+Hunter filesystem core, abstract Rifle rule engine/Swift authoring SDK, artifact
+product BuildHunter and private Arsenal catalog. Extraction is not implemented.
+
+[Current/target Hypercode maps](specs/hypercode/README.md), the descriptive
+[SpecPM package](specpm.yaml), [claim matrix](specs/claim-matrix.md) and
+[progress record](specs/specification-progress.md) separate requirements, source
+observations and execution evidence. Maintain affected maps/contracts with code
+changes according to [AGENTS.md](AGENTS.md).

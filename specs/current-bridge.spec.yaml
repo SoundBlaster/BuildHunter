@@ -1,0 +1,137 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.current.bridge
+  title: Rust/Swift scan session bridge
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
+    and target access.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - bh_scan / finite policy table, RustScanEventSource, ScanEventChannel, RustScanJob and callback context ownership.
+  excludes:
+  - Lossless GUI identity for arbitrary non-UTF-8 paths.
+  - A stable future Hunter or Rifle C ABI.
+  - Proof that all UI consumers release historical projections.
+provides:
+  capabilities:
+  - id: buildhunter.current.bridge
+    role: primary
+    summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
+      and target access.
+requires:
+  capabilities:
+  - id: buildhunter.current.scan
+    optional: false
+    summary: Rust call remains alive until workers/callbacks have completed.
+  - id: buildhunter.current.classification
+    optional: false
+    summary: The finite vocabulary or fallback policy supplies decisions.
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only during
+      callbacks.
+    operations:
+    - name: events
+      summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only
+        during callbacks.
+  outbound: []
+constraints:
+- id: payload_ownership
+  level: MUST
+  statement: Copy borrowed path, message and profile data before returning from C callbacks. Keep control and retained
+    context alive until the Rust call returns; destroy control exactly through RustScanJob.finish. Existing GUI completion
+    bytes clamp UInt64 to Int64; IDs use a generation-scoped low-48-bit UUID mapping, not a universal filesystem identity.
+- id: backpressure
+  level: MUST
+  statement: Hold at most 4096 undelivered payloads in ScanEventChannel ring slots; next releases consumed slots.
+    close discards queued events and wakes blocked producer; finish drains queued events.
+- id: cancellation
+  level: MUST
+  statement: Cancel the Rust control and close the stream channel without synchronously waiting for scan completion
+    on MainActor. Blocking OS reads may still delay the worker return.
+- id: access_lifetime
+  level: MUST
+  statement: Start security-scoped target access before detached scanning and stop a successfully acquired scope after
+    the Rust call returns, not immediately when cancellation is requested.
+- id: policy_table
+  level: MUST
+  statement: Use copied finite decisions only when vocabulary version/count and descriptors are representable; otherwise
+    use legacy callbacks. Settings are immutable per scan.
+- id: invalid_utf8
+  level: MUST
+  statement: Rust retains raw path bytes; Swift decodes displayed paths lossily and emits bridge warnings that make
+    a completed result incomplete. Exact Finder/Copy identity for these paths is not established.
+effects:
+  sideEffects:
+  - id: session_access
+    kind: state_mutation
+    summary: Acquire/release scoped access and control/context lifetime.
+  - id: owned_events
+    kind: event_emit
+    summary: Publish copied generation-tagged Swift events.
+evidence:
+- id: source_0
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.payload_ownership
+  - constraints.backpressure
+  - constraints.cancellation
+  - constraints.access_lifetime
+  - constraints.policy_table
+  - constraints.invalid_utf8
+- id: source_1
+  kind: source
+  path: src/policy_table.rs
+  supports:
+  - scope
+  - constraints.policy_table
+- id: source_2
+  kind: source
+  path: macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h
+  supports:
+  - scope
+- id: source_3
+  kind: source
+  path: src/lib.rs
+  supports:
+  - scope
+- id: test_source_0
+  kind: test
+  path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: medium
+  notes:
+  - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings:
+- id: implementation
+  language: swift
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+  files:
+    owned:
+    - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+    - src/policy_table.rs
+    - macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h
+    - src/lib.rs
+    border:
+    - macos/Tests/BuildHunterTests/WindowScanModelTests.swift
