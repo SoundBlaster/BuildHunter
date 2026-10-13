@@ -113,7 +113,7 @@ struct ScanProfilePanel: View {
                     .contentTransition(.numericText())
                     .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
             }
-            HStack(spacing: 24) {
+            HStack(spacing: 12) {
                 statistic("Current", value: metric.isResource || isScanning ? current : 0)
                 statistic("Average", value: average)
                 statistic("Peak", value: peak)
@@ -278,13 +278,49 @@ struct ScanProfilePanel: View {
     }
 
     private func statistic(_ title: String, value: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-                .nestedAccessibilityIdentifier(title.lowercased())
-            Text(value.map(formatted) ?? "—").font(.headline).monospacedDigit()
+        let display = statisticDisplay(value)
+        return VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(title)
+                    .nestedAccessibilityIdentifier(title.lowercased())
+                Text(display.unit)
+                    .fontWeight(.regular)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            Text(display.amount)
+                .font(.headline)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+                // Keep the complete measurement available to assistive technology.
+                .accessibilityValue(value.map(formatted) ?? "—")
                 .nestedAccessibilityIdentifier("\(title.lowercased()).value")
                 .contentTransition(.numericText(value: value ?? 0))
                 .animation(sampleAnimation, value: value)
+        }
+        // Each statistic owns an equal column, independent of live digit counts.
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func statisticDisplay(_ value: Double?) -> (amount: String, unit: String) {
+        switch metric {
+        case .entries, .cpu:
+            return (value?.formatted(.number.precision(.fractionLength(0))) ?? "—",
+                    metric == .entries ? "entries/s" : "%")
+        case .bytes, .memory:
+            guard let value else { return ("—", metric == .bytes ? "bytes/s" : "bytes") }
+            let bytes = Int64(min(max(0, value), Double(Int64.max / 2)))
+            let formatter = ByteCountFormatter()
+            formatter.countStyle = .binary
+            formatter.allowsNonnumericFormatting = false
+            formatter.includesUnit = false
+            let amount = formatter.string(fromByteCount: bytes)
+            formatter.includesUnit = true
+            formatter.includesCount = false
+            let unit = formatter.string(fromByteCount: bytes)
+            return (amount, unit + (metric == .bytes ? "/s" : ""))
         }
     }
 }

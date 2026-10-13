@@ -279,39 +279,15 @@ struct BuildHunterWindow: View {
 
 }
 
-private struct ArtifactReportTable: View {
+struct ArtifactReportTable: View {
     let scan: WindowScanModel
     /// Owned by the window, so export can follow the table's sort order.
     @Bindable var model: ScanTableModel
     @State private var finderNotice: String?
 
     var body: some View {
-        Table(model.rows, sortOrder: $model.sortOrder) {
-            TableColumn("Path", sortUsing: ScanRowComparator(column: .path)) { row in
-                ArtifactReportCell(text: row.relativePath, folderURL: artifactURL(for: row)) {
-                    reveal(row)
-                }
-            }
-            .width(min: 240, ideal: 360)
-            TableColumn("Size", sortUsing: ScanRowComparator(column: .size)) { row in
-                ArtifactReportCell(text: sizeDescription(row.size), folderURL: artifactURL(for: row)) {
-                    reveal(row)
-                }
-                .monospacedDigit()
-            }
-            .width(min: 100, ideal: 125)
-            TableColumn("Language", sortUsing: ScanRowComparator(column: .language)) { row in
-                ArtifactReportCell(text: row.language, language: ArtifactLanguage(rawValue: row.language),
-                                   folderURL: artifactURL(for: row)) { reveal(row) }
-            }
-            .width(min: 90, ideal: 120)
-            TableColumn("Kind", sortUsing: ScanRowComparator(column: .kind)) { row in
-                ArtifactReportCell(text: row.kind.rawValue, folderURL: artifactURL(for: row)) {
-                    reveal(row)
-                }
-            }
-            .width(min: 110, ideal: 150)
-        }
+        ArtifactNativeTable(rows: model.rows, sortOrder: model.sortOrder, rootURL: scan.targetURL,
+                            onSort: { model.sortOrder = $0 }, onReveal: reveal)
         .nestedAccessibilityIdentifier("table")
         .finderNoticeAlert($finderNotice)
         .overlay {
@@ -332,14 +308,157 @@ private struct ArtifactReportTable: View {
         guard let url = artifactURL(for: row) else { return }
         finderNotice = ArtifactFolderActions.reveal(url, accessRoot: scan.targetURL).notice
     }
+}
 
-    private func sizeDescription(_ state: SizeState) -> String {
-        switch state {
-        case .measuring: "Measuring…"
-        case .measured(let bytes): ByteCountFormatter.string(fromByteCount: bytes, countStyle: .binary)
-        case .partial(let bytes): bytes.map {
-            "\(ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary)) partial"
-        } ?? "Partial · size unknown"
+/// Keep one current data source instead of passing full arrays to SwiftUI's
+/// TableRowForEachState.ChildTraits, which can retain historical projections.
+private struct ArtifactNativeTable: NSViewRepresentable {
+    let rows: [ScanRow]
+    let sortOrder: [ScanRowComparator]
+    let rootURL: URL?
+    let onSort: ([ScanRowComparator]) -> Void
+    let onReveal: (ScanRow) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeNSView(context: Context) -> NSScrollView {
+        let table = NSOutlineView()
+        table.headerView = NSTableHeaderView()
+        table.rowHeight = 30
+        table.intercellSpacing = NSSize(width: 8, height: 0)
+        table.usesAlternatingRowBackgroundColors = true
+        table.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
+        table.indentationPerLevel = 0
+        table.setAccessibilityIdentifier("buildhunter.report.table")
+        for (key, title, width, minimum) in [
+            ("path", "Path", 360.0, 240.0), ("size", "Size", 125.0, 100.0),
+            ("language", "Language", 120.0, 90.0), ("kind", "Kind", 150.0, 110.0)
+        ] {
+            let column = NSTableColumn(identifier: .init(key))
+            column.title = title
+            column.width = width
+            column.minWidth = minimum
+            column.sortDescriptorPrototype = NSSortDescriptor(key: key, ascending: true)
+            table.addTableColumn(column)
+        }
+        table.outlineTableColumn = table.tableColumns.first
+        table.dataSource = context.coordinator
+        table.delegate = context.coordinator
+        let scroll = NSScrollView()
+        scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = true
+        scroll.autohidesScrollers = true
+        scroll.documentView = table
+        return scroll
+    }
+
+    func updateNSView(_ scroll: NSScrollView, context: Context) {
+        guard let table = scroll.documentView as? NSOutlineView else { return }
+        context.coordinator.update(self, table: table)
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
+        final class Item: NSObject {
+            var row: ScanRow
+            init(_ row: ScanRow) { self.row = row }
+        }
+        private var items: [Item] = []
+        private var rootURL: URL?
+        private var onSort: (([ScanRowComparator]) -> Void)?
+        private var onReveal: ((ScanRow) -> Void)?
+        private var isUpdating = false
+
+        func update(_ input: ArtifactNativeTable, table: NSOutlineView) {
+            onSort = input.onSort
+            onReveal = input.onReveal
+            rootURL = input.rootURL
+            isUpdating = true
+            defer { isUpdating = false }
+            let descriptors = input.sortOrder.map {
+                NSSortDescriptor(key: Self.key(for: $0.column), ascending: $0.order == .forward)
+            }
+            if table.sortDescriptors != descriptors { table.sortDescriptors = descriptors }
+            // Reuse row objects by stable artifact ID. Only current rows and visible
+            // cell views own row values; no row owns the complete report snapshot.
+            let existing = Dictionary(uniqueKeysWithValues: items.map { ($0.row.id, $0) })
+            items = input.rows.map { row in
+                let item = existing[row.id] ?? Item(row)
+                item.row = row
+                return item
+            }
+            table.reloadData()
+        }
+
+        func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
+            item == nil ? items.count : 0
+        }
+        func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
+            items[index]
+        }
+        func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool { false }
+
+        func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
+            guard let item = item as? Item, let key = tableColumn?.identifier.rawValue else { return nil }
+            let row = item.row
+            let text: String
+            switch key {
+            case "size": text = Self.sizeDescription(row.size)
+            case "language": text = row.language
+            case "kind": text = row.kind.rawValue
+            default: text = row.relativePath
+            }
+            let url = rootURL?.appendingPathComponent(row.relativePath, isDirectory: true)
+            // Capture the action and this row only, never input.rows or a projection.
+            let reveal = onReveal
+            let cell = ArtifactReportCell(text: text,
+                language: key == "language" ? ArtifactLanguage(rawValue: row.language) : nil,
+                usesMonospacedDigits: key == "size", folderURL: url, onReveal: { reveal?(row) })
+            let identifier = NSUserInterfaceItemIdentifier("artifact-\(key)")
+            if let host = outlineView.makeView(withIdentifier: identifier, owner: nil)
+                as? NSHostingView<ArtifactReportCell> {
+                host.rootView = cell
+                return host
+            }
+            let host = NSHostingView(rootView: cell)
+            host.identifier = identifier
+            return host
+        }
+
+        func outlineView(_ outlineView: NSOutlineView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
+            guard !isUpdating else { return }
+            let order = outlineView.sortDescriptors.compactMap { descriptor -> ScanRowComparator? in
+                guard let column = Self.column(for: descriptor.key) else { return nil }
+                return ScanRowComparator(column: column, order: descriptor.ascending ? .forward : .reverse)
+            }
+            onSort?(order)
+        }
+
+        private static func key(for column: ScanRowComparator.Column) -> String {
+            switch column {
+            case .path: "path"
+            case .size: "size"
+            case .language: "language"
+            case .kind: "kind"
+            }
+        }
+        private static func column(for key: String?) -> ScanRowComparator.Column? {
+            switch key {
+            case "path": .path
+            case "size": .size
+            case "language": .language
+            case "kind": .kind
+            default: nil
+            }
+        }
+        private static func sizeDescription(_ state: SizeState) -> String {
+            switch state {
+            case .measuring: "Measuring…"
+            case .measured(let bytes): ByteCountFormatter.string(fromByteCount: bytes, countStyle: .binary)
+            case .partial(let bytes): bytes.map {
+                "\(ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary)) partial"
+            } ?? "Partial · size unknown"
+            }
         }
     }
 }
@@ -347,6 +466,7 @@ private struct ArtifactReportTable: View {
 private struct ArtifactReportCell: View {
     let text: String
     var language: ArtifactLanguage? = nil
+    var usesMonospacedDigits = false
     var folderURL: URL? = nil
     var onReveal: () -> Void = {}
     @State private var isHovered = false
@@ -354,7 +474,8 @@ private struct ArtifactReportCell: View {
     var body: some View {
         HStack {
             if let language { ArtifactLanguageIcon(language: language) }
-            Text(text)
+            if usesMonospacedDigits { Text(text).monospacedDigit() }
+            else { Text(text) }
         }
             .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
             .background(Color.accentColor.opacity(isHovered ? 0.16 : 0), in: .rect(cornerRadius: 4))
