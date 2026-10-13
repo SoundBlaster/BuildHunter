@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.design.scan
   title: Hunter target boundary
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Provide reusable filesystem traversal, requested metadata/measurement and scan lifecycle without artifact
@@ -39,24 +39,29 @@ interfaces:
 constraints:
 - id: generic_facts
   level: MUST
-  statement: Move fixed artifact candidate/prefetch/marker vocabulary out of Hunter. Hunter acquires only facts declared
-    by a bounded host plan and returns raw filesystem identity without language/kind codes.
+  statement: Move fixed artifact candidate/prefetch/marker vocabulary out of Hunter. Hunter acquires only facts
+    declared by a bounded host plan and returns raw filesystem identity without language/kind codes.
 - id: no_product_dependency
   level: MUST
-  statement: Hunter MUST NOT import Rifle or BuildHunter. A product-owned in-process adapter supplies selection decisions
-    through a generic seam; no dependency cycle.
+  statement: Hunter MUST NOT import Rifle or BuildHunter. A product-owned in-process adapter supplies selection
+    decisions through a generic seam; no dependency cycle.
 - id: lifecycle
   level: MUST
   statement: Cancellation requests stop further useful work, unblock app-owned queues and preserve partial outcomes;
     completion means workers and borrowed callbacks have ended before host access is released.
 - id: io_contract
   level: MUST
-  statement: Preserve size units, live-tree/cloud semantics and host permissions. Define symlink marker behavior explicitly
-    before extraction; do not silently alter it under a code move.
+  statement: Preserve size units, live-tree/cloud semantics and host permissions. Define symlink marker behavior
+    explicitly before extraction; do not silently alter it under a code move.
 - id: memory_budget
   level: MUST
   statement: Separate bounded transport from retained result storage and pending-work/arena budgets. Establish measured
     acceptance before claiming bounded whole-scan memory.
+- id: plugin_fact_acquisition
+  level: MUST
+  statement: The proposed BuildHunter v1 adapter requests bounded own/parent marker facts with explicit unknown
+    reasons and a no-follow, selected-tree scope. This proposal must be accepted and tested against legacy symlink
+    behavior before integration; it is not current conformance.
 effects:
   sideEffects:
   - id: metadata_reads
@@ -89,6 +94,11 @@ evidence:
   path: docs/plugin-delivery-plan.md
   supports:
   - scope
+- id: plugin_contract_draft
+  kind: documentation
+  path: docs/plugin-contract-v1.md
+  supports:
+  - constraints.plugin_fact_acquisition
 provenance:
   sourceConfidence:
     intent: high
@@ -99,4 +109,6 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+  - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
+    and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
 implementationBindings: []

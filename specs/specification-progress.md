@@ -106,3 +106,33 @@ boundary needs more consumer detail, recover it then; an old coarse map does not
 prove unchanged semantics. Add a dated pass/evidence directory rather than
 overwriting the baseline above. Do not mark a target contract implemented merely
 because a new repository exists or its structural validator succeeds.
+
+## Plugin contract pass — 2026-10-13
+
+Scope: concrete reviewable v1 package/program contract, typed facts/predicates,
+unknown/conflict semantics, limits, compatibility and examples. See
+[contract](../docs/plugin-contract-v1.md) and
+[validation](validation/plugin-contract-20261013/README.md).
+
+Updated target claims: Rifle `predicate_semantics,wire_validation`; BuildHunter
+`plugin_adapter,match_conflicts`; Hunter `plugin_fact_acquisition`; Arsenal
+`shared_plugin_contract`. Existing current contracts are unchanged. The map's
+RuleModel/CatalogValidation/Evaluation, ScanAssembly, MetadataMeasurement and
+PluginFixtures roles already cover these responsibilities; map composition is
+unchanged. No new boundary or runtime module is introduced by the schema tests.
+
+Acceptance remains draft. Executed evidence covers JSON wire shape and document
+structure; semantic evaluation, SDK export, JCS and filesystem integration remain
+unimplemented. Next implementation boundary is the pure Rifle evaluator after
+review of the proposed unknown/conflict, probe scope and limit decisions.
+
+## Plugin vocabulary review correction — 2026-10-13
+
+PR #65 review found that the architecture and ADR advertised artifact-ancestor
+facts beyond the concrete v1 binding schema. Reconciled the overview, ADR and
+contract: v1 exposes name/kind/own-parent markers only; ancestor classification,
+nested presentation and totals belong exclusively to BuildHunter host policy.
+Updated `buildhunter.design.product/plugin_adapter`; current implementation
+contracts and map composition are unchanged. Added a schema rejection regression
+for ancestor bindings. No new binding, runtime behavior or owner acceptance.
+Fresh evidence: [vocabulary review](validation/plugin-vocabulary-review-20261013/README.md).

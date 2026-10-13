@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: rifle.design.rules
   title: Rifle target boundary
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Validate and evaluate abstract declarative rules over supplied facts, independently of filesystem traversal
@@ -11,8 +11,8 @@ intent:
 scope:
   boundedContext: module_recovery_and_design
   includes:
-  - Versioned IR/schema, linter/conflicts, immutable plan/indexes, deterministic matching, catalog identity and Swift
-    authoring/export SDK.
+  - Versioned IR/schema, linter/conflicts, immutable plan/indexes, deterministic matching, catalog identity and
+    Swift authoring/export SDK.
   excludes:
   - Filesystem I/O, Hunter imports, artifact vocabulary, arbitrary executable hooks/JIT, UI and Store access control.
 provides:
@@ -37,8 +37,8 @@ interfaces:
 constraints:
 - id: pure_evaluation
   level: MUST
-  statement: Rifle MUST NOT read paths, invoke commands, fetch facts or import Hunter/BuildHunter. Missing facts and
-    unsupported predicates need explicit diagnostics/outcomes rather than hidden I/O.
+  statement: Rifle MUST NOT read paths, invoke commands, fetch facts or import Hunter/BuildHunter. Missing facts
+    and unsupported predicates need explicit diagnostics/outcomes rather than hidden I/O.
 - id: bounded_plan
   level: MUST
   statement: Validate versions, unique IDs, conflicts and complexity limits before evaluation. Exact-name acceleration
@@ -55,6 +55,15 @@ constraints:
   level: MUST
   statement: Rule names and result payloads can be product data, but meanings such as Rust target, artifact ancestor
     policy and cache category are owned by BuildHunter, not Rifle.
+- id: predicate_semantics
+  level: MUST
+  statement: The proposed v1 language has typed eq/in/suffix/all/any/not with true/false/unknown results. Unavailable
+    facts are not false; missing requested facts are adapter errors. No arbitrary expression execution.
+- id: wire_validation
+  level: MUST
+  statement: Validate the abstract program independently of BuildHunter bindings. Reject unknown format/fields,
+    invalid references, duplicate IDs, type errors and complexity excess before evaluation. JSON Schema alone does
+    not prove semantic validity.
 effects:
   sideEffects: []
 evidence:
@@ -81,6 +90,12 @@ evidence:
   path: docs/plugin-delivery-plan.md
   supports:
   - scope
+- id: plugin_contract_draft
+  kind: documentation
+  path: docs/plugin-contract-v1.md
+  supports:
+  - constraints.predicate_semantics
+  - constraints.wire_validation
 provenance:
   sourceConfidence:
     intent: high
@@ -91,4 +106,6 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+  - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
+    and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
 implementationBindings: []

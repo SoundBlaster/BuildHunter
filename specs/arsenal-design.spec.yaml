@@ -3,10 +3,11 @@ kind: BoundarySpec
 metadata:
   id: arsenal.design.catalog
   title: Arsenal target catalog
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
-  summary: Supply privately maintained commercial rule packages and fixtures consumable by the same public Rifle runtime.
+  summary: Supply privately maintained commercial rule packages and fixtures consumable by the same public Rifle
+    runtime.
 scope:
   boundedContext: module_recovery_and_design
   includes:
@@ -51,8 +52,12 @@ constraints:
     removing published code cannot revoke existing MIT grants.
 - id: delivered_visibility
   level: MUST
-  statement: Private source hosting does not prevent extracting shipped rule resources or recreating predicates. Catalog
-    value is coverage, maintenance and convenience, not hidden algorithm protection.
+  statement: Private source hosting does not prevent extracting shipped rule resources or recreating predicates.
+    Catalog value is coverage, maintenance and convenience, not hidden algorithm protection.
+- id: shared_plugin_contract
+  level: MUST
+  statement: Commercial packages use the same proposed plugin/program schemas and semantic fixture requirements
+    as public packages. They cannot bypass unknown-value, conflict or resource-limit rules.
 effects:
   sideEffects: []
 evidence:
@@ -78,6 +83,11 @@ evidence:
   path: docs/plugin-delivery-plan.md
   supports:
   - scope
+- id: plugin_contract_draft
+  kind: documentation
+  path: docs/plugin-contract-v1.md
+  supports:
+  - constraints.shared_plugin_contract
 provenance:
   sourceConfidence:
     intent: high
@@ -88,4 +98,6 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+  - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
+    and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
 implementationBindings: []
