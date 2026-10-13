@@ -64,6 +64,23 @@ Current/target map identities are independent of source identity:
   [review validation](validation/review-fixes-20261013/README.md).
 - Detailed contracts remain drafts pending the owner's architecture review.
 
+## Reader review — 2026-10-13
+
+Reworked `docs/modular-architecture.md` after owner feedback that unexplained
+terms and abrupt jumps made the architecture hard to review. The document now
+introduces public/self-build and paid Mac App Store delivery first, defines
+plugin/target/fact/marker/IR/plan/FFI, walks one finding through the proposed
+adapter, and separates repository ownership from runtime modules and delivery.
+The private release repository remains a proposal with an unapproved name.
+
+Affected target claims: `hunter.design.scan`, `rifle.design.rules`,
+`buildhunter.design.product` and `arsenal.design.catalog`; their ownership and
+interfaces are unchanged. C1–C6 and current contracts retain their scope.
+No new API/schema, code extraction or owner acceptance is implied. Maps and
+BoundarySpecs remain unchanged because the revision explains the same boundaries.
+Historical hashes refer to earlier prose; current document identities and fresh
+structural validation are in the [reader-review record](validation/reader-review-20261013/README.md).
+
 ## Acceptance and verification
 
 - Accepted by owner: names, product direction, public/private split, future

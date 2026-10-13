@@ -1,0 +1,66 @@
+{
+  "source_revision": "48badf9e097783505151dd47fbafe290f0af25e2",
+  "note": "Reader-facing prose revision. No source/map/contract changes. Previous evidence remains historical.",
+  "files": [
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "4233d8d8dca3e78b9a07267e84d4bd4e119e6feb6a77a281555fbbf697392c98"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "b5b4dfad21b77e0bed7cf099f4907186a743aa92dd5916a6b39f70b0fbdf1fef"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "9c3d3e33fd6a7d6a60ca4183ba46979e05cedac37bda8d58804641fe9080278f"
+    },
+    {
+      "path": "specs/arsenal-design.spec.yaml",
+      "sha256": "8bd62b71fa4ada86024b4e579d2bdc6fd9c58e8c4ca40628f1a6ec105ab11a54"
+    },
+    {
+      "path": "specs/buildhunter-design.spec.yaml",
+      "sha256": "2d5b6bc5b1f5c3b96a9829189cbb38ff473fd7ebd74440585099ddc44e74530f"
+    },
+    {
+      "path": "specs/current-application.spec.yaml",
+      "sha256": "90bad083c9fc0ea598cdffe8cb6bdeaeacecc01a033c45a1ea6f1223e9135c51"
+    },
+    {
+      "path": "specs/current-bridge.spec.yaml",
+      "sha256": "e0c454697718b591b7e07f1b98e24b7ac92af61fc00176622c536e6349f9a0ce"
+    },
+    {
+      "path": "specs/current-classification.spec.yaml",
+      "sha256": "09a2e31cc5c17a61a8b0cd52064c5dcbd07be136ea0e703d796f9efa12d11432"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "a6e0e2d5a1b8828fcee417644ba98b6b8b8e9bcaa4016ba0f6ddb8a767012112"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "4aaf9e804ffbcb16c9cb01c2994fa71c73bc6eade911976c757065d4f9d24154"
+    },
+    {
+      "path": "specs/rifle-design.spec.yaml",
+      "sha256": "b42eadb5abe59925cdabf8b31d383a8b2e6bf746bc4b8065421bbad03a892cdd"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "94e93dce680aa2e34c8b11a4728dd02c91cb5399ee555bf2183c97bcab0dc373"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4832447e4641ab2cbdeddcb8bb9d142a5c119118007c89db57466561cacb75ab"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "8e89be2ba2825bc2ad2747645333f54de168cee83e955f379c5c490207ecad73"
+    }
+  ]
+}
