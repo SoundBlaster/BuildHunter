@@ -125,3 +125,14 @@ Acceptance remains draft. Executed evidence covers JSON wire shape and document
 structure; semantic evaluation, SDK export, JCS and filesystem integration remain
 unimplemented. Next implementation boundary is the pure Rifle evaluator after
 review of the proposed unknown/conflict, probe scope and limit decisions.
+
+## Plugin vocabulary review correction — 2026-10-13
+
+PR #65 review found that the architecture and ADR advertised artifact-ancestor
+facts beyond the concrete v1 binding schema. Reconciled the overview, ADR and
+contract: v1 exposes name/kind/own-parent markers only; ancestor classification,
+nested presentation and totals belong exclusively to BuildHunter host policy.
+Updated `buildhunter.design.product/plugin_adapter`; current implementation
+contracts and map composition are unchanged. Added a schema rejection regression
+for ancestor bindings. No new binding, runtime behavior or owner acceptance.
+Fresh evidence: [vocabulary review](validation/plugin-vocabulary-review-20261013/README.md).

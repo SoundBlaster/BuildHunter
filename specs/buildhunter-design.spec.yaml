@@ -73,6 +73,7 @@ constraints:
   level: MUST
   statement: The proposed plugin wrapper owns fact bindings and target mapping. Freeze catalog and exclusions for
     each scan; excluded targets must not cause probes solely for their rules. No filesystem effects belong to Rifle.
+    Artifact ancestry is host policy, not a v1 plugin fact binding.
 - id: match_conflicts
   level: MUST
   statement: 'For the proposed v1 contract, never choose a winner by load order: multiple true targets are ambiguous;

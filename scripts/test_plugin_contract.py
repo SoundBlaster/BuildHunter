@@ -85,6 +85,13 @@ class PluginWireShapeTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.reject(candidate)
 
+    def test_artifact_ancestry_is_not_a_v1_binding(self):
+        for source in ("artifact.ancestor", "artifact_ancestor", "node.artifactAncestor"):
+            candidate = copy.deepcopy(self.plugin)
+            candidate["bindings"]["project"] = {"source": source}
+            with self.subTest(source=source):
+                self.reject(candidate)
+
     def test_empty_or_ambiguous_expressions_are_rejected(self):
         for condition in ({"all": []}, {"any": []}, {},
                           {"all": [{"fact": "project", "op": "eq", "value": True}],
