@@ -227,7 +227,7 @@ struct BuildHunterWindow: View {
     }
 
     private func report(targetName: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(alignment: .firstTextBaseline, spacing: 7) {
@@ -251,9 +251,9 @@ struct BuildHunterWindow: View {
                     Button("Rescan", systemImage: "arrow.clockwise") { model.rescan() }
                 }
             }
+            .padding(18)
             ArtifactReportTable(scan: model, model: tableModel)
         }
-        .padding(18)
         .a11yRoot("buildhunter.report")
     }
 
