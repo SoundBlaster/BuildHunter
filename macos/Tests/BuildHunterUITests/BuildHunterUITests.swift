@@ -483,7 +483,14 @@ final class BuildHunterUITests: XCTestCase {
         expectRowPath("Packages/Core/.build", of: firstRow)
         clickTableHeader(table.buttons["Language"])
         expectRowPath("Services/API/.pytest_cache", of: firstRow)
-        firstRow.hover()
+        // AXOutlineRow is a structural container: XCTest can report it as not
+        // hittable even after its Path cell is visible and sorting has passed.
+        let pathText = firstRow.staticTexts.matching(
+            NSPredicate(format: "value == %@ OR label == %@",
+                        "Services/API/.pytest_cache", "Services/API/.pytest_cache")
+        ).firstMatch
+        XCTAssertTrue(pathText.waitForExistence(timeout: 5))
+        pathText.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).hover()
         attachScreenshot(named: "report-sorted-columns-and-footer", from: app)
     }
 
