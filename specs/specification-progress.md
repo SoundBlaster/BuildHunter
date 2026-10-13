@@ -49,6 +49,21 @@ Current/target map identities are independent of source identity:
    commands, tool/schema identities, warnings and limits are in the
    [validation record](validation/modules-20261013/README.md).
 
+## Review correction — 2026-10-13, PR #63
+
+- C6 / `buildhunter.current.application/constraints.effects_scope`: narrowed the
+  observed read-only guarantee to scanning/Finder/copy. Explicit report/profile
+  outputs may be inside the target; preferences/clipboard have separate effects.
+  This corrects a draft observation, not owner acceptance or a change to PRD BH012.
+  The broad PRD target-mutation wording and its explicit export exception still
+  require owner interpretation before promotion to an accepted precise contract.
+- Corrected the historical whitespace-check coverage claim and added an explicit
+  baseline-to-result check. Original command outputs remain untouched.
+- No source or map changes: all current/target roles, profiles and other claim IDs
+  retain their prior scope. New contract/document digests and structural checks:
+  [review validation](validation/review-fixes-20261013/README.md).
+- Detailed contracts remain drafts pending the owner's architecture review.
+
 ## Acceptance and verification
 
 - Accepted by owner: names, product direction, public/private split, future

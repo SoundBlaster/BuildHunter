@@ -93,8 +93,10 @@ JIT, arbitrary closures/native plugins и выполнение команд не
    очереди требуют отдельных budgets/measurements; snapshots #61 — историческое
    evidence конкретного исправления, не общий memory contract нового Hunter.
 6. **Finder:** `.opened` сейчас означает вызов host API, не проверенное завершение
-   открытия Finder. Export записывает отдельный выбранный файл; preferences и
-   clipboard изменяются. Read-only относится к scanned target, а не всем эффектам.
+   открытия Finder. Сам scan, Finder handoff и copy path не изменяют дерево файлов.
+   Export и CLI `--profile` записывают выбранный файл, в том числе внутри scanned
+   target: ограничения на расположение output сейчас нет. Preferences и clipboard
+   также изменяются. Эти явные outputs — исключение из read-only поведения scan.
 
 ## Порядок миграции
 

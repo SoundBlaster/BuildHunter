@@ -56,8 +56,9 @@ constraints:
     scan; closing the main scan window stops its scan.
 - id: effects_scope
   level: MUST
-  statement: Read-only means no mutation of the scanned target by built-in scan/actions. Settings write UserDefaults
-    and user-requested exports write a selected output; CLI --profile also creates a separate output file.
+  statement: Built-in scanning, Finder handoff and path copying do not mutate the scanned filesystem tree.
+    Settings write UserDefaults and copying changes the clipboard. User-requested report exports and CLI --profile
+    write an explicitly selected output, which may be inside the scanned tree; they are exceptions to scan read-only behavior.
 - id: finder_handoff
   level: MUST
   statement: NSWorkspace.activateFileViewerSelecting requests Finder selection; the .opened outcome describes a handoff
@@ -74,7 +75,7 @@ effects:
   sideEffects:
   - id: user_export
     kind: filesystem_write
-    summary: Write a separate user-selected report/profile output, not clean targets.
+    summary: Write a user-selected report/profile output, possibly inside the scanned tree; no artifact cleanup.
   - id: finder_request
     kind: event_emit
     summary: Request Finder selection; completion is external.

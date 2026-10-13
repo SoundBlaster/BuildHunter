@@ -14,7 +14,10 @@ The current/future maps and input identities are pinned in
   `edition=public`, `edition=store`: success, no reported issues.
 - SpecPM 0.2.0 package validation: zero errors. Dependency warnings are retained
   in the JSON; exact count and per-boundary paths are authoritative there.
-- `git diff --check`: success.
+- `git diff --check`: success for tracked, unstaged changes only. This historical
+  command did not cover staged or untracked PR additions and is not a full-PR
+  whitespace check. See the [review correction](../review-fixes-20261013/README.md)
+  for the explicit baseline-to-result check.
 - Companion review: local Markdown links, source binding paths, claim IDs,
   constraint evidence references and baseline/map hashes checked separately.
 
