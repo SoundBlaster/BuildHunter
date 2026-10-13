@@ -15,8 +15,11 @@ python3 screenshots/tools/run_macos.py --config screenshots/capture.json --skip-
 python3 screenshots/tools/run_macos.py --prepare-output screenshots/output/RUN
 ```
 
-The supplied config currently reuses the local BuildHunter Xcode DerivedData.
-Adjust that field to your existing single cache before running elsewhere.
+The supplied config uses repository `.build/DerivedData` and invokes Xcode tools
+directly; `rtk` is not a dependency. If this checkout already uses another single
+Xcode cache, copy `capture.json` to ignored `capture.local.json`, adjust only
+`derivedData`, and pass `--config screenshots/capture.local.json` to reuse it.
+An optional `commandPrefix` wrapper can be selected in that local override.
 The pilot generates `macos/BuildHunter.xcodeproj` from `macos/project.screenshots.yml`;
 regenerate from `macos/project.yml` before ordinary development/release builds.
 The existing diagram-animation trace flag remains separate and is not enabled.
@@ -49,3 +52,6 @@ The final 2026-10-13 light batch passed both tests and all three checkpoints in
 in 35.972s. Each produced six native PNGs and a review gallery. See
 [the fresh report](validation/2026-10-13/README.md), including the earlier failed
 attempts and permission/setup costs that these repeat timings exclude.
+
+The historical runs used the host's pre-existing shared DerivedData. That path
+is preserved in their manifests; it is no longer the checked-in default.

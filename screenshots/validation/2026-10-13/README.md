@@ -120,6 +120,16 @@ replacement on this repaired implementation. Current validation consists of sour
 review, equality with the skill asset, syntax/structure checks and the screenshot
 app build. No application tests were added or rerun for this review fix.
 
+## Portable configuration review follow-up
+
+BuildHunter PR #64 thread `PRRT_kwDOU2hwxM6r_-sV` identified the host-only
+`rtk proxy` command prefix. The checked-in default now invokes tools directly
+and uses repository `.build/DerivedData`. Existing host cache selection is kept
+in ignored `screenshots/capture.local.json`; no second cache was built.
+The original run manifests preserve the actual old host configuration.
+Configuration parsing, macOS validation, resolved root/output paths and diff
+checks were checked; no new application test run is attributed to this change.
+
 ## Artifacts
 
 Raw logs, manifests and xcresults are retained under `screenshots/output/` with
