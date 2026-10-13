@@ -47,6 +47,8 @@ struct WindowScanModelTests {
         #expect(profiles.last?.pendingTasks == 0)
         #expect(profiles.last?.artifacts == 2)
         #expect((profiles.last?.measuredBytes ?? 0) > 0)
+        #expect(profiles.last?.cpuUserNanoseconds != nil)
+        #expect((profiles.last?.residentBytes ?? 0) > 0)
         #expect(artifacts.map(\.relativePath).sorted() == ["Package/.build", "Service/target"])
         #expect(artifacts.map(\.language).sorted() == ["Rust", "Swift"])
     }
@@ -323,6 +325,61 @@ struct WindowScanModelTests {
 
         #expect(model.phase == .incomplete)
         #expect(!model.warnings.isEmpty)
+    }
+
+    @Test("Rust changed-tree completion keeps notices and partial rows without failing the scan")
+    func changedTreeCompletionKeepsPartialRows() async {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel,
+                                           policy: BuildHunterScanPolicy(filters: SearchFilterSnapshot(
+                                            excludedFilterIDs: [], catalog: [])))
+        let artifact = makeArtifact()
+        channel.send(.discovered(generation: 1, artifact: artifact))
+        channel.send(.completed(generation: 1, artifactID: artifact.id, bytes: 20, partial: true))
+        channel.send(.warning(generation: 1, message: "Changed during scan: temporary file disappeared"))
+        bridge.finish(status: 4)
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Changing tree")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .completed)
+        #expect(model.rows.first?.size == .partial(20))
+        #expect(model.warnings.count == 1)
+    }
+
+    @Test("Bridge warnings keep both ordinary and changed-tree reports incomplete",
+          arguments: [UInt32(0), 4], [UInt32(1), 99])
+    func bridgeWarningsPreventSuccessfulCompletion(status: UInt32, eventType: UInt32) async {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel,
+            policy: BuildHunterScanPolicy(filters: SearchFilterSnapshot(excludedFilterIDs: [], catalog: [])))
+        let invalidPath: [UInt8] = [0xFF]
+        invalidPath.withUnsafeBufferPointer { path in
+            var event = BHScanEvent()
+            event.event_type = eventType
+            event.artifact_id = 1
+            event.path = path.baseAddress
+            event.path_len = path.count
+            withUnsafePointer(to: &event, bridge.handle)
+        }
+        // Give any discovered row a complete measurement: the warning, rather
+        // than an unfinished row, must be what prevents successful completion.
+        var measured = BHScanEvent()
+        measured.event_type = 2
+        measured.artifact_id = 1
+        measured.bytes = 20
+        withUnsafePointer(to: &measured, bridge.handle)
+        channel.send(.warning(generation: 1, message: "Changed during scan: temporary file disappeared"))
+        bridge.finish(status: status)
+        let model = WindowScanModel(source: SingleStreamScanSource(stream: stream))
+        model.acceptDemoTarget(named: "Bridge warning")
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .incomplete)
+        #expect(model.warnings.contains { $0.contains("not valid UTF-8") || $0.contains("unknown event") })
+        #expect(model.rows.allSatisfy { $0.size == .measured(20) })
     }
 
     @Test("Duplicate and out-of-order events do not duplicate rows or invent a size")
@@ -631,6 +688,60 @@ private struct TableIdleSource: ScanEventSource {
 @Suite("Scan profile metrics")
 @MainActor
 struct ScanProfileTests {
+    private func resourceSample(_ seconds: UInt64, user: UInt64?, system: UInt64?, rss: UInt64?) -> ScanProfileSnapshot {
+        ScanProfileSnapshot(elapsedMicroseconds: seconds * 1_000_000, entries: seconds,
+            directories: 0, measuredBytes: 0, artifacts: 0, warnings: 0, pendingTasks: 0,
+            cpuUserNanoseconds: user.map { $0 * 1_000_000_000 },
+            cpuSystemNanoseconds: system.map { $0 * 1_000_000_000 }, residentBytes: rss)
+    }
+
+    @Test("Process CPU can exceed 100 percent; RSS average is weighted by time")
+    func processResources() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        history.record(resourceSample(1, user: 3, system: 1, rss: 300))
+        history.record(resourceSample(3, user: 4, system: 2, rss: 100))
+        #expect(history.points.map(\.cpuPercent) == [400, 100])
+        #expect(history.averageCPUPercent == 200)
+        #expect(history.peakCPUPercent == 400)
+        #expect(history.initialResidentBytes == 100)
+        #expect(history.peakResidentBytes == 300)
+        #expect(history.averageResidentBytes == 200)
+        #expect(history.residentObservedSeconds == 3)
+    }
+
+    @Test("Missing resources are gaps; counter regressions cannot underflow")
+    func resourceGaps() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        history.record(resourceSample(1, user: 4, system: 1, rss: 300))
+        history.record(resourceSample(2, user: 3, system: 2, rss: nil))
+        #expect(history.points.last?.cpuPercent == nil)
+        #expect(history.averageCPUPercent == nil)
+        history.record(resourceSample(3, user: 6, system: 3, rss: 200))
+        history.record(resourceSample(4, user: 7, system: 4, rss: 400))
+        #expect(history.peakCPUPercent == 500)
+        #expect(history.averageResidentBytes == 250)
+        #expect(history.residentObservedSeconds == 2)
+        #expect(history.points.first?.cpuSeries != history.points.last?.cpuSeries)
+        #expect(history.points.first?.memorySeries != history.points.last?.memorySeries)
+    }
+
+    @Test("Evicting chart samples preserves resource peaks for the whole scan")
+    func resourceWindow() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        for second in 1...1_000 {
+            let time = UInt64(second)
+            history.record(resourceSample(time, user: time + 3, system: time,
+                                          rss: second == 1 ? 9999 : 100))
+        }
+        #expect(history.points.count == ScanProfileHistory.capacity)
+        #expect(history.peakResidentBytes == 9999)
+        #expect(history.peakCPUPercent == 500)
+        #expect(abs((history.averageCPUPercent ?? 0) - 200.3) < 0.0001)
+    }
+
     private func sample(_ seconds: UInt64, entries: UInt64, bytes: UInt64 = 0) -> ScanProfileSnapshot {
         ScanProfileSnapshot(elapsedMicroseconds: seconds * 1_000_000, entries: entries,
             directories: 0, measuredBytes: bytes, artifacts: 0, warnings: 0, pendingTasks: 0)

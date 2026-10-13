@@ -165,8 +165,13 @@ and raw repeated samples; measure whole scans separately from microbenchmarks.
 The issue body's **declarative plugin proposal remains unimplemented**: schema,
 manifest fixtures, catalog loader/linter/index, target-ID FFI, plugin Settings,
 new ecosystem manifests and user-plugin loading/diagnostics are all pending.
-ADR 0002 in this repository describes the finite policy table; it is not the
-plugin ADR proposed in the issue. Allocate a new ADR number for that design.
+ADR 0002 describes the finite policy table. The product owner agreed the plugin
+direction on 2026-10-13; it is now recorded in
+[ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md) and the
+[plugin delivery plan](plugin-delivery-plan.md). This is design acceptance,
+not implementation acceptance: Swift authoring exports portable rule data for
+one Rust runtime; the open base is separate from a private Store catalog.
+Universal search, indexing and LLM belong to a future separately named product.
 
 ## Merged runtime and UI optimizations outside the H ledger
 

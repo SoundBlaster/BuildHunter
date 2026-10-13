@@ -21,7 +21,7 @@ BuildHunter помогает разработчику найти локальн�
 | BH-004 | Новый target заменяет прежний в этом окне и отменяет прежний scan. |
 | BH-005 | Scan запускается автоматически после принятия target. |
 | BH-006 | Stop отменяет scan, сохраняя частичные результаты. Rescan начинает новое сканирование target. |
-| BH-007 | SwiftUI Table пополняется асинхронно во время обхода; UI остаётся отзывчивым. |
+| BH-007 | Таблица пополняется асинхронно во время обхода; UI остаётся отзывчивым. Текущая реализация использует AppKit table в SwiftUI после исправления удержания проекций (#61). |
 | BH-008 | Таблица содержит только внешние корни найденных артефактов. Вложенные совпадения не становятся отдельными строками. |
 | BH-009 | Колонки: Path, Size, Language, Kind. Статус измерения строки отображается в Size. |
 | BH-010 | Path отображается относительно target; Copy Path копирует абсолютный путь. |
@@ -105,12 +105,34 @@ Environments включены по умолчанию в GUI и обознача
 1. **Skeleton — implemented:** app target arm64/macOS 26, window model, Table, mock states, SpecificationCore policies и sandbox entitlements. Проверка: policy/state tests и UI screenshots.
 2. **Rust integration — implemented:** общий scanner core, streaming, cancellation и FFI adapter. Проверка: Rust tests/Clippy/CLI fixtures, arm64 static-library build, Swift test по настоящему Rust FFI scanner; подпись и sandbox runtime ещё не подтверждены.
 3. **Runtime UX — in progress:** настоящий drop/open запускает read-only scan; Finder/clipboard actions реализованы (контекстное меню, двойной клик по строке, кнопки у пути; для удалённой папки открывается ближайшая существующая родительская внутри target). Осталось подтвердить доступ в signed sandboxed build на macOS 26 с несколькими окнами.
-4. **Store readiness:** signing, bundle identity, icon, metadata, screenshots и release archive. Конкретные account, bundle ID и коммерческая модель ещё не выбраны. Публикация — отдельная задача.
+4. **Store readiness:** signing, bundle identity, icon, metadata, screenshots и release archive. Коммерческое направление согласовано 2026-10-13: платное приложение с готовым расширенным каталогом, при сохранении самостоятельной open-source базы. Цена и окончательные параметры релиза ещё не выбраны. Публикация — отдельная задача.
 5. **После MVP:** Java/Kotlin и Go; правила и доказательства обнаружения проектируются отдельно, без заранее обещанных directory heuristics.
 
 Численные performance targets не согласованы. До их выбора критерии — реальные streaming updates до завершения и отзывчивый интерфейс; benchmark должен явно указывать corpus, filesystem/cache state и размерные semantics.
 
+## Plugins и коммерческая модель — решение 2026-10-13
+
+Open-source приложение, scanner и Plugin SDK остаются самостоятельными. Нынешние
+Swift/Rust/Python проверки переводятся в открытые базовые plugins. Пользователь
+может написать собственный пакет, в том числе с помощью агента, и использовать
+его в своей сборке. Платная Mac App Store версия содержит готовый расширенный
+каталог из private repository; продаются удобство, покрытие и сопровождение.
+Цена и окончательный набор пакетов пока не согласованы.
+
+Предпочтительный authoring interface — Swift DSL, экспортирующий переносимые
+данные правил. Исполнение общее в Rust; runtime compiler, JIT и arbitrary
+executable hooks не требуются. Первый коммерческий каталог включается в app
+bundle и обновляется через Store. Точный Store UX импорта пользовательских
+правил проверяется отдельно. Эти функции запланированы, а не реализованы.
+
+BuildHunter сохраняет фокус на build artifacts/caches/environments. Универсальный
+поиск станет отдельным приложением под другим именем на том же движке; индекс
+и LLM возможны позднее и не входят в текущий scope. Общее приложение не
+раздваивается на отдельные public/private forks.
+
 ## Связанные документы
 
 - [ADR 0001](adr/0001-macos-app-architecture.md): architecture, ownership и evidence gates.
+- [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md): открытые plugins, приватный коммерческий каталог, Swift authoring/Rust runtime и границы будущего отдельного продукта.
+- [Plugin delivery plan](plugin-delivery-plan.md): поэтапная доставка и acceptance criteria; реализация pending.
 - [CLI usage](../README.md): текущее поведение Rust CLI; PRD описывает будущий GUI, а не уже реализованные возможности.

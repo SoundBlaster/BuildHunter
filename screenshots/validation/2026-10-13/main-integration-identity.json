@@ -1,0 +1,17 @@
+{
+  "pr": 64,
+  "pilot_parent": "101953d3a3699cc296d2eb5332b1a378513808f8",
+  "integrated_main": "48badf9",
+  "resolution": "Regenerate normal Xcode project with XcodeGen from merged project.yml",
+  "source_sha256": {
+    "macos/project.yml": "aca933c090edf22582e5e9c57f0abc06c2675309394754bd4d73312efb48c26b",
+    "macos/project.screenshots.yml": "b438011b294c1736cd6a7808765c20268b78d0343a833947aeb3aaa31ad5d138",
+    "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift": "a7733686e01d09a13317eb4037850cf0db60e2c462ac702e2daeec373a939b72",
+    "macos/Sources/BuildHunter/UI/ArtifactDiagramWindow.swift": "07f0e444177e7ffcb4a0e75f63c0f635f2a907e018795a8cff93dd78a08a91fb",
+    "macos/Sources/BuildHunter/UI/BuildHunterApp.swift": "12f4003bd8d5864419d3c84ebcefcd49054799ee34f770a0c399cc432a5a7fde",
+    "macos/Sources/BuildHunter/Screenshots/ScreenshotHarness.swift": "e79eb22ec46983a8a3513a8d68fc1341c34c5f8e926b749bfda01762255e4fc5",
+    "macos/Sources/BuildHunter/Screenshots/IsScreenshotReady.swift": "acd85cfd0d3010142e9191e7ab681554e3d8bbcdc0b60e9a83d97c7ed325afb6",
+    "macos/Tests/BuildHunterUITests/BuildHunterScreenshotTests.swift": "ef58c08725f31bfcc91918898dd9649a7328d5dff71dc41d6273c71ec97bf1cd"
+  },
+  "runtime_evidence": "Not rerun after main integration; final-source-identity.json and prior PNGs remain historical"
+}

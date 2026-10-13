@@ -130,6 +130,29 @@ The original run manifests preserve the actual old host configuration.
 Configuration parsing, macOS validation, resolved root/output paths and diff
 checks were checked; no new application test run is attributed to this change.
 
+## Main integration and conflict resolution
+
+Integrated `origin/main` at `48badf9` into the PR #64 pilot at
+`101953d3a3699cc296d2eb5332b1a378513808f8`. The only textual conflict was the
+generated Xcode project; XcodeGen regenerated it from the merged normal
+`macos/project.yml`. Main's native report table, padding changes, diagram
+rounding, resource profiling and signing settings are preserved. Screenshot
+probes remain compile-flag gated additions to the current main/diagram views.
+
+Both app builds passed with the existing single DerivedData and ad hoc signing:
+`xcodegen generate --spec macos/project.screenshots.yml` followed by
+`xcodebuild ... -configuration ScreenerScreenshots ... build`, then normal
+`xcodegen generate --spec macos/project.yml` and
+`xcodebuild ... -configuration Debug ... build`. The normal project is restored.
+Local logs: `/tmp/buildhunter-pr64-main-integration-20261013.log` and
+`/tmp/buildhunter-pr64-main-normal-20261013.log`; both exit codes are zero.
+All six copied-tool hashes still match `tool-provenance.json`.
+
+`main-integration-identity.json` records the merged source hashes. No application
+tests or screenshot scenarios were rerun for this integration. Earlier PNGs,
+timings and source identities are unchanged historical evidence, and do not
+establish current table/diagram appearance or runtime behavior after this merge.
+
 ## Artifacts
 
 Raw logs, manifests and xcresults are retained under `screenshots/output/` with

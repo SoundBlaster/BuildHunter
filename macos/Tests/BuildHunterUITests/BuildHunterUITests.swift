@@ -44,6 +44,15 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average"].exists)
         XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
         attachScreenshot(named: "scan-profile-completed", from: app)
+        app.radioButtons["CPU"].click()
+        let current = app.staticTexts["buildhunter.report.profile.current.value"]
+        XCTAssertTrue(current.waitForExistence(timeout: 5))
+        expectValue("24%", of: current)
+        attachScreenshot(named: "scan-profile-cpu", from: app)
+        app.radioButtons["RAM"].click()
+        let terminalRAM = ByteCountFormatter.string(fromByteCount: 104 * 1_048_576, countStyle: .binary)
+        expectValue(terminalRAM, of: current)
+        attachScreenshot(named: "scan-profile-ram", from: app)
         app.typeKey(.escape, modifierFlags: [])
         let closed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"), object: chart)
@@ -474,7 +483,14 @@ final class BuildHunterUITests: XCTestCase {
         expectRowPath("Packages/Core/.build", of: firstRow)
         clickTableHeader(table.buttons["Language"])
         expectRowPath("Services/API/.pytest_cache", of: firstRow)
-        firstRow.hover()
+        // AXOutlineRow is a structural container: XCTest can report it as not
+        // hittable even after its Path cell is visible and sorting has passed.
+        let pathText = firstRow.staticTexts.matching(
+            NSPredicate(format: "value == %@ OR label == %@",
+                        "Services/API/.pytest_cache", "Services/API/.pytest_cache")
+        ).firstMatch
+        XCTAssertTrue(pathText.waitForExistence(timeout: 5))
+        pathText.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).hover()
         attachScreenshot(named: "report-sorted-columns-and-footer", from: app)
     }
 

@@ -154,6 +154,15 @@ fn main() {
         print_filter_catalog(json);
         return;
     }
+    // Root canonicalization and profile preflight can encounter evicted objects
+    // before the scanner installs its own per-thread protection.
+    let _materialization_guard = match build_hunter::NonMaterializingIoGuard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            eprintln!("Could not disable cloud downloads: {error}");
+            process::exit(1);
+        }
+    };
     let root = match fs::canonicalize(root.unwrap_or_else(|| PathBuf::from("."))) {
         Ok(path) if path.is_dir() => path,
         _ => {
@@ -218,6 +227,7 @@ fn main() {
             });
         let status = match report.status {
             build_hunter::ScanStatus::Completed => "completed",
+            build_hunter::ScanStatus::CompletedWithChanges => "completed_with_changes",
             build_hunter::ScanStatus::Cancelled => "cancelled",
             build_hunter::ScanStatus::Incomplete => "incomplete",
             build_hunter::ScanStatus::Failed => "failed",
@@ -254,13 +264,14 @@ fn main() {
         );
         for (i, row) in rows.iter().enumerate() {
             println!(
-                "{}{{\"path\":{},\"language\":{},\"kind\":{},\"bytes\":{},\"nested\":{}}}",
+                "{}{{\"path\":{},\"language\":{},\"kind\":{},\"bytes\":{},\"nested\":{},\"partial\":{}}}",
                 if i == 0 { "" } else { "," },
                 quoted(&root.join(&row.relative_path).to_string_lossy()),
                 quoted(row.language),
                 quoted(row.kind),
                 row.bytes,
-                row.nested
+                row.nested,
+                row.partial
             );
         }
         println!(
@@ -288,12 +299,17 @@ fn main() {
         );
         for row in &rows {
             println!(
-                "{:>14}  {:<7}  {:<11}  {}{}",
+                "{:>14}  {:<7}  {:<11}  {}{}{}",
                 human(row.bytes),
                 row.language,
                 row.kind,
                 row.relative_path.display(),
-                if row.nested { " [nested]" } else { "" }
+                if row.nested { " [nested]" } else { "" },
+                if row.partial {
+                    " [partial / changed]"
+                } else {
+                    ""
+                }
             );
         }
         println!(
@@ -310,7 +326,10 @@ fn main() {
             );
         }
     }
-    if !report.warnings.is_empty() {
+    if matches!(
+        report.status,
+        build_hunter::ScanStatus::Incomplete | build_hunter::ScanStatus::Failed
+    ) {
         process::exit(1);
     }
 }

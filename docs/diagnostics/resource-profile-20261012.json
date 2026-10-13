@@ -1,0 +1,653 @@
+{
+  "sha": "b4ff23cdca30b91232926757efe9013cbb712b79",
+  "dirty": false,
+  "host": "macOS-27.0-arm64-arm-64bit",
+  "architecture": "arm64",
+  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+  "harness_sha256": "ff7cd30ca813698015ff4ed9bd8eab1359f4df12a36e59f171dddb5162e31eb0",
+  "fixture": "128 folders, 131072 files, 896 bytes/file, warm cache, alternating order",
+  "reports_equal": true,
+  "samples": [
+    {
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 144866042,
+        "first_artifact_ns": 256292,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 140298413,
+        "measurement_worker_ns": 996611831,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 83108000,
+          "cpu_system_ns": 1045906000,
+          "average_cpu_cores": 7.794474207445046,
+          "peak_cpu_cores": 7.893382983181272,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 8699904,
+          "sampled_peak_rss_bytes": 8699904,
+          "average_rss_bytes": 6179616.094820381,
+          "rss_observed_us": 144779
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 69,
+            "cpu_user_ns": 32000,
+            "cpu_system_ns": 97000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 105071,
+            "cpu_user_ns": 61256000,
+            "cpu_system_ns": 767694000,
+            "resident_bytes": 8388608
+          },
+          {
+            "elapsed_us": 144848,
+            "cpu_user_ns": 83108000,
+            "cpu_system_ns": 1045906000,
+            "resident_bytes": 8699904
+          }
+        ]
+      },
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 142443416,
+        "first_artifact_ns": 267208,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      }
+    },
+    {
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 145734541,
+        "first_artifact_ns": 272000,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      },
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 145927666,
+        "first_artifact_ns": 253083,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 135107997,
+        "measurement_worker_ns": 1011557206,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 83197000,
+          "cpu_system_ns": 1046772000,
+          "average_cpu_cores": 7.744128350455409,
+          "peak_cpu_cores": 7.846161505526237,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 8765440,
+          "sampled_peak_rss_bytes": 8765440,
+          "average_rss_bytes": 6481328.3655412635,
+          "rss_observed_us": 145844
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 69,
+            "cpu_user_ns": 28000,
+            "cpu_system_ns": 96000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 100499,
+            "cpu_user_ns": 58414000,
+            "cpu_system_ns": 729700000,
+            "resident_bytes": 8732672
+          },
+          {
+            "elapsed_us": 145913,
+            "cpu_user_ns": 83197000,
+            "cpu_system_ns": 1046772000,
+            "resident_bytes": 8765440
+          }
+        ]
+      }
+    },
+    {
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 146281708,
+        "first_artifact_ns": 298375,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 153899378,
+        "measurement_worker_ns": 996929874,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 83549000,
+          "cpu_system_ns": 1031917000,
+          "average_cpu_cores": 7.625970794136951,
+          "peak_cpu_cores": 7.747748692097313,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 8781824,
+          "sampled_peak_rss_bytes": 8781824,
+          "average_rss_bytes": 6313543.970009577,
+          "rss_observed_us": 146180
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 92,
+            "cpu_user_ns": 48000,
+            "cpu_system_ns": 128000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 105031,
+            "cpu_user_ns": 61622000,
+            "cpu_system_ns": 751595000,
+            "resident_bytes": 8585216
+          },
+          {
+            "elapsed_us": 146272,
+            "cpu_user_ns": 83549000,
+            "cpu_system_ns": 1031917000,
+            "resident_bytes": 8781824
+          }
+        ]
+      },
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 148509167,
+        "first_artifact_ns": 250750,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      }
+    },
+    {
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 146375875,
+        "first_artifact_ns": 301291,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      },
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 144597667,
+        "first_artifact_ns": 311459,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 162492079,
+        "measurement_worker_ns": 976717628,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 75579000,
+          "cpu_system_ns": 928882000,
+          "average_cpu_cores": 6.947104511470602,
+          "peak_cpu_cores": 7.029205875602479,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 8962048,
+          "sampled_peak_rss_bytes": 8962048,
+          "average_rss_bytes": 6499490.301881047,
+          "rss_observed_us": 144494
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 93,
+            "cpu_user_ns": 49000,
+            "cpu_system_ns": 125000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 104661,
+            "cpu_user_ns": 55092000,
+            "cpu_system_ns": 680112000,
+            "resident_bytes": 8945664
+          },
+          {
+            "elapsed_us": 144587,
+            "cpu_user_ns": 75579000,
+            "cpu_system_ns": 928882000,
+            "resident_bytes": 8962048
+          }
+        ]
+      }
+    },
+    {
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 143873500,
+        "first_artifact_ns": 284167,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 163040331,
+        "measurement_worker_ns": 966497952,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 79138000,
+          "cpu_system_ns": 958660000,
+          "average_cpu_cores": 7.213743535561363,
+          "peak_cpu_cores": 7.235400736335316,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 8765440,
+          "sampled_peak_rss_bytes": 8765440,
+          "average_rss_bytes": 6257197.240151347,
+          "rss_observed_us": 143776
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 88,
+            "cpu_user_ns": 45000,
+            "cpu_system_ns": 128000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 106018,
+            "cpu_user_ns": 58292000,
+            "cpu_system_ns": 708327000,
+            "resident_bytes": 8601600
+          },
+          {
+            "elapsed_us": 143864,
+            "cpu_user_ns": 79138000,
+            "cpu_system_ns": 958660000,
+            "resident_bytes": 8765440
+          }
+        ]
+      },
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 141036917,
+        "first_artifact_ns": 245708,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      }
+    },
+    {
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 140767667,
+        "first_artifact_ns": 233667,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      },
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 144504708,
+        "first_artifact_ns": 245500,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 146660659,
+        "measurement_worker_ns": 988617086,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 78289000,
+          "cpu_system_ns": 1008396000,
+          "average_cpu_cores": 7.520988047367584,
+          "peak_cpu_cores": 7.559207586515069,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 9207808,
+          "sampled_peak_rss_bytes": 9207808,
+          "average_rss_bytes": 6649175.280986642,
+          "rss_observed_us": 144409
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 78,
+            "cpu_user_ns": 42000,
+            "cpu_system_ns": 134000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 104205,
+            "cpu_user_ns": 57215000,
+            "cpu_system_ns": 724970000,
+            "resident_bytes": 9158656
+          },
+          {
+            "elapsed_us": 144487,
+            "cpu_user_ns": 78289000,
+            "cpu_system_ns": 1008396000,
+            "resident_bytes": 9207808
+          }
+        ]
+      }
+    },
+    {
+      "enabled": {
+        "status": "Completed",
+        "elapsed_ns": 145665875,
+        "first_artifact_ns": 330833,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 131202,
+        "listing_worker_ns": 148450210,
+        "measurement_worker_ns": 994778670,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": 77374000,
+          "cpu_system_ns": 1045266000,
+          "average_cpu_cores": 7.707422231681279,
+          "peak_cpu_cores": 7.848485136923062,
+          "initial_rss_bytes": 2179072,
+          "current_rss_bytes": 8798208,
+          "sampled_peak_rss_bytes": 8798208,
+          "average_rss_bytes": 6262178.244009673,
+          "rss_observed_us": 145568
+        },
+        "resource_samples": [
+          {
+            "elapsed_us": 89,
+            "cpu_user_ns": 50000,
+            "cpu_system_ns": 132000,
+            "resident_bytes": 2179072
+          },
+          {
+            "elapsed_us": 105148,
+            "cpu_user_ns": 56931000,
+            "cpu_system_ns": 767805000,
+            "resident_bytes": 8503296
+          },
+          {
+            "elapsed_us": 145657,
+            "cpu_user_ns": 77374000,
+            "cpu_system_ns": 1045266000,
+            "resident_bytes": 8798208
+          }
+        ]
+      },
+      "disabled": {
+        "status": "Completed",
+        "elapsed_ns": 145305375,
+        "first_artifact_ns": 274958,
+        "cancellation_latency_ns": 0,
+        "artifacts": 1,
+        "warnings": 0,
+        "bytes": 536870912,
+        "entries": 0,
+        "listing_worker_ns": 0,
+        "measurement_worker_ns": 0,
+        "bulk_directories": 0,
+        "bulk_fallbacks": 0,
+        "resources": {
+          "scope": "process",
+          "cpu_user_ns": null,
+          "cpu_system_ns": null,
+          "average_cpu_cores": null,
+          "peak_cpu_cores": null,
+          "initial_rss_bytes": null,
+          "current_rss_bytes": null,
+          "sampled_peak_rss_bytes": null,
+          "average_rss_bytes": null,
+          "rss_observed_us": 0
+        },
+        "resource_samples": []
+      }
+    }
+  ],
+  "elapsed_ns": {
+    "enabled": {
+      "samples": [
+        144866042,
+        145927666,
+        146281708,
+        144597667,
+        143873500,
+        144504708,
+        145665875
+      ],
+      "median": 144866042,
+      "p95": 146281708,
+      "mad": 799833
+    },
+    "disabled": {
+      "samples": [
+        142443416,
+        145734541,
+        148509167,
+        146375875,
+        141036917,
+        140767667,
+        145305375
+      ],
+      "median": 145305375,
+      "p95": 148509167,
+      "mad": 2861959
+    }
+  },
+  "enabled_percent_of_disabled": {
+    "samples": [
+      101.70076376152058,
+      100.13251834374665,
+      98.5001201979673,
+      98.78517686059946,
+      102.01123440609526,
+      102.65475807026054,
+      100.24809818631968
+    ],
+    "median": 100.24809818631968,
+    "p95": 102.65475807026054,
+    "mad": 1.4629213257202167
+  },
+  "resources": {
+    "cpu_total_ns": {
+      "samples": [
+        1129014000,
+        1129969000,
+        1115466000,
+        1004461000,
+        1037798000,
+        1086685000,
+        1122640000
+      ],
+      "median": 1115466000,
+      "p95": 1129969000,
+      "mad": 14503000
+    },
+    "average_cpu_cores": {
+      "samples": [
+        7.794474207445046,
+        7.744128350455409,
+        7.625970794136951,
+        6.947104511470602,
+        7.213743535561363,
+        7.520988047367584,
+        7.707422231681279
+      ],
+      "median": 7.625970794136951,
+      "p95": 7.794474207445046,
+      "mad": 0.11815755631845803
+    },
+    "peak_cpu_cores": {
+      "samples": [
+        7.893382983181272,
+        7.846161505526237,
+        7.747748692097313,
+        7.029205875602479,
+        7.235400736335316,
+        7.559207586515069,
+        7.848485136923062
+      ],
+      "median": 7.747748692097313,
+      "p95": 7.893382983181272,
+      "mad": 0.14563429108395898
+    },
+    "average_rss_bytes": {
+      "samples": [
+        6179616.094820381,
+        6481328.3655412635,
+        6313543.970009577,
+        6499490.301881047,
+        6257197.240151347,
+        6649175.280986642,
+        6262178.244009673
+      ],
+      "median": 6313543.970009577,
+      "p95": 6649175.280986642,
+      "mad": 133927.87518919632
+    },
+    "sampled_peak_rss_bytes": {
+      "samples": [
+        8699904,
+        8765440,
+        8781824,
+        8962048,
+        8765440,
+        9207808,
+        8798208
+      ],
+      "median": 8781824,
+      "p95": 9207808,
+      "mad": 16384
+    }
+  }
+}

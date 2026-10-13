@@ -75,7 +75,8 @@ Audit regression tests additionally cover:
   artifact measurement partial, with a failed terminal event.
 - CLI environment opt-in does not change the measured size of an already accepted
   outer artifact root: environments inside it are included in both profiles.
-- Partial sizes keep the window report incomplete even without an extra warning.
+- Partial sizes keep an ordinary completion incomplete even without a warning;
+  explicit changed-tree completion retains partial rows/notices without failing.
 - Incomplete and unknown Rust terminal statuses cannot be treated as success.
 - Debug mock states clear the previous real target URL before any rescan.
 

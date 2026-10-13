@@ -35,6 +35,11 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: "26.0"
         ARCHS: arm64
         CODE_SIGN_ENTITLEMENTS: Sources/BuildHunter/BuildHunter.entitlements
+        CODE_SIGN_IDENTITY: Apple Development
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: P8T2366K8X
+        PROVISIONING_PROFILE_SPECIFIER: ""
+        FUSE_BUILD_SCRIPT_PHASES: NO
         SWIFT_VERSION: "6.0"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
@@ -52,13 +57,17 @@ targets:
         product: ScreenerKit
     preBuildScripts:
       - name: Build Rust scanner (Apple Silicon)
-        script: bash "${SRCROOT}/../scripts/build-rust-macos.sh"
+        script: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          bash "${SRCROOT}/../scripts/build-rust-macos.sh"
         inputFiles:
           - "$(SRCROOT)/../Cargo.toml"
           - "$(SRCROOT)/../Cargo.lock"
           - "$(SRCROOT)/../src/lib.rs"
           - "$(SRCROOT)/../src/policy_table.rs"
           - "$(SRCROOT)/../src/profile.rs"
+          - "$(SRCROOT)/../src/resources.rs"
+          - "$(SRCROOT)/../src/process_resources.rs"
         outputFiles:
           - "$(SRCROOT)/../target/aarch64-apple-darwin/release/libbuild_hunter.a"
   BuildHunterTests:

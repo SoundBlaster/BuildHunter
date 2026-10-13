@@ -12,6 +12,15 @@ use std::{
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
+mod process_resources;
+mod resources;
+pub use resources::{ResourceHistory, ResourceSummary};
+#[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+mod bulk_metadata;
+mod materialization;
+/// Thread-scoped protection for filesystem preflight before starting a scan.
+/// On macOS this refuses materialization; other platforms use a no-op guard.
+pub use materialization::Guard as NonMaterializingIoGuard;
 mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
@@ -301,6 +310,8 @@ pub struct ScanWarning {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ScanStatus {
     Completed,
+    /// Traversal finished, but observed entries disappeared before measurement.
+    CompletedWithChanges,
     Cancelled,
     Incomplete,
     Failed,
@@ -338,6 +349,20 @@ pub struct ScanControl {
     profiling: AtomicBool,
     cancelled: AtomicBool,
     failed: AtomicBool,
+    listing_ns: std::sync::atomic::AtomicU64,
+    measurement_ns: std::sync::atomic::AtomicU64,
+    bulk_directories: std::sync::atomic::AtomicU64,
+    bulk_fallbacks: std::sync::atomic::AtomicU64,
+}
+
+/// Aggregate worker wall time, including overlapping work on different threads.
+/// Populated only when profiling is enabled; not a partition of total scan time.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ScanWorkTimings {
+    pub listing_ns: u64,
+    pub measurement_ns: u64,
+    pub bulk_directories: u64,
+    pub bulk_fallbacks: u64,
 }
 
 impl ScanControl {
@@ -346,6 +371,10 @@ impl ScanControl {
             profiling: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
             failed: AtomicBool::new(false),
+            listing_ns: std::sync::atomic::AtomicU64::new(0),
+            measurement_ns: std::sync::atomic::AtomicU64::new(0),
+            bulk_directories: std::sync::atomic::AtomicU64::new(0),
+            bulk_fallbacks: std::sync::atomic::AtomicU64::new(0),
         }
     }
 
@@ -356,6 +385,30 @@ impl ScanControl {
 
     pub fn cancel(&self) {
         self.cancelled.store(true, Ordering::Release);
+    }
+
+    pub fn work_timings(&self) -> ScanWorkTimings {
+        ScanWorkTimings {
+            listing_ns: self.listing_ns.load(Ordering::Relaxed),
+            measurement_ns: self.measurement_ns.load(Ordering::Relaxed),
+            bulk_directories: self.bulk_directories.load(Ordering::Relaxed),
+            bulk_fallbacks: self.bulk_fallbacks.load(Ordering::Relaxed),
+        }
+    }
+
+    fn timer(&self) -> Option<std::time::Instant> {
+        self.profiling
+            .load(Ordering::Relaxed)
+            .then(std::time::Instant::now)
+    }
+
+    fn record_time(counter: &std::sync::atomic::AtomicU64, start: Option<std::time::Instant>) {
+        if let Some(start) = start {
+            counter.fetch_add(
+                u64::try_from(start.elapsed().as_nanos()).unwrap_or(u64::MAX),
+                Ordering::Relaxed,
+            );
+        }
     }
 
     fn is_cancelled(&self) -> bool {
@@ -455,10 +508,38 @@ pub fn scan_with_policy(
     root: &Path,
     options: ScanOptions,
     control: &ScanControl,
+    policy: impl FnMut(&CandidateFacts) -> CandidateAction,
+    emit: impl FnMut(&ScanEvent),
+) -> ScanReport {
+    scan_with_probes(root, options, control, policy, emit, &Probes::default())
+}
+
+fn scan_with_probes(
+    root: &Path,
+    options: ScanOptions,
+    control: &ScanControl,
     mut policy: impl FnMut(&CandidateFacts) -> CandidateAction,
     mut emit: impl FnMut(&ScanEvent),
+    probes: &Probes,
 ) -> ScanReport {
-    let probes = Probes::default();
+    let _materialization = match materialization::Guard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            let warning = ScanWarning {
+                relative_path: PathBuf::from("."),
+                message: format!("Cannot prevent cloud downloads; scan was not started: {error}"),
+            };
+            emit(&ScanEvent::Warning(warning.clone()));
+            emit(&ScanEvent::Finished(ScanStatus::Failed));
+            return ScanReport {
+                artifacts: Vec::new(),
+                warnings: vec![warning],
+                status: ScanStatus::Failed,
+                #[cfg(test)]
+                probes: probes.counts(),
+            };
+        }
+    };
     let queue = WorkQueue::default();
     let workers = std::thread::available_parallelism()
         .map_or(1, std::num::NonZeroUsize::get)
@@ -470,7 +551,7 @@ pub fn scan_with_policy(
         .load(Ordering::Acquire)
         .then(profile::ProfileState::new);
     let profile = profile_state.as_ref();
-    let (artifacts, warnings) = std::thread::scope(|scope| {
+    let (artifacts, warnings, had_errors, changed) = std::thread::scope(|scope| {
         // Closing on every exit, including a panicking callback, lets the workers finish.
         let _close = CloseOnDrop(&queue);
         // Dropping the sender, also during unwinding, stops the sampler before the join.
@@ -484,7 +565,7 @@ pub fn scan_with_policy(
         });
         for _ in 0..workers {
             let sender = sender.clone();
-            let (queue, probes) = (&queue, &probes);
+            let queue = &queue;
             scope.spawn(move || {
                 thread_qos::apply(worker_qos);
                 run_worker(queue, &sender, control, probes)
@@ -497,28 +578,37 @@ pub fn scan_with_policy(
             control,
             policy: &mut policy,
             emit: &mut emit,
-            probes: &probes,
+            probes,
             queue: &queue,
             receiver,
             artifacts: Vec::new(),
             progress: Vec::new(),
             warnings: Vec::new(),
+            had_errors: false,
+            changed: false,
             nodes: Vec::new(),
             awaiting: std::collections::HashMap::new(),
             outstanding: 0,
             profile,
         };
         scanner.run();
-        (scanner.artifacts, scanner.warnings)
+        (
+            scanner.artifacts,
+            scanner.warnings,
+            scanner.had_errors,
+            scanner.changed,
+        )
     });
     let status = if control.is_failed() {
         ScanStatus::Failed
     } else if control.is_cancelled() {
         ScanStatus::Cancelled
-    } else if warnings.is_empty() {
-        ScanStatus::Completed
-    } else {
+    } else if had_errors {
         ScanStatus::Incomplete
+    } else if changed {
+        ScanStatus::CompletedWithChanges
+    } else {
+        ScanStatus::Completed
     };
     if let Some(profile) = profile {
         profile.counters.pending_tasks.store(0, Ordering::Relaxed);
@@ -653,6 +743,7 @@ struct ListTask {
 }
 
 enum WorkerMessage {
+    SetupFailed(std::io::Error),
     /// Sent before any metadata is read, so discovery does not wait for measurement.
     Listed {
         node: usize,
@@ -663,7 +754,7 @@ enum WorkerMessage {
     Measured {
         node: usize,
         directory: std::io::Result<fs::Metadata>,
-        files: Vec<Option<std::io::Result<fs::Metadata>>>,
+        files: Vec<Option<std::io::Result<MeasuredSize>>>,
     },
 }
 
@@ -732,8 +823,17 @@ fn run_worker(
     // A panicking worker would never send its pending messages; closing the queue lets the
     // other workers exit, which disconnects the channel and releases the caller.
     let _close = CloseOnPanic(queue);
+    let _materialization = match materialization::Guard::enter() {
+        Ok(guard) => guard,
+        Err(error) => {
+            let _ = results.send(WorkerMessage::SetupFailed(error));
+            return;
+        }
+    };
     while let Some(task) = queue.pop() {
+        let listing_started = control.timer();
         let listing = list_directory(&task.path, control, probes);
+        ScanControl::record_time(&control.listing_ns, listing_started);
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
         // Speculatively measure likely artifact roots; the coordinator reads anything missed.
         let measuring =
@@ -761,17 +861,70 @@ fn run_worker(
             return;
         }
         if measuring {
+            let measurement_started = control.timer();
             let directory = probes.metadata(&task.path);
             let mut measured = Vec::with_capacity(files.len());
+            #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
+            let mut injected = std::collections::HashMap::new();
+            #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
+            for file in files.iter().flatten() {
+                if let Err(error) = probes.hook(ProbePoint::Metadata, file) {
+                    injected.insert(file.clone(), error);
+                }
+            }
+            #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+            let mut bulk = if files.iter().any(Option::is_some) {
+                if control.profiling.load(Ordering::Relaxed) {
+                    control.bulk_directories.fetch_add(1, Ordering::Relaxed);
+                }
+                #[cfg(test)]
+                probes.record_policy();
+                Some(bulk_metadata::read(&task.path, control))
+            } else {
+                None
+            };
             for file in files {
                 // A stopped scan needs no more sizes, but the caller may be waiting for this
                 // message, so the partial result is still sent.
                 if control.should_stop() {
                     break;
                 }
-                measured.push(file.map(|file| probes.metadata(&file)));
+                measured.push(file.map(|file| {
+                    #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+                    if let Some(result) = &mut bulk {
+                        #[cfg(test)]
+                        if let Some(error) = injected.remove(&file) {
+                            return Err(error);
+                        }
+                        match result {
+                            Ok(entries) => {
+                                let name = file.file_name().map(os_str_bytes).unwrap_or_default();
+                                if let Some(size) = entries.remove(name.as_ref()) {
+                                    return size.map_err(|error| {
+                                        materialization::describe_error(&file, error)
+                                    });
+                                }
+                            }
+                            Err(error) if error.kind() == std::io::ErrorKind::Unsupported => {}
+                            Err(error) => {
+                                let error = error.raw_os_error().map_or_else(
+                                    || std::io::Error::new(error.kind(), error.to_string()),
+                                    std::io::Error::from_raw_os_error,
+                                );
+                                return Err(materialization::describe_error(&file, error));
+                            }
+                        }
+                        if control.profiling.load(Ordering::Relaxed) {
+                            control.bulk_fallbacks.fetch_add(1, Ordering::Relaxed);
+                        }
+                        // No complete metadata was returned; the portable probe decides
+                        // whether this is unsupported metadata or a vanished entry.
+                    }
+                    probes.metadata(&file).map(MeasuredSize::from)
+                }));
             }
             let files = measured;
+            ScanControl::record_time(&control.measurement_ns, measurement_started);
             let message = WorkerMessage::Measured {
                 node,
                 directory,
@@ -825,16 +978,25 @@ fn list_directory(path: &Path, control: &ScanControl, probes: &Probes) -> Listin
             Ok(file_type) => {
                 let marker = child.file_name().map_or(0, marker_flag);
                 // A marker must be a file; only a symlinked marker needs resolving.
-                if marker != 0
-                    && (file_type.is_file()
-                        || (file_type.is_symlink() && probes.marker_is_file(&child)))
-                {
-                    listing.markers |= marker;
+                if marker != 0 {
+                    if file_type.is_file() {
+                        listing.markers |= marker;
+                    } else if file_type.is_symlink() {
+                        match probes.marker_is_file(&child) {
+                            Ok(true) => listing.markers |= marker,
+                            Ok(false) => {}
+                            Err(error) => listing.errors.push((child.clone(), error)),
+                        }
+                    }
                 }
                 listing.children.push((child, file_type));
             }
             Err(error) => listing.errors.push((child, error)),
         }
+    }
+    #[cfg(test)]
+    if let Err(error) = probes.hook(ProbePoint::Listed, path) {
+        listing.errors.push((path.to_owned(), error));
     }
     listing
 }
@@ -886,6 +1048,8 @@ struct Scanner<'a, P, E> {
     artifacts: Vec<Artifact>,
     progress: Vec<ArtifactProgress>,
     warnings: Vec<ScanWarning>,
+    had_errors: bool,
+    changed: bool,
     nodes: Vec<Option<DirNode>>,
     /// `None` marks a speculative measurement nobody needs.
     awaiting: std::collections::HashMap<usize, Option<PendingMeasure>>,
@@ -921,9 +1085,43 @@ where
     }
 
     fn warn(&mut self, path: &Path, error: impl std::fmt::Display, chain: &[u64]) {
+        self.had_errors = true;
+        self.notice(path, error, chain);
+    }
+
+    fn io_error(&mut self, path: &Path, error: std::io::Error, chain: &[u64]) {
+        if error.kind() == std::io::ErrorKind::NotFound
+            && path != self.root
+            && !materialization::is_dataless_error(&error)
+        {
+            // A vanished child is expected on a live tree, but losing the
+            // selected root invalidates the scan rather than just that entry.
+            match self.probes.metadata(self.root) {
+                Ok(metadata) if metadata.is_dir() => {}
+                Ok(_) => {
+                    self.warn(self.root, "Selected root is no longer a directory", chain);
+                    return;
+                }
+                Err(root_error) => {
+                    self.warn(self.root, root_error, chain);
+                    return;
+                }
+            }
+            self.changed = true;
+            self.notice(
+                path,
+                "Changed during scan: entry disappeared before it could be measured",
+                chain,
+            );
+        } else {
+            self.warn(path, error, chain);
+        }
+    }
+
+    fn notice(&mut self, path: &Path, message: impl std::fmt::Display, chain: &[u64]) {
         let warning = ScanWarning {
             relative_path: relative_path(self.root, path),
-            message: error.to_string(),
+            message: message.to_string(),
         };
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.warnings, 1);
@@ -966,7 +1164,7 @@ where
                 // A selected file or symlink is its own candidate, measured if classified.
                 let file_type = metadata.file_type();
                 if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
-                    self.measure_file(&slot, Some(Ok(metadata)), &[]);
+                    self.measure_file(&slot, Some(Ok(metadata.into())), &[]);
                 }
             }
         }
@@ -991,6 +1189,14 @@ where
                 break;
             }
             match message {
+                WorkerMessage::SetupFailed(error) => {
+                    self.warn(
+                        self.root,
+                        format!("Cannot prevent cloud downloads on scanner worker: {error}"),
+                        &[],
+                    );
+                    self.control.fail();
+                }
                 WorkerMessage::Listed {
                     node,
                     listing,
@@ -1104,16 +1310,17 @@ where
     fn measure_file(
         &mut self,
         slot: &FileSlot,
-        metadata: Option<std::io::Result<fs::Metadata>>,
+        metadata: Option<std::io::Result<MeasuredSize>>,
         chain: &[u64],
     ) {
-        let metadata = metadata.unwrap_or_else(|| self.probes.metadata(&slot.path));
+        let metadata =
+            metadata.unwrap_or_else(|| self.probes.metadata(&slot.path).map(MeasuredSize::from));
         let bytes = match metadata {
-            Ok(metadata) => metadata_bytes(&metadata, self.options.apparent_size),
+            Ok(metadata) => metadata.bytes(self.options.apparent_size),
             Err(error) => {
                 let mut affected = chain.to_vec();
                 affected.extend(slot.artifact);
-                self.warn(&slot.path, error, &affected);
+                self.io_error(&slot.path, error, &affected);
                 0
             }
         };
@@ -1130,7 +1337,7 @@ where
         }
     }
 
-    fn process_listing(&mut self, node: usize, listing: Listing, measuring: bool) {
+    fn process_listing(&mut self, node: usize, mut listing: Listing, measuring: bool) {
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.entries, 1);
             profile::bump(&profile.counters.directories, 1);
@@ -1151,9 +1358,11 @@ where
         let own_markers = listing.markers & MARKER_PYVENV_CFG;
         let parent_markers = if matches!(name.as_ref(), b"target" | b"build" | b"dist") {
             parent_markers.unwrap_or_else(|| {
-                path.parent()
-                    .map(|parent| marker_flags(parent, self.probes))
-                    .unwrap_or_default()
+                path.parent().map_or(0, |parent| {
+                    let (flags, errors) = marker_flags(parent, self.probes);
+                    listing.errors.extend(errors);
+                    flags
+                })
             }) & !MARKER_PYVENV_CFG
         } else {
             0
@@ -1188,7 +1397,7 @@ where
             if index % 32 == 0 {
                 self.emit_profile();
             }
-            self.warn(&error_path, error, &chain);
+            self.io_error(&error_path, error, &chain);
         }
         let mut files = Vec::new();
         for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
@@ -1243,7 +1452,7 @@ where
         &mut self,
         pending: PendingMeasure,
         directory: Option<std::io::Result<fs::Metadata>>,
-        mut files: Vec<Option<std::io::Result<fs::Metadata>>>,
+        mut files: Vec<Option<std::io::Result<MeasuredSize>>>,
     ) {
         let PendingMeasure {
             path,
@@ -1268,7 +1477,7 @@ where
                         progress.bytes = progress.bytes.saturating_add(bytes);
                     }
                 }
-                Err(error) => self.warn(&path, error, &chain),
+                Err(error) => self.io_error(&path, error, &chain),
             }
         }
         for (index, slot) in slots.iter().enumerate() {
@@ -1322,6 +1531,10 @@ fn marker_flag(name: &OsStr) -> u32 {
 #[derive(Default)]
 struct Probes {
     #[cfg(test)]
+    hook: Option<Box<ProbeHook>>,
+    #[cfg(all(test, target_os = "macos"))]
+    materialization_policies: std::sync::Mutex<Vec<i32>>,
+    #[cfg(test)]
     metadata: std::sync::atomic::AtomicUsize,
     #[cfg(test)]
     marker_probes: std::sync::atomic::AtomicUsize,
@@ -1330,33 +1543,59 @@ struct Probes {
 }
 
 impl Probes {
-    fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
-        #[cfg(test)]
-        self.metadata.fetch_add(1, Ordering::Relaxed);
-        fs::symlink_metadata(path)
+    #[cfg(test)]
+    fn hook(&self, point: ProbePoint, path: &Path) -> std::io::Result<()> {
+        self.hook.as_ref().map_or(Ok(()), |hook| hook(point, path))
+    }
+    #[cfg(test)]
+    fn record_policy(&self) {
+        #[cfg(target_os = "macos")]
+        self.materialization_policies
+            .lock()
+            .unwrap()
+            .push(materialization::current_policy());
     }
 
-    fn marker_is_file(&self, path: &Path) -> bool {
+    fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
         #[cfg(test)]
-        self.marker_probes.fetch_add(1, Ordering::Relaxed);
-        path.is_file()
+        {
+            self.record_policy();
+            self.metadata.fetch_add(1, Ordering::Relaxed);
+            self.hook(ProbePoint::Metadata, path)?;
+        }
+        fs::symlink_metadata(path).map_err(|error| materialization::describe_error(path, error))
+    }
+
+    fn marker_is_file(&self, path: &Path) -> std::io::Result<bool> {
+        #[cfg(test)]
+        {
+            self.record_policy();
+            self.marker_probes.fetch_add(1, Ordering::Relaxed);
+        }
+        fs::metadata(path)
+            .map(|metadata| metadata.is_file())
+            .map_err(|error| materialization::describe_error(path, error))
     }
 
     fn read_dir(&self, path: &Path) -> std::io::Result<fs::ReadDir> {
         #[cfg(test)]
         {
+            self.record_policy();
+            self.hook(ProbePoint::ReadDir, path)?;
             let thread = std::thread::current().id();
             let mut threads = self.listing_threads.lock().unwrap();
             if !threads.contains(&thread) {
                 threads.push(thread);
             }
         }
-        fs::read_dir(path)
+        fs::read_dir(path).map_err(|error| materialization::describe_error(path, error))
     }
 
     #[cfg(test)]
     fn counts(&self) -> ProbeCounts {
         ProbeCounts {
+            #[cfg(target_os = "macos")]
+            materialization_policies: self.materialization_policies.lock().unwrap().clone(),
             metadata: self.metadata.load(Ordering::Relaxed),
             marker_probes: self.marker_probes.load(Ordering::Relaxed),
             listing_threads: self.listing_threads.lock().unwrap().clone(),
@@ -1365,8 +1604,21 @@ impl Probes {
 }
 
 #[cfg(test)]
+type ProbeHook = dyn Fn(ProbePoint, &Path) -> std::io::Result<()> + Send + Sync;
+
+#[cfg(test)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ProbePoint {
+    Metadata,
+    ReadDir,
+    Listed,
+}
+
+#[cfg(test)]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ProbeCounts {
+    #[cfg(target_os = "macos")]
+    pub materialization_policies: Vec<i32>,
     pub metadata: usize,
     pub marker_probes: usize,
     pub listing_threads: Vec<std::thread::ThreadId>,
@@ -1386,21 +1638,26 @@ fn os_str_bytes(value: &OsStr) -> Cow<'_, [u8]> {
     }
 }
 
-fn marker_flags(path: &Path, probes: &Probes) -> u32 {
+fn marker_flags(path: &Path, probes: &Probes) -> (u32, Vec<(PathBuf, std::io::Error)>) {
     let mut flags = 0;
-    if probes.marker_is_file(&path.join("Cargo.toml")) {
-        flags |= MARKER_CARGO_TOML;
+    let mut errors = Vec::new();
+    for (name, flag) in [
+        ("Cargo.toml", MARKER_CARGO_TOML),
+        ("pyproject.toml", MARKER_PYPROJECT_TOML),
+        ("setup.py", MARKER_SETUP_PY),
+        ("setup.cfg", MARKER_SETUP_CFG),
+    ] {
+        let marker = path.join(name);
+        match probes.marker_is_file(&marker) {
+            Ok(true) => flags |= flag,
+            Ok(false) => {}
+            Err(error)
+                if error.kind() == std::io::ErrorKind::NotFound
+                    && !materialization::is_dataless_error(&error) => {}
+            Err(error) => errors.push((marker, error)),
+        }
     }
-    if probes.marker_is_file(&path.join("pyproject.toml")) {
-        flags |= MARKER_PYPROJECT_TOML;
-    }
-    if probes.marker_is_file(&path.join("setup.py")) {
-        flags |= MARKER_SETUP_PY;
-    }
-    if probes.marker_is_file(&path.join("setup.cfg")) {
-        flags |= MARKER_SETUP_CFG;
-    }
-    flags
+    (flags, errors)
 }
 
 fn is_policy_candidate(name: &[u8], is_directory: bool, own_markers: u32) -> bool {
@@ -1442,6 +1699,31 @@ fn metadata_bytes(metadata: &fs::Metadata, apparent_size: bool) -> u64 {
     {
         let _ = apparent_size;
         metadata.len()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct MeasuredSize {
+    apparent: u64,
+    allocated: u64,
+}
+
+impl From<fs::Metadata> for MeasuredSize {
+    fn from(metadata: fs::Metadata) -> Self {
+        Self {
+            apparent: metadata_bytes(&metadata, true),
+            allocated: metadata_bytes(&metadata, false),
+        }
+    }
+}
+
+impl MeasuredSize {
+    fn bytes(self, apparent: bool) -> u64 {
+        if apparent {
+            self.apparent
+        } else {
+            self.allocated
+        }
     }
 }
 
@@ -1757,6 +2039,7 @@ fn path_bytes(path: &Path) -> Vec<u8> {
 fn status_code(status: ScanStatus) -> i32 {
     match status {
         ScanStatus::Completed => 0,
+        ScanStatus::CompletedWithChanges => 4,
         ScanStatus::Cancelled => 1,
         ScanStatus::Incomplete => 2,
         ScanStatus::Failed => 3,
@@ -1771,10 +2054,10 @@ mod tests {
         sync::atomic::{AtomicBool, AtomicU64, Ordering},
     };
 
-    struct TempTree(PathBuf);
+    pub(crate) struct TempTree(pub(crate) PathBuf);
 
     impl TempTree {
-        fn new() -> Self {
+        pub(crate) fn new() -> Self {
             static NEXT_ID: AtomicU64 = AtomicU64::new(0);
             loop {
                 let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
@@ -1793,6 +2076,237 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn vanished_file_marks_its_artifact_partial_without_failing_the_scan() {
+        let tree = TempTree::new();
+        let file = tree.0.join(".build/object.o");
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(&file, b"temporary object").unwrap();
+        let removed = AtomicBool::new(false);
+        let probes = Probes {
+            hook: Some(Box::new(move |point, path| {
+                if point == ProbePoint::Metadata
+                    && path == file
+                    && !removed.swap(true, Ordering::SeqCst)
+                {
+                    fs::remove_file(path)?;
+                }
+                Ok(())
+            })),
+            ..Probes::default()
+        };
+        let report = scan_with_probes(
+            &tree.0,
+            ScanOptions::default(),
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+            &probes,
+        );
+        assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+        assert!(report.artifacts[0].partial);
+        assert!(report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    #[test]
+    fn worker_phase_timings_are_opt_in_and_preserve_the_report() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/object.o"), b"fixture").unwrap();
+        let plain = ScanControl::new();
+        let measured = ScanControl::new();
+        measured.set_profiling(true);
+        let scan = |control: &ScanControl| {
+            scan_with_policy(
+                &tree.0,
+                ScanOptions::default(),
+                control,
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            )
+        };
+        let old = scan(&plain);
+        let new = scan(&measured);
+        assert_eq!(plain.work_timings(), ScanWorkTimings::default());
+        assert!(measured.work_timings().listing_ns > 0);
+        assert!(measured.work_timings().measurement_ns > 0);
+        assert_eq!(old.artifacts, new.artifacts);
+        assert_eq!(old.status, new.status);
+        assert!(old.warnings.is_empty() && new.warnings.is_empty());
+        #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+        assert!(measured.work_timings().bulk_directories > 0);
+    }
+
+    fn scan_hooked(
+        tree: &TempTree,
+        hook: impl Fn(ProbePoint, &Path) -> std::io::Result<()> + Send + Sync + 'static,
+    ) -> ScanReport {
+        scan_with_probes(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+            &Probes {
+                hook: Some(Box::new(hook)),
+                ..Probes::default()
+            },
+        )
+    }
+
+    #[test]
+    fn vanished_directory_marks_ancestors_but_not_other_artifacts() {
+        let tree = TempTree::new();
+        let removed = tree.0.join(".build/__pycache__");
+        fs::create_dir_all(&removed).unwrap();
+        fs::write(removed.join("module.pyc"), b"temporary").unwrap();
+        fs::create_dir_all(tree.0.join(".pytest_cache")).unwrap();
+        let once = AtomicBool::new(false);
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::ReadDir && path == removed && !once.swap(true, Ordering::SeqCst)
+            {
+                fs::remove_dir_all(path)?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+        assert_eq!(report.artifacts.len(), 3);
+        for artifact in &report.artifacts {
+            assert_eq!(
+                artifact.partial,
+                artifact.relative_path.starts_with(".build")
+            );
+        }
+        assert_eq!(status_code(report.status), 4);
+    }
+
+    #[test]
+    fn renamed_file_is_reported_as_changed_without_counting_its_new_name_twice() {
+        let tree = TempTree::new();
+        let old = tree.0.join(".build/old.o");
+        fs::create_dir_all(old.parent().unwrap()).unwrap();
+        fs::write(&old, b"temporary").unwrap();
+        let once = AtomicBool::new(false);
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::Metadata && path == old && !once.swap(true, Ordering::SeqCst) {
+                fs::rename(path, path.with_file_name("new.o"))?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+        assert!(report.artifacts[0].partial);
+        assert_eq!(
+            report.total_bytes(),
+            fs::symlink_metadata(tree.0.join(".build")).unwrap().len()
+        );
+    }
+
+    #[test]
+    fn new_files_before_listing_are_included_and_after_listing_wait_for_rescan() {
+        for point in [ProbePoint::ReadDir, ProbePoint::Listed] {
+            let tree = TempTree::new();
+            let build = tree.0.join(".build");
+            fs::create_dir(&build).unwrap();
+            fs::write(build.join("old.o"), b"old").unwrap();
+            let once = AtomicBool::new(false);
+            let report = scan_hooked(&tree, move |observed, path| {
+                if observed == point && path == build && !once.swap(true, Ordering::SeqCst) {
+                    fs::write(path.join("new.o"), b"new object")?;
+                }
+                Ok(())
+            });
+            let directory_bytes = fs::symlink_metadata(tree.0.join(".build")).unwrap().len();
+            let new_bytes = if point == ProbePoint::ReadDir { 10 } else { 0 };
+            assert_eq!(report.total_bytes(), directory_bytes + 3 + new_bytes);
+            assert_eq!(report.status, ScanStatus::Completed);
+            assert!(report.warnings.is_empty());
+            assert!(!report.artifacts[0].partial);
+        }
+    }
+
+    #[test]
+    fn disappearance_of_selected_root_remains_an_error() {
+        let tree = TempTree::new();
+        let root = tree.0.clone();
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::ReadDir && path == root {
+                fs::remove_dir(path)?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert!(!report.warnings.is_empty());
+        assert!(!report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    #[test]
+    fn selected_root_vanishing_after_listing_is_not_ordinary_child_churn() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/object.o"), b"temporary").unwrap();
+        let root = tree.0.clone();
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::Listed && path == root {
+                fs::remove_dir_all(path)?;
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert!(
+            report
+                .warnings
+                .iter()
+                .any(|warning| warning.relative_path == Path::new("."))
+        );
+    }
+
+    #[test]
+    fn real_errors_still_make_a_changing_scan_incomplete() {
+        let tree = TempTree::new();
+        let build = tree.0.join(".build");
+        fs::create_dir(&build).unwrap();
+        fs::write(build.join("vanish.o"), b"gone").unwrap();
+        fs::write(build.join("denied.o"), b"denied").unwrap();
+        let report = scan_hooked(&tree, move |point, path| {
+            if point == ProbePoint::Metadata {
+                if path.file_name() == Some(OsStr::new("vanish.o")) {
+                    return Err(std::io::Error::from(std::io::ErrorKind::NotFound));
+                }
+                if path.file_name() == Some(OsStr::new("denied.o")) {
+                    return Err(std::io::Error::from(std::io::ErrorKind::PermissionDenied));
+                }
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert_eq!(report.warnings.len(), 2);
+        assert!(report.artifacts[0].partial);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn identified_cloud_skip_is_not_mistaken_for_temporary_file_churn() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/cloud.o"), b"fixture").unwrap();
+        let report = scan_hooked(&tree, |point, path| {
+            if point == ProbePoint::Metadata && path.file_name() == Some(OsStr::new("cloud.o")) {
+                return Err(materialization::dataless_error(std::io::Error::from(
+                    std::io::ErrorKind::NotFound,
+                )));
+            }
+            Ok(())
+        });
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert!(
+            report.warnings[0]
+                .message
+                .contains("contents were not downloaded")
+        );
     }
 
     #[test]
@@ -1972,8 +2486,15 @@ mod tests {
             elapsed_us: 1_000_000,
             entries: 42,
             measured_bytes: 99,
+            cpu_user_ns: 2_000_000,
+            cpu_system_ns: 1_000_000,
+            resident_bytes: 4096,
+            resource_flags: 3,
             ..ScanProfileSample::default()
         };
+        assert_eq!(size_of::<ScanProfileSample>(), 88);
+        assert_eq!(std::mem::offset_of!(ScanProfileSample, cpu_user_ns), 56);
+        assert_eq!(std::mem::offset_of!(ScanProfileSample, resource_flags), 80);
         let mut copied = ScanProfileSample::default();
         unsafe {
             send_ffi_event(
@@ -2583,7 +3104,12 @@ mod tests {
         );
 
         // The selected root, then `.build`, `debug`, `object.o` and `manifest` are measured.
-        assert_eq!(report.probes.metadata, 5);
+        let expected = if cfg!(all(target_os = "macos", feature = "macos-bulk-metadata")) {
+            3
+        } else {
+            5
+        };
+        assert_eq!(report.probes.metadata, expected);
         assert_eq!(report.artifacts.len(), 1);
         let build = tree.0.join(".build");
         assert_eq!(
@@ -2665,6 +3191,27 @@ mod tests {
 
         assert_eq!(paths, [PathBuf::from("linked/target")]);
         assert_eq!(probes, 2, "only symlinked markers are resolved");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unreadable_symlinked_marker_is_visible_for_parent_and_selected_artifact() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join("target")).unwrap();
+        std::os::unix::fs::symlink("Cargo.toml", tree.0.join("Cargo.toml")).unwrap();
+        for root in [&tree.0, &tree.0.join("target")] {
+            let report = scan_with_policy(
+                root,
+                ScanOptions::default(),
+                &ScanControl::new(),
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            );
+            assert_eq!(report.status, ScanStatus::Incomplete);
+            assert_eq!(report.warnings.len(), 1);
+            assert!(report.warnings[0].relative_path.ends_with("Cargo.toml"));
+            assert!(report.artifacts.is_empty());
+        }
     }
 
     #[test]

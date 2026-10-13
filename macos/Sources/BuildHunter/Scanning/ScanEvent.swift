@@ -26,6 +26,7 @@ enum ScanPhase: Equatable, Sendable {
 
 enum ScanTerminalResult: Equatable, Sendable {
     case completed
+    case completedWithChanges
     case stopped
     case failed(String)
 }

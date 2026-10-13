@@ -11,6 +11,10 @@ crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 
+[features]
+# Experimental: the default CLI and GUI keep the portable backend.
+macos-bulk-metadata = []
+
 [[bench]]
 name = "scanner"
 harness = false

@@ -27,6 +27,19 @@ class CLIIntegrationTests(unittest.TestCase):
         self.assertEqual(profile["samples"][-1]["measured_bytes"], normal["total_bytes"])
         self.assertGreater(profile["samples"][-1]["entries"], 0)
         self.assertGreaterEqual(profile["peak_entries_per_second"], 0)
+        resources = profile["resources"]
+        self.assertEqual(resources["scope"], "process")
+        self.assertGreaterEqual(resources["cpu_user_ns"], 0)
+        self.assertGreaterEqual(resources["cpu_system_ns"], 0)
+        self.assertGreaterEqual(resources["average_cpu_cores"], 0)
+        self.assertGreater(resources["current_rss_bytes"], 0)
+        self.assertGreaterEqual(resources["sampled_peak_rss_bytes"], resources["current_rss_bytes"])
+        self.assertGreater(resources["average_rss_bytes"], 0)
+        for previous, current in zip(profile["samples"], profile["samples"][1:]):
+            self.assertGreater(current["elapsed_us"], previous["elapsed_us"])
+            self.assertGreaterEqual(current["cpu_user_ns"], previous["cpu_user_ns"])
+            self.assertGreaterEqual(current["cpu_system_ns"], previous["cpu_system_ns"])
+            self.assertGreater(current["resident_bytes"], 0)
 
     def test_profile_output_inside_artifact_does_not_affect_measurement(self):
         self.write(".build/object.o", b"fixture")

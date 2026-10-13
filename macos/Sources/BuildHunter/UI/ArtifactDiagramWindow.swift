@@ -58,7 +58,7 @@ struct ArtifactDiagramWindow: View {
                 }
             }
             WindowStatusBar {
-                Label("Known artifact sizes. Tiny folders are enlarged for visibility; partial sizes are lower bounds.",
+                Label("Known artifact sizes. Tiny folders are enlarged for visibility; partial sizes may change.",
                       systemImage: "chart.pie.fill")
             }
         }
@@ -259,7 +259,7 @@ private struct ArtifactSunburstChart: View {
                             outerRadius: .ratio(sector.outerRadius),
                             angularInset: CGFloat(decoration.angularInset)
                         )
-                        .cornerRadius(0) // Diagnostic comparison: keep animation and gap, disable rounding.
+                        .cornerRadius(CGFloat(decoration.cornerRadius))
                         .foregroundStyle(diagramColor(palette.color(for: sector)))
                         .opacity(navigation == nil ? max(0.7, 1 - Double(sector.depth) * 0.14) : 0)
                         .accessibilityLabel(sector.nodeID ?? "\(sector.parentID)/\(sector.name)")
@@ -399,14 +399,14 @@ private struct ArtifactSunburstChart: View {
         let inputs = layout.sectors.enumerated().map { index, sector in
             let decoration = sector.decoration(plotRadius: radius)
             let values = [sector.start, sector.end, sector.innerRadiusRelativeToOuter,
-                          sector.outerRadius, decoration.angularInset, 0]
+                          sector.outerRadius, decoration.angularInset, decoration.cornerRadius]
             if !values.allSatisfy(\.isFinite) || sector.end <= sector.start
                 || sector.innerRadiusRelativeToOuter < 0 || sector.innerRadiusRelativeToOuter >= 1
                 || sector.outerRadius <= 0 || sector.outerRadius > 1
-                || decoration.angularInset < 0 {
+                || decoration.angularInset < 0 || decoration.cornerRadius < 0 {
                 invalid = true
             }
-            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=0"
+            return "\(index):d=\(sector.depth),a=\(sector.start)..\(sector.end),inner=\(sector.innerRadiusRelativeToOuter),outer=\(sector.outerRadius),gap=\(decoration.angularInset),corner=\(decoration.cornerRadius)"
         }.joined(separator: ";")
         logger.notice("ChartInput size=\(size.width)x\(size.height) sectors=\(layout.sectors.count) invalid=\(invalid) reduceMotion=\(reduceMotion)")
         DiagramTraceRecorder.shared?.mark("chart.layout", [
@@ -490,12 +490,11 @@ private struct DiagramNavigationLayer: View {
         TimelineView(.animation) { context in
             let progress = presentation.plan.progress(at: start.map { context.date.timeIntervalSince($0) } ?? 0)
             GeometryReader { geometry in
-                let radius = min(geometry.size.width, geometry.size.height) / 2
                 ZStack {
                     ForEach(presentation.plan.frames(fade: progress.fade, zoom: progress.zoom)) { frame in
                         DiagramNavigationSector(start: frame.start, end: frame.end,
                                                 inner: frame.innerRadius, outer: frame.outerRadius,
-                                                inset: min(2, (frame.outerRadius - frame.innerRadius) * radius / 4))
+                                                inset: 2)
                             .fill(presentation.color(for: frame, zoom: progress.zoom))
                             .opacity(frame.opacity * max(0.7, 1 - frame.depth * 0.14))
                     }
@@ -505,7 +504,7 @@ private struct DiagramNavigationLayer: View {
     }
 }
 
-private struct DiagramNavigationSector: Shape {
+struct DiagramNavigationSector: Shape {
     var start: Double
     var end: Double
     var inner: Double
@@ -523,24 +522,55 @@ private struct DiagramNavigationSector: Shape {
 
     func path(in rect: CGRect) -> Path {
         guard [start, end, inner, outer, inset].allSatisfy(\.isFinite), end > start,
-              outer > inner, inner >= 0, outer <= 1 else { return Path() }
+              outer > inner, inner >= 0, outer <= 1, inset >= 0,
+              [rect.minX, rect.minY, rect.width, rect.height].allSatisfy(\.isFinite) else { return Path() }
         let radius = min(rect.width, rect.height) / 2
         guard radius > 0 else { return Path() }
         let center = CGPoint(x: rect.midX, y: rect.midY)
-        let gap = end - start >= 1 - 1e-12 ? 0 : min((end - start) / 8, inset / (max(1, inner * radius) * 2 * .pi))
-        let lower = (start + gap) * 2 * .pi - .pi / 2
-        let upper = (end - gap) * 2 * .pi - .pi / 2
+        let innerRadius = inner * radius
+        let outerRadius = outer * radius
+        let decoration = ArtifactSunburstLayout.Sector.decoration(
+            start: start, end: end, inner: inner, outer: outer, plotRadius: radius)
+        let isFullCircle = end - start >= 1 - 1e-12
+        let gap = isFullCircle ? 0 : min(inset, decoration.angularInset)
+        let corner = isFullCircle ? 0 : decoration.cornerRadius
+        let lower = start * 2 * .pi - .pi / 2
+        let upper = end * 2 * .pi - .pi / 2
+        // Charts offsets radial edges by points, rather than trimming one angle
+        // from both radii. Use parallel edges so tiny sectors do not grow at handoff.
+        func offset(_ r: Double) -> Double {
+            r > 0 ? asin(min(1, gap / r)) : 0
+        }
+        func point(_ r: Double, _ angle: Double) -> CGPoint {
+            CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
+        }
+        func edge(_ r: Double, _ angle: Double, _ sign: Double) -> CGPoint {
+            point(r, angle + sign * offset(r))
+        }
+        let innerTrim = innerRadius > 0 ? corner / innerRadius : 0
+        let outerTrim = corner / outerRadius
+        let innerLower = lower + offset(innerRadius)
+        let innerUpper = upper - offset(innerRadius)
+        let outerLower = lower + offset(outerRadius)
+        let outerUpper = upper - offset(outerRadius)
         var path = Path()
-        path.move(to: CGPoint(x: center.x + cos(lower) * inner * radius,
-                              y: center.y + sin(lower) * inner * radius))
-        path.addLine(to: CGPoint(x: center.x + cos(lower) * outer * radius,
-                                y: center.y + sin(lower) * outer * radius))
-        path.addArc(center: center, radius: outer * radius,
-                    startAngle: .radians(lower), endAngle: .radians(upper), clockwise: false)
-        path.addLine(to: CGPoint(x: center.x + cos(upper) * inner * radius,
-                                y: center.y + sin(upper) * inner * radius))
-        path.addArc(center: center, radius: inner * radius,
-                    startAngle: .radians(upper), endAngle: .radians(lower), clockwise: true)
+        path.move(to: edge(innerRadius + corner, lower, 1))
+        path.addLine(to: edge(outerRadius - corner, lower, 1))
+        path.addQuadCurve(to: point(outerRadius, outerLower + outerTrim),
+                          control: point(outerRadius, outerLower))
+        path.addArc(center: center, radius: outerRadius,
+                    startAngle: .radians(outerLower + outerTrim),
+                    endAngle: .radians(outerUpper - outerTrim), clockwise: false)
+        path.addQuadCurve(to: edge(outerRadius - corner, upper, -1),
+                          control: point(outerRadius, outerUpper))
+        path.addLine(to: edge(innerRadius + corner, upper, -1))
+        path.addQuadCurve(to: point(innerRadius, innerUpper - innerTrim),
+                          control: point(innerRadius, innerUpper))
+        path.addArc(center: center, radius: innerRadius,
+                    startAngle: .radians(innerUpper - innerTrim),
+                    endAngle: .radians(innerLower + innerTrim), clockwise: true)
+        path.addQuadCurve(to: edge(innerRadius + corner, lower, 1),
+                          control: point(innerRadius, innerLower))
         path.closeSubpath()
         return path
     }

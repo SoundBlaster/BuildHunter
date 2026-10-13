@@ -1,0 +1,2892 @@
+{
+  "sha": "b80438fb6b09dda580450a21b87f357aeba9e1f4",
+  "dirty": false,
+  "host": "macOS-27.0-arm64-arm-64bit",
+  "architecture": "arm64",
+  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+  "harness_sha256": "383726428696f68feec9e11b90d5ec8ab01e1ae873a035ed973516518074d2b4",
+  "cache": "warm, shared owned fixtures, interleaved backends",
+  "reports_equal": true,
+  "samples": {
+    "wide/allocated": {
+      "portable": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 20213083,
+          "first_artifact_ns": 4126125,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3898666,
+          "measurement_worker_ns": 15961000,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6062080
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 20060250,
+          "first_artifact_ns": 3915375,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3684626,
+          "measurement_worker_ns": 15988000,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6062080
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 18586833,
+          "first_artifact_ns": 3685291,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3433625,
+          "measurement_worker_ns": 14772708,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6094848
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 18992917,
+          "first_artifact_ns": 3728209,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3499250,
+          "measurement_worker_ns": 15071542,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6029312
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 19732375,
+          "first_artifact_ns": 3793417,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3511541,
+          "measurement_worker_ns": 15788667,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6029312
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 19218875,
+          "first_artifact_ns": 3831291,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3583084,
+          "measurement_worker_ns": 15235084,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6045696
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 20283541,
+          "first_artifact_ns": 3718916,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3496541,
+          "measurement_worker_ns": 16407792,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6062080
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 12121541,
+          "first_artifact_ns": 3829500,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3591542,
+          "measurement_worker_ns": 8144208,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 8011776
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 12339792,
+          "first_artifact_ns": 3924750,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3687376,
+          "measurement_worker_ns": 8274208,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 8011776
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 11906792,
+          "first_artifact_ns": 3748917,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3519459,
+          "measurement_worker_ns": 7991541,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7962624
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 11929250,
+          "first_artifact_ns": 3716667,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3453375,
+          "measurement_worker_ns": 8052750,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 8060928
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 12374583,
+          "first_artifact_ns": 3842416,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3593542,
+          "measurement_worker_ns": 8386334,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7995392
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 12216208,
+          "first_artifact_ns": 3728417,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3512958,
+          "measurement_worker_ns": 8339250,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7962624
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 12227416,
+          "first_artifact_ns": 3876208,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 33554432,
+          "entries": 8194,
+          "listing_worker_ns": 3636375,
+          "measurement_worker_ns": 8201792,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7979008
+        }
+      ]
+    },
+    "wide/apparent": {
+      "portable": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 20218875,
+          "first_artifact_ns": 3903000,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3662083,
+          "measurement_worker_ns": 16169708,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6012928
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 18933750,
+          "first_artifact_ns": 4073166,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3822208,
+          "measurement_worker_ns": 14708041,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6029312
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 19045375,
+          "first_artifact_ns": 3876625,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3620708,
+          "measurement_worker_ns": 15028167,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6127616
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 19069375,
+          "first_artifact_ns": 3612250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3382333,
+          "measurement_worker_ns": 15262833,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6012928
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 19290583,
+          "first_artifact_ns": 3817291,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3589208,
+          "measurement_worker_ns": 15288875,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6062080
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 18056125,
+          "first_artifact_ns": 3585666,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3333500,
+          "measurement_worker_ns": 14286667,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6094848
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 19872875,
+          "first_artifact_ns": 3654666,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3433834,
+          "measurement_worker_ns": 16051750,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 6012928
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 13151083,
+          "first_artifact_ns": 3915625,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3652958,
+          "measurement_worker_ns": 9055750,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7979008
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 11409875,
+          "first_artifact_ns": 3849584,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3621583,
+          "measurement_worker_ns": 7443625,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 8011776
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 12243750,
+          "first_artifact_ns": 3896792,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3640458,
+          "measurement_worker_ns": 8200959,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7995392
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 11480666,
+          "first_artifact_ns": 3783208,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3535292,
+          "measurement_worker_ns": 7539292,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7995392
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 12195291,
+          "first_artifact_ns": 3886875,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3639708,
+          "measurement_worker_ns": 8166667,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 7979008
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 11708334,
+          "first_artifact_ns": 3629542,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3397416,
+          "measurement_worker_ns": 7894834,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 8060928
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 11700667,
+          "first_artifact_ns": 3803792,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 7602240,
+          "entries": 8194,
+          "listing_worker_ns": 3565291,
+          "measurement_worker_ns": 7742209,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 8011776
+        }
+      ]
+    },
+    "deep/allocated": {
+      "portable": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 5587792,
+          "first_artifact_ns": 239125,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 10824585,
+          "measurement_worker_ns": 30109247,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3162112
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5565750,
+          "first_artifact_ns": 217625,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 11005543,
+          "measurement_worker_ns": 29578586,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3080192
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5349166,
+          "first_artifact_ns": 208541,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 11686872,
+          "measurement_worker_ns": 27650416,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3031040
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5365000,
+          "first_artifact_ns": 225000,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14099793,
+          "measurement_worker_ns": 25352210,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3031040
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5234625,
+          "first_artifact_ns": 225459,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 11509583,
+          "measurement_worker_ns": 26612666,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3047424
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5148000,
+          "first_artifact_ns": 223583,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 10556588,
+          "measurement_worker_ns": 27221621,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3063808
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5431750,
+          "first_artifact_ns": 241250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 10273134,
+          "measurement_worker_ns": 29263623,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3178496
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 4446958,
+          "first_artifact_ns": 218500,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 15385582,
+          "measurement_worker_ns": 16835290,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3407872
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4266667,
+          "first_artifact_ns": 239959,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14460951,
+          "measurement_worker_ns": 15809496,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3473408
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4191083,
+          "first_artifact_ns": 196250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14738957,
+          "measurement_worker_ns": 15586080,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3407872
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4531000,
+          "first_artifact_ns": 238375,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14670041,
+          "measurement_worker_ns": 17795377,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3342336
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4231209,
+          "first_artifact_ns": 210375,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14423206,
+          "measurement_worker_ns": 15799128,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3407872
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4209292,
+          "first_artifact_ns": 263792,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14434333,
+          "measurement_worker_ns": 15250921,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3424256
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4206667,
+          "first_artifact_ns": 224250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 16777216,
+          "entries": 4226,
+          "listing_worker_ns": 14495741,
+          "measurement_worker_ns": 15394960,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3342336
+        }
+      ]
+    },
+    "deep/apparent": {
+      "portable": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 5224125,
+          "first_artifact_ns": 209750,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 10154630,
+          "measurement_worker_ns": 28014870,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3014656
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5019042,
+          "first_artifact_ns": 196792,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 9477587,
+          "measurement_worker_ns": 26899956,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3080192
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5405666,
+          "first_artifact_ns": 202125,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 11327788,
+          "measurement_worker_ns": 28142169,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3047424
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 6011709,
+          "first_artifact_ns": 222417,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 17612456,
+          "measurement_worker_ns": 26545169,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3063808
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5313042,
+          "first_artifact_ns": 226750,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 10142538,
+          "measurement_worker_ns": 28116917,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3031040
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5309500,
+          "first_artifact_ns": 204000,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 11067790,
+          "measurement_worker_ns": 27846714,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3080192
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 5032833,
+          "first_artifact_ns": 212583,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 10371671,
+          "measurement_worker_ns": 26407912,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3047424
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 4341583,
+          "first_artifact_ns": 226833,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 15097711,
+          "measurement_worker_ns": 16123623,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3440640
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4278375,
+          "first_artifact_ns": 235833,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 15014711,
+          "measurement_worker_ns": 15671003,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3440640
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4355500,
+          "first_artifact_ns": 268708,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 15132629,
+          "measurement_worker_ns": 15872538,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3407872
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4051291,
+          "first_artifact_ns": 206416,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 14343244,
+          "measurement_worker_ns": 14270421,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3489792
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4240334,
+          "first_artifact_ns": 195042,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 14728539,
+          "measurement_worker_ns": 15908250,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3391488
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 4171125,
+          "first_artifact_ns": 188834,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 15176329,
+          "measurement_worker_ns": 15392715,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3440640
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 3999416,
+          "first_artifact_ns": 204916,
+          "cancellation_latency_ns": 0,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 3813440,
+          "entries": 4226,
+          "listing_worker_ns": 13221749,
+          "measurement_worker_ns": 15091161,
+          "bulk_directories": 128,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 3424256
+        }
+      ]
+    },
+    "mixed/allocated": {
+      "portable": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 535541,
+          "first_artifact_ns": 211750,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 484084,
+          "measurement_worker_ns": 536167,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2555904
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 588292,
+          "first_artifact_ns": 181584,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 455457,
+          "measurement_worker_ns": 722833,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2555904
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 587375,
+          "first_artifact_ns": 212916,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 533043,
+          "measurement_worker_ns": 775666,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2506752
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 500833,
+          "first_artifact_ns": 197958,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 457125,
+          "measurement_worker_ns": 536168,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2473984
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 497125,
+          "first_artifact_ns": 197333,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 477750,
+          "measurement_worker_ns": 535542,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2473984
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 555042,
+          "first_artifact_ns": 205583,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 501250,
+          "measurement_worker_ns": 612916,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2523136
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 749625,
+          "first_artifact_ns": 304458,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 729417,
+          "measurement_worker_ns": 756707,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2572288
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 529708,
+          "first_artifact_ns": 255833,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 636207,
+          "measurement_worker_ns": 390292,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2736128
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 482833,
+          "first_artifact_ns": 218250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 560211,
+          "measurement_worker_ns": 392416,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2719744
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 492000,
+          "first_artifact_ns": 219000,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 571376,
+          "measurement_worker_ns": 360169,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2785280
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 704917,
+          "first_artifact_ns": 328959,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 1050582,
+          "measurement_worker_ns": 582209,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2719744
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 457083,
+          "first_artifact_ns": 228375,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 575210,
+          "measurement_worker_ns": 311541,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2768896
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 500916,
+          "first_artifact_ns": 226250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 551250,
+          "measurement_worker_ns": 395874,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2719744
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 477583,
+          "first_artifact_ns": 204958,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 1056768,
+          "entries": 207,
+          "listing_worker_ns": 471124,
+          "measurement_worker_ns": 483708,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2703360
+        }
+      ]
+    },
+    "mixed/apparent": {
+      "portable": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 597708,
+          "first_artifact_ns": 208708,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 505124,
+          "measurement_worker_ns": 775958,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2555904
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 575042,
+          "first_artifact_ns": 200750,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 495709,
+          "measurement_worker_ns": 734292,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2555904
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 473083,
+          "first_artifact_ns": 189833,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 439249,
+          "measurement_worker_ns": 468626,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2506752
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 455083,
+          "first_artifact_ns": 179500,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 415545,
+          "measurement_worker_ns": 448167,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2473984
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 652209,
+          "first_artifact_ns": 238209,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 595875,
+          "measurement_worker_ns": 762208,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2523136
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 531125,
+          "first_artifact_ns": 233125,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 539001,
+          "measurement_worker_ns": 479791,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2490368
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 541083,
+          "first_artifact_ns": 204083,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 566707,
+          "measurement_worker_ns": 445418,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2523136
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Completed",
+          "elapsed_ns": 460125,
+          "first_artifact_ns": 230750,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 561292,
+          "measurement_worker_ns": 337292,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2768896
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 540834,
+          "first_artifact_ns": 231875,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 593875,
+          "measurement_worker_ns": 454417,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2686976
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 473375,
+          "first_artifact_ns": 204416,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 611541,
+          "measurement_worker_ns": 369916,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2752512
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 463000,
+          "first_artifact_ns": 188292,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 517415,
+          "measurement_worker_ns": 349751,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2736128
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 657542,
+          "first_artifact_ns": 226250,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 725293,
+          "measurement_worker_ns": 529292,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2719744
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 463500,
+          "first_artifact_ns": 196125,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 457208,
+          "measurement_worker_ns": 435168,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2768896
+        },
+        {
+          "status": "Completed",
+          "elapsed_ns": 495708,
+          "first_artifact_ns": 214875,
+          "cancellation_latency_ns": 0,
+          "artifacts": 4,
+          "warnings": 0,
+          "bytes": 33734031,
+          "entries": 207,
+          "listing_worker_ns": 582541,
+          "measurement_worker_ns": 394042,
+          "bulk_directories": 4,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 2703360
+        }
+      ]
+    },
+    "cancel/allocated": {
+      "portable": [
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3931417,
+          "first_artifact_ns": 3816625,
+          "cancellation_latency_ns": 114708,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3574249,
+          "measurement_worker_ns": 72292,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3769791,
+          "first_artifact_ns": 3661750,
+          "cancellation_latency_ns": 108000,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3415917,
+          "measurement_worker_ns": 76125,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5373952
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3926083,
+          "first_artifact_ns": 3815250,
+          "cancellation_latency_ns": 110875,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3595875,
+          "measurement_worker_ns": 75417,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3901125,
+          "first_artifact_ns": 3784542,
+          "cancellation_latency_ns": 116625,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3541792,
+          "measurement_worker_ns": 81291,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3885500,
+          "first_artifact_ns": 3777792,
+          "cancellation_latency_ns": 107708,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3538084,
+          "measurement_worker_ns": 80334,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 4056375,
+          "first_artifact_ns": 3932834,
+          "cancellation_latency_ns": 123542,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3683126,
+          "measurement_worker_ns": 72709,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3807958,
+          "first_artifact_ns": 3677166,
+          "cancellation_latency_ns": 130750,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3435292,
+          "measurement_worker_ns": 86625,
+          "bulk_directories": 0,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        }
+      ],
+      "bulk": [
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 4110834,
+          "first_artifact_ns": 3984250,
+          "cancellation_latency_ns": 126541,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3733792,
+          "measurement_worker_ns": 126708,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5406720
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 4138333,
+          "first_artifact_ns": 4017958,
+          "cancellation_latency_ns": 120375,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3722499,
+          "measurement_worker_ns": 100500,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5423104
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3838792,
+          "first_artifact_ns": 3718792,
+          "cancellation_latency_ns": 119917,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3469124,
+          "measurement_worker_ns": 93459,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5423104
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3866542,
+          "first_artifact_ns": 3773542,
+          "cancellation_latency_ns": 92959,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3512542,
+          "measurement_worker_ns": 92709,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5439488
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3868708,
+          "first_artifact_ns": 3753958,
+          "cancellation_latency_ns": 114750,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3509458,
+          "measurement_worker_ns": 109500,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5423104
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3791084,
+          "first_artifact_ns": 3666834,
+          "cancellation_latency_ns": 124209,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3408166,
+          "measurement_worker_ns": 87250,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5423104
+        },
+        {
+          "status": "Cancelled",
+          "elapsed_ns": 3779167,
+          "first_artifact_ns": 3647333,
+          "cancellation_latency_ns": 131875,
+          "artifacts": 1,
+          "warnings": 0,
+          "bytes": 0,
+          "entries": 2,
+          "listing_worker_ns": 3389625,
+          "measurement_worker_ns": 100166,
+          "bulk_directories": 1,
+          "bulk_fallbacks": 0,
+          "peak_rss_bytes": 5472256
+        }
+      ]
+    }
+  },
+  "summaries": {
+    "wide/allocated": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            20213083,
+            20060250,
+            18586833,
+            18992917,
+            19732375,
+            19218875,
+            20283541
+          ],
+          "median": 19732375,
+          "p95": 20283541,
+          "mad": 513500
+        },
+        "first_artifact_ns": {
+          "samples": [
+            4126125,
+            3915375,
+            3685291,
+            3728209,
+            3793417,
+            3831291,
+            3718916
+          ],
+          "median": 3793417,
+          "p95": 4126125,
+          "mad": 74501
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            3898666,
+            3684626,
+            3433625,
+            3499250,
+            3511541,
+            3583084,
+            3496541
+          ],
+          "median": 3511541,
+          "p95": 3898666,
+          "mad": 71543
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            15961000,
+            15988000,
+            14772708,
+            15071542,
+            15788667,
+            15235084,
+            16407792
+          ],
+          "median": 15788667,
+          "p95": 16407792,
+          "mad": 553583
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            6062080,
+            6062080,
+            6094848,
+            6029312,
+            6029312,
+            6045696,
+            6062080
+          ],
+          "median": 6062080,
+          "p95": 6094848,
+          "mad": 16384
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            12121541,
+            12339792,
+            11906792,
+            11929250,
+            12374583,
+            12216208,
+            12227416
+          ],
+          "median": 12216208,
+          "p95": 12374583,
+          "mad": 123584
+        },
+        "first_artifact_ns": {
+          "samples": [
+            3829500,
+            3924750,
+            3748917,
+            3716667,
+            3842416,
+            3728417,
+            3876208
+          ],
+          "median": 3829500,
+          "p95": 3924750,
+          "mad": 80583
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            3591542,
+            3687376,
+            3519459,
+            3453375,
+            3593542,
+            3512958,
+            3636375
+          ],
+          "median": 3591542,
+          "p95": 3687376,
+          "mad": 72083
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            8144208,
+            8274208,
+            7991541,
+            8052750,
+            8386334,
+            8339250,
+            8201792
+          ],
+          "median": 8201792,
+          "p95": 8386334,
+          "mad": 137458
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            8011776,
+            8011776,
+            7962624,
+            8060928,
+            7995392,
+            7962624,
+            7979008
+          ],
+          "median": 7995392,
+          "p95": 8060928,
+          "mad": 16384
+        }
+      }
+    },
+    "wide/apparent": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            20218875,
+            18933750,
+            19045375,
+            19069375,
+            19290583,
+            18056125,
+            19872875
+          ],
+          "median": 19069375,
+          "p95": 20218875,
+          "mad": 221208
+        },
+        "first_artifact_ns": {
+          "samples": [
+            3903000,
+            4073166,
+            3876625,
+            3612250,
+            3817291,
+            3585666,
+            3654666
+          ],
+          "median": 3817291,
+          "p95": 4073166,
+          "mad": 162625
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            3662083,
+            3822208,
+            3620708,
+            3382333,
+            3589208,
+            3333500,
+            3433834
+          ],
+          "median": 3589208,
+          "p95": 3822208,
+          "mad": 155374
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            16169708,
+            14708041,
+            15028167,
+            15262833,
+            15288875,
+            14286667,
+            16051750
+          ],
+          "median": 15262833,
+          "p95": 16169708,
+          "mad": 554792
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            6012928,
+            6029312,
+            6127616,
+            6012928,
+            6062080,
+            6094848,
+            6012928
+          ],
+          "median": 6029312,
+          "p95": 6127616,
+          "mad": 16384
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            13151083,
+            11409875,
+            12243750,
+            11480666,
+            12195291,
+            11708334,
+            11700667
+          ],
+          "median": 11708334,
+          "p95": 13151083,
+          "mad": 298459
+        },
+        "first_artifact_ns": {
+          "samples": [
+            3915625,
+            3849584,
+            3896792,
+            3783208,
+            3886875,
+            3629542,
+            3803792
+          ],
+          "median": 3849584,
+          "p95": 3915625,
+          "mad": 47208
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            3652958,
+            3621583,
+            3640458,
+            3535292,
+            3639708,
+            3397416,
+            3565291
+          ],
+          "median": 3621583,
+          "p95": 3652958,
+          "mad": 31375
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            9055750,
+            7443625,
+            8200959,
+            7539292,
+            8166667,
+            7894834,
+            7742209
+          ],
+          "median": 7894834,
+          "p95": 9055750,
+          "mad": 306125
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            7979008,
+            8011776,
+            7995392,
+            7995392,
+            7979008,
+            8060928,
+            8011776
+          ],
+          "median": 7995392,
+          "p95": 8060928,
+          "mad": 16384
+        }
+      }
+    },
+    "deep/allocated": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            5587792,
+            5565750,
+            5349166,
+            5365000,
+            5234625,
+            5148000,
+            5431750
+          ],
+          "median": 5365000,
+          "p95": 5587792,
+          "mad": 130375
+        },
+        "first_artifact_ns": {
+          "samples": [
+            239125,
+            217625,
+            208541,
+            225000,
+            225459,
+            223583,
+            241250
+          ],
+          "median": 225000,
+          "p95": 241250,
+          "mad": 7375
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            10824585,
+            11005543,
+            11686872,
+            14099793,
+            11509583,
+            10556588,
+            10273134
+          ],
+          "median": 11005543,
+          "p95": 14099793,
+          "mad": 504040
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            30109247,
+            29578586,
+            27650416,
+            25352210,
+            26612666,
+            27221621,
+            29263623
+          ],
+          "median": 27650416,
+          "p95": 30109247,
+          "mad": 1613207
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            3162112,
+            3080192,
+            3031040,
+            3031040,
+            3047424,
+            3063808,
+            3178496
+          ],
+          "median": 3063808,
+          "p95": 3178496,
+          "mad": 32768
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            4446958,
+            4266667,
+            4191083,
+            4531000,
+            4231209,
+            4209292,
+            4206667
+          ],
+          "median": 4231209,
+          "p95": 4531000,
+          "mad": 35458
+        },
+        "first_artifact_ns": {
+          "samples": [
+            218500,
+            239959,
+            196250,
+            238375,
+            210375,
+            263792,
+            224250
+          ],
+          "median": 224250,
+          "p95": 263792,
+          "mad": 14125
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            15385582,
+            14460951,
+            14738957,
+            14670041,
+            14423206,
+            14434333,
+            14495741
+          ],
+          "median": 14495741,
+          "p95": 15385582,
+          "mad": 72535
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            16835290,
+            15809496,
+            15586080,
+            17795377,
+            15799128,
+            15250921,
+            15394960
+          ],
+          "median": 15799128,
+          "p95": 17795377,
+          "mad": 404168
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            3407872,
+            3473408,
+            3407872,
+            3342336,
+            3407872,
+            3424256,
+            3342336
+          ],
+          "median": 3407872,
+          "p95": 3473408,
+          "mad": 16384
+        }
+      }
+    },
+    "deep/apparent": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            5224125,
+            5019042,
+            5405666,
+            6011709,
+            5313042,
+            5309500,
+            5032833
+          ],
+          "median": 5309500,
+          "p95": 6011709,
+          "mad": 96166
+        },
+        "first_artifact_ns": {
+          "samples": [
+            209750,
+            196792,
+            202125,
+            222417,
+            226750,
+            204000,
+            212583
+          ],
+          "median": 209750,
+          "p95": 226750,
+          "mad": 7625
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            10154630,
+            9477587,
+            11327788,
+            17612456,
+            10142538,
+            11067790,
+            10371671
+          ],
+          "median": 10371671,
+          "p95": 17612456,
+          "mad": 696119
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            28014870,
+            26899956,
+            28142169,
+            26545169,
+            28116917,
+            27846714,
+            26407912
+          ],
+          "median": 27846714,
+          "p95": 28142169,
+          "mad": 295455
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            3014656,
+            3080192,
+            3047424,
+            3063808,
+            3031040,
+            3080192,
+            3047424
+          ],
+          "median": 3047424,
+          "p95": 3080192,
+          "mad": 16384
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            4341583,
+            4278375,
+            4355500,
+            4051291,
+            4240334,
+            4171125,
+            3999416
+          ],
+          "median": 4240334,
+          "p95": 4355500,
+          "mad": 101249
+        },
+        "first_artifact_ns": {
+          "samples": [
+            226833,
+            235833,
+            268708,
+            206416,
+            195042,
+            188834,
+            204916
+          ],
+          "median": 206416,
+          "p95": 268708,
+          "mad": 17582
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            15097711,
+            15014711,
+            15132629,
+            14343244,
+            14728539,
+            15176329,
+            13221749
+          ],
+          "median": 15014711,
+          "p95": 15176329,
+          "mad": 161618
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            16123623,
+            15671003,
+            15872538,
+            14270421,
+            15908250,
+            15392715,
+            15091161
+          ],
+          "median": 15671003,
+          "p95": 16123623,
+          "mad": 278288
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            3440640,
+            3440640,
+            3407872,
+            3489792,
+            3391488,
+            3440640,
+            3424256
+          ],
+          "median": 3440640,
+          "p95": 3489792,
+          "mad": 16384
+        }
+      }
+    },
+    "mixed/allocated": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            535541,
+            588292,
+            587375,
+            500833,
+            497125,
+            555042,
+            749625
+          ],
+          "median": 555042,
+          "p95": 749625,
+          "mad": 33250
+        },
+        "first_artifact_ns": {
+          "samples": [
+            211750,
+            181584,
+            212916,
+            197958,
+            197333,
+            205583,
+            304458
+          ],
+          "median": 205583,
+          "p95": 304458,
+          "mad": 7625
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            484084,
+            455457,
+            533043,
+            457125,
+            477750,
+            501250,
+            729417
+          ],
+          "median": 484084,
+          "p95": 729417,
+          "mad": 26959
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            536167,
+            722833,
+            775666,
+            536168,
+            535542,
+            612916,
+            756707
+          ],
+          "median": 612916,
+          "p95": 775666,
+          "mad": 77374
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            2555904,
+            2555904,
+            2506752,
+            2473984,
+            2473984,
+            2523136,
+            2572288
+          ],
+          "median": 2523136,
+          "p95": 2572288,
+          "mad": 32768
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            529708,
+            482833,
+            492000,
+            704917,
+            457083,
+            500916,
+            477583
+          ],
+          "median": 492000,
+          "p95": 704917,
+          "mad": 14417
+        },
+        "first_artifact_ns": {
+          "samples": [
+            255833,
+            218250,
+            219000,
+            328959,
+            228375,
+            226250,
+            204958
+          ],
+          "median": 226250,
+          "p95": 328959,
+          "mad": 8000
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            636207,
+            560211,
+            571376,
+            1050582,
+            575210,
+            551250,
+            471124
+          ],
+          "median": 571376,
+          "p95": 1050582,
+          "mad": 20126
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            390292,
+            392416,
+            360169,
+            582209,
+            311541,
+            395874,
+            483708
+          ],
+          "median": 392416,
+          "p95": 582209,
+          "mad": 32247
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            2736128,
+            2719744,
+            2785280,
+            2719744,
+            2768896,
+            2719744,
+            2703360
+          ],
+          "median": 2719744,
+          "p95": 2785280,
+          "mad": 16384
+        }
+      }
+    },
+    "mixed/apparent": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            597708,
+            575042,
+            473083,
+            455083,
+            652209,
+            531125,
+            541083
+          ],
+          "median": 541083,
+          "p95": 652209,
+          "mad": 56625
+        },
+        "first_artifact_ns": {
+          "samples": [
+            208708,
+            200750,
+            189833,
+            179500,
+            238209,
+            233125,
+            204083
+          ],
+          "median": 204083,
+          "p95": 238209,
+          "mad": 14250
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            505124,
+            495709,
+            439249,
+            415545,
+            595875,
+            539001,
+            566707
+          ],
+          "median": 505124,
+          "p95": 595875,
+          "mad": 61583
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            775958,
+            734292,
+            468626,
+            448167,
+            762208,
+            479791,
+            445418
+          ],
+          "median": 479791,
+          "p95": 775958,
+          "mad": 34373
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            2555904,
+            2555904,
+            2506752,
+            2473984,
+            2523136,
+            2490368,
+            2523136
+          ],
+          "median": 2523136,
+          "p95": 2555904,
+          "mad": 32768
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            460125,
+            540834,
+            473375,
+            463000,
+            657542,
+            463500,
+            495708
+          ],
+          "median": 473375,
+          "p95": 657542,
+          "mad": 13250
+        },
+        "first_artifact_ns": {
+          "samples": [
+            230750,
+            231875,
+            204416,
+            188292,
+            226250,
+            196125,
+            214875
+          ],
+          "median": 214875,
+          "p95": 231875,
+          "mad": 15875
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "listing_worker_ns": {
+          "samples": [
+            561292,
+            593875,
+            611541,
+            517415,
+            725293,
+            457208,
+            582541
+          ],
+          "median": 582541,
+          "p95": 725293,
+          "mad": 29000
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            337292,
+            454417,
+            369916,
+            349751,
+            529292,
+            435168,
+            394042
+          ],
+          "median": 394042,
+          "p95": 529292,
+          "mad": 44291
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            2768896,
+            2686976,
+            2752512,
+            2736128,
+            2719744,
+            2768896,
+            2703360
+          ],
+          "median": 2736128,
+          "p95": 2768896,
+          "mad": 32768
+        }
+      }
+    },
+    "cancel/allocated": {
+      "portable": {
+        "elapsed_ns": {
+          "samples": [
+            3931417,
+            3769791,
+            3926083,
+            3901125,
+            3885500,
+            4056375,
+            3807958
+          ],
+          "median": 3901125,
+          "p95": 4056375,
+          "mad": 30292
+        },
+        "first_artifact_ns": {
+          "samples": [
+            3816625,
+            3661750,
+            3815250,
+            3784542,
+            3777792,
+            3932834,
+            3677166
+          ],
+          "median": 3784542,
+          "p95": 3932834,
+          "mad": 32083
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            114708,
+            108000,
+            110875,
+            116625,
+            107708,
+            123542,
+            130750
+          ],
+          "median": 114708,
+          "p95": 130750,
+          "mad": 6708
+        },
+        "listing_worker_ns": {
+          "samples": [
+            3574249,
+            3415917,
+            3595875,
+            3541792,
+            3538084,
+            3683126,
+            3435292
+          ],
+          "median": 3541792,
+          "p95": 3683126,
+          "mad": 54083
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            72292,
+            76125,
+            75417,
+            81291,
+            80334,
+            72709,
+            86625
+          ],
+          "median": 76125,
+          "p95": 86625,
+          "mad": 3833
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            5406720,
+            5373952,
+            5406720,
+            5406720,
+            5406720,
+            5406720,
+            5406720
+          ],
+          "median": 5406720,
+          "p95": 5406720,
+          "mad": 0
+        }
+      },
+      "bulk": {
+        "elapsed_ns": {
+          "samples": [
+            4110834,
+            4138333,
+            3838792,
+            3866542,
+            3868708,
+            3791084,
+            3779167
+          ],
+          "median": 3866542,
+          "p95": 4138333,
+          "mad": 75458
+        },
+        "first_artifact_ns": {
+          "samples": [
+            3984250,
+            4017958,
+            3718792,
+            3773542,
+            3753958,
+            3666834,
+            3647333
+          ],
+          "median": 3753958,
+          "p95": 4017958,
+          "mad": 87124
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            126541,
+            120375,
+            119917,
+            92959,
+            114750,
+            124209,
+            131875
+          ],
+          "median": 120375,
+          "p95": 131875,
+          "mad": 5625
+        },
+        "listing_worker_ns": {
+          "samples": [
+            3733792,
+            3722499,
+            3469124,
+            3512542,
+            3509458,
+            3408166,
+            3389625
+          ],
+          "median": 3509458,
+          "p95": 3733792,
+          "mad": 101292
+        },
+        "measurement_worker_ns": {
+          "samples": [
+            126708,
+            100500,
+            93459,
+            92709,
+            109500,
+            87250,
+            100166
+          ],
+          "median": 100166,
+          "p95": 126708,
+          "mad": 7457
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            5406720,
+            5423104,
+            5423104,
+            5439488,
+            5423104,
+            5423104,
+            5472256
+          ],
+          "median": 5423104,
+          "p95": 5472256,
+          "mad": 0
+        }
+      }
+    }
+  },
+  "reports": {
+    "wide/allocated": {
+      "status": "Completed",
+      "rows": [
+        [
+          "2e6275696c64",
+          "swift",
+          "build",
+          33554432,
+          false,
+          false
+        ]
+      ],
+      "warnings": []
+    },
+    "wide/apparent": {
+      "status": "Completed",
+      "rows": [
+        [
+          "2e6275696c64",
+          "swift",
+          "build",
+          7602240,
+          false,
+          false
+        ]
+      ],
+      "warnings": []
+    },
+    "deep/allocated": {
+      "status": "Completed",
+      "rows": [
+        [
+          "2e6275696c64",
+          "swift",
+          "build",
+          16777216,
+          false,
+          false
+        ]
+      ],
+      "warnings": []
+    },
+    "deep/apparent": {
+      "status": "Completed",
+      "rows": [
+        [
+          "2e6275696c64",
+          "swift",
+          "build",
+          3813440,
+          false,
+          false
+        ]
+      ],
+      "warnings": []
+    },
+    "mixed/allocated": {
+      "status": "Completed",
+      "rows": [
+        [
+          "507974686f6e2f2e76656e76",
+          "python",
+          "environment",
+          266240,
+          false,
+          false
+        ],
+        [
+          "507974686f6e2f2e76656e762f5f5f707963616368655f5f",
+          "python",
+          "bytecode",
+          262144,
+          true,
+          false
+        ],
+        [
+          "527573742f746172676574",
+          "rust",
+          "build",
+          262144,
+          false,
+          false
+        ],
+        [
+          "53776966742f2e6275696c64",
+          "swift",
+          "build",
+          528384,
+          false,
+          false
+        ]
+      ],
+      "warnings": []
+    },
+    "mixed/apparent": {
+      "status": "Completed",
+      "rows": [
+        [
+          "507974686f6e2f2e76656e76",
+          "python",
+          "environment",
+          59599,
+          false,
+          false
+        ],
+        [
+          "507974686f6e2f2e76656e762f5f5f707963616368655f5f",
+          "python",
+          "bytecode",
+          59456,
+          true,
+          false
+        ],
+        [
+          "527573742f746172676574",
+          "rust",
+          "build",
+          59552,
+          false,
+          false
+        ],
+        [
+          "53776966742f2e6275696c64",
+          "swift",
+          "build",
+          33614880,
+          false,
+          false
+        ]
+      ],
+      "warnings": []
+    },
+    "cancel/allocated": {
+      "status": "Cancelled",
+      "rows": [
+        [
+          "2e6275696c64",
+          "swift",
+          "build",
+          0,
+          false,
+          true
+        ]
+      ],
+      "warnings": []
+    }
+  }
+}

@@ -31,6 +31,12 @@ typedef struct BHScanProfileSample {
     uint64_t artifacts;
     uint64_t warnings;
     uint64_t pending_tasks;
+    /* Process CPU deltas since scan start, in nanoseconds; RSS is current bytes.
+     * resource_flags: bit 0 CPU available, bit 1 RSS available. Rebuild with Rust. */
+    uint64_t cpu_user_ns;
+    uint64_t cpu_system_ns;
+    uint64_t resident_bytes;
+    uint64_t resource_flags;
 } BHScanProfileSample;
 
 typedef struct BHScanEvent {
@@ -56,7 +62,8 @@ typedef void (*BHEventCallback)(void *context, const BHScanEvent *event);
  * Returning 0 or an unknown action fails the scan and stops traversal. Any
  * artifact still being measured gets a partial completion before the terminal event.
  * Event types: 1 discovered, 2 measured, 3 warning, 4 finished, 5 profile (profile pointer set).
- * Terminal status / bh_scan result: 0 complete, 1 cancelled, 2 incomplete, 3 failed.
+ * Terminal status / bh_scan result: 0 complete, 1 cancelled, 2 incomplete, 3 failed,
+ * 4 completed with filesystem changes (affected measurements remain partial).
  * Callbacks run serially on the calling thread; all payload pointers are borrowed
  * until the callback returns. Keep the callback context alive until bh_scan returns.
  * bh_scan reads the file system on internal worker threads, joined before it returns;

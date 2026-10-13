@@ -41,6 +41,11 @@ its existing nested-row reporting and counts nested sizes once.
 
 ## Extensibility and contract
 
+This section describes the implemented filter catalog. Future declarative plugins,
+Swift authoring, the private Store catalog and user-package loading are specified
+in [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md) and the
+[delivery plan](plugin-delivery-plan.md); those features are not implemented yet.
+
 The Rust descriptor catalog is the source of supported filter IDs, titles, groups
 and candidate match metadata. CLI listing and exclusion validation consume it;
 the macOS app decodes the same catalog through `bh_search_filter_catalog_json`.
