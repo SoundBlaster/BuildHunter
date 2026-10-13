@@ -1,0 +1,152 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.current.classification
+  title: Current artifact classification and filters
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
+    extracting Hunter.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - Rust candidate/prefetch/name-marker catalog and CLI policy; Swift SpecificationCore policy and immutable filter
+    snapshots.
+  excludes:
+  - A single existing plugin interpreter.
+  - Identical CLI/GUI environment and kind behavior.
+  - Arbitrary custom names reaching a callback through the current hard-coded prefilter.
+provides:
+  capabilities:
+  - id: buildhunter.current.classification
+    role: primary
+    summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
+      extracting Hunter.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: Existing rust_cli_policy / BuildHunterScanPolicy.decision and shared filter catalog; names/flags and
+      current numeric classification codes are artifact-specific.
+    operations:
+    - name: classify
+      summary: Existing rust_cli_policy / BuildHunterScanPolicy.decision and shared filter catalog; names/flags and
+        current numeric classification codes are artifact-specific.
+  outbound: []
+constraints:
+- id: selection
+  level: MUST
+  statement: Candidate and prefetch paths use fixed artifact names and marker bits in src/lib.rs; changing only the
+    callback cannot introduce arbitrary names beyond that gate.
+- id: client_profiles
+  level: MUST
+  statement: CLI defaults exclude environments and retains nested rows; GUI includes environments by default and accepts
+    outer roots. CLI named-environment detection and GUI any-name pyvenv.cfg detection are not interchangeable.
+- id: taxonomy
+  level: MUST
+  statement: CLI bytecode/metadata kinds and tox/nox cache classification differ from GUI cache/testEnvironment presentation.
+    Export preserves scannerKind when available; migration must explicitly choose parity or approved changes.
+- id: filter_snapshot
+  level: MUST
+  statement: Capture GUI exclusion IDs once per scan; excluded recognized roots traverse to allow nested eligible
+    discoveries. Unknown stored IDs remain in preferences and unrecognized classifications remain included.
+- id: catalog_lifetime
+  level: MUST
+  statement: bh_search_filter_catalog_json exposes immutable process-lifetime UTF-8 descriptors; this is a built-in
+    filter catalog, not user-plugin loading or validation.
+effects:
+  sideEffects: []
+evidence:
+- id: source_0
+  kind: source
+  path: src/lib.rs
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.selection
+  - constraints.client_profiles
+  - constraints.taxonomy
+  - constraints.catalog_lifetime
+- id: source_1
+  kind: source
+  path: src/main.rs
+  supports:
+  - scope
+- id: source_2
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift
+  supports:
+  - scope
+  - constraints.client_profiles
+  - constraints.taxonomy
+- id: source_3
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/SearchFilters.swift
+  supports:
+  - scope
+  - constraints.filter_snapshot
+- id: source_4
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift
+  supports:
+  - scope
+- id: source_5
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/IsScannableArtifactCandidate.swift
+  supports:
+  - scope
+- id: source_6
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/IsOuterArtifactRoot.swift
+  supports:
+  - scope
+  - constraints.client_profiles
+- id: test_source_0
+  kind: test
+  path: macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift
+  supports:
+  - scope
+- id: test_source_1
+  kind: test
+  path: macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift
+  supports:
+  - scope
+- id: test_source_2
+  kind: test
+  path: macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: medium
+  notes:
+  - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings:
+- id: implementation
+  language: rust
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+  files:
+    owned:
+    - src/lib.rs
+    - src/main.rs
+    - macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift
+    - macos/Sources/BuildHunter/Domain/SearchFilters.swift
+    - macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift
+    - macos/Sources/BuildHunter/Domain/IsScannableArtifactCandidate.swift
+    - macos/Sources/BuildHunter/Domain/IsOuterArtifactRoot.swift
+    border:
+    - macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift
+    - macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift
+    - macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift

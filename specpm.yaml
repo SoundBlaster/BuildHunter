@@ -1,0 +1,61 @@
+apiVersion: specpm.dev/v0.1
+kind: SpecPackage
+metadata:
+  id: buildhunter.module_architecture
+  name: BuildHunter current boundaries and target module architecture
+  version: 0.1.0-draft.1
+  summary: Reviewable source-recovered current contracts and intended Hunter/Rifle/BuildHunter/Arsenal boundaries;
+    no extraction or runtime conformance claimed.
+  license: MIT
+  authors:
+  - name: Egor Merkushev
+specs:
+- path: specs/current-scan.spec.yaml
+- path: specs/current-classification.spec.yaml
+- path: specs/current-bridge.spec.yaml
+- path: specs/current-application.spec.yaml
+- path: specs/hunter-design.spec.yaml
+- path: specs/rifle-design.spec.yaml
+- path: specs/buildhunter-design.spec.yaml
+- path: specs/arsenal-design.spec.yaml
+index:
+  provides:
+    capabilities:
+    - buildhunter.current.scan
+    - buildhunter.current.classification
+    - buildhunter.current.bridge
+    - buildhunter.current.application
+    - hunter.design.scan
+    - rifle.design.rules
+    - buildhunter.design.product
+    - arsenal.design.catalog
+  requires:
+    capabilities:
+    - platform.filesystem.metadata
+compatibility:
+  platforms:
+  - macos
+  - linux
+  - windows
+  languages:
+  - name: rust
+  - name: swift
+keywords:
+- descriptive-draft
+- architecture
+- hunter
+- rifle
+- artifact-discovery
+foreignArtifacts:
+- format: hypercode
+  path: specs/hypercode/current.hc
+  role: documentation
+- format: hypercode
+  path: specs/hypercode/target.hc
+  role: documentation
+- format: hypercode-stylesheet
+  path: specs/hypercode/current.hcs
+  role: documentation
+- format: hypercode-stylesheet
+  path: specs/hypercode/target.hcs
+  role: documentation

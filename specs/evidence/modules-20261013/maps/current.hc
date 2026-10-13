@@ -1,0 +1,24 @@
+BuildHunterRuntime
+  Clients
+    CommandLine
+    MacApplication
+      WindowSession
+      ReportPresentation
+      FolderActions
+      Export
+      Settings
+  SharedRuntime
+    Scanner
+      Traversal
+      Measurement
+      CloudGuard
+      ResourceProfile
+    ArtifactClassification
+      CandidateSelection
+      MarkerVocabulary
+      ClientPolicy
+      FilterCatalog
+    RustSwiftBridge
+      PolicyTable
+      EventChannel
+      AccessLifetime

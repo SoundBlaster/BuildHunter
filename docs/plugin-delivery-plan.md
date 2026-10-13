@@ -1,6 +1,7 @@
 # План доставки plugins и коммерческого каталога
 
-Дата: 2026-10-13. Все этапы ниже **pending**. Согласовано архитектурное
+Дата: 2026-10-13. Implementation stages ниже **pending**. Имена Hunter/Rifle/BuildHunter/Arsenal
+утверждены; [модульные контракты](modular-architecture.md) остаются draft. Согласовано архитектурное
 направление в [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md),
 но Plugin SDK, schema и catalog runtime пока не реализованы.
 
@@ -46,9 +47,11 @@ Performance hypotheses и их доказательства остаются в
 **Приёмка:** golden diff пуст на фиксированных деревьях. Публичная сборка
 не зависит от private repositories. Каталог не дублирует runtime-интерпретаторы.
 
-## Этап 2: единый Rust catalog runtime
+## Этап 2: единый Rifle runtime и Hunter facts seam
 
-- [ ] Loader, linter и immutable execution plan/indexes.
+- [ ] Rifle: loader, linter и immutable execution plan/indexes.
+- [ ] Hunter: generic facts/measurement/lifecycle; BuildHunter: product-owned adapter.
+- [ ] Ни Hunter, ни Rifle не импортируют друг друга или artifact vocabulary.
 - [ ] Общие candidate selection, marker vocabulary и worker prefetch.
 - [ ] CLI listing/exclusions из каталога, версия/digest в отчётах.
 - [ ] Воспроизводимые Release сравнения с текущим scanner и 200-target corpus.
@@ -71,7 +74,7 @@ performance checks проходят; signed sandbox runtime проверен о�
 
 ## Этап 4: private catalog и Store composition
 
-- [ ] Выбрать финальные имена private repositories и лицензию нового каталога.
+- [ ] Реализовать private Arsenal; выбрать имя Store composition repository и лицензию нового каталога.
 - [ ] Сделать pinned composition общего приложения и коммерческого набора.
 - [ ] Обеспечить private fixture/integration CI и воспроизводимую поставку.
 - [ ] Добавлять популярные экосистемы по пакетам: кандидаты Node, Gradle,
@@ -99,7 +102,7 @@ semantic/performance gates. Не публикуются private definitions, sec
 ## Открытые решения перед реализацией
 
 Точные schema/API и cost limits; итоговый private plugin bundle; цена и условия
-покупки; repository names; правила лицензирования contributions; location/import
+покупки; имя Store composition repository; правила лицензирования contributions; location/import
 UX пользовательских пакетов; правила разрешения конфликтов между пакетами.
 Чтение содержимого файлов и global/known-location caches требуют отдельного
 scope и не включаются автоматически в первую версию.

@@ -1,0 +1,405 @@
+{
+  "source_repository": "https://github.com/SoundBlaster/BuildHunter",
+  "source_revision": "48badf9e097783505151dd47fbafe290f0af25e2",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "aa13ba1b45abf4a17ac8b6a77063802bce5165289353cf238efcf3482da8cd85",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": ".github/workflows/macos.yml",
+      "sha256": "bfd13be6038062bb7e1337f98b48ca702c2356c27a1addf8d6ba17680f81e5f9",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "1e0d418dcd15a8a8c47bc2a4a66cb1366beca058a791d04148119620065c52d4",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "cc14b4a04668636dde41402fa563815e6b8e39ed889d29b29fbdb5ed493ccb6b",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "docs/PRD.md",
+      "sha256": "02d9093df55fa2aaeaed94f8ebb8f6ff690ccaac6632b49d448ae2b7ab9dad54",
+      "role": "design_document",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": false
+    },
+    {
+      "path": "docs/adr/0002-finite-scan-policy-table.md",
+      "sha256": "e2385b52bbc5b1da1ef96b372a750c577a6e444190d08aafdf03a13b5be9c083",
+      "role": "design_document",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "docs/adr/0003-declarative-plugins-and-product-boundaries.md",
+      "sha256": "5235ddb8041dcd3201d2036f829118bb7242094e67311159ac5cd06bfc8c0385",
+      "role": "design_document",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": false
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "fcab7006163549c7f2cdd6206836618b34bcce1cab5e386eea7902fcf9c7c862",
+      "role": "design_document",
+      "tracked_at_source_revision": false,
+      "matches_source_revision": false
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "cad4f49339e9659b00533fb8fce87e3efd6bceb88ee6c4a10fb1f62057456d09",
+      "role": "design_document",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": false
+    },
+    {
+      "path": "docs/search-settings.md",
+      "sha256": "956f8d19567b3b7adad05f505e4c8470d390cacc07c9ea73d30b9ebc1c93761c",
+      "role": "design_document",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h",
+      "sha256": "918f73735fcfc12f3256809df1fdb212180671664ea5a91b910d206a0f06effd",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift",
+      "sha256": "3f1ae399c8702597c6d2258e59c1f76fe8d11d1e694fabcef02740ec67760cf1",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift",
+      "sha256": "987bcd4e3f3577826f011ad63c6941c907f410deeb5169ebfc25c9dc9e43ab1b",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactSunburst.swift",
+      "sha256": "9b59a53a71c4e68bbcf915a1cf4351e81d891690468328b100d5d0dcb37018db",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift",
+      "sha256": "6ee3737c5b528b890d58ddfea840249614b4fc9445e8d7e5b65369db77485304",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/IsOuterArtifactRoot.swift",
+      "sha256": "ece6261278e86ff231318aba3a80efee7ea05cb1b3dd3762832d014d44fce597",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/IsScannableArtifactCandidate.swift",
+      "sha256": "88be91e284b8fdd470c1c80b00d71a168cfe305ba94c0085daeca3ccc8015b63",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/SearchFilters.swift",
+      "sha256": "af0cac3a972cf5206dd6ff16b3f445da9aa8479a16ba5ab618db65a74fa8291d",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ArtifactDiagramModel.swift",
+      "sha256": "af8a3400466c60a845c9aa9ec8be4cfb37914c39db34d70082a339c1ea2357d0",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift",
+      "sha256": "f4a6cd7563898a2e5f6232c3e2a978fc131bf12b9bc8db6775a5b36e8d92d36a",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ScanEvent.swift",
+      "sha256": "8c5d9344590b4384d1788142da0cb9c2a47ed0ffa025e83451080c2fcdfe55f6",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ScanReportExport.swift",
+      "sha256": "280f26d1903387c2001f8fa0da10f4121cf1394230d6dbaa8ca7d3ac27b72ffa",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ScanWindowStore.swift",
+      "sha256": "8cf7d6e46fb7ac91da0e969108645f633b5db6719d53755a9c5fc55c0d593450",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/WindowScanModel.swift",
+      "sha256": "f9d27943c58e5edaae2190635207db2e1d2532741e468424ae8ab7054f97e992",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/UI/BuildHunterApp.swift",
+      "sha256": "4c6f9cc42b9932348a5977479a5fd166cde504bdc2d6c23e1d6982a22922355b",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift",
+      "sha256": "1525f82c6a263059b7733c96ff812a4e7df3c24fe2269fdbedf650a7a08667e2",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Sources/BuildHunter/UI/ScanResultsExportPanel.swift",
+      "sha256": "458168d3ca89cd739fecf1980a31d760d10d449d63bba0a5038b52660aa8cb77",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Tests/BuildHunterPerformanceTests/ScanPerformanceTests.swift",
+      "sha256": "fb11abda05b6249d7cb7994479adf7e6cbe530094adea4ee1ee57dc1c83a7742",
+      "role": "test_source",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift",
+      "sha256": "50f9e460ee13158cb43a9d6d220dd70bf9305166aabbd25c266e919c96b95636",
+      "role": "test_source",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift",
+      "sha256": "c6a9a8199366d2fa2c5136e50c3a9ee2e5bc9ebaceac0fa99fc7c8f5eed09629",
+      "role": "test_source",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift",
+      "sha256": "78cb8b9d751101604bd119bca1f15963076704892836ccdb4b0c8eb663e36a6f",
+      "role": "test_source",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/WindowScanModelTests.swift",
+      "sha256": "aa7a133d1e3464264009b7dc904634c482516be9fa11c1fe22cc9a153a1e303c",
+      "role": "test_source",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "macos/project.yml",
+      "sha256": "aca933c090edf22582e5e9c57f0abc06c2675309394754bd4d73312efb48c26b",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/bulk_metadata.rs",
+      "sha256": "40cbd64a51ec04f8decfb3b41224e8962870d79481bcfe775739acc454a85c1d",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "1db94cac0634d7556a4c5ee3ab7ae10716aff88798caec26e1f7f8f33fd95bea",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/main.rs",
+      "sha256": "e2ad362ff35b67c61545045984be32f36ae514d1c117f8a8ae600f8f3f81e08d",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/materialization.rs",
+      "sha256": "242f3049221e178d3e16021c3d3c9e495d19b16e687241dcf49c72690831b9dc",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/policy_table.rs",
+      "sha256": "b0a9183dfd0d3e2281b6fe2599e7d8476c87019935e26578fa1b275353ad5cde",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/process_resources.rs",
+      "sha256": "989e9d338b1fb1761706a9f5a3f7a9600c88996b8381804327eca87473ccaa5d",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/profile.rs",
+      "sha256": "02041d77c5084dfc2a50ad6fff8cb413fed60adaa96c3404389f673c9bfa1ba0",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/profile_report.rs",
+      "sha256": "3c34f1e0f6f2b1155b60e1c6e6b406a26f1f4e34c57c522ba1462fa0507e9f85",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/resources.rs",
+      "sha256": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    },
+    {
+      "path": "src/thread_qos.rs",
+      "sha256": "d62bfb3d25e22fbca4d2f18c5956f64033648fa6f1f05e657c13b99020bf798f",
+      "role": "implementation_or_build_input",
+      "tracked_at_source_revision": true,
+      "matches_source_revision": true
+    }
+  ],
+  "dirty_excluded": [
+    {
+      "path": "macos/BuildHunter.xcodeproj/xcshareddata/xcschemes/BuildHunter.xcscheme",
+      "sha256": "e59ed0ed16e05859a2cb1d7d43af461e76d782707c5b0e157386eff289879bbf",
+      "reason": "User Xcode launch scheme change outside analyzed module contracts"
+    }
+  ],
+  "map_files": [
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "94e93dce680aa2e34c8b11a4728dd02c91cb5399ee555bf2183c97bcab0dc373",
+      "snapshot": "specs/evidence/modules-20261013/maps/current.hc"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4832447e4641ab2cbdeddcb8bb9d142a5c119118007c89db57466561cacb75ab",
+      "snapshot": "specs/evidence/modules-20261013/maps/current.hcs"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+      "snapshot": "specs/evidence/modules-20261013/maps/target.hc"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "8e89be2ba2825bc2ad2747645333f54de168cee83e955f379c5c490207ecad73",
+      "snapshot": "specs/evidence/modules-20261013/maps/target.hcs"
+    }
+  ],
+  "note": "Implementation baseline is the Git revision; design/recovery inputs are working-tree files with separate hashes. Frozen map copies are historical. Current test source is not a fresh execution result.",
+  "contract_files": [
+    {
+      "path": "specpm.yaml",
+      "sha256": "9c3d3e33fd6a7d6a60ca4183ba46979e05cedac37bda8d58804641fe9080278f"
+    },
+    {
+      "path": "specs/arsenal-design.spec.yaml",
+      "sha256": "8bd62b71fa4ada86024b4e579d2bdc6fd9c58e8c4ca40628f1a6ec105ab11a54"
+    },
+    {
+      "path": "specs/buildhunter-design.spec.yaml",
+      "sha256": "2d5b6bc5b1f5c3b96a9829189cbb38ff473fd7ebd74440585099ddc44e74530f"
+    },
+    {
+      "path": "specs/current-application.spec.yaml",
+      "sha256": "89fc2c7631befdab8c1d9384ca5944c6c7ef2a65d53586944c9920f86e46af49"
+    },
+    {
+      "path": "specs/current-bridge.spec.yaml",
+      "sha256": "e0c454697718b591b7e07f1b98e24b7ac92af61fc00176622c536e6349f9a0ce"
+    },
+    {
+      "path": "specs/current-classification.spec.yaml",
+      "sha256": "09a2e31cc5c17a61a8b0cd52064c5dcbd07be136ea0e703d796f9efa12d11432"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "a6e0e2d5a1b8828fcee417644ba98b6b8b8e9bcaa4016ba0f6ddb8a767012112"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "4aaf9e804ffbcb16c9cb01c2994fa71c73bc6eade911976c757065d4f9d24154"
+    },
+    {
+      "path": "specs/rifle-design.spec.yaml",
+      "sha256": "b42eadb5abe59925cdabf8b31d383a8b2e6bf746bc4b8065421bbad03a892cdd"
+    }
+  ],
+  "review_documents": [
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "fcab7006163549c7f2cdd6206836618b34bcce1cab5e386eea7902fcf9c7c862"
+    },
+    {
+      "path": "docs/adr/0003-declarative-plugins-and-product-boundaries.md",
+      "sha256": "5235ddb8041dcd3201d2036f829118bb7242094e67311159ac5cd06bfc8c0385"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "cad4f49339e9659b00533fb8fce87e3efd6bceb88ee6c4a10fb1f62057456d09"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "3c08ccab827d3e6a26b19709bdb215a43af1ea27422f25bb2c50a0c41c1ab40a"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "0edf1d1d2a69209a6b4c04150f665ae0139d8397e562ef8c2098e26740bd92e2"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "63077db2e35b97f942c2ff8bba2390a6da675c27a2187c4a4266a1791314590d"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "e697df8617d62ffdae2c84148c85ce53fca10c36326d1d5e92bf99526c487d42"
+    }
+  ]
+}

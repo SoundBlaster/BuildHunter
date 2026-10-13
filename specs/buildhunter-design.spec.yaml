@@ -1,0 +1,109 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.design.product
+  title: BuildHunter target assembly
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Compose Hunter and Rifle into an artifact-focused public CLI/macOS product and a paid Store bundle with
+    optional Arsenal data.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - Public artifact plugins/policy, product facts adapter, FFI/session ownership, CLI/macOS UI and Store composition
+    requirements.
+  excludes:
+  - Universal-search product, index, LLM and separate paid GUI fork.
+  - Private repository creation or code extraction in this pass.
+provides:
+  capabilities:
+  - id: buildhunter.design.product
+    role: primary
+    summary: Compose Hunter and Rifle into an artifact-focused public CLI/macOS product and a paid Store bundle with
+      optional Arsenal data.
+requires:
+  capabilities:
+  - id: hunter.design.scan
+    optional: false
+    summary: Acquire authorized filesystem facts and measure accepted roots.
+  - id: rifle.design.rules
+    optional: false
+    summary: Evaluate the selected artifact catalog over supplied facts.
+  - id: arsenal.design.catalog
+    optional: true
+    summary: Absent in public edition; required by the intended Store edition. The edition constraint is a parent
+      duty, not resolved by SpecPM.
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: Proposed composition freezes catalog/settings and adapts Hunter facts to Rifle; product decisions select
+      traverse/measure/prune and produce artifact results for clients.
+    operations:
+    - name: proposed_artifact_scan
+      summary: Proposed composition freezes catalog/settings and adapts Hunter facts to Rifle; product decisions select
+        traverse/measure/prune and produce artifact results for clients.
+  outbound: []
+constraints:
+- id: assembly_owner
+  level: MUST
+  statement: BuildHunter owns the Hunter/Rifle adapter, artifact vocabulary, matching-to-measurement routing and API/FFI
+    compatibility. Hunter and Rifle do not own each other.
+- id: policy_owner
+  level: MUST
+  statement: Keep SpecificationCore application policy over typed facts and immutable settings; compile an appropriate
+    scan plan rather than reintroducing mandatory per-entry Swift round trips.
+- id: migration_parity
+  level: MUST
+  statement: Preserve stable filter IDs and existing client behavior until explicit approval changes it. Test nested
+    roots, environment/kind differences, invalid paths, disappearance, cancellation and cloud skips.
+- id: edition
+  level: MUST
+  statement: Public build works with basic plugins without private credentials. Store composition pins public modules
+    and Arsenal and fails on a missing required catalog; it ships the same GUI/engine code.
+- id: product_scope
+  level: MUST
+  statement: No index, LLM, universal query UI, executable plugin loading or deletion is added by this modularization.
+- id: store_delivery
+  level: MUST
+  statement: Arsenal bundles with the app and updates through Store. StoreDistribution is folded here; its repository
+    name and exact pipeline remain open, and Store approval is not guaranteed.
+effects:
+  sideEffects: []
+evidence:
+- id: source_0
+  kind: documentation
+  path: docs/modular-architecture.md
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.assembly_owner
+  - constraints.policy_owner
+  - constraints.migration_parity
+  - constraints.edition
+  - constraints.product_scope
+  - constraints.store_delivery
+- id: source_1
+  kind: adr
+  path: docs/adr/0003-declarative-plugins-and-product-boundaries.md
+  supports:
+  - scope
+- id: source_2
+  kind: documentation
+  path: docs/plugin-delivery-plan.md
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: unknown
+  notes:
+  - Target requirement, not an implemented API. Names/product direction accepted; detailed requirements remain draft.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings: []

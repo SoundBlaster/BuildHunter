@@ -130,6 +130,12 @@ BuildHunter сохраняет фокус на build artifacts/caches/environmen
 и LLM возможны позднее и не входят в текущий scope. Общее приложение не
 раздваивается на отдельные public/private forks.
 
+Утверждённые модульные имена: **Hunter** — generic scanner; **Rifle** — abstract
+rule engine/Swift authoring; **BuildHunter** — artifact policy/plugins/CLI/GUI;
+**Arsenal** — private catalog. [Границы и миграция](modular-architecture.md) и
+[coverage](../specs/specification-progress.md) описывают draft contracts, не
+уже выделенные библиотеки.
+
 ## Связанные документы
 
 - [ADR 0001](adr/0001-macos-app-architecture.md): architecture, ownership и evidence gates.

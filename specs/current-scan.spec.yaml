@@ -1,0 +1,145 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.current.scan
+  title: Current scanner mechanics
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
+    accounting.
+scope:
+  boundedContext: module_recovery_and_design
+  includes:
+  - scan_with_policy and current worker traversal/measurement, including optional macOS bulk metadata.
+  - Allocated/apparent sizing, terminal status, cloud guards, policy/emit callback lifecycle.
+  excludes:
+  - A generic Hunter crate already extracted.
+  - Constant whole-scan memory or race-free filesystem snapshots.
+  - Contents search or deletion.
+provides:
+  capabilities:
+  - id: buildhunter.current.scan
+    role: primary
+    summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
+      accounting.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: The host supplies filesystem enumeration and metadata with its effective permissions.
+interfaces:
+  inbound:
+  - id: consumer_interface
+    kind: library
+    summary: 'Existing Rust API: borrowed root/options/control and serial policy/emit closures; returns ScanReport
+      after scoped workers finish.'
+    operations:
+    - name: scan_with_policy
+      summary: 'Existing Rust API: borrowed root/options/control and serial policy/emit closures; returns ScanReport
+        after scoped workers finish.'
+  outbound: []
+constraints:
+- id: scan_lifetime
+  level: MUST
+  statement: For this existing entrypoint, run workers within the scan call and finish them before returning; policy
+    and emit execute serially on the coordinator, not concurrently on workers.
+- id: sizes
+  level: MUST
+  statement: Default Unix sizes use metadata.blocks()*512; apparent uses metadata.len(); non-Unix falls back to apparent.
+    Sum only non-nested roots; hard links are counted by pathname. These are not reclaimable bytes.
+- id: terminal
+  level: MUST
+  statement: Map failure, cancellation, I/O errors and observed disappearance to Failed, Cancelled, Incomplete and
+    CompletedWithChanges respectively; CompletedWithChanges can retain partial sizes and notices.
+- id: symlink_scope
+  level: MUST
+  statement: Traversal skips symbolic links; marker_is_file uses fs::metadata to resolve recognized symlinked marker
+    files. This exception is observed, not a universal no-follow guarantee.
+- id: cloud_guard
+  level: MUST
+  statement: Enter the macOS non-materialization guard before traversal and on workers; guard setup failure ends the
+    scan with Failed. Other OS/providers do not acquire a universal no-download guarantee.
+- id: memory_scope
+  level: MUST
+  statement: 'Do not infer bounded whole-process memory from the Swift event ring: current scanner retains reports
+    and directory arena capacity and uses unbounded worker response channels.'
+effects:
+  sideEffects:
+  - id: read_metadata
+    kind: filesystem_read
+    summary: Enumerate directories and read metadata/marker existence; no content scan.
+  - id: publish_events
+    kind: event_emit
+    summary: Invoke the supplied event observer, which can have consumer-defined effects.
+evidence:
+- id: source_0
+  kind: source
+  path: src/lib.rs
+  supports:
+  - intent.summary
+  - scope
+  - interfaces
+  - provides.capabilities
+  - constraints.scan_lifetime
+  - constraints.sizes
+  - constraints.terminal
+  - constraints.symlink_scope
+  - constraints.cloud_guard
+  - constraints.memory_scope
+- id: source_1
+  kind: source
+  path: src/materialization.rs
+  supports:
+  - scope
+- id: source_2
+  kind: source
+  path: src/bulk_metadata.rs
+  supports:
+  - scope
+- id: source_3
+  kind: source
+  path: src/thread_qos.rs
+  supports:
+  - scope
+- id: source_4
+  kind: source
+  path: src/profile.rs
+  supports:
+  - scope
+- id: source_5
+  kind: source
+  path: src/process_resources.rs
+  supports:
+  - scope
+- id: source_6
+  kind: source
+  path: src/resources.rs
+  supports:
+  - scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: medium
+    behavior: medium
+  notes:
+  - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
+  - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
+    are in specs/evidence/modules-20261013/source-identity.json.
+  - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+implementationBindings:
+- id: implementation
+  language: rust
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+  files:
+    owned:
+    - src/lib.rs
+    - src/materialization.rs
+    - src/bulk_metadata.rs
+    - src/thread_qos.rs
+    - src/profile.rs
+    - src/process_resources.rs
+    - src/resources.rs
+    border: []
