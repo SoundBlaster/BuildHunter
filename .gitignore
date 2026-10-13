@@ -1,6 +1,9 @@
-/target/
+/target
 /macos/.build/
 **/xcuserdata/
 *.xcuserstate
 *.xcresult/
 /scripts/__pycache__/
+/screenshots/output/
+/screenshots/tools/__pycache__/
+/.build/

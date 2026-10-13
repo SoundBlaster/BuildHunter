@@ -78,6 +78,14 @@ struct BuildHunterWindow: View {
             }
         }
         .frame(minWidth: 760, minHeight: 460)
+#if SCREENER_SCREENSHOTS
+        .background {
+            MacScreenshotProbe(isReady: IsScreenshotReady().isSatisfiedBy(.init(
+                isScanning: model.isScanning, isTransitioning: false,
+                expectedArtifacts: model.rows.count, displayedArtifacts: tableModel.rows.count)), presentation: "main")
+                .allowsHitTesting(false)
+        }
+#endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 VStack {

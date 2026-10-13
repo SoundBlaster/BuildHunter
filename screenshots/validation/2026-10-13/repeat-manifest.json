@@ -1,0 +1,301 @@
+{
+  "configuration": {
+    "platform": "macOS",
+    "projectRoot": "..",
+    "project": "macos/BuildHunter.xcodeproj",
+    "scheme": "BuildHunter",
+    "buildConfiguration": "ScreenerScreenshots",
+    "bundleID": "dev.buildhunter.screenshots",
+    "appProduct": "BuildHunter.app",
+    "testTarget": "BuildHunterUITests",
+    "testClass": "BuildHunterScreenshotTests",
+    "derivedData": "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk",
+    "generate": [
+      "xcodegen",
+      "generate",
+      "--spec",
+      "macos/project.screenshots.yml"
+    ],
+    "windowPoints": [
+      1280,
+      800
+    ],
+    "nativeWindowPixels": [
+      2560,
+      1600
+    ],
+    "locales": [
+      "en-US"
+    ],
+    "orientations": [
+      "window"
+    ],
+    "checkpoints": [
+      "01-empty",
+      "02-results",
+      "03-diagram"
+    ],
+    "launchEnvironment": {
+      "BUILDHUNTER_SETTINGS_SUITE": "BuildHunter.Screenshots.Pilot"
+    },
+    "appearance": "light",
+    "minimumFreeGiB": 5,
+    "commandPrefix": [
+      "rtk",
+      "proxy"
+    ],
+    "resolvedRoot": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots"
+  },
+  "platform": "macOS",
+  "captureArea": "window-frame",
+  "state": "complete",
+  "collectionComplete": true,
+  "assets": [
+    {
+      "backend": "screener",
+      "locale": "en-US",
+      "orientation": "window",
+      "screen": "01-empty",
+      "source": "raw/screener/en-US/window/01-empty.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "encodedPixels": [
+        2560,
+        1600
+      ],
+      "bitDepth": 8,
+      "scale": 2.0,
+      "rawSHA256": "b9d12b3d88604ab7dea43b76562225fbff058c3bbbed330dd1a5475a73b76345",
+      "trace": "traces/en-US/4F0F25FE-BD69-4626-9F4A-A3D5602D1128/6B9230F8-B512-4E9C-9ADA-009D3D6E4599.vtrace",
+      "recordID": "6A5C98F8-7D32-4A32-8CED-5E216D0EACAA",
+      "png": "png/screener/en-US/window/01-empty.png",
+      "sha256": "7bbef64f1c6a1e67a5f8e6634af675a0fe3675b3b830df82367cdda58c52e5c4"
+    },
+    {
+      "backend": "system",
+      "locale": "en-US",
+      "orientation": "window",
+      "screen": "01-empty",
+      "source": "raw/system/en-US/window/01-empty.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "encodedPixels": [
+        2560,
+        1600
+      ],
+      "bitDepth": 8,
+      "scale": 2.0,
+      "rawSHA256": "a94720c6e5311c3e9310062ad6c1bcf48f1c312216a70758379c966d44840955",
+      "trace": "traces/en-US/4F0F25FE-BD69-4626-9F4A-A3D5602D1128/6B9230F8-B512-4E9C-9ADA-009D3D6E4599.vtrace",
+      "recordID": "6A5C98F8-7D32-4A32-8CED-5E216D0EACAA",
+      "png": "png/system/en-US/window/01-empty.png",
+      "sha256": "9cb5186404fba1b6b342b8e30703457291735cbb85ffd9b9f85248b99cb6801d"
+    },
+    {
+      "backend": "screener",
+      "locale": "en-US",
+      "orientation": "window",
+      "screen": "02-results",
+      "source": "raw/screener/en-US/window/02-results.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "encodedPixels": [
+        2560,
+        1600
+      ],
+      "bitDepth": 8,
+      "scale": 2.0,
+      "rawSHA256": "a5767279c75896365acd604453cc3c02a51bbc6b0ab1a988b969d0e3e372e10b",
+      "trace": "traces/en-US/4F0F25FE-BD69-4626-9F4A-A3D5602D1128/6B9230F8-B512-4E9C-9ADA-009D3D6E4599.vtrace",
+      "recordID": "11C34B3F-1AE5-4541-97B3-54D07E77FE87",
+      "png": "png/screener/en-US/window/02-results.png",
+      "sha256": "e8de57dd39394bbd6fe32e89f894686d0fab4b0698c095ce11d353683ba4a032"
+    },
+    {
+      "backend": "system",
+      "locale": "en-US",
+      "orientation": "window",
+      "screen": "02-results",
+      "source": "raw/system/en-US/window/02-results.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "encodedPixels": [
+        2560,
+        1600
+      ],
+      "bitDepth": 8,
+      "scale": 2.0,
+      "rawSHA256": "fc8a85d5361813935c5b1e139c390280f5c6ed2f30f1fc61e207c2d91233a686",
+      "trace": "traces/en-US/4F0F25FE-BD69-4626-9F4A-A3D5602D1128/6B9230F8-B512-4E9C-9ADA-009D3D6E4599.vtrace",
+      "recordID": "11C34B3F-1AE5-4541-97B3-54D07E77FE87",
+      "png": "png/system/en-US/window/02-results.png",
+      "sha256": "3045a3730d8fca0426fd0f52fc91a2f929b522c2fd5808b31c1b218559e113d8"
+    },
+    {
+      "backend": "screener",
+      "locale": "en-US",
+      "orientation": "window",
+      "screen": "03-diagram",
+      "source": "raw/screener/en-US/window/03-diagram.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "encodedPixels": [
+        2560,
+        1600
+      ],
+      "bitDepth": 8,
+      "scale": 2.0,
+      "rawSHA256": "0a4c65ac2aabb38a37137287f2faeaa1848627d4f84e5c2491bbad457d7836c1",
+      "trace": "traces/en-US/4F0F25FE-BD69-4626-9F4A-A3D5602D1128/6B9230F8-B512-4E9C-9ADA-009D3D6E4599.vtrace",
+      "recordID": "45AE47BF-9A80-4FF0-84EC-DC2C39AC4E44",
+      "png": "png/screener/en-US/window/03-diagram.png",
+      "sha256": "275a57df1e0d879d61666978d87439ad73fab326d4650e35ef23fc753f1d40ee"
+    },
+    {
+      "backend": "system",
+      "locale": "en-US",
+      "orientation": "window",
+      "screen": "03-diagram",
+      "source": "raw/system/en-US/window/03-diagram.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "encodedPixels": [
+        2560,
+        1600
+      ],
+      "bitDepth": 8,
+      "scale": 2.0,
+      "rawSHA256": "bc0cacdd2bb2538936f7167600d69a3020e31d0a099f7bbf8742b196560f5773",
+      "trace": "traces/en-US/4F0F25FE-BD69-4626-9F4A-A3D5602D1128/6B9230F8-B512-4E9C-9ADA-009D3D6E4599.vtrace",
+      "recordID": "45AE47BF-9A80-4FF0-84EC-DC2C39AC4E44",
+      "png": "png/system/en-US/window/03-diagram.png",
+      "sha256": "534bf6f32f21a5998f92addccb1a5a760a9706dda7da6a9134680da6cf3176ab"
+    }
+  ],
+  "executableSHA256": "e5d05dd1d1356da04a15b658e4e067c1084431dcf7969bd81328755c9208c3bd",
+  "gitHead": "8c9f68dcf3ea8e5ebdf803d49891022bb22e6593",
+  "gitStatus": " M .gitignore\n M macos/BuildHunter.xcodeproj/project.pbxproj\n M macos/Sources/BuildHunter/UI/ArtifactDiagramWindow.swift\n M macos/Sources/BuildHunter/UI/BuildHunterApp.swift\n M macos/Sources/BuildHunter/UI/BuildHunterWindow.swift\n?? macos/Sources/BuildHunter/Screenshots/\n?? macos/Tests/BuildHunterUITests/BuildHunterScreenshotTests.swift\n?? macos/Tests/BuildHunterUITests/ScreenshotRunner.entitlements\n?? macos/Tests/BuildHunterUITests/ScreenshotScenario.swift\n?? macos/project.screenshots.yml\n?? screenshots/\n",
+  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0\nBuildVersion:\t\t26A428\n",
+  "toolSHA256": {
+    "run.py": "a99950f11045896cc69ac9704f27fde09ff84da4937922ee959337e458d60606",
+    "run_macos.py": "0d46a16e6a984fc5e7c37121edd07af031c00a0f9fb00d2645b6aa9e99c4a476",
+    "prepare.swift": "5439d1a9a4246d581ba4fb557a2bf74a56bb2d2c0b724172beb40e41e96573f3"
+  },
+  "packageResolution": {
+    "originHash": "1f8bc646de48cd92094856bde706c0941431599510c3c73265b9e295c9441fb2",
+    "pins": [
+      {
+        "identity": "eventsource",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/mattt/eventsource.git",
+        "state": {
+          "revision": "86b5096ac59ab46e66bd1f6377c604bc1dab0bc2",
+          "version": "1.5.1"
+        }
+      },
+      {
+        "identity": "nesteda11yids",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/SoundBlaster/NestedA11yIDs.git",
+        "state": {
+          "revision": "ad123fbc8dda58f20de1e6fbd21120bcfbaabf85",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "identity": "screener",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/SoundBlaster/Screener.git",
+        "state": {
+          "revision": "e447751afd8815de0ad1ec50ba2e4ca7c469d68e"
+        }
+      },
+      {
+        "identity": "specificationcore",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/SoundBlaster/SpecificationCore.git",
+        "state": {
+          "revision": "3a672ea9a081853bb0500c96a85243f01e39bcdd"
+        }
+      },
+      {
+        "identity": "swift-atomics",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-atomics.git",
+        "state": {
+          "revision": "0442cb5a3f98ab802acb777929fdb446bda11a34",
+          "version": "1.3.1"
+        }
+      },
+      {
+        "identity": "swift-collections",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-collections.git",
+        "state": {
+          "revision": "98ef3c98609a1e31b7e157b5b619579001a789d6",
+          "version": "1.7.1"
+        }
+      },
+      {
+        "identity": "swift-log",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-log.git",
+        "state": {
+          "revision": "9c6fb14227f55d8f711ce3847dc2f419fb0ecacb",
+          "version": "1.15.1"
+        }
+      },
+      {
+        "identity": "swift-nio",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-nio.git",
+        "state": {
+          "revision": "21de5f08c1a166a6dd293d0e587ad977bf8dac5d",
+          "version": "2.103.0"
+        }
+      },
+      {
+        "identity": "swift-sdk",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/modelcontextprotocol/swift-sdk.git",
+        "state": {
+          "revision": "a0ae212ebf6eab5f754c3129608bc5557637e605",
+          "version": "0.12.1"
+        }
+      },
+      {
+        "identity": "swift-syntax",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/swiftlang/swift-syntax",
+        "state": {
+          "revision": "f99ae8aa18f0cf0d53481901f88a0991dc3bd4a2",
+          "version": "601.0.1"
+        }
+      },
+      {
+        "identity": "swift-system",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-system.git",
+        "state": {
+          "revision": "869129b7bf4ecc57b97d0193ad29690ca2134750",
+          "version": "1.8.1"
+        }
+      }
+    ],
+    "version": 3
+  },
+  "packageResolutionSHA256": "2d69f55cfeb0479bbd674c108b22cf8b6457710c51ee5351a79172816a666595",
+  "preparedAt": "2026-10-13T17:05:35.841168+00:00"
+}

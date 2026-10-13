@@ -1,0 +1,79 @@
+{
+  "elapsedSeconds": 526.34,
+  "operations": [
+    {
+      "command": [
+        "xcodegen",
+        "generate",
+        "--spec",
+        "macos/project.screenshots.yml"
+      ],
+      "seconds": 0.077
+    },
+    {
+      "command": [
+        "xcodebuild",
+        "build-for-testing",
+        "-project",
+        "macos/BuildHunter.xcodeproj",
+        "-scheme",
+        "BuildHunter",
+        "-configuration",
+        "ScreenerScreenshots",
+        "-destination",
+        "platform=macOS,arch=arm64",
+        "-derivedDataPath",
+        "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk",
+        "-clonedSourcePackagesDirPath",
+        "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk/SourcePackages",
+        "CODE_SIGNING_ALLOWED=NO",
+        "ONLY_ACTIVE_ARCH=YES"
+      ],
+      "seconds": 166.143
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "seconds": 0.018
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain"
+      ],
+      "seconds": 0.023
+    },
+    {
+      "command": [
+        "sw_vers"
+      ],
+      "seconds": 0.018
+    },
+    {
+      "command": [
+        "xcodebuild",
+        "test-without-building",
+        "-xctestrun",
+        "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk/Build/Products/Screener-macOS-en-US.xctestrun",
+        "-destination",
+        "platform=macOS,arch=arm64",
+        "-parallel-testing-enabled",
+        "NO",
+        "-collect-test-diagnostics",
+        "never",
+        "-test-timeouts-enabled",
+        "YES",
+        "-maximum-test-execution-time-allowance",
+        "240",
+        "-only-testing:BuildHunterUITests/BuildHunterScreenshotTests",
+        "-resultBundlePath",
+        "/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots/screenshots/output/20261013T085502074055Z/en-US.xcresult"
+      ],
+      "seconds": 360.026
+    }
+  ]
+}
