@@ -106,3 +106,22 @@ boundary needs more consumer detail, recover it then; an old coarse map does not
 prove unchanged semantics. Add a dated pass/evidence directory rather than
 overwriting the baseline above. Do not mark a target contract implemented merely
 because a new repository exists or its structural validator succeeds.
+
+## Plugin contract pass — 2026-10-13
+
+Scope: concrete reviewable v1 package/program contract, typed facts/predicates,
+unknown/conflict semantics, limits, compatibility and examples. See
+[contract](../docs/plugin-contract-v1.md) and
+[validation](validation/plugin-contract-20261013/README.md).
+
+Updated target claims: Rifle `predicate_semantics,wire_validation`; BuildHunter
+`plugin_adapter,match_conflicts`; Hunter `plugin_fact_acquisition`; Arsenal
+`shared_plugin_contract`. Existing current contracts are unchanged. The map's
+RuleModel/CatalogValidation/Evaluation, ScanAssembly, MetadataMeasurement and
+PluginFixtures roles already cover these responsibilities; map composition is
+unchanged. No new boundary or runtime module is introduced by the schema tests.
+
+Acceptance remains draft. Executed evidence covers JSON wire shape and document
+structure; semantic evaluation, SDK export, JCS and filesystem integration remain
+unimplemented. Next implementation boundary is the pure Rifle evaluator after
+review of the proposed unknown/conflict, probe scope and limit decisions.

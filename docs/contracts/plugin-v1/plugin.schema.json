@@ -1,0 +1,150 @@
+{
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "buildhunter.plugin/1-draft.1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*(?![\\s\\S])",
+      "maxLength": 128
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?![\\s\\S])",
+      "maxLength": 32
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "program": {
+      "$ref": "rifle-program.schema.json"
+    },
+    "bindings": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*(?![\\s\\S])",
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "source": {
+                "enum": [
+                  "node.name",
+                  "node.kind"
+                ]
+              }
+            },
+            "required": [
+              "source"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "source": {
+                "const": "marker"
+              },
+              "scope": {
+                "enum": [
+                  "own",
+                  "parent"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(?![\\s\\S])"
+              }
+            },
+            "required": [
+              "source",
+              "scope",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "maxProperties": 128
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*(?![\\s\\S])",
+            "maxLength": 128
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "ecosystem": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*(?![\\s\\S])",
+            "maxLength": 128
+          },
+          "kind": {
+            "enum": [
+              "build_output",
+              "cache",
+              "environment",
+              "bytecode",
+              "metadata"
+            ]
+          },
+          "ruleIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*(?![\\s\\S])",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "maxItems": 256,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "ecosystem",
+          "kind",
+          "ruleIds"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 256
+    }
+  },
+  "required": [
+    "format",
+    "id",
+    "version",
+    "title",
+    "description",
+    "program",
+    "bindings",
+    "targets"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,106 @@
+{
+  "implementation_baseline": "48badf9e097783505151dd47fbafe290f0af25e2",
+  "parent_documentation_commit": "6ec3053debfc65383d231051bdd154d26e7be194",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "7466362b18a90e270a0dde0b0240c98a5446e90768235c0fb98bbb1b1241a95d"
+    },
+    {
+      "path": "docs/contracts/plugin-v1/examples/rust.json",
+      "sha256": "2792d95f0769259f60ac7f66ce8ddd0af573225ed2d298ec9a8ef3e551704ac3"
+    },
+    {
+      "path": "docs/contracts/plugin-v1/examples/synthetic.json",
+      "sha256": "12b8b296e4ed8d11696d9ca7cd321fae8b8fed861ba046a3534a5177ed4942be"
+    },
+    {
+      "path": "docs/contracts/plugin-v1/plugin.schema.json",
+      "sha256": "0b5db3b717b83ccd7bdcdd022014af6f6d3460cb3bf66d88e770023ca62e1183"
+    },
+    {
+      "path": "docs/contracts/plugin-v1/rifle-program.schema.json",
+      "sha256": "2e77d3b8493ac486e6679cb5a13311dcd9e78427cadaa5cd826a1f6c1ccbeee3"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "02bb41ed85aa2cefef8659176a7f80e6586516cb78b12d9080096979464c5ef1"
+    },
+    {
+      "path": "docs/plugin-contract-v1.md",
+      "sha256": "86118a9e1a264902eb3987af09039ac2e14ace878eeb172d8bbc54dba219e6df"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "10069dae9fcf930ebcb3c1a0e323ee2960f38ea190f3b1cc218d18b7fb4c74e9"
+    },
+    {
+      "path": "scripts/plugin-contract-requirements.txt",
+      "sha256": "756cc9e506ae4ee1a6f6c0507088b5cfc0dc8ba350fb2d2d46f1ffa72033adb6"
+    },
+    {
+      "path": "scripts/test_plugin_contract.py",
+      "sha256": "b615e3b01d478c281c4252668257c4be9baf614afe24e776e228b98806a0a9b4"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "1a2a3fcf50adf1790e88f81d3a4d2968f67c7f39def3b9014cf3ca48c15723f1"
+    },
+    {
+      "path": "specs/arsenal-design.spec.yaml",
+      "sha256": "806a92d54c99b53153cad89433fa8ee9fe4d58f6c1bec8cfdc8ab95477c5c485"
+    },
+    {
+      "path": "specs/buildhunter-design.spec.yaml",
+      "sha256": "3f13cf84056113e37257aed7dbb6d390e2c2bad707702346bdea5cc1a2489690"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "fa4d2fc74925c39f8b90ee74ab9c615cebc27b721d3943b28c07fda428a591dd"
+    },
+    {
+      "path": "specs/current-application.spec.yaml",
+      "sha256": "90bad083c9fc0ea598cdffe8cb6bdeaeacecc01a033c45a1ea6f1223e9135c51"
+    },
+    {
+      "path": "specs/current-bridge.spec.yaml",
+      "sha256": "e0c454697718b591b7e07f1b98e24b7ac92af61fc00176622c536e6349f9a0ce"
+    },
+    {
+      "path": "specs/current-classification.spec.yaml",
+      "sha256": "09a2e31cc5c17a61a8b0cd52064c5dcbd07be136ea0e703d796f9efa12d11432"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "a6e0e2d5a1b8828fcee417644ba98b6b8b8e9bcaa4016ba0f6ddb8a767012112"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "c0151b22879eb375013154d7555da67035a628cf4fd2ced153ccf39ae68c7dfe"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "94e93dce680aa2e34c8b11a4728dd02c91cb5399ee555bf2183c97bcab0dc373"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4832447e4641ab2cbdeddcb8bb9d142a5c119118007c89db57466561cacb75ab"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "8e89be2ba2825bc2ad2747645333f54de168cee83e955f379c5c490207ecad73"
+    },
+    {
+      "path": "specs/rifle-design.spec.yaml",
+      "sha256": "d6e9ce378a672ad96f3ff5b7f45d7fd51a6e12116107de228b91741a99a5acef"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "6545329c20ad8abb9f52fbe77cafcab50d0dad215e3f315700225d40c30129d0"
+    }
+  ]
+}

@@ -73,3 +73,17 @@ BoundarySpecs remain draft; Store/private implementation is absent. Deeper Chart
 layout, accessibility, telemetry sampling math and native host behavior are folded
 or explicitly outside this pass, not silently considered verified. The package
 is reviewable for architecture planning, not a certification of the application.
+
+## Plugin contract proposal — 2026-10-13
+
+[Plugin v1](../docs/plugin-contract-v1.md) concretizes the target boundary without
+claiming implementation. Rifle `predicate_semantics,wire_validation` own pure
+three-valued evaluation and validation. BuildHunter `plugin_adapter,match_conflicts`
+own bindings, exclusions and ambiguity; Hunter `plugin_fact_acquisition` supplies
+authorized facts; Arsenal `shared_plugin_contract` shares the same format.
+
+No-follow markers, out-of-scope unknowns, lossless name matching and conflict
+handling are proposed decisions, pending owner acceptance and C2–C4 migration
+checks. Wire-shape tests validate schemas/examples only. The semantic scenario
+table, JCS identity and performance budgets await the Rust pilot; no runtime
+conformance is inferred from SpecPM or JSON Schema validation.

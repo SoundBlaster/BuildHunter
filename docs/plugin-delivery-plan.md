@@ -26,6 +26,10 @@ Performance hypotheses и их доказательства остаются в
 
 ## Этап 0: schema и SDK contract
 
+Подготовлен [контракт `1-draft.1`](plugin-contract-v1.md), две JSON Schema и
+примеры с wire-shape tests. Это материал для review, а не завершение этапа:
+семантические тесты runtime, SDK и принятие решений ниже ещё впереди.
+
 - [ ] Зафиксировать versioned rule IR/schema v1, stable IDs и совместимость.
 - [ ] Спроектировать Swift DSL, экспортирующий данные без arbitrary closures.
 - [ ] Определить linter, complexity limits, specificity/priority и diagnostics.

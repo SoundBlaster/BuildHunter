@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.design.product
   title: BuildHunter target assembly
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Compose Hunter and Rifle into an artifact-focused public CLI/macOS product and a paid Store bundle with
@@ -20,8 +20,8 @@ provides:
   capabilities:
   - id: buildhunter.design.product
     role: primary
-    summary: Compose Hunter and Rifle into an artifact-focused public CLI/macOS product and a paid Store bundle with
-      optional Arsenal data.
+    summary: Compose Hunter and Rifle into an artifact-focused public CLI/macOS product and a paid Store bundle
+      with optional Arsenal data.
 requires:
   capabilities:
   - id: hunter.design.scan
@@ -42,14 +42,14 @@ interfaces:
       traverse/measure/prune and produce artifact results for clients.
     operations:
     - name: proposed_artifact_scan
-      summary: Proposed composition freezes catalog/settings and adapts Hunter facts to Rifle; product decisions select
-        traverse/measure/prune and produce artifact results for clients.
+      summary: Proposed composition freezes catalog/settings and adapts Hunter facts to Rifle; product decisions
+        select traverse/measure/prune and produce artifact results for clients.
   outbound: []
 constraints:
 - id: assembly_owner
   level: MUST
-  statement: BuildHunter owns the Hunter/Rifle adapter, artifact vocabulary, matching-to-measurement routing and API/FFI
-    compatibility. Hunter and Rifle do not own each other.
+  statement: BuildHunter owns the Hunter/Rifle adapter, artifact vocabulary, matching-to-measurement routing and
+    API/FFI compatibility. Hunter and Rifle do not own each other.
 - id: policy_owner
   level: MUST
   statement: Keep SpecificationCore application policy over typed facts and immutable settings; compile an appropriate
@@ -69,6 +69,15 @@ constraints:
   level: MUST
   statement: Arsenal bundles with the app and updates through Store. StoreDistribution is folded here; its repository
     name and exact pipeline remain open, and Store approval is not guaranteed.
+- id: plugin_adapter
+  level: MUST
+  statement: The proposed plugin wrapper owns fact bindings and target mapping. Freeze catalog and exclusions for
+    each scan; excluded targets must not cause probes solely for their rules. No filesystem effects belong to Rifle.
+- id: match_conflicts
+  level: MUST
+  statement: 'For the proposed v1 contract, never choose a winner by load order: multiple true targets are ambiguous;
+    one true plus unknown is indeterminate. Preserve diagnostics and descendant traversal; approval and legacy parity
+    remain pending.'
 effects:
   sideEffects: []
 evidence:
@@ -96,6 +105,12 @@ evidence:
   path: docs/plugin-delivery-plan.md
   supports:
   - scope
+- id: plugin_contract_draft
+  kind: documentation
+  path: docs/plugin-contract-v1.md
+  supports:
+  - constraints.plugin_adapter
+  - constraints.match_conflicts
 provenance:
   sourceConfidence:
     intent: high
@@ -106,4 +121,6 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+  - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
+    and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
 implementationBindings: []

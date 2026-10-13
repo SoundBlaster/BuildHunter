@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: buildhunter.module_architecture
   name: BuildHunter current boundaries and target module architecture
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   summary: Reviewable source-recovered current contracts and intended Hunter/Rifle/BuildHunter/Arsenal boundaries;
     no extraction or runtime conformance claimed.
   license: MIT

@@ -1,0 +1,72 @@
+{
+  "format": "buildhunter.plugin/1-draft.1",
+  "id": "org.buildhunter.rust",
+  "version": "1.0.0",
+  "title": "Rust build output",
+  "description": "Contract example; not an installed plugin.",
+  "program": {
+    "format": "rifle.program/1-draft.1",
+    "facts": [
+      {
+        "id": "name",
+        "type": "string"
+      },
+      {
+        "id": "kind",
+        "type": "string"
+      },
+      {
+        "id": "project",
+        "type": "boolean"
+      }
+    ],
+    "rules": [
+      {
+        "id": "output",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": "target"
+            },
+            {
+              "fact": "project",
+              "op": "eq",
+              "value": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": {
+    "name": {
+      "source": "node.name"
+    },
+    "kind": {
+      "source": "node.kind"
+    },
+    "project": {
+      "source": "marker",
+      "scope": "parent",
+      "name": "Cargo.toml"
+    }
+  },
+  "targets": [
+    {
+      "id": "rust.target",
+      "title": "Rust build output",
+      "ecosystem": "rust",
+      "kind": "build_output",
+      "ruleIds": [
+        "output"
+      ]
+    }
+  ]
+}
