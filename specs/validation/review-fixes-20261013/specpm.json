@@ -1,0 +1,113 @@
+{
+  "capabilities": [
+    "arsenal.design.catalog",
+    "buildhunter.current.application",
+    "buildhunter.current.bridge",
+    "buildhunter.current.classification",
+    "buildhunter.current.scan",
+    "buildhunter.design.product",
+    "hunter.design.scan",
+    "rifle.design.rules"
+  ],
+  "checked_files": [
+    "specpm.yaml",
+    "specs/arsenal-design.spec.yaml",
+    "specs/buildhunter-design.spec.yaml",
+    "specs/current-application.spec.yaml",
+    "specs/current-bridge.spec.yaml",
+    "specs/current-classification.spec.yaml",
+    "specs/current-scan.spec.yaml",
+    "specs/hunter-design.spec.yaml",
+    "specs/rifle-design.spec.yaml"
+  ],
+  "error_count": 0,
+  "errors": [],
+  "intent_mappings": [],
+  "intents": [],
+  "package_identity": {
+    "name": "BuildHunter current boundaries and target module architecture",
+    "package_id": "buildhunter.module_architecture",
+    "version": "0.1.0-draft.1"
+  },
+  "status": "warning_only",
+  "warning_count": 11,
+  "warnings": [
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-bridge.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-bridge.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.classification",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.bridge",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.classification",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/hunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/buildhunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.design.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/buildhunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.design.rules",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/buildhunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: arsenal.design.catalog",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/arsenal-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.design.rules",
+      "severity": "warning"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "source_revision": "48badf9e097783505151dd47fbafe290f0af25e2",
+  "historical_identity": "specs/evidence/modules-20261013/source-identity.json",
+  "note": "Source and maps unchanged. These digests pin review-corrected working-tree contracts/documents; detailed contracts remain drafts.",
+  "files": [
+    {
+      "path": "specpm.yaml",
+      "sha256": "9c3d3e33fd6a7d6a60ca4183ba46979e05cedac37bda8d58804641fe9080278f"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "581974ade7722267daf909057f16014d943d38e8a77faf0959a7fe98f572982d"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "a71aea1e92139a667dc85e5497a6883d59095a024d8951fd115b085b11aa3143"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "7b3180cd84a7bf96c0a986baa558df40bad74629b6c522927ab7686748c1a0e5"
+    },
+    {
+      "path": "specs/validation/modules-20261013/README.md",
+      "sha256": "fb4b6d80bed2aaabfb4ac659a0885247e06cbc31f2411f0396e83a29a7f03e53"
+    },
+    {
+      "path": "specs/arsenal-design.spec.yaml",
+      "sha256": "8bd62b71fa4ada86024b4e579d2bdc6fd9c58e8c4ca40628f1a6ec105ab11a54"
+    },
+    {
+      "path": "specs/buildhunter-design.spec.yaml",
+      "sha256": "2d5b6bc5b1f5c3b96a9829189cbb38ff473fd7ebd74440585099ddc44e74530f"
+    },
+    {
+      "path": "specs/current-application.spec.yaml",
+      "sha256": "90bad083c9fc0ea598cdffe8cb6bdeaeacecc01a033c45a1ea6f1223e9135c51"
+    },
+    {
+      "path": "specs/current-bridge.spec.yaml",
+      "sha256": "e0c454697718b591b7e07f1b98e24b7ac92af61fc00176622c536e6349f9a0ce"
+    },
+    {
+      "path": "specs/current-classification.spec.yaml",
+      "sha256": "09a2e31cc5c17a61a8b0cd52064c5dcbd07be136ea0e703d796f9efa12d11432"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "a6e0e2d5a1b8828fcee417644ba98b6b8b8e9bcaa4016ba0f6ddb8a767012112"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "4aaf9e804ffbcb16c9cb01c2994fa71c73bc6eade911976c757065d4f9d24154"
+    },
+    {
+      "path": "specs/rifle-design.spec.yaml",
+      "sha256": "b42eadb5abe59925cdabf8b31d383a8b2e6bf746bc4b8065421bbad03a892cdd"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "94e93dce680aa2e34c8b11a4728dd02c91cb5399ee555bf2183c97bcab0dc373"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4832447e4641ab2cbdeddcb8bb9d142a5c119118007c89db57466561cacb75ab"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "8e89be2ba2825bc2ad2747645333f54de168cee83e955f379c5c490207ecad73"
+    }
+  ]
+}
