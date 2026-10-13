@@ -1,0 +1,106 @@
+{
+  "elapsedSeconds": 44.849,
+  "operations": [
+    {
+      "command": [
+        "xcodegen",
+        "generate",
+        "--spec",
+        "macos/project.screenshots.yml"
+      ],
+      "seconds": 0.071
+    },
+    {
+      "command": [
+        "xcodebuild",
+        "build-for-testing",
+        "-project",
+        "macos/BuildHunter.xcodeproj",
+        "-scheme",
+        "BuildHunter",
+        "-configuration",
+        "ScreenerScreenshots",
+        "-destination",
+        "platform=macOS,arch=arm64",
+        "-derivedDataPath",
+        "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk",
+        "-clonedSourcePackagesDirPath",
+        "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk/SourcePackages",
+        "CODE_SIGNING_ALLOWED=YES",
+        "CODE_SIGN_IDENTITY=-",
+        "DEVELOPMENT_TEAM=",
+        "SCREENER_OUTPUT_ROOT=/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots/screenshots/output",
+        "SCREENER_APP_BUNDLE_ID=dev.buildhunter.screenshots",
+        "ONLY_ACTIVE_ARCH=YES"
+      ],
+      "seconds": 8.578
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "seconds": 0.018
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain"
+      ],
+      "seconds": 0.02
+    },
+    {
+      "command": [
+        "sw_vers"
+      ],
+      "seconds": 0.015
+    },
+    {
+      "command": [
+        "xcodebuild",
+        "test-without-building",
+        "-xctestrun",
+        "/Users/egor/Library/Developer/Xcode/DerivedData/BuildHunter-efirvnpbthqdwcalbvvrsyjzstjk/Build/Products/Screener-macOS-en-US.xctestrun",
+        "-destination",
+        "platform=macOS,arch=arm64",
+        "-parallel-testing-enabled",
+        "NO",
+        "-collect-test-diagnostics",
+        "never",
+        "-test-timeouts-enabled",
+        "YES",
+        "-maximum-test-execution-time-allowance",
+        "240",
+        "-only-testing:BuildHunterUITests/BuildHunterScreenshotTests",
+        "-resultBundlePath",
+        "/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots/screenshots/output/20261013T170307215242Z/en-US.xcresult"
+      ],
+      "seconds": 30.635
+    },
+    {
+      "command": [
+        "xcrun",
+        "xcresulttool",
+        "get",
+        "test-results",
+        "summary",
+        "--path",
+        "/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots/screenshots/output/20261013T170307215242Z/en-US.xcresult",
+        "--format",
+        "json"
+      ],
+      "seconds": 0.092
+    },
+    {
+      "command": [
+        "xcrun",
+        "swift",
+        "/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots/screenshots/tools/prepare.swift",
+        "/Users/egor/Development/GitHub/.worktrees/BuildHunter-screenshots/screenshots/output/20261013T170307215242Z/prepare.json"
+      ],
+      "seconds": 5.372
+    }
+  ]
+}

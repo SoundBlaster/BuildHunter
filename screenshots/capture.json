@@ -1,0 +1,43 @@
+{
+  "platform": "macOS",
+  "projectRoot": "..",
+  "project": "macos/BuildHunter.xcodeproj",
+  "scheme": "BuildHunter",
+  "buildConfiguration": "ScreenerScreenshots",
+  "bundleID": "dev.buildhunter.screenshots",
+  "appProduct": "BuildHunter.app",
+  "testTarget": "BuildHunterUITests",
+  "testClass": "BuildHunterScreenshotTests",
+  "derivedData": ".build/DerivedData",
+  "generate": [
+    "xcodegen",
+    "generate",
+    "--spec",
+    "macos/project.screenshots.yml"
+  ],
+  "windowPoints": [
+    1280,
+    800
+  ],
+  "nativeWindowPixels": [
+    2560,
+    1600
+  ],
+  "locales": [
+    "en-US"
+  ],
+  "orientations": [
+    "window"
+  ],
+  "checkpoints": [
+    "01-empty",
+    "02-results",
+    "03-diagram"
+  ],
+  "launchEnvironment": {
+    "BUILDHUNTER_SETTINGS_SUITE": "BuildHunter.Screenshots.Pilot"
+  },
+  "appearance": "light",
+  "minimumFreeGiB": 5,
+  "commandPrefix": []
+}

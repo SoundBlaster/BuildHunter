@@ -1,0 +1,17 @@
+{
+  "baseline": "8c9f68dcf3ea8e5ebdf803d49891022bb22e6593",
+  "sourceSHA256": {
+    "macos/Sources/BuildHunter/Screenshots/IsScreenshotReady.swift": "acd85cfd0d3010142e9191e7ab681554e3d8bbcdc0b60e9a83d97c7ed325afb6",
+    "macos/Sources/BuildHunter/Screenshots/ScreenshotHarness.swift": "f6dfa798314fe6e9e230edc737365301d4150634385744bc8d1dc4e01c4a0267",
+    "macos/Tests/BuildHunterUITests/BuildHunterScreenshotTests.swift": "bd467c2d0418c96d5213fb0632eefef761d4990ada792e0b96381c1c6aa26444",
+    "macos/Tests/BuildHunterUITests/ScreenshotScenario.swift": "9ac20109f84418658842762f1e5a67d224b7777e2988d8891e07a14043161b2b",
+    "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift": "1ca67074047c70d3b9f6cfe5f597621b7009189b3ddf3eed75136d3fc3cd2385",
+    "macos/Sources/BuildHunter/UI/ArtifactDiagramWindow.swift": "1853b2f862f3050193a55dd2836f838813544c890c917a9542580109f68bf3cd",
+    "macos/project.screenshots.yml": "7f655fd26d8a7aa583343adff6641d0b3c4012670553e6d3d91994f071a81f4c",
+    "screenshots/capture.json": "831ff7dcd5da15878822e8d0a216b93e463d7695607f57a7049830298ec1bc47"
+  },
+  "run": "screenshots/output/20261011T213713021587Z",
+  "result": "runner-startup-failed",
+  "appScenariosExecuted": 0,
+  "pngCount": 0
+}

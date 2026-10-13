@@ -1,0 +1,32 @@
+[
+  {
+    "source": "scripts/run.py",
+    "target": "screenshots/tools/run.py",
+    "sha256": "a99950f11045896cc69ac9704f27fde09ff84da4937922ee959337e458d60606"
+  },
+  {
+    "source": "scripts/prepare.swift",
+    "target": "screenshots/tools/prepare.swift",
+    "sha256": "5439d1a9a4246d581ba4fb557a2bf74a56bb2d2c0b724172beb40e41e96573f3"
+  },
+  {
+    "source": "assets/ScreenshotHarnessMac.swift",
+    "target": "macos/Sources/BuildHunter/Screenshots/ScreenshotHarness.swift",
+    "sha256": "e79eb22ec46983a8a3513a8d68fc1341c34c5f8e926b749bfda01762255e4fc5"
+  },
+  {
+    "source": "assets/ScreenshotScenarioMac.swift",
+    "target": "macos/Tests/BuildHunterUITests/ScreenshotScenario.swift",
+    "sha256": "783d4c9a3364fce089b3389bde9fd710125ea87a627a2f7ab9ea908289eadd33"
+  },
+  {
+    "source": "scripts/run_macos.py",
+    "target": "screenshots/tools/run_macos.py",
+    "sha256": "0d46a16e6a984fc5e7c37121edd07af031c00a0f9fb00d2645b6aa9e99c4a476"
+  },
+  {
+    "source": "assets/ScreenshotRunnerMac.entitlements",
+    "target": "macos/Tests/BuildHunterUITests/ScreenshotRunner.entitlements",
+    "sha256": "c7ffe43754bca87a45c7de9622a61c4ae0a6ece48bf57656b3578fc46344fba7"
+  }
+]

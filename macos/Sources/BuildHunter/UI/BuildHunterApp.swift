@@ -8,6 +8,10 @@ struct BuildHunterApp: App {
     var body: some Scene {
         WindowGroup("BuildHunter") {
             BuildHunterWindow(windowStore: windows)
+#if SCREENER_SCREENSHOTS
+                .preferredColorScheme(IsDarkScreenshotAppearance().isSatisfiedBy(
+                    ProcessInfo.processInfo.environment["SCREENER_APPEARANCE"] ?? "light") ? .dark : .light)
+#endif
         }
         .restorationBehavior(.disabled)
         .commands {
@@ -23,6 +27,10 @@ struct BuildHunterApp: App {
         WindowGroup("Artifact Diagram", id: "artifact-diagram", for: UUID.self) { $scanID in
             if let scanID, let model = windows.model(for: scanID) {
                 ArtifactDiagramWindow(scan: model)
+#if SCREENER_SCREENSHOTS
+                    .preferredColorScheme(IsDarkScreenshotAppearance().isSatisfiedBy(
+                        ProcessInfo.processInfo.environment["SCREENER_APPEARANCE"] ?? "light") ? .dark : .light)
+#endif
                     .onDisappear { windows.diagramWindowClosed(scanID) }
             } else {
                 ContentUnavailableView("Report unavailable", systemImage: "chart.pie",

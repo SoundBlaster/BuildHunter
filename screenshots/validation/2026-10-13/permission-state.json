@@ -1,0 +1,9 @@
+{
+  "developerMode": "enabled",
+  "automationMode": "disabled",
+  "automationAuthentication": "required",
+  "runs": {
+    "developer-enabled": "20261013T163846835411Z",
+    "automation-auth-retry": "20261013T164059975410Z"
+  }
+}

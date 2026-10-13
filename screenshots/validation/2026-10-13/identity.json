@@ -1,0 +1,13 @@
+{
+  "sourceSHA256": {
+    "screenshots/tools/run_macos.py": "f5154f13beffacc96368f1561af038def71fe64dc676676db62e05ce789ace17",
+    "screenshots/tools/run.py": "a99950f11045896cc69ac9704f27fde09ff84da4937922ee959337e458d60606",
+    "macos/Sources/BuildHunter/Screenshots/ScreenshotHarness.swift": "f6dfa798314fe6e9e230edc737365301d4150634385744bc8d1dc4e01c4a0267",
+    "macos/Tests/BuildHunterUITests/BuildHunterScreenshotTests.swift": "bd467c2d0418c96d5213fb0632eefef761d4990ada792e0b96381c1c6aa26444"
+  },
+  "runs": [
+    "screenshots/output/20261013T085502074055Z",
+    "screenshots/output/20261013T112514589968Z"
+  ],
+  "developerModeDuringRuns": "disabled"
+}

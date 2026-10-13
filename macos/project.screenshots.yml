@@ -1,0 +1,21 @@
+include:
+  - project.yml
+configs:
+  Debug: debug
+  Release: release
+  ScreenerScreenshots: debug
+settings:
+  configs:
+    ScreenerScreenshots:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DEBUG SCREENER_SCREENSHOTS"
+targets:
+  BuildHunter:
+    settings:
+      configs:
+        ScreenerScreenshots:
+          PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.screenshots
+  BuildHunterUITests:
+    settings:
+      configs:
+        ScreenerScreenshots:
+          CODE_SIGN_ENTITLEMENTS: Tests/BuildHunterUITests/ScreenshotRunner.entitlements

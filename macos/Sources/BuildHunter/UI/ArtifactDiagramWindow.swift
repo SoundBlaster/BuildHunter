@@ -63,6 +63,15 @@ struct ArtifactDiagramWindow: View {
             }
         }
         .frame(minWidth: 760, minHeight: 540)
+#if SCREENER_SCREENSHOTS
+        .background {
+            MacScreenshotProbe(isReady: IsScreenshotReady().isSatisfiedBy(.init(
+                isScanning: scan.isScanning, isTransitioning: navigation != nil,
+                expectedArtifacts: scan.rows.count, displayedArtifacts: diagram.snapshot.root.statistics.artifactCount)),
+                presentation: "diagram")
+                .allowsHitTesting(false)
+        }
+#endif
         .navigationTitle("\(scan.targetName ?? "BuildHunter") — Artifact Diagram")
         .task { await diagram.follow(scan) }
         .task(id: navigation?.id) {
