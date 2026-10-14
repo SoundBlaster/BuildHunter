@@ -10,3 +10,4 @@
 /.build/
 
 /crates/buildhunter-plugin-policy/target/
+/crates/buildhunter-plugin-scanner/target/

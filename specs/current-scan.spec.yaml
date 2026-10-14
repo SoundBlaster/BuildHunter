@@ -13,6 +13,8 @@ scope:
   includes:
   - scan_with_policy and current worker traversal/measurement, including optional macOS bulk metadata.
   - Allocated/apparent sizing, terminal status, cloud guards, policy/emit callback lifecycle.
+  - scan_with_candidate_observer bypasses legacy name/marker gates for independent consumers; plugin I/O/routing
+    is covered by buildhunter.plugin.scanner.
   excludes:
   - A generic Hunter crate already extracted.
   - Constant whole-scan memory or race-free filesystem snapshots.
@@ -21,8 +23,8 @@ provides:
   capabilities:
   - id: buildhunter.current.scan
     role: primary
-    summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
-      accounting.
+    summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional
+      process accounting.
 requires:
   capabilities:
   - id: platform.filesystem.metadata
@@ -38,6 +40,9 @@ interfaces:
     - name: scan_with_policy
       summary: 'Existing Rust API: borrowed root/options/control and serial policy/emit closures; returns ScanReport
         after scoped workers finish.'
+    - name: scan_with_candidate_observer
+      summary: Observe every visited node with path, legacy fact envelope and actual entry kind; serial caller-thread
+        callbacks and existing report codes.
   outbound: []
 constraints:
 - id: scan_lifetime
@@ -46,8 +51,8 @@ constraints:
     and emit execute serially on the coordinator, not concurrently on workers.
 - id: sizes
   level: MUST
-  statement: Default Unix sizes use metadata.blocks()*512; apparent uses metadata.len(); non-Unix falls back to apparent.
-    Sum only non-nested roots; hard links are counted by pathname. These are not reclaimable bytes.
+  statement: Default Unix sizes use metadata.blocks()*512; apparent uses metadata.len(); non-Unix falls back to
+    apparent. Sum only non-nested roots; hard links are counted by pathname. These are not reclaimable bytes.
 - id: terminal
   level: MUST
   statement: Map failure, cancellation, I/O errors and observed disappearance to Failed, Cancelled, Incomplete and
@@ -58,8 +63,8 @@ constraints:
     files. This exception is observed, not a universal no-follow guarantee.
 - id: cloud_guard
   level: MUST
-  statement: Enter the macOS non-materialization guard before traversal and on workers; guard setup failure ends the
-    scan with Failed. Other OS/providers do not acquire a universal no-download guarantee.
+  statement: Enter the macOS non-materialization guard before traversal and on workers; guard setup failure ends
+    the scan with Failed. Other OS/providers do not acquire a universal no-download guarantee.
 - id: memory_scope
   level: MUST
   statement: 'Do not infer bounded whole-process memory from the Swift event ring: current scanner retains reports
@@ -127,6 +132,9 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+  - 'Scanner observer follow-up at baseline 6bab3c3; legacy entrypoint semantics preserved. Updated file identity
+    and execution receipts: specs/validation/plugin-scanner-20261014/. Historical recovery is not proof of this
+    revision.'
 implementationBindings:
 - id: implementation
   language: rust

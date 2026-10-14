@@ -3,7 +3,9 @@
 Дата: 2026-10-13. Implementation stages ниже **pending**. Имена Hunter/Rifle/BuildHunter/Arsenal
 утверждены; [модульные контракты](modular-architecture.md) остаются draft. Согласовано архитектурное
 направление в [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md),
-но Plugin SDK, schema и catalog runtime пока не реализованы.
+Swift Plugin SDK и подключение к default clients ещё не реализованы. Schema,
+чистый Rifle catalog runtime и opt-in scanner integration имеют отдельные
+implementation/validation records; это не завершённая end-to-end доставка plugins.
 
 Этот план уточняет Phases 0–5 из [#25](https://github.com/SoundBlaster/BuildHunter/issues/25).
 Performance hypotheses и их доказательства остаются в
@@ -117,3 +119,9 @@ scope и не включаются автоматически в первую в
 private repositories создаются отдельно; документация не требует их наличия.
 
 Pure adapter pilot in independent `crates/buildhunter-plugin-policy` package: [implementation scope](plugin-adapter.md). Это validation/matching slice, а не завершённый этап подключения scanner/FFI.
+
+
+Scanner integration pilot: [scope and evidence](plugin-scanner-integration.md).
+Independent library now connects arbitrary candidates and scoped Unix marker
+facts to target metadata/sizing/events. Default client migration, Windows marker
+backend and descriptor-bound traversal/measurement remain pending.

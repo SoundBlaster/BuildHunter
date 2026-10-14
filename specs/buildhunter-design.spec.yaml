@@ -122,6 +122,7 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
-  - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
+  - 'Historical 2026-10-13 plugin contract 1-draft.1 proposal: Wire-shape checks are executable; runtime semantics, budgets, JCS
     and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
+  - Current pure policy and opt-in Unix marker integration are evidenced separately under specs/validation/plugin-scanner-20261014/. This does not complete Hunter extraction, default client migration or target architecture acceptance.
 implementationBindings: []

@@ -39,6 +39,12 @@ jobs:
           cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked
           cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked --release
           cargo clippy --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked --all-targets -- -D warnings
+      - name: Plugin scanner integration
+        run: |
+          cargo fmt --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --check
+          cargo test --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked
+          cargo test --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked --release
+          cargo clippy --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked --all-targets -- -D warnings
       - name: Dependency-free CLI offline regression
         run: python scripts/test_offline_cli.py
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings

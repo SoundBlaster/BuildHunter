@@ -1,0 +1,25 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--manifest-path",
+    "crates/buildhunter-plugin-scanner/Cargo.toml",
+    "--locked",
+    "--test",
+    "scanning",
+    "arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata",
+    "--",
+    "--exact"
+  ],
+  "mutation": "Enable legacy candidate gate/marker resolution only in the new observer entrypoint",
+  "expected": "test failure: arbitrary plugin candidate is no longer discovered",
+  "exit_code": 101,
+  "stdout": "\nrunning 1 test\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... FAILED\n\nfailures:\n\n---- arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata stdout ----\n\nthread 'arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata' (1201899) panicked at tests/scanning.rs:62:5:\nassertion `left == right` failed\n  left: 0\n right: 1\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s\n\n",
+  "stderr": "   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner)\n   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner/crates/buildhunter-plugin-scanner)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.93s\n     Running tests/scanning.rs (crates/buildhunter-plugin-scanner/target/debug/deps/scanning-744eefb83606062c)\nerror: test failed, to rerun pass `--test scanning`\n",
+  "original_source_sha256": "3c85a5c46cc38b8ad7e4cabf3f53893dfc4ce8056e6497e0c054c7258917e018",
+  "restored_run": {
+    "exit_code": 0,
+    "stdout": "\nrunning 1 test\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.01s\n\n",
+    "stderr": "   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner)\n   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner/crates/buildhunter-plugin-scanner)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s\n     Running tests/scanning.rs (crates/buildhunter-plugin-scanner/target/debug/deps/scanning-744eefb83606062c)\n"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "captured_from": "execution tool output before the implementation fix",
+  "command": [
+    "cargo",
+    "test",
+    "--manifest-path",
+    "crates/buildhunter-plugin-scanner/Cargo.toml",
+    "--locked",
+    "--test",
+    "scanning",
+    "diagnostic_only_scan_can_cancel_before_descendants_are_processed",
+    "--",
+    "--exact"
+  ],
+  "exit_code": 101,
+  "observed_assertion": {
+    "actual": "Completed",
+    "expected": "Cancelled"
+  },
+  "original_library_sha256": "8da3cdb480d1587825c5e625f81ace10cf7e7f4903c843a610c3525b348d0109",
+  "regression_test_sha256": "dd80a31ea911472fb11b42a86128e9f981364729b5c39d5c3c423f0eb1ca4d83"
+}

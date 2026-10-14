@@ -5,10 +5,12 @@
 Consumer goal: refine module boundaries for **Hunter / Rifle / BuildHunter /
 Arsenal** using current implementation evidence before extraction. Completion
 level: reviewable descriptive drafts, source bindings, target ownership and
-parent obligations. No runtime changes, repository creation or application
-acceptance are authorized by this recovery pass.
+parent obligations. The historical recovery pass authorized no runtime changes or application
+acceptance. Later implementation passes are separately authorized and evidenced below.
 
-Implementation baseline: `48badf9e097783505151dd47fbafe290f0af25e2`. User's dirty
+Historical recovery baseline: `48badf9e097783505151dd47fbafe290f0af25e2`.
+Current follow-up baseline: `6bab3c34684e81f14fbacd03445d297038edd9b3`, with
+changed inputs pinned in `validation/plugin-scanner-20261014/source-identity.json`. User's dirty
 Xcode scheme is excluded from claims and preserved; its digest is recorded.
 Design documents are working-tree inputs pinned separately from source revision.
 Current/target map identities are independent of source identity:
@@ -23,10 +25,10 @@ Current/target map identities are independent of source identity:
 | Current SharedRuntime.RustSwiftBridge | GUI finite-table / callback fallback | `buildhunter.current.bridge`; queue/access/table folded | same | source + test source; draft | C4; new ABI not frozen |
 | Current Clients.CommandLine / MacApplication | CLI; macOS window, diagram, warnings, Settings, export | `buildhunter.current.application`; client effects and projections folded | same | source review; draft | C6; full Charts/layout/OS actions runtime outside recovery |
 | Target Hunter and its parts | Any future in-process client | `hunter.design.scan`; internal roles folded | target map + design hashes | desired/inferred obligations; draft | Generic fact acquisition and cancellation/memory contract |
-| Target Rifle and its parts | Public/private catalog authors; BuildHunter adapter | `rifle.design.rules`; schema/validation/plan/evaluation/SDK folded | same | design only; draft | Schema v1 and pure facts API |
+| Target Rifle and its parts | Public/private catalog authors; BuildHunter adapter | `rifle.design.rules`; schema/validation/plan/evaluation/SDK folded | pinned Rifle 693a284 | pure programs/catalog/identity implemented; architecture spec draft | Swift SDK and product integration |
 | Target BuildHunter and its parts | Public CLI/macOS product, paid composition | `buildhunter.design.product`; basic rules/policy/assembly/UI folded | same | design + migration review; draft | C1–C6 decisions and parity acceptance |
 | Target Arsenal and its parts | Private Store composition | `arsenal.design.catalog`; packages/fixtures folded | same | design only; draft | Private license, catalog content and integration CI |
-| Target StoreDistribution | Store publisher | Folded into `buildhunter.design.product/edition,store_delivery`; not a separate spec/repo promise | same | design only | Repository name and release pipeline remain open |
+| Target StoreDistribution | Store publisher | Folded into `buildhunter.design.product/edition,store_delivery`; not a separate spec/repo promise | current target map | BuildHunterMAS repository created; design draft | Release pipeline pending |
 | Future universal search / index / LLM | Future separately named product | Deliberately excluded, not an unexplored BuildHunter requirement | ADR/module design | owner explicitly deferred | Separate product planning later |
 | Detailed chart geometry, SwiftUI layout, full native accessibility, profiler numerical conformance, Screener fidelity | Current product users/developers | Outside this extraction-contract scope; coarse presentation/profile roles only | current source identity | not fully recovered/verified | Separate deeper recovery if those boundaries change |
 
@@ -188,3 +190,51 @@ Classification semantics and accepted plugin requirements are unchanged.
 Earlier snapshots and command receipts stay historical. Fresh review evidence:
 [validation/plugin-review-20261014](validation/plugin-review-20261014/README.md).
 No scanner integration, Swift UI or performance result is implied.
+
+
+## Opt-in scanner integration — 2026-10-14
+
+Added PluginScanning/CandidateObservation/MarkerAcquisition/TargetRouting roles
+and `buildhunter.plugin.scanner` draft boundary. Observer bypasses legacy name and
+marker gates; independent integration derives scoped facts from active catalog
+bindings and emits real target metadata. Immutable catalog, nested totals,
+cancellation and existing worker/event lifetime are preserved. Root CLI remains
+dependency-free; default client/FFI policy is unchanged.
+
+Changed contracts: current.scan inbound observer and source evidence;
+plugin.policy exclusions clarify its separate I/O consumer; new plugin.scanner
+owns Unix marker effects/routing. Detailed requirements remain drafts. C1 is
+implemented for the independent API only; C2–C4 default migration, Windows marker
+backend, descriptor-bound traversal and private composition remain outstanding.
+Validation/identities: [plugin-scanner-20261014](validation/plugin-scanner-20261014/README.md).
+
+
+## PR #68 Linux fixture correction — 2026-10-14
+
+Only Ubuntu Rust CI failed: invalid_utf8_name_is_unknown_with_lossless_path
+expected Indeterminate while the required forge.project marker was absent.
+The implementation correctly evaluated Unknown AND false as false/NoMatch.
+Added the positive marker to isolate invalid-name handling and extended the
+platform-independent policy test to cover invalid name + false marker => NoMatch
+with no irrelevant unavailable diagnostics. Production code and contracts are
+unchanged. Affected claims: plugin.policy/classification,fact_boundary and
+plugin.scanner/candidate_gate,routing. Fresh source/map identity and receipts:
+[plugin-scanner-ci-20261014](validation/plugin-scanner-ci-20261014/README.md).
+Initial local/macOS results do not prove Linux fixture execution; hosted CI is
+separate evidence. All earlier records remain unchanged.
+
+
+## PR #68 live diagnostics review — 2026-10-14
+
+Resolved delayed diagnostic delivery: Ambiguous/Indeterminate events formerly
+queued until another core event, often terminal Finished. Now the single serial
+observer receives each diagnostic during candidate processing, after the internal
+state borrow is released. Removed the redundant event queue; reports still retain
+diagnostics and no constant whole-scan memory bound is claimed. Cancellation is
+observed before descendants, with exactly one terminal event. The new regression
+failed before the fix (Completed instead of Cancelled), then passed for both
+Ambiguous and Indeterminate diagnostic-only scans.
+Affected claims: plugin.scanner/routing,lifecycle; public API/ownership unchanged.
+Fresh receipts and identities: [plugin-diagnostics-review-20261014](validation/plugin-diagnostics-review-20261014/README.md).
+Historical source/test records remain unchanged; default clients and pure matcher
+semantics are unaffected. Hosted CI is separate evidence.

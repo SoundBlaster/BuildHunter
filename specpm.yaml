@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: buildhunter.module_architecture
   name: BuildHunter current boundaries and target module architecture
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   summary: Reviewable source-recovered current contracts and intended Hunter/Rifle/BuildHunter/Arsenal boundaries;
     no extraction or runtime conformance claimed.
   license: MIT
@@ -19,6 +19,7 @@ specs:
 - path: specs/buildhunter-design.spec.yaml
 - path: specs/arsenal-design.spec.yaml
 - path: specs/plugin-policy.spec.yaml
+- path: specs/plugin-scanner.spec.yaml
 index:
   provides:
     capabilities:
@@ -31,6 +32,7 @@ index:
     - buildhunter.design.product
     - arsenal.design.catalog
     - buildhunter.plugin.policy
+    - buildhunter.plugin.scan
   requires:
     capabilities:
     - platform.filesystem.metadata

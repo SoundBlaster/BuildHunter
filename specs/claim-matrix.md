@@ -1,10 +1,13 @@
 # Claim origin, consumer sufficiency and assembly review
 
-Baseline implementation: `48badf9e097783505151dd47fbafe290f0af25e2`.
+Historical recovery baseline: `48badf9e097783505151dd47fbafe290f0af25e2`.
+Current follow-up baseline: `6bab3c34684e81f14fbacd03445d297038edd9b3`;
+changed inputs and validation are pinned in `validation/plugin-scanner-20261014/`.
 All BoundarySpecs, including the new adapter boundary, remain `draft`. The owner accepted module names/product
 direction; detailed recovered/target constraints have not been separately accepted.
 Source reading, existing test source, structural validation and historical runtime
-reports are different evidence levels. This pass runs structural checks only.
+reports are different evidence levels. Historical recovery ran structural checks only; later execution receipts are
+scoped to the explicitly named adapter/integration passes below.
 
 ## Recovered current boundaries
 
@@ -96,3 +99,16 @@ three-valued target outcomes and budgets. In-memory fixtures validate this seam,
 not C1 scanner candidate/prefetch integration or C2–C4 filesystem/client parity.
 The current scanner remains unchanged in default and all-feature CLI builds; the adapter is now built independently;
 private Store composition is now named BuildHunterMAS, with pipeline still pending.
+
+
+## Opt-in scanner integration — 2026-10-14
+
+`buildhunter.plugin.scanner` addresses C1 for an independent caller: its all-node
+observer and active marker acquisition bypass legacy name/bit gates together.
+Default CLI/GUI still use the legacy C1 selection. Full target metadata is routed
+without changing the numeric ABI. Unix marker descriptors establish no-follow
+lookups even when an intermediate component is replaced; this does not establish
+race-free shared traversal/measurement. Windows backend is explicitly unsupported.
+C2/C3 baseline-client migration and C4 GUI action/ABI identity remain outstanding.
+Ambiguous/unknown policy results remain typed diagnostics; Completed still names
+traversal completion. C5 report/diagnostic retention has no constant-memory claim.

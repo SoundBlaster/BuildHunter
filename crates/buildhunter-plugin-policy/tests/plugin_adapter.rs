@@ -187,6 +187,13 @@ fn true_false_unknown_and_invalid_name_follow_policy() {
         .unwrap();
     assert_eq!(result.decision, Decision::Indeterminate);
     assert_eq!(result.unavailable[0].reason, "invalid_name");
+    // An invalid name is unknown, but a false required marker rules the target out.
+    let markers = BTreeMap::from([(rust_marker(), MarkerFact::Known(false))]);
+    let result = c
+        .classify(facts(None, NodeKind::Directory, &markers))
+        .unwrap();
+    assert_eq!(result.decision, Decision::NoMatch);
+    assert!(result.unavailable.is_empty());
     assert_eq!(
         c.classify(facts(Some("target"), NodeKind::Directory, &BTreeMap::new()))
             .unwrap_err()
