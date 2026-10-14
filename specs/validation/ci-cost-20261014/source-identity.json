@@ -1,0 +1,79 @@
+{
+  "baseline": "6bab3c34684e81f14fbacd03445d297038edd9b3",
+  "recorded_at_utc": "2026-10-14T10:21:44.333014+00:00",
+  "scope": "CI scheduling and cost guards only; runtime maps/contracts unchanged and validated, not runtime proof",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "5d9be0925e9d7d3767f6d9d379168a3969f73f49aacf2e71f8e5eaf224143b3c"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "baf9d9b72426190b9635153c830640ab78203c842e27a06bb8d7c4da1d3426ba"
+    },
+    {
+      "path": ".github/workflows/macos.yml",
+      "sha256": "476ee86c782ba2f81366c5bcda9cd85f0c70e9b942caed24442285f3351c63ba"
+    },
+    {
+      "path": ".github/workflows/performance.yml",
+      "sha256": "c8b386bc2ff2b7516f83511eb0962594ba46c6f255e57a5ad31cb96482fcd635"
+    },
+    {
+      "path": ".github/workflows/changes.yml",
+      "sha256": "d4016ce0cba0c57d9528b1ba5a75e7d22ce1d59bf5f48a35a0c1e8377b3690c8"
+    },
+    {
+      "path": "scripts/ci/test_workflow_policy.py",
+      "sha256": "fd486ca861e423aeb5ac9d1131bfa63ba12639a6b0689195190fa916b9bba61c"
+    },
+    {
+      "path": "scripts/plugin-contract-requirements.txt",
+      "sha256": "37caf5bff910fbd7dda44433b92df25fbfd989aea829e9bc4ce37e70df1f1782"
+    },
+    {
+      "path": "docs/verification.md",
+      "sha256": "01878ec3ef441e8421f0de7e8a2c7bbd06eb372384c6fb25906adbe284dadf32"
+    },
+    {
+      "path": "docs/ci-cost-policy.md",
+      "sha256": "a42dde215fdbb382c06da92b2a9106b7df68d51641cb5c31819f1c92f1d3bb3c"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "c8e073929717009f9f0cc9b84ce20785912c837d9fd799bbf775d80268e16797"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "6b2da1476a0b6c2c9e226fc170d9cf5cbbbeac316a089e5eb0d5778bae891a07"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "badcc33f0db541c467ca9885fd41e06e0f92c1baafe38390bb9c464368e37ed1"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "48eda6f358b3b4f7e4634c5571985497b121d669413993fcbd87c4bd8ec26f99"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "da6cd27e5de46068d2ac34434e0bab5f0185e96ca88807cd42a8450743a12eeb"
+    }
+  ],
+  "tools": [
+    {
+      "name": "actionlint",
+      "module": "github.com/rhysd/actionlint",
+      "version": "v1.7.12",
+      "config": "self-hosted-runner:\n  labels: [xcode-27]\n"
+    },
+    {
+      "path": "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b"
+    }
+  ]
+}

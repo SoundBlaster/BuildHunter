@@ -1,0 +1,107 @@
+{
+  "recorded_at_utc": "2026-10-14T10:21:44.322330+00:00",
+  "reads": [
+    {
+      "command": [
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/actions/workflows"
+      ],
+      "result": [
+        {
+          "id": 383690633,
+          "name": "Classify changes",
+          "path": ".github/workflows/changes.yml",
+          "state": "active"
+        },
+        {
+          "id": 371887848,
+          "name": "Rust CI",
+          "path": ".github/workflows/ci.yml",
+          "state": "disabled_manually"
+        },
+        {
+          "id": 372233122,
+          "name": "macOS CI",
+          "path": ".github/workflows/macos.yml",
+          "state": "disabled_manually"
+        },
+        {
+          "id": 372973295,
+          "name": "Scanner performance",
+          "path": ".github/workflows/performance.yml",
+          "state": "disabled_manually"
+        }
+      ]
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "list",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--status",
+        "queued",
+        "--limit",
+        "100",
+        "--json",
+        "databaseId,workflowName"
+      ],
+      "result": []
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "list",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--status",
+        "in_progress",
+        "--limit",
+        "100",
+        "--json",
+        "databaseId,workflowName"
+      ],
+      "result": []
+    },
+    {
+      "command": [
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/rulesets/24388855"
+      ],
+      "result": {
+        "id": 24388855,
+        "name": "main",
+        "enforcement": "active",
+        "rules": [
+          {
+            "type": "deletion"
+          },
+          {
+            "type": "non_fast_forward"
+          },
+          {
+            "type": "pull_request",
+            "parameters": {
+              "required_approving_review_count": 0,
+              "dismiss_stale_reviews_on_push": false,
+              "required_reviewers": [],
+              "require_code_owner_review": false,
+              "require_last_push_approval": false,
+              "required_review_thread_resolution": true,
+              "require_extra_approval_for_unattributed_changes": true,
+              "allowed_merge_methods": [
+                "merge",
+                "squash",
+                "rebase"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

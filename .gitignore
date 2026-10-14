@@ -10,3 +10,5 @@
 /.build/
 
 /crates/buildhunter-plugin-policy/target/
+
+/scripts/ci/__pycache__/

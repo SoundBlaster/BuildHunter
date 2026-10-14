@@ -188,3 +188,19 @@ Classification semantics and accepted plugin requirements are unchanged.
 Earlier snapshots and command receipts stay historical. Fresh review evidence:
 [validation/plugin-review-20261014](validation/plugin-review-20261014/README.md).
 No scanner integration, Swift UI or performance result is implied.
+
+
+## Hosted CI cost control — 2026-10-14
+
+Owner requested stopping expensive automatic runs after reporting GitHub charges.
+Emergency GitHub state: Rust CI, macOS CI and Scanner performance disabled; no
+queued/in-progress runs. New source policy keeps automatic Rust/schema checks on
+Ubuntu, gates non-Linux Rust runners on explicit manual boolean, makes Xcode
+suites/manual benchmarks opt-in and cancels superseded Rust runs. Runtime maps
+and component contracts are unchanged: hosted CI scheduling is an operational
+product workflow, outside the recovered runtime composition. Map hashes and all
+four profile checks are recorded alongside CI inputs; no runtime acceptance or
+performance claim is inferred. Evidence: validation/ci-cost-20261014/.
+The default-branch policy must be merged before re-enabling Rust CI; manual
+expensive workflows remain disabled unless expressly needed. Current branch
+ruleset requires PR/thread resolution, not the removed expensive status contexts.

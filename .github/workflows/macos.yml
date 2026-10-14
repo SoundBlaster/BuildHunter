@@ -1,20 +1,21 @@
 name: macOS CI
+# Paid Xcode jobs run only when explicitly requested; never on PR updates or merges.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Select the expensive macOS check to run'
+        type: choice
+        options: [release, tests, performance, all]
+        default: release
 permissions:
   contents: read
 concurrency:
   group: macos-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  changes:
-    uses: ./.github/workflows/changes.yml
   tests:
-    needs: changes
-    if: needs.changes.outputs.heavy == 'true'
+    if: inputs.suite == 'tests' || inputs.suite == 'all'
     name: macOS unit and UI tests
     runs-on: xcode-27
     timeout-minutes: 35
@@ -49,8 +50,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   performance:
-    needs: changes
-    if: needs.changes.outputs.heavy == 'true'
+    if: inputs.suite == 'performance' || inputs.suite == 'all'
     name: macOS performance tests
     runs-on: xcode-27
     timeout-minutes: 35
@@ -76,8 +76,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   release:
-    needs: changes
-    if: needs.changes.outputs.heavy == 'true'
+    if: inputs.suite == 'release' || inputs.suite == 'all'
     name: macOS Release build
     runs-on: xcode-27
     timeout-minutes: 35

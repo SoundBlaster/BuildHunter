@@ -35,7 +35,8 @@ requires moving the prior result bundle aside or using a clean output directory.
 ## GitHub checks
 
 - **Rust CI:** fmt, unit tests, Clippy, Release build and actual CLI process/fixture
-  integration tests on Ubuntu, macOS and Windows.
+  integration tests on Ubuntu automatically; macOS and Windows require manual
+  dispatch with `full_platform_checks=true`.
 - **macOS CI / macOS unit and UI tests:** unsigned arm64 app/test compilation and
   execution on the `xcode-27` runner image (macOS 27, Xcode 27.0, Swift 6.4); the
   app still deploys to macOS 26. UI tests query NestedA11yIDs identifiers,
@@ -45,12 +46,14 @@ requires moving the prior result bundle aside or using a clean output directory.
 - **macOS CI / macOS Release build:** independent unsigned Release compilation;
   publishes the log.
 
-These workflows run for every pull request, main push and manual dispatch.
-No path filters suppress checks needed by a PR. GitHub branch protection settings
+Only Ubuntu Rust/schema CI runs automatically for PR/main push (with existing
+change classification). macOS jobs and scanner benchmarks are manual-only; the
+macOS dispatch selects one suite by default. See [cost policy](ci-cost-policy.md)
+for emergency workflow pause, reactivation and exact manual inputs. GitHub branch protection settings
 are separate from workflow creation; configuring required checks is not implied.
 
-[Performance checks](performance.md) add separate scanner baseline/candidate jobs
-on Ubuntu/macOS and a Release XCTest job for model/policy clock, memory and scaling.
+Explicitly dispatched [performance checks](performance.md) add scanner baseline/candidate jobs
+on one selected Ubuntu/macOS runner and a separately selected Release XCTest job for model/policy clock, memory and scaling.
 Reports and raw measurements are published as CI artifacts.
 
 ## TDD and evidence boundaries

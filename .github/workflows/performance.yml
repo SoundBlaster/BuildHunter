@@ -1,27 +1,27 @@
 name: Scanner performance
+# Benchmarks are opt-in and run on one explicitly selected runner.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Benchmark runner (macOS is an explicit opt-in)'
+        type: choice
+        options: [ubuntu-latest, macos-26]
+        default: ubuntu-latest
+      baseline_ref:
+        description: 'Baseline git revision for comparison'
+        type: string
+        default: 'HEAD^'
 permissions:
   contents: read
 concurrency:
   group: performance-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  changes:
-    uses: ./.github/workflows/changes.yml
   scanner:
-    needs: changes
-    if: needs.changes.outputs.heavy == 'true'
-    name: Scanner comparison (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Scanner comparison (${{ inputs.runner }})
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-26]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,7 +29,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Compare baseline and candidate on the same fixture
         env:
-          BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASELINE_REF: ${{ inputs.baseline_ref }}
         run: python3 scripts/compare_performance.py --baseline-ref "$BASELINE_REF"
       - name: Compare opt-in macOS batch metadata backend
         if: runner.os == 'macOS'
@@ -52,7 +52,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scanner-performance-${{ matrix.os }}
+          name: scanner-performance-${{ inputs.runner }}
           path: |
             target/performance/report.json
             target/performance/report.md
