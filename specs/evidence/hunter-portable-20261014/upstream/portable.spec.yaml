@@ -1,0 +1,104 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.portable
+  title: Portable directory enumeration and metadata sizing
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Enumerate one host-opened directory with owned observations and derive
+    apparent/allocated bytes from supplied metadata.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Portable entry iteration, no-follow entry type observations, cancellation checks,
+    path-qualified errors and metadata byte calculation.
+  excludes:
+  - Root access acquisition, descriptor-bound traversal, recursion, cloud policy,
+    product markers, workers, catalog decisions, error/status policy and hard-link
+    deduplication.
+provides:
+  capabilities:
+  - id: hunter.fs.portable
+    role: primary
+    summary: Consume a directory listing and calculate metadata sizes without external
+      dependencies.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: Host opens directories and supplies metadata under its access and thread
+      policy.
+interfaces:
+  inbound:
+  - id: directory
+    kind: library
+    summary: visit_directory(path, Result<iterator>, should_stop, observer) -> DirectoryVisit.
+  - id: metadata_conversion
+    kind: library
+    summary: metadata_bytes(&Metadata, apparent); MeasuredSize::from(Metadata) and
+      bytes(apparent).
+  outbound: []
+constraints:
+- id: events
+  level: MUST
+  statement: Preserve listing order and raw paths. Failed opens emit one directory-qualified
+    error and OpenFailed. Iteration errors name the directory; type lookup errors
+    name the child; other entries continue. Event callbacks are synchronous and payloads
+    owned.
+- id: cancellation
+  level: MUST
+  statement: Check stop before each entry type lookup, retain the already emitted
+    prefix and return Cancelled. Iteration may acquire the next entry before the stop
+    check; a blocking filesystem call cannot be interrupted by this primitive.
+- id: sizes
+  level: MUST
+  statement: Unix allocated bytes are metadata.blocks() multiplied by 512 with saturation;
+    apparent bytes are metadata.len(). Non-Unix allocated falls back to metadata.len().
+    Metadata is supplied by host; links and hard-link identities are not filtered
+    or deduplicated by size conversion.
+- id: scope
+  level: MUST
+  statement: Entry file_type does not resolve symbolic-link targets. This pathname
+    listing does not anchor the selected tree against concurrent directory replacement;
+    host retains scope, materialization and recursion policy.
+effects:
+  sideEffects:
+  - id: directory_reads
+    kind: filesystem_read
+    summary: Consume host iterator and query entry file types. No file contents or
+      writes; size conversion is pure.
+evidence:
+- id: portable_source
+  kind: source
+  path: crates/hunter-fs-core/src/lib.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.events
+  - constraints.cancellation
+  - constraints.sizes
+  - constraints.scope
+- id: portable_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports:
+  - scope
+  - constraints.scope
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Extracted from BuildHunter main 13aece6. Draft observed contract; runtime receipts
+    and acceptance remain distinct. Full scanner/descriptor traversal remain pending.
+implementationBindings:
+- id: portable_implementation
+  scope: component
+  language: rust
+  files:
+    owned:
+    - crates/hunter-fs-core/src/lib.rs
+    border:
+    - crates/hunter-fs-core/Cargo.toml

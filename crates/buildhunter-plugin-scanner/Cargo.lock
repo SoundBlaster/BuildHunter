@@ -14,6 +14,9 @@ dependencies = [
 [[package]]
 name = "build-hunter"
 version = "0.1.0"
+dependencies = [
+ "hunter-fs-core",
+]
 
 [[package]]
 name = "buildhunter-plugin-policy"
@@ -85,6 +88,10 @@ source = "git+https://github.com/SoundBlaster/Hunter.git?rev=5c8f3c9a1a018039b5a
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hunter-fs-core"
+version = "0.1.0"
 
 [[package]]
 name = "itoa"

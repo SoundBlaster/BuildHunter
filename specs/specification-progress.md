@@ -269,3 +269,34 @@ Affected marker_scope/io_contract bindings refreshed; map roles are unchanged.
 Prior snapshots/receipts remain historical. Fresh upstream snapshots and local
 integration/source/map receipts live under hunter-parent-review-20261014.
 Default clients remain unchanged; no new runtime performance/cloud claim.
+
+## Portable Hunter adoption — 2026-10-14
+
+Hunter #2 at 8295d1418c03d1295cea86f4781352469fa27c78 now owns std-only directory
+entry iteration/errors/type lookup/cancellation prefix and metadata byte conversion.
+Root BuildHunter adopts the exact vendored source, preserving fresh-cache offline
+build/install and default client/FFI behavior. Current Scanner.Traversal/Measurement
+and new SharedRuntime.HunterPortable are affected; marker vocabulary, recursion,
+workers, profiles/status/nesting and cloud guards remain host-owned.
+
+Affected constraints: current scan sizes/symlink_scope/terminal/scan_lifetime and
+Hunter design generic_facts/no_product_dependency/io_contract/lifecycle. Scope is
+partial observed extraction with draft upstream contract, not complete acceptance
+of hunter.design.scan. C2/C3/C4 default policy/path differences are unchanged; C5
+whole-process memory remains unbounded/unmeasured by this move.
+
+UPSTREAM.json and fresh receipts identify canonical source and runtime vendored
+copy. Previous source/map/test receipts remain historical. Map/spec validation
+is separate from regression tests and performance comparison; no speedup inferred.
+Next: disentangle recursive scheduling/measurement from product prefetch/status
+before extracting worker orchestration.
+
+## Vendored input inventory review — 2026-10-14
+
+BuildHunter #71 verifier now checks the full recursive inventory, allowing only
+the pinned four files plus UPSTREAM.json and their src directory. Extra build.rs,
+nested Rust/example files, symlinks and non-regular entries are rejected before
+source hash checks. New tests first reproduced acceptance of the extra inputs.
+No runtime scanner or upstream Hunter code changes; current scan sizes/lifetime
+contracts and map roles remain unchanged. Fresh verifier/documentation identities
+and Python/structural receipts: specs/validation/hunter-vendor-review-20261014.

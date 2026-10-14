@@ -1,3 +1,6 @@
+use hunter_fs_core::{
+    DirectoryEvent, DirectoryVisit, MeasuredSize, metadata_bytes, visit_directory,
+};
 use std::{
     borrow::Cow,
     ffi::{OsStr, c_char, c_void},
@@ -28,7 +31,7 @@ pub use policy_table::{
 };
 
 #[cfg(unix)]
-use std::os::unix::{ffi::OsStrExt, fs::MetadataExt};
+use std::os::unix::ffi::OsStrExt;
 
 pub const MARKER_CARGO_TOML: u32 = 1 << 0;
 pub const MARKER_PYPROJECT_TOML: u32 = 1 << 1;
@@ -1016,45 +1019,37 @@ fn list_directory(
     legacy_policy: bool,
 ) -> Listing {
     let mut listing = Listing::default();
-    let entries = match probes.read_dir(path) {
-        Ok(entries) => entries,
-        Err(error) => {
-            listing.errors.push((path.to_owned(), error));
-            return listing;
-        }
-    };
-    for entry in entries {
-        if control.should_stop() {
-            break;
-        }
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(error) => {
-                listing.errors.push((path.to_owned(), error));
-                continue;
-            }
-        };
-        let child = entry.path();
-        // Without d_type the type needs a lookup that can fail for the child.
-        match entry.file_type() {
-            Ok(file_type) => {
-                let marker = child.file_name().map_or(0, marker_flag);
-                // A marker must be a file; only a symlinked marker needs resolving.
-                if legacy_policy && marker != 0 {
-                    if file_type.is_file() {
-                        listing.markers |= marker;
-                    } else if file_type.is_symlink() {
-                        match probes.marker_is_file(&child) {
-                            Ok(true) => listing.markers |= marker,
-                            Ok(false) => {}
-                            Err(error) => listing.errors.push((child.clone(), error)),
+    let outcome = visit_directory(
+        path,
+        probes.read_dir(path),
+        || control.should_stop(),
+        |event| {
+            match event {
+                DirectoryEvent::Error { path, error } => listing.errors.push((path, error)),
+                DirectoryEvent::Entry {
+                    path: child,
+                    file_type,
+                } => {
+                    let marker = child.file_name().map_or(0, marker_flag);
+                    // Legacy symlink-marker policy remains host-owned and unchanged.
+                    if legacy_policy && marker != 0 {
+                        if file_type.is_file() {
+                            listing.markers |= marker;
+                        } else if file_type.is_symlink() {
+                            match probes.marker_is_file(&child) {
+                                Ok(true) => listing.markers |= marker,
+                                Ok(false) => {}
+                                Err(error) => listing.errors.push((child.clone(), error)),
+                            }
                         }
                     }
+                    listing.children.push((child, file_type));
                 }
-                listing.children.push((child, file_type));
             }
-            Err(error) => listing.errors.push((child, error)),
-        }
+        },
+    );
+    if outcome == DirectoryVisit::OpenFailed {
+        return listing;
     }
     #[cfg(test)]
     if let Err(error) = probes.hook(ProbePoint::Listed, path) {
@@ -1762,47 +1757,6 @@ fn is_policy_candidate(name: &[u8], is_directory: bool, own_markers: u32) -> boo
             | b".venv"
             | b"venv"
     ) || name.ends_with(b".egg-info")
-}
-
-fn metadata_bytes(metadata: &fs::Metadata, apparent_size: bool) -> u64 {
-    #[cfg(unix)]
-    {
-        if apparent_size {
-            metadata.len()
-        } else {
-            metadata.blocks().saturating_mul(512)
-        }
-    }
-    #[cfg(not(unix))]
-    {
-        let _ = apparent_size;
-        metadata.len()
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct MeasuredSize {
-    apparent: u64,
-    allocated: u64,
-}
-
-impl From<fs::Metadata> for MeasuredSize {
-    fn from(metadata: fs::Metadata) -> Self {
-        Self {
-            apparent: metadata_bytes(&metadata, true),
-            allocated: metadata_bytes(&metadata, false),
-        }
-    }
-}
-
-impl MeasuredSize {
-    fn bytes(self, apparent: bool) -> u64 {
-        if apparent {
-            self.apparent
-        } else {
-            self.allocated
-        }
-    }
 }
 
 #[cfg(unix)]

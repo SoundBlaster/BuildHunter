@@ -35,7 +35,7 @@ python3 scripts/compare_performance.py --baseline-ref origin/main
 python3 scripts/test_performance_report.py
 ```
 
-The dependency-free Cargo benchmark emits CSV. The comparison script compiles the
+The registry/Git-dependency-free Cargo benchmark emits CSV. The comparison script compiles the
 same benchmark source against both revisions' Rust libraries, prepares one shared
 fixture, warms both revisions, then alternates their execution order for seven
 samples. It removes its own temporary worktree and fixture afterwards. Both

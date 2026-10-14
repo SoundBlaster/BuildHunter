@@ -1,0 +1,6 @@
+[package]
+name = "hunter-fs-core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Dependency-free directory enumeration and size primitives"

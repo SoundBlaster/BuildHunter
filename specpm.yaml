@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: buildhunter.module_architecture
   name: BuildHunter current boundaries and target module architecture
-  version: 0.1.0-draft.5
+  version: 0.1.0-draft.6
   summary: Reviewable current boundaries and target modular architecture, including
     partial pinned Hunter metadata extraction; full scanner extraction remains pending.
   license: MIT

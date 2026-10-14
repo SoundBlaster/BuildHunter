@@ -377,3 +377,11 @@ those gates bound regressions and do not compare trait on/off.
 H20 stays partial: the library and consumer integration are done, but the
 application-level effect is unmeasured and the upstream guard report is unfiled.
 The H-ledger totals do not change. No library release or version bump has happened.
+
+### Packaging status after portable Hunter extraction (2026-10-14)
+
+The historical no-dependencies statement above is superseded for root Cargo:
+there is now one exact vendored std-only hunter-fs-core path dependency. Neither
+Rifle nor specification-core-rs joins the default CLI dependency graph; fresh-cache
+offline build/install remains verified. Extraction alone does not close the
+classifier or whole-scan optimization hypotheses. See hunter-portable-extraction.md.

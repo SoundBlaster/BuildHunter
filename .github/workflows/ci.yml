@@ -33,6 +33,13 @@ jobs:
       - run: cargo fmt --check
       - run: cargo test --locked
       - run: cargo test --locked --all-features
+      - name: Vendored Hunter primitives
+        run: |
+          python scripts/verify_hunter_vendor.py
+          python scripts/test_hunter_vendor.py
+          cargo test --locked -p hunter-fs-core
+          cargo test --locked --release -p hunter-fs-core
+          cargo fmt --manifest-path vendor/hunter-fs-core/Cargo.toml --check
       - name: Independent plugin policy checks
         run: |
           cargo fmt --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --check
@@ -45,7 +52,7 @@ jobs:
           cargo test --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked
           cargo test --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked --release
           cargo clippy --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked --all-targets -- -D warnings
-      - name: Dependency-free CLI offline regression
+      - name: Fresh-cache offline CLI regression
         run: python scripts/test_offline_cli.py
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - run: cargo build --locked --release

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -16,7 +16,7 @@ scope:
   - scan_with_candidate_observer bypasses legacy name/marker gates for independent consumers; plugin I/O/routing
     is covered by buildhunter.plugin.scanner.
   excludes:
-  - A generic Hunter crate already extracted.
+  - Full generic Hunter scanner recursion/worker/lifecycle extraction.
   - Constant whole-scan memory or race-free filesystem snapshots.
   - Contents search or deletion.
 provides:
@@ -30,6 +30,9 @@ requires:
   - id: platform.filesystem.metadata
     optional: false
     summary: The host supplies filesystem enumeration and metadata with its effective permissions.
+  - id: hunter.fs.portable
+    optional: false
+    summary: Exact vendored std-only upstream directory iteration and metadata-byte primitives; host owns open/guards/recursion.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -51,7 +54,7 @@ constraints:
     and emit execute serially on the coordinator, not concurrently on workers.
 - id: sizes
   level: MUST
-  statement: Default Unix sizes use metadata.blocks()*512; apparent uses metadata.len(); non-Unix falls back to
+  statement: Default Unix sizes use metadata.blocks().saturating_mul(512); apparent uses metadata.len(); non-Unix falls back to
     apparent. Sum only non-nested roots; hard links are counted by pathname. These are not reclaimable bytes.
 - id: terminal
   level: MUST
@@ -122,6 +125,10 @@ evidence:
   path: src/resources.rs
   supports:
   - scope
+- id: hunter_portable_source
+  kind: source
+  path: vendor/hunter-fs-core/src/lib.rs
+  supports: [constraints.sizes, constraints.symlink_scope, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -135,6 +142,8 @@ provenance:
   - 'Scanner observer follow-up at baseline 6bab3c3; legacy entrypoint semantics preserved. Updated file identity
     and execution receipts: specs/validation/plugin-scanner-20261014/. Historical recovery is not proof of this
     revision.'
+  - Portable extraction at Hunter 8295d1418c03d1295cea86f4781352469fa27c78; current maps and execution identities
+    are in specs/validation/hunter-portable-20261014. Root public/FFI behavior is preserved; recursive orchestration remains local.
 implementationBindings:
 - id: implementation
   language: rust
@@ -150,4 +159,6 @@ implementationBindings:
     - src/profile.rs
     - src/process_resources.rs
     - src/resources.rs
-    border: []
+    border:
+    - vendor/hunter-fs-core/src/lib.rs
+    - vendor/hunter-fs-core/UPSTREAM.json

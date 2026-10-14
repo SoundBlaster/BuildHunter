@@ -1,0 +1,1 @@
+Public upstream draft contract from Hunter 8295d1418c03d1295cea86f4781352469fa27c78; original path specs/portable.spec.yaml. Evidence only. Runtime source is the vendored package identified by UPSTREAM.json.

@@ -26,7 +26,7 @@ is observed before processing descendants, including diagnostic-only scans. `.gi
 host-owned prune boundary. Nested findings are reported; totals count outer roots
 once using the existing allocated/apparent-size and per-path hardlink semantics.
 
-The new dependency-free root API `scan_with_candidate_observer` observes every
+The root API `scan_with_candidate_observer` observes every
 visited node, bypassing the legacy candidate-name gate, marker resolution and
 speculative artifact sizing. Its path is an observation identity, not an access
 capability. Callbacks are serial on the calling thread. `ScanControl::is_cancelled`
@@ -101,7 +101,8 @@ outcomes and synthetic dataless detection. Existing marker observations count
 only final stat attempts, as before. Catalog-validated names remain unchanged;
 Hunter additionally validates arbitrary public names instead of panicking.
 
-No new application/CLI dependency: root Cargo and default clients stay unchanged.
+That scoped-metadata stage added no application/CLI dependency; the subsequent portable
+extraction adds a std-only vendored path dependency without changing default behavior.
 The caller still installs the non-materializing policy before Hunter opens the
 root and keeps it until scanning ends. Metadata safety does not prove the shared
 pathname traversal/measurement safe against replacement. Windows still fails
@@ -112,3 +113,7 @@ and revision; fresh local receipts are in `specs/validation/hunter-metadata-2026
 Cross-repository merge order: Hunter #1 first, then this consumer PR. The revision
 pin is intentional until release alignment; HTTPS dependencies allow keyless CI,
 while developer Git remotes continue using SSH.
+
+Portable entry enumeration/byte sizing are now shared with Hunter through the
+root offline graph; see hunter-portable-extraction.md. Classifier/marker policy
+and the root scanner/FFI public interfaces remain unchanged.
