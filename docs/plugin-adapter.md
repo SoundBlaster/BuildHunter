@@ -84,7 +84,9 @@ cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked
 cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked --release
 ```
 
-Next: wire candidate acquisition/marker prefetch together using this policy,
-reconcile C2–C4 before changing client behavior, then expose catalog/diagnostics
+The opt-in [scanner integration](plugin-scanner-integration.md) now observes
+arbitrary candidates and acquires scoped marker facts. Default client policies
+remain unchanged. Next: descriptor-bound traversal and C2–C4 migration decisions
+before changing client behavior, then expose catalog/diagnostics
 through versioned FFI/Settings. No JIT, plugin commands or private dependency is
 required for this public pilot.

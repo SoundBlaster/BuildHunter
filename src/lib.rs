@@ -274,6 +274,15 @@ pub struct ArtifactClassificationCode {
     pub kind: u32,
 }
 
+/// Type of the directory entry itself, without following symbolic links.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CandidateNodeKind {
+    Directory,
+    RegularFile,
+    Symlink,
+    Other,
+}
+
 #[derive(Clone, Debug)]
 pub struct CandidateFacts {
     pub node_name: Vec<u8>,
@@ -411,7 +420,8 @@ impl ScanControl {
         }
     }
 
-    fn is_cancelled(&self) -> bool {
+    /// Whether the caller has requested cancellation. Does not imply workers returned.
+    pub fn is_cancelled(&self) -> bool {
         self.cancelled.load(Ordering::Acquire)
     }
 
@@ -514,13 +524,57 @@ pub fn scan_with_policy(
     scan_with_probes(root, options, control, policy, emit, &Probes::default())
 }
 
+/// Observe every visited candidate, including arbitrary names. This entrypoint
+/// disables the legacy name gate, marker resolution and speculative root sizing.
+/// Callbacks run serially on the caller thread under the non-materializing guard.
+/// The path identifies the observed entry; it is not a no-follow access handle.
+/// Callers acquiring facts must enforce scope/no-follow themselves. The existing
+/// numeric classification/report ABI is unchanged; product adapters own metadata.
+pub fn scan_with_candidate_observer(
+    root: &Path,
+    options: ScanOptions,
+    control: &ScanControl,
+    observer: impl FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
+    emit: impl FnMut(&ScanEvent),
+) -> ScanReport {
+    scan_internal(
+        root,
+        options,
+        control,
+        observer,
+        emit,
+        &Probes::default(),
+        false,
+    )
+}
+
 fn scan_with_probes(
     root: &Path,
     options: ScanOptions,
     control: &ScanControl,
     mut policy: impl FnMut(&CandidateFacts) -> CandidateAction,
+    emit: impl FnMut(&ScanEvent),
+    probes: &Probes,
+) -> ScanReport {
+    scan_internal(
+        root,
+        options,
+        control,
+        |_, facts, _| policy(facts),
+        emit,
+        probes,
+        true,
+    )
+}
+
+fn scan_internal(
+    root: &Path,
+    options: ScanOptions,
+    control: &ScanControl,
+    mut policy: impl FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
     mut emit: impl FnMut(&ScanEvent),
     probes: &Probes,
+    legacy_policy: bool,
 ) -> ScanReport {
     let _materialization = match materialization::Guard::enter() {
         Ok(guard) => guard,
@@ -568,7 +622,7 @@ fn scan_with_probes(
             let queue = &queue;
             scope.spawn(move || {
                 thread_qos::apply(worker_qos);
-                run_worker(queue, &sender, control, probes)
+                run_worker(queue, &sender, control, probes, legacy_policy)
             });
         }
         drop(sender);
@@ -577,6 +631,7 @@ fn scan_with_probes(
             options,
             control,
             policy: &mut policy,
+            legacy_policy,
             emit: &mut emit,
             probes,
             queue: &queue,
@@ -819,6 +874,7 @@ fn run_worker(
     results: &std::sync::mpsc::Sender<WorkerMessage>,
     control: &ScanControl,
     probes: &Probes,
+    legacy_policy: bool,
 ) {
     // A panicking worker would never send its pending messages; closing the queue lets the
     // other workers exit, which disconnects the channel and releases the caller.
@@ -832,12 +888,13 @@ fn run_worker(
     };
     while let Some(task) = queue.pop() {
         let listing_started = control.timer();
-        let listing = list_directory(&task.path, control, probes);
+        let listing = list_directory(&task.path, control, probes, legacy_policy);
         ScanControl::record_time(&control.listing_ns, listing_started);
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
         // Speculatively measure likely artifact roots; the coordinator reads anything missed.
-        let measuring =
-            task.measure || may_classify_directory(&name, listing.markers, task.parent_markers);
+        let measuring = task.measure
+            || (legacy_policy
+                && may_classify_directory(&name, listing.markers, task.parent_markers));
         let files: Vec<_> = if measuring {
             listing
                 .children
@@ -952,7 +1009,12 @@ fn may_classify_directory(name: &[u8], markers: u32, parent_markers: u32) -> boo
     }
 }
 
-fn list_directory(path: &Path, control: &ScanControl, probes: &Probes) -> Listing {
+fn list_directory(
+    path: &Path,
+    control: &ScanControl,
+    probes: &Probes,
+    legacy_policy: bool,
+) -> Listing {
     let mut listing = Listing::default();
     let entries = match probes.read_dir(path) {
         Ok(entries) => entries,
@@ -978,7 +1040,7 @@ fn list_directory(path: &Path, control: &ScanControl, probes: &Probes) -> Listin
             Ok(file_type) => {
                 let marker = child.file_name().map_or(0, marker_flag);
                 // A marker must be a file; only a symlinked marker needs resolving.
-                if marker != 0 {
+                if legacy_policy && marker != 0 {
                     if file_type.is_file() {
                         listing.markers |= marker;
                     } else if file_type.is_symlink() {
@@ -1041,6 +1103,7 @@ struct Scanner<'a, P, E> {
     options: ScanOptions,
     control: &'a ScanControl,
     policy: &'a mut P,
+    legacy_policy: bool,
     emit: &'a mut E,
     probes: &'a Probes,
     queue: &'a WorkQueue,
@@ -1059,7 +1122,7 @@ struct Scanner<'a, P, E> {
 
 impl<P, E> Scanner<'_, P, E>
 where
-    P: FnMut(&CandidateFacts) -> CandidateAction,
+    P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
     E: FnMut(&ScanEvent),
 {
     /// Delivers samples the sampler thread queued; their timestamps are when they were taken.
@@ -1278,15 +1341,25 @@ where
         }
         let is_symlink = file_type.is_symlink();
         let name = path.file_name().map(os_str_bytes).unwrap_or_default();
-        let action = if is_symlink || is_policy_candidate(&name, false, 0) {
-            (self.policy)(&CandidateFacts {
-                node_name: name.into_owned(),
-                is_directory: false,
-                is_symbolic_link: is_symlink,
-                has_artifact_ancestor: !chain.is_empty(),
-                own_marker_files: 0,
-                parent_marker_files: 0,
-            })
+        let action = if !self.legacy_policy || is_symlink || is_policy_candidate(&name, false, 0) {
+            (self.policy)(
+                &path,
+                &CandidateFacts {
+                    node_name: name.into_owned(),
+                    is_directory: false,
+                    is_symbolic_link: is_symlink,
+                    has_artifact_ancestor: !chain.is_empty(),
+                    own_marker_files: 0,
+                    parent_marker_files: 0,
+                },
+                if is_symlink {
+                    CandidateNodeKind::Symlink
+                } else if file_type.is_file() {
+                    CandidateNodeKind::RegularFile
+                } else {
+                    CandidateNodeKind::Other
+                },
+            )
         } else {
             CandidateAction::Traverse
         };
@@ -1356,26 +1429,31 @@ where
         let parent_len = chain.len();
         let name = path.file_name().map(os_str_bytes).unwrap_or_default();
         let own_markers = listing.markers & MARKER_PYVENV_CFG;
-        let parent_markers = if matches!(name.as_ref(), b"target" | b"build" | b"dist") {
-            parent_markers.unwrap_or_else(|| {
-                path.parent().map_or(0, |parent| {
-                    let (flags, errors) = marker_flags(parent, self.probes);
-                    listing.errors.extend(errors);
-                    flags
-                })
-            }) & !MARKER_PYVENV_CFG
-        } else {
-            0
-        };
-        let action = if is_policy_candidate(&name, true, own_markers) {
-            (self.policy)(&CandidateFacts {
-                node_name: name.into_owned(),
-                is_directory: true,
-                is_symbolic_link: false,
-                has_artifact_ancestor: parent_len > 0,
-                own_marker_files: own_markers,
-                parent_marker_files: parent_markers,
-            })
+        let parent_markers =
+            if self.legacy_policy && matches!(name.as_ref(), b"target" | b"build" | b"dist") {
+                parent_markers.unwrap_or_else(|| {
+                    path.parent().map_or(0, |parent| {
+                        let (flags, errors) = marker_flags(parent, self.probes);
+                        listing.errors.extend(errors);
+                        flags
+                    })
+                }) & !MARKER_PYVENV_CFG
+            } else {
+                0
+            };
+        let action = if !self.legacy_policy || is_policy_candidate(&name, true, own_markers) {
+            (self.policy)(
+                &path,
+                &CandidateFacts {
+                    node_name: name.into_owned(),
+                    is_directory: true,
+                    is_symbolic_link: false,
+                    has_artifact_ancestor: parent_len > 0,
+                    own_marker_files: own_markers,
+                    parent_marker_files: parent_markers,
+                },
+                CandidateNodeKind::Directory,
+            )
         } else {
             CandidateAction::Traverse
         };
@@ -2048,6 +2126,51 @@ fn status_code(status: ScanStatus) -> i32 {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn candidate_observer_bypasses_name_gate_and_legacy_marker_probes() {
+        let tree = TempTree::new();
+        fs::create_dir_all(tree.0.join("unusual-dir")).unwrap();
+        fs::write(tree.0.join("unusual-dir/note.bin"), b"12345").unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(tree.0.join("missing"), tree.0.join("Cargo.toml")).unwrap();
+        let caller = std::thread::current().id();
+        let probes = Probes::default();
+        let mut observed = Vec::new();
+        let report = scan_internal(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |path, facts, kind| {
+                assert_eq!(std::thread::current().id(), caller);
+                assert_eq!(facts.own_marker_files, 0);
+                assert_eq!(facts.parent_marker_files, 0);
+                observed.push((relative_path(&tree.0, path), kind));
+                if facts.name() == Some("note.bin") {
+                    CandidateAction::Classify(ArtifactClassificationCode {
+                        language: 3,
+                        kind: 5,
+                    })
+                } else {
+                    CandidateAction::Traverse
+                }
+            },
+            |_| {},
+            &probes,
+            false,
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert_eq!(report.artifacts.len(), 1);
+        assert_eq!(report.artifacts[0].bytes, 5);
+        assert_eq!(report.probes.marker_probes, 0);
+        assert!(observed.contains(&(PathBuf::from("unusual-dir"), CandidateNodeKind::Directory)));
+        assert!(observed.contains(&(
+            PathBuf::from("unusual-dir/note.bin"),
+            CandidateNodeKind::RegularFile
+        )));
+    }
+
     use super::*;
     use std::{
         fs,

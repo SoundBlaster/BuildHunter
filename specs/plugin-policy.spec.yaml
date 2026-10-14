@@ -14,7 +14,7 @@ scope:
   - Closed plugin shape, typed bindings, origin/namespace checks, complete target-rule references, catalog budgets,
     exclusion plans and pure target decisions.
   excludes:
-  - Filesystem traversal/probes, platform no-follow enforcement, current CLI/GUI/FFI wiring, measurement, pruning,
+  - Filesystem traversal/probes, platform no-follow enforcement, filesystem scanner integration (owned by buildhunter.plugin.scanner), current CLI/GUI/FFI wiring, measurement, pruning,
     Store delivery, complete baseline plugin parity and performance claims.
 provides:
   capabilities:

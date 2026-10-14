@@ -1,8 +1,8 @@
 # Architecture maps
 
 - [current.hc](current.hc) / [current.hcs](current.hcs): observed composition at
-  implementation baseline `998b1319fc2761a30f4f1db4df8d9bf35548f6fa` plus
-  the independent pure PluginPolicy adapter; profiles `client=cli` and `client=gui`.
+  implementation baseline `6bab3c34684e81f14fbacd03445d297038edd9b3` plus
+  independent PluginPolicy and opt-in PluginScanning packages; profiles `client=cli` and `client=gui`.
 - [target.hc](target.hc) / [target.hcs](target.hcs): intended module composition,
   profiles `edition=public` and `edition=store`. Rifle implements pure programs,
   generic catalog validation and identity at revision `693a284`; its Swift SDK
@@ -21,16 +21,17 @@ does not read these files or infer settings from them.
 Composition is not execution order, dataflow, imports or a call graph. Dependencies
 and parent lifecycle obligations are explicit in the Markdown/BoundarySpecs.
 Current and target trees are deliberately separate: a structural diff between
-them would not prove that implementation was refactored. The adapter is a separate opt-in Rust package; CLI/GUI classification and FFI
-are not connected to it.
+them would not prove that implementation was refactored. The pure policy and scanner integration are separate opt-in Rust packages;
+CLI/GUI classification and FFI are not connected to them. Unix marker access is
+descriptor-bound; traversal/measurement still use the existing pathname backend.
 
 Source bindings use real repository paths and symbols, not executable imports.
 File existence and HC property validation do not prove semantic correspondence.
 Exact source/map/tool identities and frozen map copies are in
-`../validation/plugin-review-20261014/source-identity.json` and frozen maps in
-`../evidence/plugin-review-20261014/maps/`. Review validation commands/results
-are in `../validation/plugin-review-20261014/`. Initial recovery records under
-`modules-20261013` and the initial adapter records under `plugin-adapter-20261014`
+`../validation/plugin-scanner-20261014/source-identity.json` and frozen maps in
+`../evidence/plugin-scanner-20261014/maps/`. Review validation commands/results
+are in `../validation/plugin-scanner-20261014/`. Initial recovery records under
+`modules-20261013` and adapter/review records under `plugin-adapter-20261014` / `plugin-review-20261014`
 remain historical, not current proof. Pure policy and CLI tests do not prove
 filesystem integration, GUI behavior, ABI compatibility or performance.
 

@@ -1,0 +1,110 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.plugin.scanner
+  title: Opt-in catalog-driven scanner integration
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Acquire scoped plugin marker facts and route supplied catalog decisions into measured artifacts with live metadata and diagnostics.
+scope:
+  boundedContext: plugin_scanner_integration
+  includes:
+  - Independent library using current traversal with all-candidate observation and descriptor-relative Unix marker acquisition.
+  - Immutable catalog/exclusions, arbitrary target metadata, streaming results, cancellation and typed diagnostics.
+  excludes:
+  - Default CLI/GUI/FFI policy migration, complete baseline plugin parity, Windows marker backend, Store delivery and Hunter extraction.
+  - Race-free directory traversal/measurement, atomic filesystem snapshots, bounded report memory and throughput claims.
+provides:
+  capabilities:
+  - id: buildhunter.plugin.scan
+    role: primary
+    summary: Scan through an immutable plugin catalog without the legacy name/marker gate.
+requires:
+  capabilities:
+  - id: buildhunter.current.scan
+    optional: false
+    summary: Shared traversal, size accounting, scoped workers, cancellation, profile and cloud guard lifetime.
+  - id: buildhunter.plugin.policy
+    optional: false
+    summary: Validated catalog, active bindings, three-valued outcomes and stable target descriptors.
+interfaces:
+  inbound:
+  - id: plugin_scan
+    kind: library
+    summary: scan(root, catalog, ScanOptions, ScanControl, event observer) -> Result<PluginScanReport, ScanError>.
+  outbound:
+  - id: live_updates
+    kind: library
+    summary: Serial caller-thread artifact discovery/completion, typed candidate diagnostics, I/O warnings, profiles and terminal status.
+constraints:
+- id: candidate_gate
+  level: MUST
+  statement: Observe every visited node independent of built-in names and marker bits; .git remains host-pruned. Preserve exact node kinds and lossless paths; invalid UTF-8 names stay unavailable.
+- id: marker_scope
+  level: MUST
+  statement: On supported Unix backends, anchor marker metadata to the selected root descriptor, open intermediate components without following links, and inspect final entries without following links or reading contents. Root parent is out_of_scope; symlink markers are false.
+- id: effective_acquisition
+  level: MUST
+  statement: Request only active deduplicated bindings. Unknown placeholders may eliminate I/O only when pure evaluation has no unknown targets; final decisions must use actual observations when required. Disabled-only bindings cause no observations.
+- id: routing
+  level: MUST
+  statement: Found carries full target metadata and creates one artifact. Ambiguous, Indeterminate, NoMatch and exclusions do not prune descendants. Typed policy diagnostics remain distinct from traversal I/O warnings.
+- id: lifecycle
+  level: MUST
+  statement: Retain catalog digest and exclusions in the report; keep immutable catalog/control/access alive until scoped workers finish; preserve inherited size/cancellation/partial events and guard restoration. Cancellation request alone does not prove completion.
+- id: compatibility
+  level: MUST
+  statement: Keep this package outside root CLI Cargo resolution and preserve default CLI/GUI/numeric FFI behavior. Unsupported marker backends fail closed before callbacks; no full traversal race guarantee is inferred from marker safety.
+effects:
+  sideEffects:
+  - id: metadata_reads
+    kind: filesystem_read
+    summary: Existing directory traversal/sizing and scoped no-follow marker metadata reads; no marker contents or filesystem writes.
+  - id: events
+    kind: event_emit
+    summary: Invoke caller-supplied synchronous observer; consumer effects remain caller-owned.
+evidence:
+- id: integration_source
+  kind: source
+  path: crates/buildhunter-plugin-scanner/src/lib.rs
+  supports: [intent.summary, interfaces, constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.compatibility]
+- id: scope_source
+  kind: source
+  path: crates/buildhunter-plugin-scanner/src/scope.rs
+  supports: [constraints.marker_scope]
+- id: core_source
+  kind: source
+  path: src/lib.rs
+  supports: [constraints.candidate_gate, constraints.lifecycle, constraints.compatibility]
+- id: integration_tests
+  kind: test
+  path: crates/buildhunter-plugin-scanner/tests/scanning.rs
+  supports: [constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.marker_scope]
+- id: unsupported_tests
+  kind: test
+  path: crates/buildhunter-plugin-scanner/tests/unsupported.rs
+  supports: [constraints.compatibility]
+- id: integration_documentation
+  kind: documentation
+  path: docs/plugin-scanner-integration.md
+  supports: [scope, constraints.compatibility, constraints.lifecycle]
+provenance:
+  sourceConfidence: {intent: high, boundary: high, behavior: medium}
+  notes:
+  - Owner authorized scanner integration after PR 67. New boundary remains draft; baseline client C2/C3/C4 migration is not accepted by this pilot.
+  - Marker race tests are not a full traversal proof. Synthetic cloud metadata is not live provider evidence. Fresh execution receipts and source identities are separate from historical recovery.
+implementationBindings:
+- id: integration
+  scope: component
+  language: rust
+  files:
+    owned:
+    - crates/buildhunter-plugin-scanner/src/lib.rs
+    - crates/buildhunter-plugin-scanner/src/scope.rs
+    border:
+    - src/lib.rs
+    - crates/buildhunter-plugin-scanner/Cargo.toml
+    - crates/buildhunter-plugin-scanner/Cargo.lock
+    - crates/buildhunter-plugin-scanner/tests/scanning.rs
+    - crates/buildhunter-plugin-scanner/tests/unsupported.rs

@@ -22,6 +22,10 @@ BuildHunterRuntime
       CatalogValidation
       EffectivePlan
       CandidateClassification
+    PluginScanning
+      CandidateObservation
+      MarkerAcquisition
+      TargetRouting
     RustSwiftBridge
       PolicyTable
       EventChannel

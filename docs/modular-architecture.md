@@ -3,7 +3,10 @@
 Дата: 2026-10-13. Это проект архитектуры для обсуждения. Названия и продуктовое
 направление утверждены; точные интерфейсы ещё проектируются. Основное приложение и scanner пока находятся в BuildHunter. Rifle уже имеет
 чистый Rust evaluator и generic catalog/JCS identity. Опциональный адаптер
-BuildHunter проверяет plugin policy, но ещё не подключён к обходу или GUI.
+BuildHunter проверяет plugin policy; независимый `buildhunter-plugin-scanner`
+уже соединяет её с обходом через all-candidate observer и scoped Unix markers
+([границы пилота](plugin-scanner-integration.md)). Default CLI/GUI/FFI ещё используют
+прежние правила; descriptor-bound traversal/measurement остаются следующим этапом.
 Hunter не выделен, коммерческий каталог и pipeline выпуска не реализованы. Разбор существующего кода опирается на commit
 `48badf9e097783505151dd47fbafe290f0af25e2`.
 

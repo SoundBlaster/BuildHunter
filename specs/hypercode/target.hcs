@@ -1,7 +1,7 @@
 # Approved names; proposed contracts and repositories, no extraction claimed.
 HunterProducts:
   status: "target-design-draft"
-  baseline: "specs/validation/plugin-review-20261014/source-identity.json"
+  baseline: "specs/validation/plugin-scanner-20261014/source-identity.json"
   profile: "public"
 Hunter:
   boundary_spec: "hunter.design.scan"
