@@ -68,7 +68,7 @@ constraints:
 - id: store_delivery
   level: MUST
   statement: Arsenal bundles with the app and updates through Store. StoreDistribution is folded here; its repository
-    name and exact pipeline remain open, and Store approval is not guaranteed.
+    is BuildHunterMAS and the exact pipeline remains unimplemented, and Store approval is not guaranteed.
 - id: plugin_adapter
   level: MUST
   statement: The proposed plugin wrapper owns fact bindings and target mapping. Freeze catalog and exclusions for

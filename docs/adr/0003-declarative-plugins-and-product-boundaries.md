@@ -1,7 +1,9 @@
 # ADR 0003: Declarative plugins, commercial catalog and product boundaries
 
 Дата: 2026-10-13. Статус: направление согласовано владельцем продукта;
-реализация не начата. Формат schema v1 и API SDK требуют отдельного review.
+полная интеграция ещё не выполнена. Pure Rifle runtime и опциональный
+[BuildHunter adapter](../plugin-adapter.md) реализованы отдельными этапами; scanner/GUI
+ещё используют прежнюю политику. Swift SDK остаётся следующей задачей.
 
 Утверждены **Hunter / Rifle / BuildHunter / Arsenal** (Rifle с одной `f`).
 [Модульная архитектура](../modular-architecture.md) и
@@ -40,7 +42,7 @@ BuildHunter остаётся приложением для поиска лока
 Store-сборка, напротив, должна завершаться ошибкой при отсутствии обязательного
 каталога, а не незаметно выпускать базовую комплектацию.
 
-Стоимость, точный состав платного набора, имя Store composition repository и
+Стоимость, точный состав платного набора и
 дополнительные варианты оплаты пока не выбраны. Первый целевой сценарий —
 платное приложение с включённым каталогом; подписка, аккаунты и отдельные
 покупки пакетов не требуются этим решением.
@@ -162,7 +164,9 @@ CPU, peak/live memory и cancellation. Корпус из 200 targets нужен 
 | `Rifle` — public | Abstract rule engine/schema/validation/evaluation и Swift authoring SDK; без filesystem I/O |
 | `BuildHunter` — public | Artifact policy, базовые plugins, Hunter/Rifle adapter, CLI/macOS GUI и тесты |
 | `Arsenal` — private | Коммерческие plugins, fixtures и пояснения |
-| Store composition — private, имя открыто | Pipeline, закрепляющий public modules и Arsenal; без второго GUI fork |
+| BuildHunterMAS — private | Pipeline, закрепляющий public modules и Arsenal; без второго GUI fork |
+
+Имя приватного репозитория выпуска утверждено: [BuildHunterMAS](https://github.com/SoundBlaster/BuildHunterMAS). Репозиторий создан, pipeline ещё не реализован.
 
 Private Store pipeline фиксирует source revisions, SDK/schema versions и
 catalog digest; публичный CI не нуждается в private credentials. Секреты и

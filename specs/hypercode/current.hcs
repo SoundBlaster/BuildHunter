@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/evidence/modules-20261013/source-identity.json"
+  baseline: "specs/validation/plugin-adapter-20261014/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -70,6 +70,20 @@ EventChannel:
 AccessLifetime:
   implementation: "RustScanJob + security-scoped target URL"
   folded_into: "buildhunter.current.bridge"
+PluginPolicy:
+  source: "src/plugins.rs"
+  boundary_spec: "buildhunter.plugin.policy"
+  enabled_by: "Cargo feature plugin-catalog"
+  connected_to_clients: false
+CatalogValidation:
+  source: "src/plugins/validation.rs"
+  folded_into: "buildhunter.plugin.policy"
+EffectivePlan:
+  source: "src/plugins/validation.rs"
+  folded_into: "buildhunter.plugin.policy"
+CandidateClassification:
+  source: "src/plugins.rs"
+  folded_into: "buildhunter.plugin.policy"
 @client[gui]:
   BuildHunterRuntime:
     entrypoint: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"

@@ -78,7 +78,8 @@ performance checks проходят; signed sandbox runtime проверен о�
 
 ## Этап 4: private catalog и Store composition
 
-- [ ] Реализовать private Arsenal; выбрать имя Store composition repository и лицензию нового каталога.
+- [x] Выбрать private repository выпуска: BuildHunterMAS (репозиторий создан).
+- [ ] Реализовать private Arsenal и выбрать лицензию нового каталога.
 - [ ] Сделать pinned composition общего приложения и коммерческого набора.
 - [ ] Обеспечить private fixture/integration CI и воспроизводимую поставку.
 - [ ] Добавлять популярные экосистемы по пакетам: кандидаты Node, Gradle,
@@ -106,7 +107,7 @@ semantic/performance gates. Не публикуются private definitions, sec
 ## Открытые решения перед реализацией
 
 Точные schema/API и cost limits; итоговый private plugin bundle; цена и условия
-покупки; имя Store composition repository; правила лицензирования contributions; location/import
+покупки; pipeline BuildHunterMAS; правила лицензирования contributions; location/import
 UX пользовательских пакетов; правила разрешения конфликтов между пакетами.
 Чтение содержимого файлов и global/known-location caches требуют отдельного
 scope и не включаются автоматически в первую версию.
@@ -114,3 +115,5 @@ scope и не включаются автоматически в первую в
 Первый implementation slice после review: один открытый и один синтетический
 «private» пакет на одинаковом runtime с parity/performance evidence. Настоящие
 private repositories создаются отдельно; документация не требует их наличия.
+
+Pure adapter pilot behind `plugin-catalog`: [implementation scope](plugin-adapter.md). Это validation/matching slice, а не завершённый этап подключения scanner/FFI.

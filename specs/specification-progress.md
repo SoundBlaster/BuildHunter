@@ -146,3 +146,28 @@ See [policy](../docs/ci-change-policy.md). All current/target BoundarySpec claim
 and HC maps remain unchanged: scheduling affects validation execution, not product
 behavior, module composition or accepted contracts. Historical evidence is retained;
 fresh checks are in [CI validation](validation/ci-gating-20261014/README.md).
+
+## Pure plugin adapter and BuildHunterMAS — 2026-10-14
+
+Baseline implementation: 998b1319fc2761a30f4f1db4df8d9bf35548f6fa.
+Added observed opt-in PluginPolicy/CatalogValidation/EffectivePlan/CandidateClassification
+roles and `buildhunter.plugin.policy` contract. Current maps now bind this pilot
+separately from legacy ArtifactClassification. Rifle is pinned to merged 693a284;
+public Cargo dependency reads use HTTPS for credential-free hosted CI, Git remotes SSH.
+
+Existing current scan/classification/bridge/application claims remain unchanged:
+no scanner/FFI/client wiring is performed. src/lib.rs adds only a feature-gated
+module and an explicit u64 type in an existing test (serde_json adds another
+PartialEq impl). Original evidence stays historical; full Rust regression checks
+plus fresh map/spec checks are recorded in
+[adapter validation](validation/plugin-adapter-20261014/README.md).
+
+Host-origin validation, refs/types, reserved IDs, exclusions/probe elimination,
+three-valued target aggregation and sorted diagnostics are implemented in a pure
+API. Filesystem acquisition, current default parity C2–C4, UI notices and performance
+acceptance remain pending. No new recovered requirement is accepted by test success.
+
+Owner supplied BuildHunterMAS as the approved private release repository. Access
+and privacy confirmed; local SSH clone contains a README, not a working release
+pipeline. Target StoreDistribution map retains its role but now names BuildHunterMAS.
+Arsenal content and Store signing/publishing remain separate work.

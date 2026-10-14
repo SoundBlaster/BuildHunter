@@ -1,0 +1,131 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.plugin.policy
+  title: Pure opt-in plugin policy adapter
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Validate BuildHunter plugin semantics and classify supplied facts with exclusions and explicit conflict/unknown
+    outcomes.
+scope:
+  boundedContext: artifact_plugin_policy
+  includes:
+  - Closed plugin shape, typed bindings, origin/namespace checks, complete target-rule references, catalog budgets,
+    exclusion plans and pure target decisions.
+  excludes:
+  - Filesystem traversal/probes, platform no-follow enforcement, current CLI/GUI/FFI wiring, measurement, pruning,
+    Store delivery, complete baseline plugin parity and performance claims.
+provides:
+  capabilities:
+  - id: buildhunter.plugin.policy
+    role: primary
+    summary: Validate and apply immutable artifact plugin policy to supplied candidate facts.
+requires:
+  capabilities:
+  - id: rifle.catalog.validate
+    optional: false
+    summary: Validate generic packages and full-document identities through pinned Rifle 693a284.
+  - id: rifle.program.evaluate
+    optional: false
+    summary: Compile enabled pure programs and evaluate typed observations. Required only when this opt-in boundary
+      is used.
+interfaces:
+  inbound:
+  - id: plugin_policy_api
+    kind: library
+    summary: PluginCatalog::load(host-origin inputs, exclusions) -> immutable snapshot; marker_requests(kind) describes
+      probes; classify(CandidateFacts) -> Classification or Error.
+  outbound: []
+constraints:
+- id: closed_validation
+  level: MUST
+  statement: Reject unknown plugin fields/formats, unsafe marker components, mismatched facts/bindings, unknown
+    types/kinds, missing/repeated rule references and duplicate target IDs before exclusions.
+- id: trusted_origin
+  level: MUST
+  statement: Origin is host-supplied; reserved swift/rust/python namespaces require Builtin and the corresponding
+    org.buildhunter package owner. JSON cannot self-authorize origin.
+- id: effective_snapshot
+  level: MUST
+  statement: Freeze full package identity and exclusions; compile only enabled rules with their used facts/bindings.
+    Preserve unknown well-formed exclusion IDs and disabled target descriptors; disabled-only probes must disappear.
+- id: classification
+  level: MUST
+  statement: Use three-valued OR within one target; multiple true targets are Ambiguous, zero/one true plus unknown
+    is Indeterminate. Sort IDs and relevant package-qualified unavailable facts; no measurement or pruning decisions.
+- id: fact_boundary
+  level: MUST
+  statement: Consume typed observations only. Missing required marker is an error; inaccessible/invalid-name facts
+    remain unknown. Own markers are false for non-directories; symlink candidates never classify. Actual no-follow/scope/cloud
+    I/O must be enforced by the future scanner adapter.
+- id: budgets
+  level: MUST
+  statement: Validate complete catalogs before exclusions and enforce Rifle budgets plus 2048 target IDs and 512
+    unique declared scope/name markers. No whole-process RSS or throughput guarantee.
+- id: opt_in
+  level: MUST
+  statement: Expose only through plugin-catalog feature; existing CLI/GUI scanner classification, defaults and FFI
+    remain unchanged by this pilot.
+effects:
+  sideEffects: []
+evidence:
+- id: plugin_source
+  kind: source
+  path: src/plugins.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.effective_snapshot
+  - constraints.classification
+  - constraints.fact_boundary
+  - constraints.budgets
+- id: plugin_validator_source
+  kind: source
+  path: src/plugins/validation.rs
+  supports:
+  - constraints.closed_validation
+  - constraints.trusted_origin
+  - constraints.effective_snapshot
+- id: optin_source
+  kind: source
+  path: Cargo.toml
+  supports:
+  - constraints.opt_in
+- id: plugin_tests
+  kind: test
+  path: tests/plugin_adapter.rs
+  supports:
+  - constraints.closed_validation
+  - constraints.trusted_origin
+  - constraints.effective_snapshot
+  - constraints.classification
+  - constraints.fact_boundary
+  - constraints.budgets
+  - constraints.opt_in
+- id: plugin_scope_doc
+  kind: documentation
+  path: docs/plugin-adapter.md
+  supports:
+  - scope
+  - constraints.opt_in
+  - constraints.fact_boundary
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Plugin contract direction accepted. New Rust API/implementation spec remains reviewable; in-memory tests do
+    not establish filesystem/FFI/UI behavior. BuildHunterMAS repository name now approved, pipeline not implemented.
+implementationBindings:
+- id: plugin_policy_sources
+  scope: component
+  files:
+    owned:
+    - src/plugins.rs
+    - src/plugins/validation.rs
+    border:
+    - Cargo.toml
+    - src/lib.rs
+    - tests/plugin_adapter.rs

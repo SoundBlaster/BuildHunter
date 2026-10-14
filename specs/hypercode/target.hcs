@@ -14,7 +14,8 @@ Rifle:
   boundary_spec: "rifle.design.rules"
   repository: "Rifle"
   visibility: "public"
-  implemented_as_module: false
+  implemented_as_module: true
+  implemented_scope: "pure-program-generic-catalog-identity; Swift SDK pending"
   filesystem_effects: false
   artifact_vocabulary: false
 BuildHunter:
@@ -30,8 +31,8 @@ Arsenal:
   implemented_as_module: false
 StoreDistribution:
   folded_into: "buildhunter.design.product"
-  repository: "name-not-approved"
-  status: "proposed-private-build-composition"
+  repository: "BuildHunterMAS"
+  status: "repository-created-pipeline-pending"
 Traversal:
   folded_into: "hunter.design.scan"
 MetadataMeasurement:

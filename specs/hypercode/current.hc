@@ -18,6 +18,10 @@ BuildHunterRuntime
       MarkerVocabulary
       ClientPolicy
       FilterCatalog
+    PluginPolicy
+      CatalogValidation
+      EffectivePlan
+      CandidateClassification
     RustSwiftBridge
       PolicyTable
       EventChannel
