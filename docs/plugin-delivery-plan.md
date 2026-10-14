@@ -125,3 +125,8 @@ Scanner integration pilot: [scope and evidence](plugin-scanner-integration.md).
 Independent library now connects arbitrary candidates and scoped Unix marker
 facts to target metadata/sizing/events. Default client migration, Windows marker
 backend and descriptor-bound traversal/measurement remain pending.
+
+Hunter extraction slice: scoped Unix metadata is moved to pinned `hunter-fs`;
+product mapping stays in BuildHunter. Full traversal/sizing/lifecycle and default
+client adoption remain pending. See plugin-scanner-integration.md and fresh
+specs/validation/hunter-metadata-20261014 receipts.

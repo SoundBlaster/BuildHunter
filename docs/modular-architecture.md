@@ -7,7 +7,8 @@ BuildHunter проверяет plugin policy; независимый `buildhunte
 уже соединяет её с обходом через all-candidate observer и scoped Unix markers
 ([границы пилота](plugin-scanner-integration.md)). Default CLI/GUI/FFI ещё используют
 прежние правила; descriptor-bound traversal/measurement остаются следующим этапом.
-Hunter не выделен, коммерческий каталог и pipeline выпуска не реализованы. Разбор существующего кода опирается на commit
+Hunter частично выделен: Unix metadata primitive находится в `hunter-fs`; полный
+обход/размеры ещё в BuildHunter. Коммерческий каталог и pipeline выпуска не реализованы. Разбор существующего кода опирается на commit
 `48badf9e097783505151dd47fbafe290f0af25e2`.
 
 ## 1. Зачем разделять приложение

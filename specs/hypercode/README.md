@@ -1,12 +1,12 @@
 # Architecture maps
 
 - [current.hc](current.hc) / [current.hcs](current.hcs): observed composition at
-  implementation baseline `6bab3c34684e81f14fbacd03445d297038edd9b3` plus
-  independent PluginPolicy and opt-in PluginScanning packages; profiles `client=cli` and `client=gui`.
+  implementation baseline `96780d7f9a9a9e5a6a19a53e2eea2f4f4ff1a2aa` plus
+  independent PluginPolicy, opt-in PluginScanning and pinned Hunter metadata; profiles `client=cli` and `client=gui`.
 - [target.hc](target.hc) / [target.hcs](target.hcs): intended module composition,
   profiles `edition=public` and `edition=store`. Rifle implements pure programs,
   generic catalog validation and identity at revision `693a284`; its Swift SDK
-  remains pending. Hunter extraction and scanner integration remain proposed.
+  remains pending. Hunter extraction is partial (scoped metadata); full traversal/sizing remains proposed.
 - [Module design](../../docs/modular-architecture.md), [progress](../specification-progress.md),
   [claims and assembly review](../claim-matrix.md), [package](../../specpm.yaml).
 
@@ -54,3 +54,10 @@ specpm validate . --json
 The `.hcs` contracts validate supported property types/presence and ring capacity
 range only. They do not enforce imports, absence of filesystem I/O, policy parity,
 runtime ownership or the whole-process memory bound. Those are review/test duties.
+
+Latest partial extraction: current/target maps now bind Hunter metadata at
+71f71fc; fresh identities and map copies are under hunter-metadata-20261014.
+Prior records above remain historical. Full Hunter scanner extraction is pending.
+
+Parent scope review updates the current Hunter pin to 5c8f3c9. Fresh map/source
+identities are in hunter-parent-review-20261014; initial extraction records remain historical.

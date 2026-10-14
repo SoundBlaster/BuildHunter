@@ -1,0 +1,1 @@
+Public snapshots from Hunter 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a. Original paths: src/scoped_metadata.rs; specs/scoped-metadata.spec.yaml; specs/hypercode/current.hc/current.hcs. Evidence only, not compiled local source. Previous snapshots remain historical.

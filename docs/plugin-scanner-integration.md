@@ -90,3 +90,25 @@ not a live iCloud test. No GUI, live provider or performance evidence is implied
 
 Next: descriptor-bound traversal/measurement in Hunter, then explicit C2/C3/C4
 migration decisions and versioned FFI/Settings catalog routing.
+
+## Hunter extraction — 2026-10-14
+
+The opt-in integration now pins `hunter-fs` from public Hunter at
+`5c8f3c9a1a018039b5aea9b731f2fb744f625b5a` (Hunter PR #1).
+`scope.rs` owns only optional acquisition and product outcome mapping. Hunter owns
+the selected-root descriptor, component opens, final stat, technical unavailable
+outcomes and synthetic dataless detection. Existing marker observations count
+only final stat attempts, as before. Catalog-validated names remain unchanged;
+Hunter additionally validates arbitrary public names instead of panicking.
+
+No new application/CLI dependency: root Cargo and default clients stay unchanged.
+The caller still installs the non-materializing policy before Hunter opens the
+root and keeps it until scanning ends. Metadata safety does not prove the shared
+pathname traversal/measurement safe against replacement. Windows still fails
+closed. Full Hunter extraction, default-client migration and scan performance
+acceptance remain pending. Upstream source/contract snapshots identify ownership
+and revision; fresh local receipts are in `specs/validation/hunter-metadata-20261014`.
+
+Cross-repository merge order: Hunter #1 first, then this consumer PR. The revision
+pin is intentional until release alignment; HTTPS dependencies allow keyless CI,
+while developer Git remotes continue using SSH.

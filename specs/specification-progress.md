@@ -238,3 +238,34 @@ Affected claims: plugin.scanner/routing,lifecycle; public API/ownership unchange
 Fresh receipts and identities: [plugin-diagnostics-review-20261014](validation/plugin-diagnostics-review-20261014/README.md).
 Historical source/test records remain unchanged; default clients and pure matcher
 semantics are unaffected. Hosted CI is separate evidence.
+
+## Partial Hunter extraction — 2026-10-14
+
+Consumer goal: remove product/plugin vocabulary from reusable scoped filesystem
+acquisition. Hunter PR #1 owns `hunter.fs.scoped_metadata` at
+`71f71fc9166da3ce948fce372101c5a46dfd0f36`; BuildHunter pins it in the independent
+plugin-scanner package. Local `scope.rs` only owns product mapping and optional
+acquisition. `.git` pruning, catalog rules, materialization-policy lifetime and
+legacy traversal remain host-owned. No default CLI/GUI/FFI changes.
+
+Affected current roles: SharedRuntime.HunterMetadata and PluginScanning.MarkerAcquisition.
+Affected contracts: plugin scanner marker_scope/effective_acquisition/lifecycle/compatibility;
+Hunter design generic_facts/no_product_dependency/io_contract/plugin_fact_acquisition.
+Runtime requirements are preserved; Hunter design remains partial/draft. C2/C3/C4
+default migration is not accepted by this extraction. Previous whole-scan/memory
+evidence is historical and supplies no speedup or memory-budget proof for this pin.
+
+Upstream source/contract/map snapshots preserve original paths/revision under
+specs/evidence/hunter-metadata-20261014/upstream. Fresh source/map identities and
+local command receipts live under specs/validation/hunter-metadata-20261014.
+Full descriptor-bound traversal/measurement is the next boundary; Windows and
+live dataless-provider behavior remain unverified.
+
+## Hunter Parent scope review — 2026-10-14
+
+Pin updated to 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a. Upstream rejects parent
+components before selecting Parent; root/.. cannot become an unrelated root lookup.
+Affected marker_scope/io_contract bindings refreshed; map roles are unchanged.
+Prior snapshots/receipts remain historical. Fresh upstream snapshots and local
+integration/source/map receipts live under hunter-parent-review-20261014.
+Default clients remain unchanged; no new runtime performance/cloud claim.
