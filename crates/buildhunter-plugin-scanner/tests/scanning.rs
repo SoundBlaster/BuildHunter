@@ -343,6 +343,8 @@ fn git_is_a_host_prune_even_when_children_match_plugins() {
 fn invalid_utf8_name_is_unknown_with_lossless_path() {
     use std::os::unix::ffi::OsStringExt;
     let t = Tree::new();
+    // Keep other conjuncts true: Unknown AND false is correctly NoMatch.
+    t.file("forge.project", b"project");
     let name = std::ffi::OsString::from_vec(vec![b'x', 0xff]);
     fs::create_dir(t.0.join(&name)).unwrap();
     let r = scan(

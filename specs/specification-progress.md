@@ -207,3 +207,18 @@ owns Unix marker effects/routing. Detailed requirements remain drafts. C1 is
 implemented for the independent API only; C2–C4 default migration, Windows marker
 backend, descriptor-bound traversal and private composition remain outstanding.
 Validation/identities: [plugin-scanner-20261014](validation/plugin-scanner-20261014/README.md).
+
+
+## PR #68 Linux fixture correction — 2026-10-14
+
+Only Ubuntu Rust CI failed: invalid_utf8_name_is_unknown_with_lossless_path
+expected Indeterminate while the required forge.project marker was absent.
+The implementation correctly evaluated Unknown AND false as false/NoMatch.
+Added the positive marker to isolate invalid-name handling and extended the
+platform-independent policy test to cover invalid name + false marker => NoMatch
+with no irrelevant unavailable diagnostics. Production code and contracts are
+unchanged. Affected claims: plugin.policy/classification,fact_boundary and
+plugin.scanner/candidate_gate,routing. Fresh source/map identity and receipts:
+[plugin-scanner-ci-20261014](validation/plugin-scanner-ci-20261014/README.md).
+Initial local/macOS results do not prove Linux fixture execution; hosted CI is
+separate evidence. All earlier records remain unchanged.

@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/plugin-scanner-20261014/source-identity.json"
+  baseline: "specs/validation/plugin-scanner-ci-20261014/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
