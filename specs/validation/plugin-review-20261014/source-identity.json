@@ -1,0 +1,286 @@
+{
+  "recorded_at_utc": "2026-10-14T06:28:36.959797+00:00",
+  "baseline": "4c552e5e953bd285ddff89ca7d8a130fc7eb1c8f",
+  "rifle_revision": "693a284123faaa1ad3192cd88b259ba97a7b5910",
+  "note": "PR #67 review follow-up. Independent plugin package; root CLI dependency-free. Historical identities remain unchanged. Source hashes describe this working revision, not the prior recovery.",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "98700bc6e200d7349224abad12128dde9bec8ea9d974d7a82347292036e09be9"
+    },
+    {
+      "path": ".github/workflows/macos.yml",
+      "sha256": "63cdb27e77ea01e580af9fdb71cdbb9d19ec2ffcf546b88ab59db333de1cb9a9"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "884e42972fbeca5b62c5017cb03d45d41bae86bf20e4f3d2d155efb52ee33baa"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "1e0d418dcd15a8a8c47bc2a4a66cb1366beca058a791d04148119620065c52d4"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "cc14b4a04668636dde41402fa563815e6b8e39ed889d29b29fbdb5ed493ccb6b"
+    },
+    {
+      "path": "crates/buildhunter-plugin-policy/Cargo.lock",
+      "sha256": "acd13939020a66ec8c152962114f032b186b9b634aad96a0d49eac8a222cc096"
+    },
+    {
+      "path": "crates/buildhunter-plugin-policy/Cargo.toml",
+      "sha256": "f0810432b4f08c3d57fc85a24bc0ec5b35fc2051a1da577dd65f3cac521a7ae7"
+    },
+    {
+      "path": "crates/buildhunter-plugin-policy/src/lib.rs",
+      "sha256": "0769530c397dc63cabe9d96719c8f334649c1b408c2b591f1904dd5d63a5333a"
+    },
+    {
+      "path": "crates/buildhunter-plugin-policy/src/validation.rs",
+      "sha256": "c400b3c79a317fe75336e1d0df6e6cd8b3ccb3e49c588814b81d9e84509a794d"
+    },
+    {
+      "path": "crates/buildhunter-plugin-policy/tests/plugin_adapter.rs",
+      "sha256": "c22a0f068946c95efb27a2b8b4abb4fb367925569cea8cf4c97a9adfa6d86402"
+    },
+    {
+      "path": "docs/PRD.md",
+      "sha256": "02d9093df55fa2aaeaed94f8ebb8f6ff690ccaac6632b49d448ae2b7ab9dad54"
+    },
+    {
+      "path": "docs/adr/0002-finite-scan-policy-table.md",
+      "sha256": "e2385b52bbc5b1da1ef96b372a750c577a6e444190d08aafdf03a13b5be9c083"
+    },
+    {
+      "path": "docs/adr/0003-declarative-plugins-and-product-boundaries.md",
+      "sha256": "b31732ea5c824ad2681a67bdca275438a44f19d382289eca5ed1636c29c1b705"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "ac3be2328d063da0baa14a3ef5cc000f008718d73cda01360ff0b04484fedd0e"
+    },
+    {
+      "path": "docs/plugin-adapter.md",
+      "sha256": "96e9818c7f17afad116a575af726f1d05a3963c67e4807d387f2da11d756927d"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "6b4370085fb901c77076d26e8addd1d1dd6bc2330bc156a1464c7954ed1e522c"
+    },
+    {
+      "path": "docs/search-settings.md",
+      "sha256": "956f8d19567b3b7adad05f505e4c8470d390cacc07c9ea73d30b9ebc1c93761c"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h",
+      "sha256": "918f73735fcfc12f3256809df1fdb212180671664ea5a91b910d206a0f06effd"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift",
+      "sha256": "3f1ae399c8702597c6d2258e59c1f76fe8d11d1e694fabcef02740ec67760cf1"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift",
+      "sha256": "987bcd4e3f3577826f011ad63c6941c907f410deeb5169ebfc25c9dc9e43ab1b"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactSunburst.swift",
+      "sha256": "9b59a53a71c4e68bbcf915a1cf4351e81d891690468328b100d5d0dcb37018db"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift",
+      "sha256": "6ee3737c5b528b890d58ddfea840249614b4fc9445e8d7e5b65369db77485304"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/IsOuterArtifactRoot.swift",
+      "sha256": "ece6261278e86ff231318aba3a80efee7ea05cb1b3dd3762832d014d44fce597"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/IsScannableArtifactCandidate.swift",
+      "sha256": "88be91e284b8fdd470c1c80b00d71a168cfe305ba94c0085daeca3ccc8015b63"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/SearchFilters.swift",
+      "sha256": "af0cac3a972cf5206dd6ff16b3f445da9aa8479a16ba5ab618db65a74fa8291d"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ArtifactDiagramModel.swift",
+      "sha256": "af8a3400466c60a845c9aa9ec8be4cfb37914c39db34d70082a339c1ea2357d0"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift",
+      "sha256": "f4a6cd7563898a2e5f6232c3e2a978fc131bf12b9bc8db6775a5b36e8d92d36a"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ScanEvent.swift",
+      "sha256": "8c5d9344590b4384d1788142da0cb9c2a47ed0ffa025e83451080c2fcdfe55f6"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ScanReportExport.swift",
+      "sha256": "280f26d1903387c2001f8fa0da10f4121cf1394230d6dbaa8ca7d3ac27b72ffa"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/ScanWindowStore.swift",
+      "sha256": "8cf7d6e46fb7ac91da0e969108645f633b5db6719d53755a9c5fc55c0d593450"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Scanning/WindowScanModel.swift",
+      "sha256": "f9d27943c58e5edaae2190635207db2e1d2532741e468424ae8ab7054f97e992"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/UI/BuildHunterApp.swift",
+      "sha256": "12f4003bd8d5864419d3c84ebcefcd49054799ee34f770a0c399cc432a5a7fde"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift",
+      "sha256": "a7733686e01d09a13317eb4037850cf0db60e2c462ac702e2daeec373a939b72"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/UI/ScanResultsExportPanel.swift",
+      "sha256": "458168d3ca89cd739fecf1980a31d760d10d449d63bba0a5038b52660aa8cb77"
+    },
+    {
+      "path": "macos/Tests/BuildHunterPerformanceTests/ScanPerformanceTests.swift",
+      "sha256": "fb11abda05b6249d7cb7994479adf7e6cbe530094adea4ee1ee57dc1c83a7742"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift",
+      "sha256": "50f9e460ee13158cb43a9d6d220dd70bf9305166aabbd25c266e919c96b95636"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift",
+      "sha256": "c6a9a8199366d2fa2c5136e50c3a9ee2e5bc9ebaceac0fa99fc7c8f5eed09629"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift",
+      "sha256": "78cb8b9d751101604bd119bca1f15963076704892836ccdb4b0c8eb663e36a6f"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/WindowScanModelTests.swift",
+      "sha256": "aa7a133d1e3464264009b7dc904634c482516be9fa11c1fe22cc9a153a1e303c"
+    },
+    {
+      "path": "macos/project.yml",
+      "sha256": "aca933c090edf22582e5e9c57f0abc06c2675309394754bd4d73312efb48c26b"
+    },
+    {
+      "path": "scripts/test_offline_cli.py",
+      "sha256": "20c9fe888b27fef10a2b4f92a084fadf051cc75fa987fb2feb0fbd9a592dd2a4"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "6b2da1476a0b6c2c9e226fc170d9cf5cbbbeac316a089e5eb0d5778bae891a07"
+    },
+    {
+      "path": "specs/arsenal-design.spec.yaml",
+      "sha256": "806a92d54c99b53153cad89433fa8ee9fe4d58f6c1bec8cfdc8ab95477c5c485"
+    },
+    {
+      "path": "specs/buildhunter-design.spec.yaml",
+      "sha256": "b81eed7d5443039b04e35a6134e4a66712962e0f29ef56d10c905a3a687fcd2c"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "96d127318544105f49da41b2211ad9e631051ef148df9bada47f094273fcee16"
+    },
+    {
+      "path": "specs/current-application.spec.yaml",
+      "sha256": "90bad083c9fc0ea598cdffe8cb6bdeaeacecc01a033c45a1ea6f1223e9135c51"
+    },
+    {
+      "path": "specs/current-bridge.spec.yaml",
+      "sha256": "e0c454697718b591b7e07f1b98e24b7ac92af61fc00176622c536e6349f9a0ce"
+    },
+    {
+      "path": "specs/current-classification.spec.yaml",
+      "sha256": "09a2e31cc5c17a61a8b0cd52064c5dcbd07be136ea0e703d796f9efa12d11432"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "a6e0e2d5a1b8828fcee417644ba98b6b8b8e9bcaa4016ba0f6ddb8a767012112"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "c0151b22879eb375013154d7555da67035a628cf4fd2ced153ccf39ae68c7dfe"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "d38ddee145f5b84af6c0ba81653390be61c5153f649b02db7b4244144163d2b1"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "badcc33f0db541c467ca9885fd41e06e0f92c1baafe38390bb9c464368e37ed1"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "48eda6f358b3b4f7e4634c5571985497b121d669413993fcbd87c4bd8ec26f99"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "da6cd27e5de46068d2ac34434e0bab5f0185e96ca88807cd42a8450743a12eeb"
+    },
+    {
+      "path": "specs/plugin-policy.spec.yaml",
+      "sha256": "6a31a8ca37d3799371988368cc69c33f35f40754cb07148964a2416b0b0921dc"
+    },
+    {
+      "path": "specs/rifle-design.spec.yaml",
+      "sha256": "d6e9ce378a672ad96f3ff5b7f45d7fd51a6e12116107de228b91741a99a5acef"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "1268b2637d8bfff872ce69766adbebf0d15ebedb012d2aaea2405d840725efef"
+    },
+    {
+      "path": "src/bulk_metadata.rs",
+      "sha256": "40cbd64a51ec04f8decfb3b41224e8962870d79481bcfe775739acc454a85c1d"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "1db94cac0634d7556a4c5ee3ab7ae10716aff88798caec26e1f7f8f33fd95bea"
+    },
+    {
+      "path": "src/main.rs",
+      "sha256": "e2ad362ff35b67c61545045984be32f36ae514d1c117f8a8ae600f8f3f81e08d"
+    },
+    {
+      "path": "src/materialization.rs",
+      "sha256": "242f3049221e178d3e16021c3d3c9e495d19b16e687241dcf49c72690831b9dc"
+    },
+    {
+      "path": "src/policy_table.rs",
+      "sha256": "b0a9183dfd0d3e2281b6fe2599e7d8476c87019935e26578fa1b275353ad5cde"
+    },
+    {
+      "path": "src/process_resources.rs",
+      "sha256": "989e9d338b1fb1761706a9f5a3f7a9600c88996b8381804327eca87473ccaa5d"
+    },
+    {
+      "path": "src/profile.rs",
+      "sha256": "02041d77c5084dfc2a50ad6fff8cb413fed60adaa96c3404389f673c9bfa1ba0"
+    },
+    {
+      "path": "src/profile_report.rs",
+      "sha256": "3c34f1e0f6f2b1155b60e1c6e6b406a26f1f4e34c57c522ba1462fa0507e9f85"
+    },
+    {
+      "path": "src/resources.rs",
+      "sha256": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f"
+    },
+    {
+      "path": "src/thread_qos.rs",
+      "sha256": "d62bfb3d25e22fbca4d2f18c5956f64033648fa6f1f05e657c13b99020bf798f"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b"
+    }
+  ]
+}

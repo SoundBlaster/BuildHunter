@@ -1,7 +1,7 @@
 # Claim origin, consumer sufficiency and assembly review
 
 Baseline implementation: `48badf9e097783505151dd47fbafe290f0af25e2`.
-All eight BoundarySpecs are `draft`. The owner accepted module names/product
+All BoundarySpecs, including the new adapter boundary, remain `draft`. The owner accepted module names/product
 direction; detailed recovered/target constraints have not been separately accepted.
 Source reading, existing test source, structural validation and historical runtime
 reports are different evidence levels. This pass runs structural checks only.
@@ -87,3 +87,12 @@ handling are proposed decisions, pending owner acceptance and C2–C4 migration
 checks. Wire-shape tests validate schemas/examples only. The semantic scenario
 table, JCS identity and performance budgets await the Rust pilot; no runtime
 conformance is inferred from SpecPM or JSON Schema validation.
+
+## Opt-in adapter evidence — 2026-10-14
+
+`buildhunter.plugin.policy` implements the pure host-policy seam for the draft
+v1 contract: closed bindings/targets, host-supplied origin, frozen exclusions,
+three-valued target outcomes and budgets. In-memory fixtures validate this seam,
+not C1 scanner candidate/prefetch integration or C2–C4 filesystem/client parity.
+The current scanner remains unchanged in default and all-feature CLI builds; the adapter is now built independently;
+private Store composition is now named BuildHunterMAS, with pipeline still pending.

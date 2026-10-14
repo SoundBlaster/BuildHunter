@@ -1,0 +1,14 @@
+[package]
+name = "buildhunter-plugin-policy"
+version = "0.1.0"
+edition = "2024"
+description = "Pure opt-in BuildHunter artifact plugin policy"
+license = "MIT"
+publish = false
+
+# Deliberately independent: root CLI builds must not resolve plugin dependencies.
+[workspace]
+
+[dependencies]
+rifle-rules = { git = "https://github.com/SoundBlaster/Rifle.git", rev = "693a284123faaa1ad3192cd88b259ba97a7b5910" }
+serde_json = "1"

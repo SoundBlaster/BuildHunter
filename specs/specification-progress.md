@@ -146,3 +146,45 @@ See [policy](../docs/ci-change-policy.md). All current/target BoundarySpec claim
 and HC maps remain unchanged: scheduling affects validation execution, not product
 behavior, module composition or accepted contracts. Historical evidence is retained;
 fresh checks are in [CI validation](validation/ci-gating-20261014/README.md).
+
+## Pure plugin adapter and BuildHunterMAS — 2026-10-14
+
+Baseline implementation: 998b1319fc2761a30f4f1db4df8d9bf35548f6fa.
+Added observed opt-in PluginPolicy/CatalogValidation/EffectivePlan/CandidateClassification
+roles and `buildhunter.plugin.policy` contract. Current maps now bind this pilot
+separately from legacy ArtifactClassification. Rifle is pinned to merged 693a284;
+public Cargo dependency reads use HTTPS for credential-free hosted CI, Git remotes SSH.
+
+Existing current scan/classification/bridge/application claims remain unchanged:
+no scanner/FFI/client wiring is performed. src/lib.rs adds only a feature-gated
+module and an explicit u64 type in an existing test (serde_json adds another
+PartialEq impl). Original evidence stays historical; full Rust regression checks
+plus fresh map/spec checks are recorded in
+[adapter validation](validation/plugin-adapter-20261014/README.md).
+
+Host-origin validation, refs/types, reserved IDs, exclusions/probe elimination,
+three-valued target aggregation and sorted diagnostics are implemented in a pure
+API. Filesystem acquisition, current default parity C2–C4, UI notices and performance
+acceptance remain pending. No new recovered requirement is accepted by test success.
+
+Owner supplied BuildHunterMAS as the approved private release repository. Access
+and privacy confirmed; local SSH clone contains a README, not a working release
+pipeline. Target StoreDistribution map retains its role but now names BuildHunterMAS.
+Arsenal content and Store signing/publishing remain separate work.
+
+
+## PR #67 review corrections — 2026-10-14
+
+Three findings addressed: refresh the map entrypoint, rebind both map baselines
+and isolate optional plugin dependencies from default CLI Cargo resolution.
+PluginPolicy now resides in independent `crates/buildhunter-plugin-policy`, with
+its own lockfile, explicit CI checks and no root workspace dependency. Root
+Cargo.toml/Cargo.lock/src/lib.rs are restored to the pre-pilot source state.
+`scripts/test_offline_cli.py` checks and installs the CLI using an empty Cargo
+home with `--locked --offline`, then runs the installed executable.
+Affected claims: `buildhunter.plugin.policy/opt_in` and its source/test bindings;
+current PluginPolicy composition; target Rifle and StoreDistribution identity.
+Classification semantics and accepted plugin requirements are unchanged.
+Earlier snapshots and command receipts stay historical. Fresh review evidence:
+[validation/plugin-review-20261014](validation/plugin-review-20261014/README.md).
+No scanner integration, Swift UI or performance result is implied.
