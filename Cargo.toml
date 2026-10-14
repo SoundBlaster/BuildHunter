@@ -10,6 +10,7 @@ name = "build_hunter"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+hunter-fs-core = { path = "vendor/hunter-fs-core" }
 
 [features]
 # Experimental: the default CLI and GUI keep the portable backend.

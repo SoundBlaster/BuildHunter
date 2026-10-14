@@ -61,3 +61,7 @@ Prior records above remain historical. Full Hunter scanner extraction is pending
 
 Parent scope review updates the current Hunter pin to 5c8f3c9. Fresh map/source
 identities are in hunter-parent-review-20261014; initial extraction records remain historical.
+
+Portable extraction adds HunterPortable roles at 8295d14 via exact vendored
+source. Fresh identities and map copies are under hunter-portable-20261014.
+Full recursive scanner extraction remains pending.

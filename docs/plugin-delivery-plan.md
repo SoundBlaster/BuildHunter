@@ -130,3 +130,7 @@ Hunter extraction slice: scoped Unix metadata is moved to pinned `hunter-fs`;
 product mapping stays in BuildHunter. Full traversal/sizing/lifecycle and default
 client adoption remain pending. See plugin-scanner-integration.md and fresh
 specs/validation/hunter-metadata-20261014 receipts.
+
+Portable extraction follow-up: root scanner now adopts std-only Hunter enumeration
+and metadata sizing via an exact offline-vendored snapshot. Recursive orchestration
+remains local. Details: hunter-portable-extraction.md.

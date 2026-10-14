@@ -123,3 +123,13 @@ Parent obligations: BuildHunter installs materialization policy before opening
 Hunter scope, holds access through worker completion and maps technical outcomes
 to plugin facts. Upstream tests/source snapshots and fresh command identities
 are under specs/evidence/hunter-metadata-20261014 and specs/validation/hunter-metadata-20261014.
+
+### Portable Hunter adoption — 2026-10-14
+
+C1/C2/C3/C4 classification/marker behavior remains host-owned. C5 memory budgets
+are not established by moving entry iteration and byte conversion. Parent assembly
+now supplies guarded iterators and metadata to hunter.fs.portable and consumes
+owned path/error/type observations in the existing marker callback order.
+Root Cargo is offline-buildable with an exact vendored std-only source snapshot;
+no Rifle or libc dependency is introduced into that graph. Fresh execution/source
+identities: specs/validation/hunter-portable-20261014.

@@ -114,4 +114,7 @@ provenance:
   - Partial extraction at Hunter 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a owns scoped regular-file metadata only.
     Full traversal/sizing/lifecycle remains target design; separate upstream draft capability
     hunter.fs.scoped_metadata has its own evidence, not full hunter.design.scan conformance.
+  - >-
+    Further partial extraction at 8295d1418c03d1295cea86f4781352469fa27c78 provides hunter.fs.portable:
+    one-directory iteration and metadata byte calculation. Host still owns recursion, workers, guards and scan lifetime.
 implementationBindings: []
