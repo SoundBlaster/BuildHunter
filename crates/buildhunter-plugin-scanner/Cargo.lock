@@ -29,7 +29,7 @@ version = "0.1.0"
 dependencies = [
  "build-hunter",
  "buildhunter-plugin-policy",
- "libc",
+ "hunter-fs",
  "serde_json",
 ]
 
@@ -76,6 +76,14 @@ checksum = "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
 dependencies = [
  "typenum",
  "version_check",
+]
+
+[[package]]
+name = "hunter-fs"
+version = "0.1.0"
+source = "git+https://github.com/SoundBlaster/Hunter.git?rev=71f71fc9166da3ce948fce372101c5a46dfd0f36#71f71fc9166da3ce948fce372101c5a46dfd0f36"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

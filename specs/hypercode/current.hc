@@ -22,6 +22,7 @@ BuildHunterRuntime
       CatalogValidation
       EffectivePlan
       CandidateClassification
+    HunterMetadata
     PluginScanning
       CandidateObservation
       MarkerAcquisition

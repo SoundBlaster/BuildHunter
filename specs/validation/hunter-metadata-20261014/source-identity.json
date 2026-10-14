@@ -1,0 +1,133 @@
+{
+  "recorded_at_utc": "2026-10-14T12:22:58.496634+00:00",
+  "buildhunter_baseline": "96780d7f9a9a9e5a6a19a53e2eea2f4f4ff1a2aa",
+  "hunter_revision": "71f71fc9166da3ce948fce372101c5a46dfd0f36",
+  "rifle_revision": "693a284123faaa1ad3192cd88b259ba97a7b5910",
+  "note": "First Hunter extraction: upstream snapshots preserve source identity; product wrapper and pinned integration changed. Legacy root CLI/FFI/Swift untouched.",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "1e0d418dcd15a8a8c47bc2a4a66cb1366beca058a791d04148119620065c52d4"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "cc14b4a04668636dde41402fa563815e6b8e39ed889d29b29fbdb5ed493ccb6b"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/Cargo.lock",
+      "sha256": "6e6d246f1275343e1895ecbab8fe107de333ffd76357d3c3d4d212e6746220b9"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/Cargo.toml",
+      "sha256": "ce65c9fb9e9a2df5cbaad47b099f509c419edff0119849b65b973ca02e637623"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/src/lib.rs",
+      "sha256": "7ccd7ef8394ca2dfac3a4680848863fd0fe0ce8970d8be813e441f580b88f8b1"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/src/scope.rs",
+      "sha256": "6c89f605336995bb1b9426aa1604af3cf3fc596bd2bb5be49416a2eb4c02a480"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/tests/scanning.rs",
+      "sha256": "dd80a31ea911472fb11b42a86128e9f981364729b5c39d5c3c423f0eb1ca4d83"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/tests/unsupported.rs",
+      "sha256": "1476f2af1e2996a87620fc3b9c0858033ec745cbed1216c090731e6a126e2b38"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "08d35b9668fe6b055f48e762ddd2913729b74e74334bda9768ac52c0a7dbe4e7"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "020f9bbdf9e08644a45be0a23e1766f87fdcb274a395c0469a58e43aa811fa53"
+    },
+    {
+      "path": "docs/plugin-scanner-integration.md",
+      "sha256": "e897bf9d5d2e6aa4362fa5457a0a9f61771bee8ba5442054ba7e4daeae3d3643"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "c7f2d7637f333686e997797ffd37d2e78a8cbbff312ff43a97ff97414e6a5597"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/maps/current.hc",
+      "sha256": "4e7e5da33a159c67298834b7a36d74b1c671a090e4825792c5ff70cc529ca919"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/maps/current.hcs",
+      "sha256": "a8c2ce54f5b0142d55aced21da0e8bdd67335380cff7ad557b3cf8df7d88a9b5"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/maps/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/maps/target.hcs",
+      "sha256": "b527d014be53f3b8f7ee0472a59bb30b9f6e722bd1f6b501ea322225d2c08b0f"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/upstream/README.md",
+      "sha256": "b602f0a90600b8bd2924e0d7ae51659478333be0e023e71b9e9dc0ec432743e7"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/upstream/hunter.hc",
+      "sha256": "73d7cb393e320cd5f26b8367947d3313758270d4933a31c57850745e2fd27ebc"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/upstream/hunter.hcs",
+      "sha256": "b32bba0f88dbc8d549e5b26bbf370a55afde2bd743f5976672e7fef26bbeda7a"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/upstream/scoped-metadata.spec.yaml",
+      "sha256": "5b430f186dd568d4c1cfaa2c370884b8e9ad031d316eb81a9ab8922b3847e431"
+    },
+    {
+      "path": "specs/evidence/hunter-metadata-20261014/upstream/scoped_metadata.rs",
+      "sha256": "029b921ceb3f983e0be34f655d312551ac945f06def0823e7ba46c0481ef5df3"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "43800f5a188140feed5224264b767309a70b34c3fe89ad6122843752deb00a30"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "1230dc57707f87c1405ec2aebaf67a0dd1b2be61b5b420c670afe4baf06de11c"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "4e7e5da33a159c67298834b7a36d74b1c671a090e4825792c5ff70cc529ca919"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "a8c2ce54f5b0142d55aced21da0e8bdd67335380cff7ad557b3cf8df7d88a9b5"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "b527d014be53f3b8f7ee0472a59bb30b9f6e722bd1f6b501ea322225d2c08b0f"
+    },
+    {
+      "path": "specs/plugin-scanner.spec.yaml",
+      "sha256": "733526dc8b95b37097f35febc9338901eab6bbd937eac9d52248a7a9b780b95f"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "93c341a9a9eecfd8c3aa0945f7dc7bbac0018dd0719925b252c9f97706021984"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "3c85a5c46cc38b8ad7e4cabf3f53893dfc4ce8056e6497e0c054c7258917e018"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "95be7a1a53c549935ec59a7aac7c416e294c01394b6cd337af8c8395ed603186"
+    }
+  ]
+}

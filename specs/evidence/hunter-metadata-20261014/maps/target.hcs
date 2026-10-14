@@ -1,0 +1,98 @@
+# Approved names; target contracts remain draft, extraction is partial.
+HunterProducts:
+  status: "target-design-draft"
+  baseline: "specs/validation/hunter-metadata-20261014/source-identity.json"
+  profile: "public"
+Hunter:
+  boundary_spec: "hunter.design.scan"
+  repository: "Hunter"
+  visibility: "public"
+  implemented_as_module: true
+  implemented_scope: "Unix scoped metadata primitive only; traversal/sizing/lifecycle pending"
+  filesystem_effects: true
+  artifact_vocabulary: false
+Rifle:
+  boundary_spec: "rifle.design.rules"
+  repository: "Rifle"
+  visibility: "public"
+  implemented_as_module: true
+  implemented_scope: "pure-program-generic-catalog-identity; Swift SDK pending"
+  filesystem_effects: false
+  artifact_vocabulary: false
+BuildHunter:
+  boundary_spec: "buildhunter.design.product"
+  repository: "BuildHunter"
+  visibility: "public"
+  implemented_as_target_assembly: false
+  catalog: "public-basic"
+Arsenal:
+  boundary_spec: "arsenal.design.catalog"
+  repository: "Arsenal"
+  visibility: "private"
+  implemented_as_module: false
+StoreDistribution:
+  folded_into: "buildhunter.design.product"
+  repository: "BuildHunterMAS"
+  status: "repository-created-pipeline-pending"
+Traversal:
+  folded_into: "hunter.design.scan"
+MetadataMeasurement:
+  folded_into: "hunter.design.scan"
+PlatformGuards:
+  folded_into: "hunter.design.scan"
+ScanLifecycle:
+  folded_into: "hunter.design.scan"
+Telemetry:
+  folded_into: "hunter.design.scan"
+RuleModel:
+  folded_into: "rifle.design.rules"
+CatalogValidation:
+  folded_into: "rifle.design.rules"
+PlanCompilation:
+  folded_into: "rifle.design.rules"
+Evaluation:
+  folded_into: "rifle.design.rules"
+SwiftAuthoring:
+  folded_into: "rifle.design.rules"
+BasicPlugins:
+  folded_into: "buildhunter.design.product"
+ArtifactPolicy:
+  folded_into: "buildhunter.design.product"
+ScanAssembly:
+  folded_into: "buildhunter.design.product"
+CommandLine:
+  folded_into: "buildhunter.design.product"
+MacApplication:
+  folded_into: "buildhunter.design.product"
+CommercialPlugins:
+  folded_into: "arsenal.design.catalog"
+PluginFixtures:
+  folded_into: "arsenal.design.catalog"
+PinnedComposition:
+  folded_into: "buildhunter.design.product"
+SigningAndRelease:
+  folded_into: "buildhunter.design.product"
+@edition[store]:
+  HunterProducts:
+    profile: "store"
+  BuildHunter:
+    catalog: "public-basic-plus-Arsenal"
+@contract:
+  HunterProducts:
+    status: string
+    baseline: string
+  Hunter:
+    repository: string
+    implemented_as_module: bool
+  Rifle:
+    repository: string
+    implemented_as_module: bool
+  Arsenal:
+    repository: string
+    implemented_as_module: bool
+  Hunter:
+    filesystem_effects: bool
+    artifact_vocabulary: bool
+  Rifle:
+    filesystem_effects: bool
+    artifact_vocabulary: bool

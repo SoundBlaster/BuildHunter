@@ -112,3 +112,14 @@ race-free shared traversal/measurement. Windows backend is explicitly unsupporte
 C2/C3 baseline-client migration and C4 GUI action/ABI identity remain outstanding.
 Ambiguous/unknown policy results remain typed diagnostics; Completed still names
 traversal completion. C5 report/diagnostic retention has no constant-memory claim.
+
+### Hunter metadata extraction (2026-10-14)
+
+C1 opt-in marker acquisition now delegates to pinned Hunter 71f71fc. C3 safety
+for opt-in markers is unchanged; default legacy marker behavior and traversal
+replacement races remain separate open boundaries. C5 report/whole-process
+memory budgets are unchanged and not established by this extraction.
+Parent obligations: BuildHunter installs materialization policy before opening
+Hunter scope, holds access through worker completion and maps technical outcomes
+to plugin facts. Upstream tests/source snapshots and fresh command identities
+are under specs/evidence/hunter-metadata-20261014 and specs/validation/hunter-metadata-20261014.

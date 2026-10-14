@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/plugin-diagnostics-review-20261014/source-identity.json"
+  baseline: "specs/validation/hunter-metadata-20261014/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -92,9 +92,15 @@ CandidateObservation:
   source: "src/lib.rs"
   implementation: "scan_with_candidate_observer"
   folded_into: "buildhunter.plugin.scanner"
+HunterMetadata:
+  source: "specs/evidence/hunter-metadata-20261014/upstream/scoped_metadata.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "71f71fc9166da3ce948fce372101c5a46dfd0f36"
+  boundary_spec: "hunter.fs.scoped_metadata (upstream draft)"
+  implemented_scope: "Unix scoped regular-file metadata only; full scanner pending"
 MarkerAcquisition:
   source: "crates/buildhunter-plugin-scanner/src/scope.rs"
-  implemented_scope: "descriptor-relative Unix markers; traversal races not covered"
+  implemented_scope: "product mapping to pinned hunter-fs; traversal races not covered"
   folded_into: "buildhunter.plugin.scanner"
 TargetRouting:
   source: "crates/buildhunter-plugin-scanner/src/lib.rs"

@@ -13,7 +13,7 @@ build-hunter = { path = "../.." }
 buildhunter-plugin-policy = { path = "../buildhunter-plugin-policy" }
 
 [target.'cfg(unix)'.dependencies]
-libc = "0.2"
+hunter-fs = { git = "https://github.com/SoundBlaster/Hunter.git", rev = "71f71fc9166da3ce948fce372101c5a46dfd0f36" }
 
 [dev-dependencies]
 serde_json = "1"

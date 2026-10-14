@@ -1,0 +1,1 @@
+Public upstream snapshots from Hunter 71f71fc9166da3ce948fce372101c5a46dfd0f36. These are evidence, not locally compiled source. Original paths: src/scoped_metadata.rs; specs/scoped-metadata.spec.yaml; specs/hypercode/current.hc/current.hcs. Hunter owns this implementation. BuildHunter uses the exact Git revision in Cargo.toml/Cargo.lock.

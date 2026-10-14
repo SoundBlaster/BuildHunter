@@ -1,0 +1,11 @@
+HunterPrimitives:
+  status: "observed-source, initial extraction"
+ScopedMetadata:
+  source: "src/scoped_metadata.rs"
+  boundary_spec: "hunter.fs.scoped_metadata"
+DescriptorLifetime:
+  implementation: "ScopedMetadata::open + owned File descriptors"
+RegularFileObservation:
+  implementation: "inspect_regular_file + openat/fstatat no-follow"
+LocalMetadataGuard:
+  implementation: "check_local + dataless; host owns thread materialization policy"
