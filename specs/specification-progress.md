@@ -290,3 +290,13 @@ copy. Previous source/map/test receipts remain historical. Map/spec validation
 is separate from regression tests and performance comparison; no speedup inferred.
 Next: disentangle recursive scheduling/measurement from product prefetch/status
 before extracting worker orchestration.
+
+## Vendored input inventory review — 2026-10-14
+
+BuildHunter #71 verifier now checks the full recursive inventory, allowing only
+the pinned four files plus UPSTREAM.json and their src directory. Extra build.rs,
+nested Rust/example files, symlinks and non-regular entries are rejected before
+source hash checks. New tests first reproduced acceptance of the extra inputs.
+No runtime scanner or upstream Hunter code changes; current scan sizes/lifetime
+contracts and map roles remain unchanged. Fresh verifier/documentation identities
+and Python/structural receipts: specs/validation/hunter-vendor-review-20261014.

@@ -27,7 +27,9 @@ CLI graph. `vendor/hunter-fs-core` is an exact upstream distribution snapshot, n
 an independently edited fork. UPSTREAM.json pins repository, commit, source directory
 and four SHA-256 file identities. `.gitattributes` prevents checkout newline conversion.
 Local source equality was checked against Hunter before publishing the consumer.
-CI verifies hashes, includes a source-mutation regression and executes core tests.
+CI verifies the complete recursive file inventory (only the four pinned files plus
+UPSTREAM.json), rejects symlinks/other entry types/unexpected directories, verifies
+hashes, includes source-mutation and extra-Cargo-input regressions, and executes core tests.
 These hashes detect unintended drift; they are not a remote-origin authentication
 proof or signature. Changes must originate in Hunter then update snapshot/pin/hashes.
 The old empty-Cargo-home offline build/install/launch test remains the acceptance gate.
