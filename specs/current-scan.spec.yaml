@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -33,6 +33,9 @@ requires:
   - id: hunter.fs.portable
     optional: false
     summary: Exact vendored std-only upstream directory iteration and metadata-byte primitives; host owns open/guards/recursion.
+  - id: hunter.fs.work
+    optional: false
+    summary: Generic task queue/shutdown/scoped launch; host supplies coordinator guard, workers, platform setup and result accounting.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -129,6 +132,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/lib.rs
   supports: [constraints.sizes, constraints.symlink_scope, scope]
+- id: hunter_work_source
+  kind: source
+  path: vendor/hunter-fs-core/src/work.rs
+  supports: [constraints.scan_lifetime, constraints.memory_scope, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -144,6 +151,9 @@ provenance:
     revision.'
   - Portable extraction at Hunter 8295d1418c03d1295cea86f4781352469fa27c78; current maps and execution identities
     are in specs/validation/hunter-portable-20261014. Root public/FFI behavior is preserved; recursive orchestration remains local.
+  - Generic queue/scoped launch extraction at Hunter 836d764328212fcccb944e0f0a69ba79421b3dcd; caller retains
+    coordinator guard inside standard thread Scope. Task bodies and recursive product planning remain local.
+    Fresh execution/source/map receipts are in specs/validation/hunter-work-20261015.
 implementationBindings:
 - id: implementation
   language: rust
@@ -161,4 +171,5 @@ implementationBindings:
     - src/resources.rs
     border:
     - vendor/hunter-fs-core/src/lib.rs
+    - vendor/hunter-fs-core/src/work.rs
     - vendor/hunter-fs-core/UPSTREAM.json

@@ -25,9 +25,9 @@ Hard links are still counted per path; byte conversion is not reclaimable space.
 Root Cargo now has one path dependency, with no registry/Git dependencies in its
 CLI graph. `vendor/hunter-fs-core` is an exact upstream distribution snapshot, not
 an independently edited fork. UPSTREAM.json pins repository, commit, source directory
-and four SHA-256 file identities. `.gitattributes` prevents checkout newline conversion.
+and initial four SHA-256 file identities. `.gitattributes` prevents checkout newline conversion.
 Local source equality was checked against Hunter before publishing the consumer.
-CI verifies the complete recursive file inventory (only the four pinned files plus
+CI verifies the complete recursive file inventory (only the pinned source files plus
 UPSTREAM.json), rejects symlinks/other entry types/unexpected directories, verifies
 hashes, includes source-mutation and extra-Cargo-input regressions, and executes core tests.
 These hashes detect unintended drift; they are not a remote-origin authentication
@@ -51,3 +51,6 @@ Merge order: Hunter #2 before this consumer. The snapshot records an immutable
 upstream source commit; preserve/reconcile it when the upstream PR merges.
 Next boundary: separate recursive work scheduling/measurement from product marker
 prefetch and scanner status policy before moving the worker orchestration.
+
+Follow-up: hunter-worker-extraction.md adds generic queue/scoped worker coordination
+and a fifth canonical source file, while filesystem recursion policy remains host-owned.

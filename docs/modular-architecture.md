@@ -8,7 +8,8 @@ BuildHunter проверяет plugin policy; независимый `buildhunte
 ([границы пилота](plugin-scanner-integration.md)). Default CLI/GUI/FFI ещё используют
 прежние правила; descriptor-bound traversal/measurement остаются следующим этапом.
 Hunter частично выделен: Unix metadata primitive находится в `hunter-fs`; portable listing и расчёт байтов
-перенесены в std-only `hunter-fs-core`. Рекурсия/workers/агрегация ещё в BuildHunter. Коммерческий каталог и pipeline выпуска не реализованы. Разбор существующего кода опирается на commit
+перенесены в std-only `hunter-fs-core`. Generic очередь и scoped запуск workers тоже перенесены. Политика рекурсии,
+тела workers и агрегация ещё в BuildHunter. Коммерческий каталог и pipeline выпуска не реализованы. Разбор существующего кода опирается на commit
 `48badf9e097783505151dd47fbafe290f0af25e2`.
 
 ## 1. Зачем разделять приложение

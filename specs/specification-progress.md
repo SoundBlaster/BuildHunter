@@ -300,3 +300,24 @@ source hash checks. New tests first reproduced acceptance of the extra inputs.
 No runtime scanner or upstream Hunter code changes; current scan sizes/lifetime
 contracts and map roles remain unchanged. Fresh verifier/documentation identities
 and Python/structural receipts: specs/validation/hunter-vendor-review-20261014.
+
+## Scoped work coordination — 2026-10-15
+
+Hunter #3 now owns WorkQueue<T>, exit/panic shutdown and scoped worker launch
+at 836d764328212fcccb944e0f0a69ba79421b3dcd. Current HunterWork/TaskScheduling/
+WorkerLifecycle and Scanner.Traversal change ownership bindings. Root retains
+ListTask/product recursion, worker task bodies, cloud/QoS, results/profiles/terminal.
+
+Affected current scan scan_lifetime/memory_scope and Hunter design lifecycle/
+memory_budget/no_product_dependency/io_contract retain scope: outer thread Scope
+returns only after joins, generic queue is unbounded, callbacks/metadata setup remain
+host-owned. close now rejects future jobs and releases pending payloads; in-flight
+work still needs host cancellation. Root treats rejected enqueue as failure.
+No C2/C3/C4 default-policy/path migration or C5 whole-memory acceptance.
+
+New tests exercise worker panic before coordinator cleanup, callback unwind and
+follow-up scans. Exact canonical vendoring/offline and paired Release checks are
+recorded under specs/validation/hunter-work-20261015. Previous records remain
+historical; no full generic filesystem recursion or speed/memory gain inferred.
+Next boundary: generic directory-task/result planning detached from ancestor
+artifact accounting and prefetch. Draft upstream work contract remains reviewable.

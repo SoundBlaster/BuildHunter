@@ -133,3 +133,12 @@ owned path/error/type observations in the existing marker callback order.
 Root Cargo is offline-buildable with an exact vendored std-only source snapshot;
 no Rifle or libc dependency is introduced into that graph. Fresh execution/source
 identities: specs/validation/hunter-portable-20261014.
+
+### Generic scoped work adoption — 2026-10-15
+
+C5 stays open: the task queue is unbounded; close releases pending tasks but no
+whole-scan memory budget follows. Product C1–C4 planning remains host-owned.
+Assembly must retain coordinator shutdown guard inside std scope, release access
+after scope join, propagate worker panic and close result/sampler lifetimes.
+Current API and worker/callback unwind regressions bind these obligations to
+Hunter 836d764; fresh receipts: specs/validation/hunter-work-20261015.
