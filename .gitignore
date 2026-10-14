@@ -8,3 +8,5 @@
 /screenshots/capture.local.json
 /screenshots/tools/__pycache__/
 /.build/
+
+/crates/buildhunter-plugin-policy/target/

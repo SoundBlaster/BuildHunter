@@ -94,5 +94,5 @@ conformance is inferred from SpecPM or JSON Schema validation.
 v1 contract: closed bindings/targets, host-supplied origin, frozen exclusions,
 three-valued target outcomes and budgets. In-memory fixtures validate this seam,
 not C1 scanner candidate/prefetch integration or C2–C4 filesystem/client parity.
-The current scanner remains unchanged in both default and feature-enabled builds;
+The current scanner remains unchanged in default and all-feature CLI builds; the adapter is now built independently;
 private Store composition is now named BuildHunterMAS, with pipeline still pending.

@@ -65,14 +65,14 @@ constraints:
     unique declared scope/name markers. No whole-process RSS or throughput guarantee.
 - id: opt_in
   level: MUST
-  statement: Expose only through plugin-catalog feature; existing CLI/GUI scanner classification, defaults and FFI
+  statement: Expose only through an independent Cargo package with its own lockfile; root CLI builds must remain dependency-free and offline-capable; existing CLI/GUI scanner classification, defaults and FFI
     remain unchanged by this pilot.
 effects:
   sideEffects: []
 evidence:
 - id: plugin_source
   kind: source
-  path: src/plugins.rs
+  path: crates/buildhunter-plugin-policy/src/lib.rs
   supports:
   - intent.summary
   - interfaces
@@ -82,7 +82,7 @@ evidence:
   - constraints.budgets
 - id: plugin_validator_source
   kind: source
-  path: src/plugins/validation.rs
+  path: crates/buildhunter-plugin-policy/src/validation.rs
   supports:
   - constraints.closed_validation
   - constraints.trusted_origin
@@ -94,7 +94,7 @@ evidence:
   - constraints.opt_in
 - id: plugin_tests
   kind: test
-  path: tests/plugin_adapter.rs
+  path: crates/buildhunter-plugin-policy/tests/plugin_adapter.rs
   supports:
   - constraints.closed_validation
   - constraints.trusted_origin
@@ -102,6 +102,10 @@ evidence:
   - constraints.classification
   - constraints.fact_boundary
   - constraints.budgets
+- id: offline_cli_regression
+  kind: test
+  path: scripts/test_offline_cli.py
+  supports:
   - constraints.opt_in
 - id: plugin_scope_doc
   kind: documentation
@@ -123,9 +127,11 @@ implementationBindings:
   scope: component
   files:
     owned:
-    - src/plugins.rs
-    - src/plugins/validation.rs
+    - crates/buildhunter-plugin-policy/src/lib.rs
+    - crates/buildhunter-plugin-policy/src/validation.rs
     border:
     - Cargo.toml
-    - src/lib.rs
-    - tests/plugin_adapter.rs
+    - crates/buildhunter-plugin-policy/Cargo.toml
+    - crates/buildhunter-plugin-policy/Cargo.lock
+    - scripts/test_offline_cli.py
+    - crates/buildhunter-plugin-policy/tests/plugin_adapter.rs

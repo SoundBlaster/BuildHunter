@@ -1,6 +1,3 @@
-#[cfg(feature = "plugin-catalog")]
-pub mod plugins;
-
 use std::{
     borrow::Cow,
     ffi::{OsStr, c_char, c_void},
@@ -2652,11 +2649,7 @@ mod tests {
         assert!(report.artifacts.iter().all(|artifact| !artifact.nested));
         assert_eq!(
             report.total_bytes(),
-            report
-                .artifacts
-                .iter()
-                .map(|artifact| artifact.bytes)
-                .sum::<u64>()
+            report.artifacts.iter().map(|artifact| artifact.bytes).sum()
         );
         assert!(
             candidates

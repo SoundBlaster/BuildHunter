@@ -1,6 +1,8 @@
 # Pure BuildHunter plugin adapter
 
-Available behind Cargo feature `plugin-catalog`. Rifle is pinned to merge commit
+Available as the independent Cargo package `crates/buildhunter-plugin-policy`.
+It has its own lockfile and is deliberately outside the root dependency graph.
+Building or installing the existing CLI does not resolve or fetch Rifle. Rifle is pinned to merge commit
 `693a284123faaa1ad3192cd88b259ba97a7b5910`. Cargo downloads the public dependency
 through HTTPS so hosted CI does not need an SSH key; developer Git remotes remain
 SSH. This does not change CLI/GUI defaults or connect plugins to traversal/FFI.
@@ -73,9 +75,14 @@ elimination, target OR, conflicts/unknowns, lossless-name handling and budgets.
 These are pure policy tests, not filesystem, UI, ABI or performance evidence.
 The legacy scanner suites remain regression coverage with default/all features.
 
-The serde_json dependency introduced another PartialEq implementation used by an
-existing scanner test; `sum::<u64>()` makes that test's intended type explicit.
-Production scanner logic is otherwise unchanged.
+Production scanner logic is unchanged. `scripts/test_offline_cli.py` builds and
+installs the CLI with a fresh Cargo home and offline mode; CI runs it separately
+from the explicit adapter Debug/Release tests.
+
+```sh
+cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked
+cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked --release
+```
 
 Next: wire candidate acquisition/marker prefetch together using this policy,
 reconcile C2–C4 before changing client behavior, then expose catalog/diagnostics

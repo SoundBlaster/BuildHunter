@@ -1,13 +1,12 @@
-#![cfg(feature = "plugin-catalog")]
-use build_hunter::plugins::{
+use buildhunter_plugin_policy::{
     CandidateFacts, Decision, MarkerFact, MarkerProbe, NodeKind, Origin, PluginCatalog,
     PluginInput, Scope,
 };
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
-const RUST: &[u8] = include_bytes!("../docs/contracts/plugin-v1/examples/rust.json");
-const FORGE: &[u8] = include_bytes!("../docs/contracts/plugin-v1/examples/synthetic.json");
+const RUST: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/rust.json");
+const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
 fn input(bytes: &[u8], origin: Origin) -> PluginInput<'_> {
     PluginInput { bytes, origin }
 }

@@ -10,12 +10,8 @@ name = "build_hunter"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-rifle-rules = { git = "https://github.com/SoundBlaster/Rifle.git", rev = "693a284123faaa1ad3192cd88b259ba97a7b5910", optional = true }
-serde_json = { version = "1", optional = true }
 
 [features]
-# Opt-in pure plugin adapter; current CLI/GUI scanner policy stays unchanged.
-plugin-catalog = ["dep:rifle-rules", "dep:serde_json"]
 # Experimental: the default CLI and GUI keep the portable backend.
 macos-bulk-metadata = []
 

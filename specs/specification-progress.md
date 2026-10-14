@@ -171,3 +171,20 @@ Owner supplied BuildHunterMAS as the approved private release repository. Access
 and privacy confirmed; local SSH clone contains a README, not a working release
 pipeline. Target StoreDistribution map retains its role but now names BuildHunterMAS.
 Arsenal content and Store signing/publishing remain separate work.
+
+
+## PR #67 review corrections — 2026-10-14
+
+Three findings addressed: refresh the map entrypoint, rebind both map baselines
+and isolate optional plugin dependencies from default CLI Cargo resolution.
+PluginPolicy now resides in independent `crates/buildhunter-plugin-policy`, with
+its own lockfile, explicit CI checks and no root workspace dependency. Root
+Cargo.toml/Cargo.lock/src/lib.rs are restored to the pre-pilot source state.
+`scripts/test_offline_cli.py` checks and installs the CLI using an empty Cargo
+home with `--locked --offline`, then runs the installed executable.
+Affected claims: `buildhunter.plugin.policy/opt_in` and its source/test bindings;
+current PluginPolicy composition; target Rifle and StoreDistribution identity.
+Classification semantics and accepted plugin requirements are unchanged.
+Earlier snapshots and command receipts stay historical. Fresh review evidence:
+[validation/plugin-review-20261014](validation/plugin-review-20261014/README.md).
+No scanner integration, Swift UI or performance result is implied.

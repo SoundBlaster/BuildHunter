@@ -1,0 +1,106 @@
+# Composition only. Context selects the inspected client, not runtime behavior.
+BuildHunterRuntime:
+  status: "observed-source"
+  baseline: "specs/validation/plugin-review-20261014/source-identity.json"
+  entrypoint: "src/main.rs"
+  profile: "cli"
+CommandLine:
+  source: "src/main.rs"
+  boundary_spec: "buildhunter.current.application"
+MacApplication:
+  source: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"
+  boundary_spec: "buildhunter.current.application"
+WindowSession:
+  source: "macos/Sources/BuildHunter/Scanning/WindowScanModel.swift"
+  boundary_spec: "buildhunter.current.application"
+ReportPresentation:
+  source: "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift"
+  folded_into: "buildhunter.current.application"
+FolderActions:
+  source: "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift"
+  folded_into: "buildhunter.current.application"
+Export:
+  source: "macos/Sources/BuildHunter/Scanning/ScanReportExport.swift"
+  folded_into: "buildhunter.current.application"
+Settings:
+  source: "macos/Sources/BuildHunter/Domain/SearchFilters.swift"
+  folded_into: "buildhunter.current.classification"
+Scanner:
+  source: "src/lib.rs"
+  boundary_spec: "buildhunter.current.scan"
+Traversal:
+  implementation: "Scanner + WorkQueue + run_worker"
+  folded_into: "buildhunter.current.scan"
+Measurement:
+  implementation: "metadata_bytes + MeasuredSize + optional bulk_metadata"
+  folded_into: "buildhunter.current.scan"
+CloudGuard:
+  source: "src/materialization.rs"
+  folded_into: "buildhunter.current.scan"
+ResourceProfile:
+  source: "src/profile.rs"
+  folded_into: "buildhunter.current.scan"
+ArtifactClassification:
+  source: "src/lib.rs"
+  boundary_spec: "buildhunter.current.classification"
+CandidateSelection:
+  implementation: "is_policy_candidate + may_classify_directory"
+  folded_into: "buildhunter.current.classification"
+MarkerVocabulary:
+  implementation: "MARKER_* + marker_flag + list_directory"
+  folded_into: "buildhunter.current.classification"
+ClientPolicy:
+  source: "src/lib.rs"
+  implementation: "rust_cli_policy"
+  environments_default: false
+  folded_into: "buildhunter.current.classification"
+FilterCatalog:
+  implementation: "SEARCH_FILTER_CATALOG + bh_search_filter_catalog_json"
+  folded_into: "buildhunter.current.classification"
+RustSwiftBridge:
+  source: "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift"
+  boundary_spec: "buildhunter.current.bridge"
+PolicyTable:
+  source: "src/policy_table.rs"
+  folded_into: "buildhunter.current.bridge"
+EventChannel:
+  implementation: "ScanEventChannel"
+  capacity: 4096
+  folded_into: "buildhunter.current.bridge"
+AccessLifetime:
+  implementation: "RustScanJob + security-scoped target URL"
+  folded_into: "buildhunter.current.bridge"
+PluginPolicy:
+  source: "crates/buildhunter-plugin-policy/src/lib.rs"
+  boundary_spec: "buildhunter.plugin.policy"
+  enabled_by: "independent buildhunter-plugin-policy crate"
+  connected_to_clients: false
+CatalogValidation:
+  source: "crates/buildhunter-plugin-policy/src/validation.rs"
+  folded_into: "buildhunter.plugin.policy"
+EffectivePlan:
+  source: "crates/buildhunter-plugin-policy/src/validation.rs"
+  folded_into: "buildhunter.plugin.policy"
+CandidateClassification:
+  source: "crates/buildhunter-plugin-policy/src/lib.rs"
+  folded_into: "buildhunter.plugin.policy"
+@client[gui]:
+  BuildHunterRuntime:
+    entrypoint: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"
+    profile: "gui"
+  ClientPolicy:
+    source: "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift"
+    implementation: "BuildHunterScanPolicy + SpecificationCore"
+    environments_default: true
+@contract:
+  BuildHunterRuntime:
+    baseline: string
+    status: string
+    entrypoint: string
+  Scanner:
+    source: string
+    boundary_spec: string
+  ClientPolicy:
+    environments_default: bool
+  EventChannel:
+    capacity: int >= 1 <= 4096

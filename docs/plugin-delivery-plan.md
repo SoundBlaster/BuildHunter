@@ -116,4 +116,4 @@ scope и не включаются автоматически в первую в
 «private» пакет на одинаковом runtime с parity/performance evidence. Настоящие
 private repositories создаются отдельно; документация не требует их наличия.
 
-Pure adapter pilot behind `plugin-catalog`: [implementation scope](plugin-adapter.md). Это validation/matching slice, а не завершённый этап подключения scanner/FFI.
+Pure adapter pilot in independent `crates/buildhunter-plugin-policy` package: [implementation scope](plugin-adapter.md). Это validation/matching slice, а не завершённый этап подключения scanner/FFI.
