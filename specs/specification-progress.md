@@ -222,3 +222,19 @@ plugin.scanner/candidate_gate,routing. Fresh source/map identity and receipts:
 [plugin-scanner-ci-20261014](validation/plugin-scanner-ci-20261014/README.md).
 Initial local/macOS results do not prove Linux fixture execution; hosted CI is
 separate evidence. All earlier records remain unchanged.
+
+
+## PR #68 live diagnostics review — 2026-10-14
+
+Resolved delayed diagnostic delivery: Ambiguous/Indeterminate events formerly
+queued until another core event, often terminal Finished. Now the single serial
+observer receives each diagnostic during candidate processing, after the internal
+state borrow is released. Removed the redundant event queue; reports still retain
+diagnostics and no constant whole-scan memory bound is claimed. Cancellation is
+observed before descendants, with exactly one terminal event. The new regression
+failed before the fix (Completed instead of Cancelled), then passed for both
+Ambiguous and Indeterminate diagnostic-only scans.
+Affected claims: plugin.scanner/routing,lifecycle; public API/ownership unchanged.
+Fresh receipts and identities: [plugin-diagnostics-review-20261014](validation/plugin-diagnostics-review-20261014/README.md).
+Historical source/test records remain unchanged; default clients and pure matcher
+semantics are unaffected. Hosted CI is separate evidence.

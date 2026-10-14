@@ -1,0 +1,145 @@
+{
+  "recorded_at_utc": "2026-10-14T09:38:10.957097+00:00",
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "crates/buildhunter-plugin-scanner/Cargo.toml",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "crates/buildhunter-plugin-scanner/Cargo.toml",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "stdout": "\nrunning 5 tests\ntest scope::tests::dataless_metadata_is_classified_as_cloud_unavailable ... ok\ntest scope::tests::inaccessible_directory_is_unknown_not_missing_marker ... ok\ntest scope::tests::paths_outside_root_are_rejected_before_io ... ok\ntest scope::tests::selected_root_descriptor_stays_anchored_after_path_replacement ... ok\ntest scope::tests::replacing_intermediate_directory_with_link_cannot_redirect_marker_observation ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest report_pins_catalog_identity_and_unknown_exclusions ... ok\ntest parent_of_selected_root_is_unknown_and_not_read ... ok\ntest cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok\ntest git_is_a_host_prune_even_when_children_match_plugins ... ok\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\ntest symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok\ntest file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok\ntest excluding_outer_target_preserves_distinct_enabled_inner_target ... ok\ntest ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok\ntest nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok\ntest excluded_parent_keeps_traversing_descendants ... ok\ntest diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner/crates/buildhunter-plugin-scanner)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s\n     Running unittests src/lib.rs (crates/buildhunter-plugin-scanner/target/debug/deps/buildhunter_plugin_scanner-255d2fd56279aa6f)\n     Running tests/scanning.rs (crates/buildhunter-plugin-scanner/target/debug/deps/scanning-744eefb83606062c)\n     Running tests/unsupported.rs (crates/buildhunter-plugin-scanner/target/debug/deps/unsupported-4fb3f835fdc2d1a0)\n   Doc-tests buildhunter_plugin_scanner\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "crates/buildhunter-plugin-scanner/Cargo.toml",
+        "--locked",
+        "--release"
+      ],
+      "exit_code": 0,
+      "stdout": "\nrunning 5 tests\ntest scope::tests::dataless_metadata_is_classified_as_cloud_unavailable ... ok\ntest scope::tests::paths_outside_root_are_rejected_before_io ... ok\ntest scope::tests::inaccessible_directory_is_unknown_not_missing_marker ... ok\ntest scope::tests::selected_root_descriptor_stays_anchored_after_path_replacement ... ok\ntest scope::tests::replacing_intermediate_directory_with_link_cannot_redirect_marker_observation ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest report_pins_catalog_identity_and_unknown_exclusions ... ok\ntest parent_of_selected_root_is_unknown_and_not_read ... ok\ntest git_is_a_host_prune_even_when_children_match_plugins ... ok\ntest cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\ntest symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok\ntest file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok\ntest excluding_outer_target_preserves_distinct_enabled_inner_target ... ok\ntest ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok\ntest nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok\ntest excluded_parent_keeps_traversing_descendants ... ok\ntest diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner/crates/buildhunter-plugin-scanner)\n    Finished `release` profile [optimized] target(s) in 3.12s\n     Running unittests src/lib.rs (crates/buildhunter-plugin-scanner/target/release/deps/buildhunter_plugin_scanner-6ec79beaf5a7f4d5)\n     Running tests/scanning.rs (crates/buildhunter-plugin-scanner/target/release/deps/scanning-44703de46d734401)\n     Running tests/unsupported.rs (crates/buildhunter-plugin-scanner/target/release/deps/unsupported-d1ba77c6991d724c)\n   Doc-tests buildhunter_plugin_scanner\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "crates/buildhunter-plugin-scanner/Cargo.toml",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "    Checking buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-plugin-scanner/crates/buildhunter-plugin-scanner)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s\n"
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/current.hc"
+      ],
+      "exit_code": 0,
+      "stdout": "BuildHunterRuntime\n  Clients\n    CommandLine\n    MacApplication\n      WindowSession\n      ReportPresentation\n      FolderActions\n      Export\n      Settings\n  SharedRuntime\n    Scanner\n      Traversal\n      Measurement\n      CloudGuard\n      ResourceProfile\n    ArtifactClassification\n      CandidateSelection\n      MarkerVocabulary\n      ClientPolicy\n      FilterCatalog\n    PluginPolicy\n      CatalogValidation\n      EffectivePlan\n      CandidateClassification\n    PluginScanning\n      CandidateObservation\n      MarkerAcquisition\n      TargetRouting\n    RustSwiftBridge\n      PolicyTable\n      EventChannel\n      AccessLifetime\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/current.hc",
+        "--hcs",
+        "specs/hypercode/current.hcs",
+        "--ctx",
+        "client=cli"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: no issues found\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/current.hc",
+        "--hcs",
+        "specs/hypercode/current.hcs",
+        "--ctx",
+        "client=gui"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: no issues found\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/target.hc"
+      ],
+      "exit_code": 0,
+      "stdout": "HunterProducts\n  Hunter\n    Traversal\n    MetadataMeasurement\n    PlatformGuards\n    ScanLifecycle\n    Telemetry\n  Rifle\n    RuleModel\n    CatalogValidation\n    PlanCompilation\n    Evaluation\n    SwiftAuthoring\n  BuildHunter\n    BasicPlugins\n    ArtifactPolicy\n    ScanAssembly\n    CommandLine\n    MacApplication\n  Arsenal\n    CommercialPlugins\n    PluginFixtures\n  StoreDistribution\n    PinnedComposition\n    SigningAndRelease\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/target.hc",
+        "--hcs",
+        "specs/hypercode/target.hcs",
+        "--ctx",
+        "edition=public"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: no issues found\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/target.hc",
+        "--hcs",
+        "specs/hypercode/target.hcs",
+        "--ctx",
+        "edition=store"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: no issues found\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "specpm",
+        "validate",
+        ".",
+        "--json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"capabilities\": [\n    \"arsenal.design.catalog\",\n    \"buildhunter.current.application\",\n    \"buildhunter.current.bridge\",\n    \"buildhunter.current.classification\",\n    \"buildhunter.current.scan\",\n    \"buildhunter.design.product\",\n    \"buildhunter.plugin.policy\",\n    \"buildhunter.plugin.scan\",\n    \"hunter.design.scan\",\n    \"rifle.design.rules\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/arsenal-design.spec.yaml\",\n    \"specs/buildhunter-design.spec.yaml\",\n    \"specs/current-application.spec.yaml\",\n    \"specs/current-bridge.spec.yaml\",\n    \"specs/current-classification.spec.yaml\",\n    \"specs/current-scan.spec.yaml\",\n    \"specs/hunter-design.spec.yaml\",\n    \"specs/plugin-policy.spec.yaml\",\n    \"specs/plugin-scanner.spec.yaml\",\n    \"specs/rifle-design.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"BuildHunter current boundaries and target module architecture\",\n    \"package_id\": \"buildhunter.module_architecture\",\n    \"version\": \"0.1.0-draft.4\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 15,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.bridge\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/hunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.design.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: arsenal.design.catalog\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/arsenal-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.catalog.validate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.program.evaluate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.plugin.policy\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    }
+  ]
+}

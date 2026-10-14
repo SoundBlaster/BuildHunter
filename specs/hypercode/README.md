@@ -28,9 +28,11 @@ descriptor-bound; traversal/measurement still use the existing pathname backend.
 Source bindings use real repository paths and symbols, not executable imports.
 File existence and HC property validation do not prove semantic correspondence.
 Exact source/map/tool identities and frozen map copies are in
-`../validation/plugin-scanner-ci-20261014/source-identity.json` and frozen maps in
-`../evidence/plugin-scanner-ci-20261014/maps/`. Review validation commands/results
-are in `../validation/plugin-scanner-ci-20261014/`. The initial scanner
+`../validation/plugin-diagnostics-review-20261014/source-identity.json` and frozen maps in
+`../evidence/plugin-diagnostics-review-20261014/maps/`. Review validation commands/results
+are in `../validation/plugin-diagnostics-review-20261014/`. Scanner/CI
+fixture receipts remain historical; the diagnostic delivery fix has fresh
+source and command identities. The initial scanner
 execution receipt under `plugin-scanner-20261014` remains historical; its Linux
 fixture was corrected after the first hosted run. Initial recovery records under
 `modules-20261013` and adapter/review records under `plugin-adapter-20261014` / `plugin-review-20261014`

@@ -382,3 +382,67 @@ fn report_pins_catalog_identity_and_unknown_exclusions() {
     assert_eq!(r.catalog_digest, catalog.catalog_digest().to_string());
     assert!(r.exclusions.contains("example.future-filter"));
 }
+
+#[test]
+fn diagnostic_only_scan_can_cancel_before_descendants_are_processed() {
+    use buildhunter_plugin_policy::Decision;
+    for ambiguous in [false, true] {
+        let t = Tree::new();
+        for index in 0..64 {
+            t.file(&format!("forge-out/child-{index}/object"), b"data");
+        }
+        let documents = if ambiguous {
+            ["example.first", "example.second"]
+                .iter()
+                .map(|id| {
+                    edited(|v| {
+                        v["id"] = (*id).into();
+                        v["targets"][0]["id"] = format!("{id}-output").into();
+                        v["program"]["facts"] = serde_json::json!([{"id":"kind","type":"string"}]);
+                        v["bindings"] = serde_json::json!({"kind":{"source":"node.kind"}});
+                        v["program"]["rules"][0]["when"] =
+                            serde_json::json!({"fact":"kind","op":"eq","value":"directory"});
+                    })
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![FORGE.to_vec()]
+        };
+        let catalog = load_documents(&documents, &[]);
+        let control = ScanControl::new();
+        let mut events = Vec::new();
+        let report = scan(
+            &t.0.join("forge-out"),
+            &catalog,
+            ScanOptions::default(),
+            &control,
+            |event| {
+                if matches!(event, PluginScanEvent::Diagnostic(_)) {
+                    control.cancel();
+                }
+                events.push(event.clone());
+            },
+        )
+        .unwrap();
+        assert_eq!(report.status, ScanStatus::Cancelled);
+        assert!(report.artifacts.is_empty());
+        assert!(report.warnings.is_empty());
+        assert_eq!(
+            report.diagnostics.len(),
+            1,
+            "must stop before classifying children"
+        );
+        assert_eq!(
+            events.len(),
+            2,
+            "only the immediate diagnostic and terminal event"
+        );
+        assert!(matches!(&events[0], PluginScanEvent::Diagnostic(d)
+            if if ambiguous { matches!(d.classification.decision, Decision::Ambiguous) }
+               else { matches!(d.classification.decision, Decision::Indeterminate) }));
+        assert!(matches!(
+            events[1],
+            PluginScanEvent::Finished(ScanStatus::Cancelled)
+        ));
+    }
+}

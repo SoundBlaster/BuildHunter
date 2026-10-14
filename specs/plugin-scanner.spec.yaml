@@ -49,7 +49,7 @@ constraints:
   statement: Request only active deduplicated bindings. Unknown placeholders may eliminate I/O only when pure evaluation has no unknown targets; final decisions must use actual observations when required. Disabled-only bindings cause no observations.
 - id: routing
   level: MUST
-  statement: Found carries full target metadata and creates one artifact. Ambiguous, Indeterminate, NoMatch and exclusions do not prune descendants. Typed policy diagnostics remain distinct from traversal I/O warnings.
+  statement: Found carries full target metadata and creates one artifact. Ambiguous, Indeterminate, NoMatch and exclusions do not prune descendants. Typed policy diagnostics remain distinct from traversal I/O warnings and are delivered during candidate processing without waiting for a core event; observers may cancel before descendants are processed.
 - id: lifecycle
   level: MUST
   statement: Retain catalog digest and exclusions in the report; keep immutable catalog/control/access alive until scoped workers finish; preserve inherited size/cancellation/partial events and guard restoration. Cancellation request alone does not prove completion.

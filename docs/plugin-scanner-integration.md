@@ -19,7 +19,10 @@ artifacts carry full TargetDescriptor metadata, including arbitrary ecosystem an
 stable target IDs. Internal numeric scanner labels are transport placeholders;
 they are never exposed as the plugin's classification. One Found target routes to
 one measured artifact. Ambiguous/Indeterminate candidates emit typed diagnostics
-and keep traversing; excluded/NoMatch parents keep traversing too. `.git` is a
+and keep traversing unless the observer cancels; excluded/NoMatch parents keep
+traversing too. Diagnostics are delivered synchronously while their candidate is
+processed, without waiting for another core event. Cancellation from this callback
+is observed before processing descendants, including diagnostic-only scans. `.git` is a
 host-owned prune boundary. Nested findings are reported; totals count outer roots
 once using the existing allocated/apparent-size and per-path hardlink semantics.
 

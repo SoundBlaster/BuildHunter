@@ -102,7 +102,8 @@ pub fn scan(
     }
     #[cfg(unix)]
     {
-        let mut emit = emit;
+        // Both core events and policy diagnostics use the same serial observer.
+        let emit = RefCell::new(emit);
         let _guard = build_hunter::NonMaterializingIoGuard::enter().map_err(ScanError::Io)?;
         let root = if root.is_absolute() {
             root.to_owned()
@@ -119,7 +120,6 @@ pub fn scan(
             selected: Option<TargetDescriptor>,
             targets: BTreeMap<u64, TargetDescriptor>,
             diagnostics: Vec<CandidateDiagnostic>,
-            events: Vec<PluginScanEvent>,
             failure: Option<PolicyError>,
             observations: u64,
         }
@@ -127,7 +127,6 @@ pub fn scan(
             selected: None,
             targets: BTreeMap::new(),
             diagnostics: Vec::new(),
-            events: Vec::new(),
             failure: None,
             observations: 0,
         });
@@ -212,19 +211,21 @@ pub fn scan(
                                 relative_path: path.strip_prefix(&root).unwrap_or(path).to_owned(),
                                 classification,
                             };
-                            state
-                                .events
-                                .push(PluginScanEvent::Diagnostic(diagnostic.clone()));
-                            state.diagnostics.push(diagnostic);
+                            state.diagnostics.push(diagnostic.clone());
+                            // Deliver while processing this candidate so the observer can
+                            // cancel before traversal continues, even without core events.
+                            // Never hold our state borrow across a consumer callback.
+                            drop(state);
+                            (emit.borrow_mut())(&PluginScanEvent::Diagnostic(diagnostic));
                             CandidateAction::Traverse
                         }
                     },
                 }
             },
             |event| {
-                let events = {
+                let event = {
                     let mut state = state.borrow_mut();
-                    let e = match event {
+                    match event {
                         ScanEvent::ArtifactDiscovered(a) => {
                             let target = state
                                 .selected
@@ -256,14 +257,9 @@ pub fn scan(
                                 *s
                             })
                         }
-                    };
-                    let mut events = std::mem::take(&mut state.events);
-                    events.push(e);
-                    events
+                    }
                 };
-                for event in events {
-                    emit(&event);
-                }
+                (emit.borrow_mut())(&event);
             },
         );
         let mut state = state.into_inner();
