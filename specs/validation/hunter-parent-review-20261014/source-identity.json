@@ -1,0 +1,99 @@
+{
+  "recorded_at_utc": "2026-10-14T13:34:58.982676+00:00",
+  "buildhunter_baseline": "273a2f4356ea89a1e59c970bed88d70d80624aec",
+  "hunter_revision": "5c8f3c9a1a018039b5aea9b731f2fb744f625b5a",
+  "files": [
+    {
+      "path": "crates/buildhunter-plugin-scanner/Cargo.lock",
+      "sha256": "90a2fa716c22b2ccb61b5b1697be13ead11d2dbf2b3def4dd42c6c7d15d4149d"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/Cargo.toml",
+      "sha256": "975acec127d30acb8ba5910ced4106092ff6cc32048cf41f1e546e3425bf1aac"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/src/lib.rs",
+      "sha256": "7ccd7ef8394ca2dfac3a4680848863fd0fe0ce8970d8be813e441f580b88f8b1"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/src/scope.rs",
+      "sha256": "6c89f605336995bb1b9426aa1604af3cf3fc596bd2bb5be49416a2eb4c02a480"
+    },
+    {
+      "path": "crates/buildhunter-plugin-scanner/tests/scanning.rs",
+      "sha256": "dd80a31ea911472fb11b42a86128e9f981364729b5c39d5c3c423f0eb1ca4d83"
+    },
+    {
+      "path": "docs/plugin-scanner-integration.md",
+      "sha256": "8b8a39acdb8ff2d59734fd96e07ae68791e2c78ef7c753b416f6707a7ff486c3"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/maps/current.hc",
+      "sha256": "4e7e5da33a159c67298834b7a36d74b1c671a090e4825792c5ff70cc529ca919"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/maps/current.hcs",
+      "sha256": "63f9bca0a98719339e3faef8e3948b608126586c7a4b2998d37401f499076119"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/maps/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/maps/target.hcs",
+      "sha256": "91b8ec42ee424ee07acae30d808319a16d900e0a3c00d534833f3086313bd91b"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/upstream/README.md",
+      "sha256": "2078a89d18612bf48227d47acbac2a7cb2e859723ae304ba5748fd50bf993bd9"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/upstream/hunter.hc",
+      "sha256": "73d7cb393e320cd5f26b8367947d3313758270d4933a31c57850745e2fd27ebc"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/upstream/hunter.hcs",
+      "sha256": "b32bba0f88dbc8d549e5b26bbf370a55afde2bd743f5976672e7fef26bbeda7a"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/upstream/scoped-metadata.spec.yaml",
+      "sha256": "957f149ef30baad4d7948926e6345f04524697d5e048dcb668466f9613ffc1af"
+    },
+    {
+      "path": "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs",
+      "sha256": "07a8b5a733024ec838c38290902fc9f2a8cb4f031a41a7117f0aadc64503d0be"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "f47b843e5167f53f0c6a86bd44c132569d3b48b93ab6f694dc05637826a2f9ad"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "991506f09b0158512307e5c25afed574481733021efa679647766f41e457caa1"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "4e7e5da33a159c67298834b7a36d74b1c671a090e4825792c5ff70cc529ca919"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "63f9bca0a98719339e3faef8e3948b608126586c7a4b2998d37401f499076119"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "91b8ec42ee424ee07acae30d808319a16d900e0a3c00d534833f3086313bd91b"
+    },
+    {
+      "path": "specs/plugin-scanner.spec.yaml",
+      "sha256": "098eedfd3be6ca2c8736e3413e3edd0bd5084ac1b54422d9b8434b9ba1948fc2"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "e64362dd876649e8aab667f25222ae20c33df75913dcce93c5602603eb708085"
+    }
+  ]
+}

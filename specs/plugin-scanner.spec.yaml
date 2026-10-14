@@ -94,15 +94,15 @@ evidence:
   supports: [scope, constraints.compatibility, constraints.lifecycle]
 - id: hunter_upstream
   kind: source
-  path: specs/evidence/hunter-metadata-20261014/upstream/scoped_metadata.rs
+  path: specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs
   supports: [constraints.marker_scope]
 provenance:
   sourceConfidence: {intent: high, boundary: high, behavior: medium}
   notes:
   - Owner authorized scanner integration after PR 67. New boundary remains draft; baseline client C2/C3/C4 migration is not accepted by this pilot.
   - Marker race tests are not a full traversal proof. Synthetic cloud metadata is not live provider evidence. Fresh execution receipts and source identities are separate from historical recovery.
-  - Hunter partial extraction at 71f71fc9166da3ce948fce372101c5a46dfd0f36; public upstream source/contract snapshots
-    retain original ownership under specs/evidence/hunter-metadata-20261014/upstream. Legacy traversal/default clients stay unchanged.
+  - Hunter partial extraction at 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a; public upstream source/contract snapshots
+    retain original ownership under specs/evidence/hunter-parent-review-20261014/upstream. Legacy traversal/default clients stay unchanged.
 implementationBindings:
 - id: integration
   scope: component

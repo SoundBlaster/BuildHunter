@@ -111,7 +111,7 @@ provenance:
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
   - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
     and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
-  - Partial extraction at Hunter 71f71fc9166da3ce948fce372101c5a46dfd0f36 owns scoped regular-file metadata only.
+  - Partial extraction at Hunter 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a owns scoped regular-file metadata only.
     Full traversal/sizing/lifecycle remains target design; separate upstream draft capability
     hunter.fs.scoped_metadata has its own evidence, not full hunter.design.scan conformance.
 implementationBindings: []

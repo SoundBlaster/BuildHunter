@@ -260,3 +260,12 @@ specs/evidence/hunter-metadata-20261014/upstream. Fresh source/map identities an
 local command receipts live under specs/validation/hunter-metadata-20261014.
 Full descriptor-bound traversal/measurement is the next boundary; Windows and
 live dataless-provider behavior remain unverified.
+
+## Hunter Parent scope review — 2026-10-14
+
+Pin updated to 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a. Upstream rejects parent
+components before selecting Parent; root/.. cannot become an unrelated root lookup.
+Affected marker_scope/io_contract bindings refreshed; map roles are unchanged.
+Prior snapshots/receipts remain historical. Fresh upstream snapshots and local
+integration/source/map receipts live under hunter-parent-review-20261014.
+Default clients remain unchanged; no new runtime performance/cloud claim.

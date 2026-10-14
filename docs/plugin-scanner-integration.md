@@ -94,7 +94,7 @@ migration decisions and versioned FFI/Settings catalog routing.
 ## Hunter extraction — 2026-10-14
 
 The opt-in integration now pins `hunter-fs` from public Hunter at
-`71f71fc9166da3ce948fce372101c5a46dfd0f36` (Hunter PR #1).
+`5c8f3c9a1a018039b5aea9b731f2fb744f625b5a` (Hunter PR #1).
 `scope.rs` owns only optional acquisition and product outcome mapping. Hunter owns
 the selected-root descriptor, component opens, final stat, technical unavailable
 outcomes and synthetic dataless detection. Existing marker observations count

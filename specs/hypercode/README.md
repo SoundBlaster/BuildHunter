@@ -58,3 +58,6 @@ runtime ownership or the whole-process memory bound. Those are review/test dutie
 Latest partial extraction: current/target maps now bind Hunter metadata at
 71f71fc; fresh identities and map copies are under hunter-metadata-20261014.
 Prior records above remain historical. Full Hunter scanner extraction is pending.
+
+Parent scope review updates the current Hunter pin to 5c8f3c9. Fresh map/source
+identities are in hunter-parent-review-20261014; initial extraction records remain historical.
