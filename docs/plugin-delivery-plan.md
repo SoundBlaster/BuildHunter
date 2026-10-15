@@ -138,3 +138,7 @@ remains local. Details: hunter-portable-extraction.md.
 Scoped work follow-up: generic queue/launch/shutdown now belong to Hunter;
 recursive filesystem selection and task bodies remain in BuildHunter.
 See hunter-worker-extraction.md; no full engine extraction is claimed.
+
+Directory task/result follow-up: opaque task/listing contexts and positional
+measurement planning are in Hunter; marker/prefetch/ancestor/status policy remains
+BuildHunter-owned. Details: hunter-directory-tasks.md.

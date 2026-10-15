@@ -1,0 +1,93 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.directory_tasks
+  title: Opaque directory tasks and measurement results
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Plan original-position file measurements from a directory task and preserve
+    typed owned task/result identity without interpreting host context.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Opaque task/listing contexts, IDs/paths, measurement intent plus host prefetch,
+    aligned optional child slots and owned measurement/error results.
+  excludes:
+  - Marker or artifact interpretation, ancestor accounting, recursion decisions, platform/bulk
+    backends, permissions/cloud guards, status policy and wire/FFI protocol enforcement.
+provides:
+  capabilities:
+  - id: hunter.fs.directory_tasks
+    role: primary
+    summary: Construct a measurement plan and return aligned owned results through
+      host-supplied metadata callbacks.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: directory_plan
+    kind: library
+    summary: DirectoryTask::measurement_plan(children, prefetch); plan.measure(directory,
+      prepare_backend, should_stop) -> DirectoryMeasurement.
+  outbound: []
+constraints:
+- id: opaque_context
+  level: MUST
+  statement: Treat ID/context as opaque consumer values; plan selection is task.measure
+    OR host prefetch and performs no filesystem I/O. Borrow job path and own selected
+    child paths in original listing positions.
+- id: slots
+  level: MUST
+  statement: Exclude initially observed directories/symlinks from file measurement
+    slots, preserving None at their indices. Other entry types retain legacy eligibility;
+    no later filesystem snapshot guarantee.
+- id: ordering
+  level: MUST
+  statement: Execute directory metadata then backend preparation before per-slot cancellation,
+    even after directory failure or pre-cancellation. Return original-position prefix
+    on cancellation and retain per-slot I/O errors; never compact/reindex results.
+- id: host_protocol
+  level: MUST
+  statement: Host publishes Listed before plan.measure, correlates result IDs, sends
+    Measured for partial/cancelled passes and owns guard/access lifetime, backend
+    effects and final status. Result enum alone does not enforce this protocol.
+effects:
+  sideEffects:
+  - id: host_callbacks
+    kind: event_emit
+    summary: Invoke synchronous host metadata/preparation/file-size callbacks; concrete
+      I/O effects and guards remain host-owned.
+evidence:
+- id: task_source
+  kind: source
+  path: crates/hunter-fs-core/src/task.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.opaque_context
+  - constraints.slots
+  - constraints.ordering
+- id: task_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports:
+  - scope
+  - constraints.host_protocol
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Extracted from BuildHunter aefd712; desired draft contract remains separate from
+    test execution. Full filesystem recursion/coordinator still host-owned.
+implementationBindings:
+- id: task_implementation
+  scope: component
+  language: rust
+  files:
+    owned:
+    - crates/hunter-fs-core/src/task.rs
+    border:
+    - crates/hunter-fs-core/src/lib.rs

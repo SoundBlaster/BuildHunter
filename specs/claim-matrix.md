@@ -142,3 +142,10 @@ Assembly must retain coordinator shutdown guard inside std scope, release access
 after scope join, propagate worker panic and close result/sampler lifetimes.
 Current API and worker/callback unwind regressions bind these obligations to
 Hunter 836d764; fresh receipts: specs/validation/hunter-work-20261015.
+
+### Directory task/result extraction — 2026-10-15
+
+Opaque contexts do not transfer C1/C2/C3/C4 marker/classification semantics into
+Hunter. C5 budgets remain open. Parent assembly publishes Listed before callbacks,
+correlates IDs, retains platform/access guards and maps aligned/prefix results into
+ancestor/status accounting. Source/runtime witness: specs/validation/hunter-tasks-20261015.

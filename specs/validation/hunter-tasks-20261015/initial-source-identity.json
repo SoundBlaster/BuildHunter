@@ -1,0 +1,132 @@
+{
+  "recorded_at_utc": "2026-10-15T05:20:04.423935+00:00",
+  "buildhunter_baseline": "aefd712b543281dd1718ba5b5b149dd71f06927e",
+  "hunter_revision": "e9b77e44f50ac72e543b727a11afa2c28666226e",
+  "note": "Paired Release benchmark used a dirty candidate; candidate_sha is only its base. Source hashes identify actual runtime. Subsequent edits are docs/provenance only. All six vendored files matched canonical Hunter before publishing.",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "01d339f2f203e87b358f3ec2b1ed18745999aedc710e2bcb2a12ff00471d3c7c"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "f1e63d57fbc31178c0ceab0d2fefc4167af3d5edf35fe51b34dbdab15dc28498"
+    },
+    {
+      "path": "docs/hunter-directory-tasks.md",
+      "sha256": "28b2835043250b39d078a64c12b31c156cf5a5169f5add6d7528e13e1480a6a9"
+    },
+    {
+      "path": "docs/hunter-worker-extraction.md",
+      "sha256": "8371059a456b9f3c46a5b989e3f6b6a979f58c08bc864e3d5cb85aec65ae86d5"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "0c389da2c78eb71ce2ee8c15c2e6edfc086fa09b963c6865c71c57502d9cc3b4"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "f2fdfb42212c31f2d9fd0e2d78146b66989cdbf328a825abc044b87b55da140c"
+    },
+    {
+      "path": "scripts/verify_hunter_vendor.py",
+      "sha256": "a50cd542c279415f03720e01259c9a4d638ed8c6f3220306ddd5955f7c5c3499"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "ec66f42dae8f3141126791b31177efc9c7956ed93dfdbdb840ab3d3d66fb6ccb"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "97c83231940fcf2ce2ec0b7165f11e9c9cfe6e85654d99b8310119d068b2cd25"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "d9cf6bce89b109b95381533741d5553f41207fd2bdc603a16f1d9cbd1396aefa"
+    },
+    {
+      "path": "specs/evidence/hunter-tasks-20261015/maps/current.hc",
+      "sha256": "84c7e2696b3985f5067e13597473c7112dbaee8fbcf46a066d60d18f5bab39e6"
+    },
+    {
+      "path": "specs/evidence/hunter-tasks-20261015/maps/current.hcs",
+      "sha256": "f6e17b9b95788bdd672960f24ed56b8465337e2556630632d5a46d209ab496fc"
+    },
+    {
+      "path": "specs/evidence/hunter-tasks-20261015/maps/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/evidence/hunter-tasks-20261015/maps/target.hcs",
+      "sha256": "b26ebf3b4eb2b8c5f90d34348d0e61b859aaaf110d71eac57c4afa8e9bd4a2fd"
+    },
+    {
+      "path": "specs/evidence/hunter-tasks-20261015/upstream/README.md",
+      "sha256": "f6a83bc21d383c46a4dabfefacd04020b83f8665cdec89e077899d80ee23da2c"
+    },
+    {
+      "path": "specs/evidence/hunter-tasks-20261015/upstream/directory-tasks.spec.yaml",
+      "sha256": "6416a3c62c0a226c4108062f03f6d63848f26ce0d85f9f0917c5e557ba98c931"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "31b6934fe9b72ce0103337d7c172fb8a0295298962c461475016c5a39b42bc58"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "434e563daf06aa986f70858c89d5ddd2a8d4410cfa5910fbe00f48aaefc2bb3a"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "84c7e2696b3985f5067e13597473c7112dbaee8fbcf46a066d60d18f5bab39e6"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "f6e17b9b95788bdd672960f24ed56b8465337e2556630632d5a46d209ab496fc"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "b26ebf3b4eb2b8c5f90d34348d0e61b859aaaf110d71eac57c4afa8e9bd4a2fd"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "1634a0d00cc17e12975920e0bd2fee7f18d2ee7f8828b8ba2e807ba71f3c23bd"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "ab21545a25d1a3e7b2cdc0d94cb8d414b1511579eba4d8b950b5d8e0eb658f8e"
+    },
+    {
+      "path": "vendor/hunter-fs-core/Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b"
+    },
+    {
+      "path": "vendor/hunter-fs-core/LICENSE",
+      "sha256": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1"
+    },
+    {
+      "path": "vendor/hunter-fs-core/README.md",
+      "sha256": "71d719e9cfc0e1d95fa5fcf6b85e46ca642cae5ea9ee76fea1837ef557da7fff"
+    },
+    {
+      "path": "vendor/hunter-fs-core/UPSTREAM.json",
+      "sha256": "3ee23793387fa290be3bfd6b8f6486d3e1b4ad97ab60a0cf97f0082af68d3a10"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/lib.rs",
+      "sha256": "27c629578bc610ceaa119fcb9a306de698f34a4eaef41cca1efe7ff76a88c9df"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    }
+  ]
+}

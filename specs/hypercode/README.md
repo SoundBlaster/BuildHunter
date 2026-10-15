@@ -69,3 +69,7 @@ Full recursive scanner extraction remains pending.
 Generic scoped work extraction at Hunter 836d764 adds HunterWork roles. Fresh
 identities/maps are under hunter-work-20261015. Host filesystem recursion/task bodies
 remain local; worker launch return is not the join boundary. Prior records are historical.
+
+Directory task/result planning at Hunter e9b77e4 adds HunterDirectoryTasks roles.
+Latest source/map identities: hunter-tasks-20261015. Context interpretation,
+guarded backend callbacks, recursive selection and aggregation remain host-owned.

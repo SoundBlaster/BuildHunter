@@ -35,3 +35,7 @@ Merge Hunter #3 first, then this consumer. Next boundary: a generic directory-ta
 result/planning interface separating recursive discovery/measurement from artifact
 ancestor accounting and prefetch; the filesystem recursion coordinator is not moved
 by this generic work slice alone.
+
+Follow-up: hunter-directory-tasks.md extracts typed directory tasks/results and
+positional measurement planning; host still owns prefetch, I/O callbacks, recursive
+discovery and final aggregation.

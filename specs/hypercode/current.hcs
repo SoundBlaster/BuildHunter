@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/hunter-work-20261015/source-identity.json"
+  baseline: "specs/validation/hunter-tasks-20261015/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -95,7 +95,7 @@ CandidateObservation:
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "836d764328212fcccb944e0f0a69ba79421b3dcd"
+  upstream_revision: "e9b77e44f50ac72e543b727a11afa2c28666226e"
   boundary_spec: "hunter.fs.portable (upstream draft)"
   distribution: "exact vendored std-only path dependency"
 DirectoryEnumeration:
@@ -107,13 +107,27 @@ MetadataSizing:
 HunterWork:
   source: "vendor/hunter-fs-core/src/work.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "836d764328212fcccb944e0f0a69ba79421b3dcd"
+  upstream_revision: "e9b77e44f50ac72e543b727a11afa2c28666226e"
   boundary_spec: "hunter.fs.work (upstream draft)"
 TaskScheduling:
   implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
   folded_into: "buildhunter.current.scan"
 WorkerLifecycle:
   implementation: "spawn_workers + coordinator shutdown guard; standard scope joins"
+  folded_into: "buildhunter.current.scan"
+HunterDirectoryTasks:
+  source: "vendor/hunter-fs-core/src/task.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "e9b77e44f50ac72e543b727a11afa2c28666226e"
+  boundary_spec: "hunter.fs.directory_tasks (upstream draft)"
+TaskContext:
+  implementation: "DirectoryTask/ListTask + DirectoryListing; opaque host u32 contexts"
+  folded_into: "buildhunter.current.scan"
+PositionalMeasurement:
+  implementation: "measurement_plan/measure; guarded host backend closures"
+  folded_into: "buildhunter.current.scan"
+ResultEnvelope:
+  implementation: "DirectoryResult; host publishes Listed before Measured"
   folded_into: "buildhunter.current.scan"
 HunterMetadata:
   source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"
