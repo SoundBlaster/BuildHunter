@@ -1,0 +1,1 @@
+Public draft snapshot from Hunter e9b77e44f50ac72e543b727a11afa2c28666226e, original specs/directory-tasks.spec.yaml. Evidence only. Runtime code is the exact std-only vendored package recorded in UPSTREAM.json.

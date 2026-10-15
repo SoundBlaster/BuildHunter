@@ -1,0 +1,16 @@
+{
+  "tests": {
+    "chunk_id": "33ebf7",
+    "wall_time_seconds": 0.000012542,
+    "exit_code": 0,
+    "original_token_count": 38,
+    "output": "     Running unittests src/main.rs (target/debug/deps/build_hunter-80dc4e383cbb4ca9)\n   Doc-tests build_hunter\ncargo test: 63 passed (3 suites, 2.04s)\n"
+  },
+  "performance": {
+    "chunk_id": "930e0a",
+    "wall_time_seconds": 0.0000075,
+    "exit_code": 0,
+    "original_token_count": 207,
+    "output": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `release` profile [optimized] target(s) in 1.01s\n| Scenario / metric | Base median (ms) | Candidate median (ms) | Result |\n|---|---:|---:|---|\n| source-tree / elapsed_ns | 3.090 | 3.062 | PASS |\n| source-tree / first_artifact_ns | 0.321 | 0.336 | PASS |\n| many-roots / elapsed_ns | 83.578 | 83.848 | PASS |\n| many-roots / first_artifact_ns | 2.611 | 2.773 | PASS |\n| pruned-git / elapsed_ns | 0.201 | 0.205 | PASS |\n| cancel / elapsed_ns | 1.609 | 1.611 | PASS |\n| cancel / first_artifact_ns | 1.548 | 1.554 | PASS |\n| cancel / cancellation_latency_ns | 0.061 | 0.059 | PASS |\n\n"
+  }
+}

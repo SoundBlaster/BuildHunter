@@ -321,3 +321,36 @@ recorded under specs/validation/hunter-work-20261015. Previous records remain
 historical; no full generic filesystem recursion or speed/memory gain inferred.
 Next boundary: generic directory-task/result planning detached from ancestor
 artifact accounting and prefetch. Draft upstream work contract remains reviewable.
+
+## Directory task/result planning — 2026-10-15
+
+Hunter #4 at e9b77e44f50ac72e543b727a11afa2c28666226e owns opaque task/listing/
+result types and positional measurement plans. SharedRuntime.HunterDirectoryTasks
+and Scanner task/result bindings change. Local u32 context interpretation is
+unchanged parent/own marker policy; all classifier/ancestor accounting stays local.
+
+Affected current scan sizes/scan_lifetime/terminal, classification marker vocabulary
+and Hunter design generic_facts/no_product_dependency/lifecycle/io_contract retain
+behavioral scope. Host publishes Listed first, keeps platform guard through plan
+callbacks, and sends Measured for a partial/cancelled pass. Enum does not enforce
+protocol. Backend preparation still follows directory metadata even if cancelled
+or directory failed. Slots retain original child positions and a truncated prefix.
+
+New core tests and worker integration witness cover these obligations. Six-file
+exact vendoring, offline and Release comparison remain validated independently.
+C2/C3/C4 product migration and C5 whole-memory budget are unchanged; no new scan
+speedup/full-recursion/UI/live-cloud acceptance. Fresh source/maps/receipts are
+in specs/validation/hunter-tasks-20261015; prior results remain historical.
+Next boundary: generic recursive selection/aggregation requests detached from
+artifact ancestry and speculative prefetch. Contracts remain descriptive drafts.
+
+## Directory task contract review — 2026-10-15
+
+Hunter #4 removes consumer classification terms from its public scope/README.
+Core snapshot now pins 612b861; all Rust sources are byte-identical to e9b77e4.
+Affected roles HunterPortable, HunterWork and HunterDirectoryTasks retain their
+contracts/assembly duties; no capability or runtime behavior changed. Source/map
+identities, updated upstream draft and fresh structural/vendor validation live in
+validation/hunter-task-review-20261015 and evidence/hunter-task-review-20261015.
+Prior runtime/performance receipts remain historical; no acceptance is inferred
+from a wording correction.

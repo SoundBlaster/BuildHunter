@@ -3,7 +3,7 @@
 Std-only primitives extracted from BuildHunter `src/lib.rs` at 13aece6.
 `visit_directory` consumes a host-opened directory iterator, observes file types
 without following targets, emits owned Entry/Error values and checks cancellation
-before type lookup. The host owns open/access/cloud policy, marker decisions,
+before type lookup. The host owns open/access/cloud policy, entry-selection decisions,
 recursion, worker scheduling and report/status aggregation. Failed open emits one
 Error then OpenFailed; other iteration/type errors emit Error and continue.
 A cancelled pass keeps its emitted prefix. Empty iteration completes even if the
@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -45,3 +45,29 @@ to traverse, performs setup/QoS/cloud/cancellation checks, closes its result cha
 and owns aggregation/terminal events. Tests check idle-peer shutdown, recursive
 expansion, payload release, coordinator unwind and worker panic with peers exiting
 while the coordinator guard is still alive. No full filesystem engine is claimed.
+
+## Directory task/result and measurement plan
+
+DirectoryTask<Id, Context> owns an ID, path, measurement intent and opaque host
+context. DirectoryListing<Context> owns children/errors and opaque listing context.
+Hunter never interprets context or assigns consumer-specific meaning to it.
+measurement_plan combines explicit intent with a host prefetch boolean, creates
+original-position slots for non-directory/non-symlink entries, and borrows the
+job path (no extra directory-path allocation). Initial file types are observations,
+not a snapshot against later replacement; special non-directory types keep the
+legacy slot behavior. No extra filesystem reads are used for plan construction.
+
+The consuming plan calls directory metadata, then backend preparation, then checks
+cancellation before each slot. This deliberately preserves legacy behavior: even
+a pre-cancelled plan or directory metadata error still invokes preparation. A host
+backend can therefore perform I/O there. Slots retain None positions for omitted
+directories/links; cancellation returns a prefix rather than compacted/reindexed
+files. Errors are owned and stay at the same slot. Host may fill missing results
+later, decide statuses/partial outcomes and own platform/cloud guard lifetime.
+
+DirectoryResult provides Listed/Measured envelopes with matching host IDs. It does
+not enforce a wire protocol: the host must publish Listed before measuring and
+send the Measured outcome even for a cancelled partial pass. Result callbacks,
+root permissions, timing, bulk acquisition and recursive decisions remain host-owned.
+Tests cover intent/prefetch, slot alignment, callback order/errors, cancellation
+prefix/preparation and Unix symlink omission.

@@ -287,3 +287,9 @@ mod tests {
 
 mod work;
 pub use work::{ShutdownGuard, WorkQueue, spawn_workers, worker_count};
+
+mod task;
+pub use task::{
+    DirectoryListing, DirectoryMeasurement, DirectoryMeasurementPlan, DirectoryResult,
+    DirectoryTask, FileMeasurements,
+};

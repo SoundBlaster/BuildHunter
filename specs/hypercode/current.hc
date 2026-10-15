@@ -28,6 +28,10 @@ BuildHunterRuntime
     HunterWork
       TaskScheduling
       WorkerLifecycle
+    HunterDirectoryTasks
+      TaskContext
+      PositionalMeasurement
+      ResultEnvelope
     HunterMetadata
     PluginScanning
       CandidateObservation

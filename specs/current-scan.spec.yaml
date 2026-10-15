@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -36,6 +36,9 @@ requires:
   - id: hunter.fs.work
     optional: false
     summary: Generic task queue/shutdown/scoped launch; host supplies coordinator guard, workers, platform setup and result accounting.
+  - id: hunter.fs.directory_tasks
+    optional: false
+    summary: Opaque task/listing/result types and aligned measurement plans; host publishes Listed first, provides guarded backends and applies final policy.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -136,6 +139,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/work.rs
   supports: [constraints.scan_lifetime, constraints.memory_scope, scope]
+- id: hunter_task_source
+  kind: source
+  path: vendor/hunter-fs-core/src/task.rs
+  supports: [constraints.sizes, constraints.scan_lifetime, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -154,6 +161,9 @@ provenance:
   - Generic queue/scoped launch extraction at Hunter 836d764328212fcccb944e0f0a69ba79421b3dcd; caller retains
     coordinator guard inside standard thread Scope. Task bodies and recursive product planning remain local.
     Fresh execution/source/map receipts are in specs/validation/hunter-work-20261015.
+  - Directory tasks/results and measurement planning delegate to Hunter e9b77e44f50ac72e543b727a11afa2c28666226e.
+    Context remains opaque to Hunter; listing publication, guarded backends, ancestor accounting and recursive policy stay local.
+    Fresh source/map/command identities are in specs/validation/hunter-tasks-20261015.
 implementationBindings:
 - id: implementation
   language: rust
@@ -172,4 +182,5 @@ implementationBindings:
     border:
     - vendor/hunter-fs-core/src/lib.rs
     - vendor/hunter-fs-core/src/work.rs
+    - vendor/hunter-fs-core/src/task.rs
     - vendor/hunter-fs-core/UPSTREAM.json
