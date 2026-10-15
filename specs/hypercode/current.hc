@@ -32,6 +32,9 @@ BuildHunterRuntime
       TaskContext
       PositionalMeasurement
       ResultEnvelope
+    HunterChildTraversal
+      ChildAdmission
+      RecursiveRequests
     HunterMetadata
     PluginScanning
       CandidateObservation

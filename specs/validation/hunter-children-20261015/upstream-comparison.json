@@ -1,0 +1,40 @@
+{
+  "revision": "491399c849f9d95beae564caab32dd668be75a2c",
+  "files": [
+    {
+      "path": "Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b",
+      "matches_pinned_commit": true
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1",
+      "matches_pinned_commit": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "86bf5ecfc33cb1de15ce4b001687f86415595b91f6a094801fd4f46fd0ec40d3",
+      "matches_pinned_commit": true
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "a3ee3f37ad834dafd8fc014517622da5de80b0540bfa54f741e3bb9d9739b3e1",
+      "matches_pinned_commit": true
+    },
+    {
+      "path": "src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160",
+      "matches_pinned_commit": true
+    },
+    {
+      "path": "src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c",
+      "matches_pinned_commit": true
+    },
+    {
+      "path": "src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8",
+      "matches_pinned_commit": true
+    }
+  ]
+}

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.4
+  version: 0.1.0-draft.5
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -39,6 +39,9 @@ requires:
   - id: hunter.fs.directory_tasks
     optional: false
     summary: Opaque task/listing/result types and aligned measurement plans; host publishes Listed first, provides guarded backends and applies final policy.
+  - id: hunter.fs.child_traversal
+    optional: false
+    summary: Ordered host-selected directory requests and indexed leaf observations; host owns cloud/stop effects, scheduling, ancestry and status.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -143,6 +146,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/task.rs
   supports: [constraints.sizes, constraints.scan_lifetime, scope]
+- id: hunter_children_source
+  kind: source
+  path: vendor/hunter-fs-core/src/children.rs
+  supports: [constraints.scan_lifetime, constraints.symlink_scope, constraints.memory_scope, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -164,6 +171,9 @@ provenance:
   - Directory tasks/results and measurement planning delegate to Hunter e9b77e44f50ac72e543b727a11afa2c28666226e.
     Context remains opaque to Hunter; listing publication, guarded backends, ancestor accounting and recursive policy stay local.
     Fresh source/map/command identities are in specs/validation/hunter-tasks-20261015.
+  - Host-selected child request planning delegates to Hunter 491399c849f9d95beae564caab32dd668be75a2c.
+    Admission/checkpoint/cloud effects remain local; original indices, marker context and measurement intent are preserved.
+    Fresh source/map/runtime receipts are in specs/validation/hunter-children-20261015; this does not complete generic scan extraction.
 implementationBindings:
 - id: implementation
   language: rust
@@ -183,4 +193,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/lib.rs
     - vendor/hunter-fs-core/src/work.rs
     - vendor/hunter-fs-core/src/task.rs
+    - vendor/hunter-fs-core/src/children.rs
     - vendor/hunter-fs-core/UPSTREAM.json

@@ -1,0 +1,1 @@
+Public upstream draft from Hunter 491399c849f9d95beae564caab32dd668be75a2c, original specs/child-traversal.spec.yaml. Evidence only; runtime is the exact seven-file std-only vendor snapshot in UPSTREAM.json.

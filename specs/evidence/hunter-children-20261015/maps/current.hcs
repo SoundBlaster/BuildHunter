@@ -1,0 +1,175 @@
+# Composition only. Context selects the inspected client, not runtime behavior.
+BuildHunterRuntime:
+  status: "observed-source"
+  baseline: "specs/validation/hunter-children-20261015/source-identity.json"
+  entrypoint: "src/main.rs"
+  profile: "cli"
+CommandLine:
+  source: "src/main.rs"
+  boundary_spec: "buildhunter.current.application"
+MacApplication:
+  source: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"
+  boundary_spec: "buildhunter.current.application"
+WindowSession:
+  source: "macos/Sources/BuildHunter/Scanning/WindowScanModel.swift"
+  boundary_spec: "buildhunter.current.application"
+ReportPresentation:
+  source: "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift"
+  folded_into: "buildhunter.current.application"
+FolderActions:
+  source: "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift"
+  folded_into: "buildhunter.current.application"
+Export:
+  source: "macos/Sources/BuildHunter/Scanning/ScanReportExport.swift"
+  folded_into: "buildhunter.current.application"
+Settings:
+  source: "macos/Sources/BuildHunter/Domain/SearchFilters.swift"
+  folded_into: "buildhunter.current.classification"
+Scanner:
+  source: "src/lib.rs"
+  boundary_spec: "buildhunter.current.scan"
+Traversal:
+  implementation: "Scanner + host run_worker + Hunter queue/spawn/visit_directory"
+  folded_into: "buildhunter.current.scan"
+Measurement:
+  implementation: "Hunter metadata_bytes/MeasuredSize + optional local bulk_metadata"
+  folded_into: "buildhunter.current.scan"
+CloudGuard:
+  source: "src/materialization.rs"
+  folded_into: "buildhunter.current.scan"
+ResourceProfile:
+  source: "src/profile.rs"
+  folded_into: "buildhunter.current.scan"
+ArtifactClassification:
+  source: "src/lib.rs"
+  boundary_spec: "buildhunter.current.classification"
+CandidateSelection:
+  implementation: "is_policy_candidate + may_classify_directory"
+  folded_into: "buildhunter.current.classification"
+MarkerVocabulary:
+  implementation: "MARKER_* + marker_flag + list_directory"
+  folded_into: "buildhunter.current.classification"
+ClientPolicy:
+  source: "src/lib.rs"
+  implementation: "rust_cli_policy"
+  environments_default: false
+  folded_into: "buildhunter.current.classification"
+FilterCatalog:
+  implementation: "SEARCH_FILTER_CATALOG + bh_search_filter_catalog_json"
+  folded_into: "buildhunter.current.classification"
+RustSwiftBridge:
+  source: "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift"
+  boundary_spec: "buildhunter.current.bridge"
+PolicyTable:
+  source: "src/policy_table.rs"
+  folded_into: "buildhunter.current.bridge"
+EventChannel:
+  implementation: "ScanEventChannel"
+  capacity: 4096
+  folded_into: "buildhunter.current.bridge"
+AccessLifetime:
+  implementation: "RustScanJob + security-scoped target URL"
+  folded_into: "buildhunter.current.bridge"
+PluginPolicy:
+  source: "crates/buildhunter-plugin-policy/src/lib.rs"
+  boundary_spec: "buildhunter.plugin.policy"
+  enabled_by: "independent buildhunter-plugin-policy crate"
+  connected_to_clients: false
+CatalogValidation:
+  source: "crates/buildhunter-plugin-policy/src/validation.rs"
+  folded_into: "buildhunter.plugin.policy"
+EffectivePlan:
+  source: "crates/buildhunter-plugin-policy/src/validation.rs"
+  folded_into: "buildhunter.plugin.policy"
+CandidateClassification:
+  source: "crates/buildhunter-plugin-policy/src/lib.rs"
+  folded_into: "buildhunter.plugin.policy"
+PluginScanning:
+  source: "crates/buildhunter-plugin-scanner/src/lib.rs"
+  boundary_spec: "buildhunter.plugin.scanner"
+  connected_to_clients: false
+CandidateObservation:
+  source: "src/lib.rs"
+  implementation: "scan_with_candidate_observer"
+  folded_into: "buildhunter.plugin.scanner"
+HunterPortable:
+  source: "vendor/hunter-fs-core/src/lib.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "491399c849f9d95beae564caab32dd668be75a2c"
+  boundary_spec: "hunter.fs.portable (upstream draft)"
+  distribution: "exact vendored std-only path dependency"
+DirectoryEnumeration:
+  implementation: "visit_directory; host owns opened iterator and recursion"
+  folded_into: "buildhunter.current.scan"
+MetadataSizing:
+  implementation: "metadata_bytes + MeasuredSize; metadata acquired by host"
+  folded_into: "buildhunter.current.scan"
+HunterWork:
+  source: "vendor/hunter-fs-core/src/work.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "491399c849f9d95beae564caab32dd668be75a2c"
+  boundary_spec: "hunter.fs.work (upstream draft)"
+TaskScheduling:
+  implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
+  folded_into: "buildhunter.current.scan"
+WorkerLifecycle:
+  implementation: "spawn_workers + coordinator shutdown guard; standard scope joins"
+  folded_into: "buildhunter.current.scan"
+HunterDirectoryTasks:
+  source: "vendor/hunter-fs-core/src/task.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "491399c849f9d95beae564caab32dd668be75a2c"
+  boundary_spec: "hunter.fs.directory_tasks (upstream draft)"
+TaskContext:
+  implementation: "DirectoryTask/ListTask + DirectoryListing; opaque host u32 contexts"
+  folded_into: "buildhunter.current.scan"
+PositionalMeasurement:
+  implementation: "measurement_plan/measure; guarded host backend closures"
+  folded_into: "buildhunter.current.scan"
+ResultEnvelope:
+  implementation: "DirectoryResult; host publishes Listed before Measured"
+  folded_into: "buildhunter.current.scan"
+HunterChildTraversal:
+  source: "vendor/hunter-fs-core/src/children.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "491399c849f9d95beae564caab32dd668be75a2c"
+  boundary_spec: "hunter.fs.child_traversal (upstream draft)"
+ChildAdmission:
+  implementation: "ChildTraversal::next_child; host checkpoint/stop/cloud decisions"
+  folded_into: "buildhunter.current.scan"
+RecursiveRequests:
+  implementation: "DirectoryRequest::into_task + host enqueue/node/ancestor accounting"
+  folded_into: "buildhunter.current.scan"
+HunterMetadata:
+  source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "5c8f3c9a1a018039b5aea9b731f2fb744f625b5a"
+  boundary_spec: "hunter.fs.scoped_metadata (upstream draft)"
+  implemented_scope: "Unix scoped regular-file metadata only; full scanner pending"
+MarkerAcquisition:
+  source: "crates/buildhunter-plugin-scanner/src/scope.rs"
+  implemented_scope: "product mapping to pinned hunter-fs; traversal races not covered"
+  folded_into: "buildhunter.plugin.scanner"
+TargetRouting:
+  source: "crates/buildhunter-plugin-scanner/src/lib.rs"
+  folded_into: "buildhunter.plugin.scanner"
+@client[gui]:
+  BuildHunterRuntime:
+    entrypoint: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"
+    profile: "gui"
+  ClientPolicy:
+    source: "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift"
+    implementation: "BuildHunterScanPolicy + SpecificationCore"
+    environments_default: true
+@contract:
+  BuildHunterRuntime:
+    baseline: string
+    status: string
+    entrypoint: string
+  Scanner:
+    source: string
+    boundary_spec: string
+  ClientPolicy:
+    environments_default: bool
+  EventChannel:
+    capacity: int >= 1 <= 4096

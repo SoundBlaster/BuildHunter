@@ -1,6 +1,7 @@
 use hunter_fs_core::{
-    DirectoryEvent, DirectoryListing, DirectoryMeasurement, DirectoryResult, DirectoryTask,
-    DirectoryVisit, MeasuredSize, metadata_bytes, spawn_workers, visit_directory, worker_count,
+    ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
+    DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, MeasuredSize, PlannedChild,
+    metadata_bytes, spawn_workers, visit_directory, worker_count,
 };
 use std::{
     borrow::Cow,
@@ -1129,7 +1130,11 @@ where
                         chain: Vec::new(),
                         root_metadata: Some(metadata),
                     },
-                    0,
+                    DirectoryRequest {
+                        path: root.to_owned(),
+                        context: 0,
+                        measure: false,
+                    },
                 );
             }
             Ok(metadata) => {
@@ -1194,13 +1199,8 @@ where
         }
     }
 
-    fn enqueue(&mut self, node: DirNode, parent_markers: u32) {
-        let task = ListTask {
-            id: self.nodes.len(),
-            path: node.path.clone(),
-            context: parent_markers,
-            measure: !node.chain.is_empty(),
-        };
+    fn enqueue(&mut self, node: DirNode, request: DirectoryRequest<u32>) {
+        let task = request.into_task(self.nodes.len());
         self.nodes.push(Some(node));
         self.set_outstanding(self.outstanding + 1);
         if self.queue.push(task).is_err() {
@@ -1389,34 +1389,51 @@ where
             self.io_error(&error_path, error, &chain);
         }
         let mut files = Vec::new();
-        for (index, (child, file_type)) in listing.children.into_iter().enumerate() {
-            // Check per chunk, including large single-directory responses, without
-            // adding a clock read to every filesystem entry.
+        let mut children =
+            ChildTraversal::new(listing.children, listing.context, !chain.is_empty());
+        while let Some(child) = children.next_child(|index, path, _| {
+            // Keep checkpoint/stop/access effects in the host, before child routing.
             if index % 32 == 0 {
                 self.emit_profile();
             }
             if self.control.should_stop() {
-                return;
+                return ChildDecision::Stop;
             }
-            if let Some(reason) = cloud_skip_reason(&child) {
-                self.warn(&child, reason, &chain);
-                continue;
+            if let Some(reason) = cloud_skip_reason(path) {
+                self.warn(path, reason, &chain);
+                return ChildDecision::Skip;
             }
-            if file_type.is_dir() {
-                for id in &chain {
-                    self.progress[Self::index(*id)].pending += 1;
+            ChildDecision::Visit
+        }) {
+            match child {
+                PlannedChild::Directory { request, .. } => {
+                    for id in &chain {
+                        self.progress[Self::index(*id)].pending += 1;
+                    }
+                    let child_node = DirNode {
+                        path: request.path.clone(),
+                        parent_markers: Some(request.context),
+                        chain: chain.clone(),
+                        root_metadata: None,
+                    };
+                    self.enqueue(child_node, request);
                 }
-                let child_node = DirNode {
-                    path: child,
-                    parent_markers: Some(listing.context),
-                    chain: chain.clone(),
-                    root_metadata: None,
-                };
-                self.enqueue(child_node, listing.context);
-            } else if let Some(slot) = self.visit_file(child, file_type, index, &chain) {
-                files.push(slot);
+                PlannedChild::Entry {
+                    index,
+                    path,
+                    file_type,
+                } => {
+                    if let Some(slot) = self.visit_file(path, file_type, index, &chain) {
+                        files.push(slot);
+                    }
+                }
             }
         }
+        if children.is_stopped() {
+            return;
+        }
+        // Release the consumed listing buffer before coordinator-side measurement.
+        drop(children);
         let pending = PendingMeasure {
             path,
             chain,
@@ -2778,6 +2795,81 @@ mod tests {
                 .any(|artifact| artifact.relative_path == Path::new("Package/.build"))
         );
         assert_eq!(report.status, ScanStatus::Completed);
+    }
+
+    #[test]
+    fn planned_children_preserve_nested_sizes_and_host_pruning() {
+        let tree = TempTree::new();
+        let bucket = tree.0.join("bucket");
+        fs::create_dir_all(bucket.join("keep/deep")).unwrap();
+        fs::create_dir_all(bucket.join("skip")).unwrap();
+        for (name, size) in [
+            ("one", 1),
+            ("keep/two", 17),
+            ("keep/deep/three", 113),
+            ("skip/hidden", 8192),
+        ] {
+            fs::write(bucket.join(name), vec![0; size]).unwrap();
+        }
+        let mut visited = Vec::new();
+        let mut completions = Vec::new();
+        let report = scan_with_candidate_observer(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |path, facts, kind| {
+                visited.push((path.to_owned(), facts.has_artifact_ancestor));
+                if facts.name() == Some("skip") {
+                    CandidateAction::Prune
+                } else if facts.name() == Some("bucket") || kind == CandidateNodeKind::RegularFile {
+                    CandidateAction::Classify(ArtifactClassificationCode {
+                        language: 1,
+                        kind: 1,
+                    })
+                } else {
+                    CandidateAction::Traverse
+                }
+            },
+            |event| {
+                if let ScanEvent::ArtifactCompleted { id, .. } = event {
+                    completions.push(*id);
+                }
+            },
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.warnings.is_empty());
+        assert_eq!(report.artifacts.len(), 4);
+        let expected = ["", "keep", "keep/deep"]
+            .iter()
+            .map(|name| fs::symlink_metadata(bucket.join(name)).unwrap().len())
+            .sum::<u64>()
+            + 131;
+        assert_eq!(report.total_bytes(), expected);
+        for (name, bytes) in [("one", 1), ("keep/two", 17), ("keep/deep/three", 113)] {
+            let artifact = report
+                .artifacts
+                .iter()
+                .find(|a| a.relative_path == Path::new("bucket").join(name))
+                .unwrap();
+            assert_eq!(artifact.bytes, bytes);
+            assert!(artifact.nested);
+        }
+        assert!(visited.contains(&(bucket.join("skip"), true)));
+        assert!(
+            !visited
+                .iter()
+                .any(|(path, _)| path == &bucket.join("skip/hidden"))
+        );
+        assert!(visited.contains(&(bucket.join("keep/deep/three"), true)));
+        for artifact in &report.artifacts {
+            assert!(!artifact.partial);
+            assert_eq!(
+                completions.iter().filter(|id| **id == artifact.id).count(),
+                1
+            );
+        }
     }
 
     #[test]

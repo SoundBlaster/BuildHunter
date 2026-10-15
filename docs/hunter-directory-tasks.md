@@ -39,3 +39,6 @@ classification vocabulary from the generic contract. Updated upstream snapshot,
 source/map identities and structural/vendor checks are under
 specs/validation/hunter-task-review-20261015. Runtime source is unchanged; the
 initial extraction test/performance receipts above remain historical.
+
+Follow-up child request planning is described in hunter-child-traversal.md.
+The original task/result contracts and their historical receipts remain intact.

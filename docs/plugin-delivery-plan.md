@@ -142,3 +142,15 @@ See hunter-worker-extraction.md; no full engine extraction is claimed.
 Directory task/result follow-up: opaque task/listing contexts and positional
 measurement planning are in Hunter; marker/prefetch/ancestor/status policy remains
 BuildHunter-owned. Details: hunter-directory-tasks.md.
+
+## Recursive child planning — 2026-10-15
+
+ChildTraversal/DirectoryRequest now route host-admitted children through the
+pinned std-only Hunter core. Product marker/classification/ancestry, cloud/stop
+and profiling effects, coordinator state and terminal status remain local.
+The opt-in plugin scanner and default CLI/GUI share this mechanical traversal
+without switching classification policies or ABI. The remaining generic
+coordinator/result bookkeeping is the next boundary; whole-scan memory budgets
+remain open. See docs/hunter-child-traversal.md and the fresh source/runtime/map
+receipts in specs/validation/hunter-children-20261015. Historical receipts are
+retained and do not validate this revision; contracts remain draft.
