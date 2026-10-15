@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -168,3 +168,30 @@ This extracts common execution mechanics, not a complete generic filesystem engi
 Ten tests cover empty/pre-stopped work, recursive dispatch, both stop boundaries,
 timeout checkpoints, disconnected channels, callback panic, zero timeout rejection
 and borrowed non-Send state. Existing worker panic/join tests remain separate gates.
+
+## Native filesystem backend and root observation
+
+FilesystemBackend separates native symlink_metadata/read_dir from host policy.
+Its associated Entries yields io::Result<DirEntry>; StdFilesystem delegates directly
+to the standard library, preserving native metadata, errors and listing order.
+No Send/Sync bound or object allocation is imposed; the host chooses its threading
+model and can wrap calls with probes/error decoration and guarded native backends.
+
+observe_root borrows that backend/path and reads metadata exactly once, returning
+owned Directory(metadata) or Entry(metadata). Entry includes symlinks and special
+files. There is no retry, canonicalization, enumeration or separate type lookup.
+Host uses that observation for scheduling/entry admission and can reuse metadata
+instead of probing again. No cancellation check is introduced at root observation;
+this preserves the existing host behavior even on pre-cancelled initialization.
+
+Only symlink_metadata's final component is not followed. Intermediate components
+and read_dir remain path-based and may follow links/replacements. No descriptor
+anchoring, atomic tree, content scan, no-download or access guarantee is added.
+Host must apply access/cloud admission before calls and retain effective platform
+guards through calls and iterator use. Marker-following exceptions, bulk policy,
+classification, scheduling, worker startup/join and final status/events stay local.
+
+Tests cover directory/file metadata reuse, one-call/error/raw-path preservation,
+borrowed non-Sync backend state, listing paths/open errors and final links to file,
+directory and missing targets. Linux additionally covers a non-UTF-8 root name.
+Full filesystem engine initialization and live provider/race acceptance remain pending.
