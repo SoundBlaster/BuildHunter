@@ -25,6 +25,9 @@ BuildHunterRuntime
     HunterPortable
       DirectoryEnumeration
       MetadataSizing
+    HunterWork
+      TaskScheduling
+      WorkerLifecycle
     HunterMetadata
     PluginScanning
       CandidateObservation

@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/hunter-vendor-review-20261014/source-identity.json"
+  baseline: "specs/validation/hunter-work-20261015/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -29,7 +29,7 @@ Scanner:
   source: "src/lib.rs"
   boundary_spec: "buildhunter.current.scan"
 Traversal:
-  implementation: "Scanner + WorkQueue + run_worker + Hunter visit_directory"
+  implementation: "Scanner + host run_worker + Hunter queue/spawn/visit_directory"
   folded_into: "buildhunter.current.scan"
 Measurement:
   implementation: "Hunter metadata_bytes/MeasuredSize + optional local bulk_metadata"
@@ -95,7 +95,7 @@ CandidateObservation:
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "8295d1418c03d1295cea86f4781352469fa27c78"
+  upstream_revision: "836d764328212fcccb944e0f0a69ba79421b3dcd"
   boundary_spec: "hunter.fs.portable (upstream draft)"
   distribution: "exact vendored std-only path dependency"
 DirectoryEnumeration:
@@ -103,6 +103,17 @@ DirectoryEnumeration:
   folded_into: "buildhunter.current.scan"
 MetadataSizing:
   implementation: "metadata_bytes + MeasuredSize; metadata acquired by host"
+  folded_into: "buildhunter.current.scan"
+HunterWork:
+  source: "vendor/hunter-fs-core/src/work.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "836d764328212fcccb944e0f0a69ba79421b3dcd"
+  boundary_spec: "hunter.fs.work (upstream draft)"
+TaskScheduling:
+  implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
+  folded_into: "buildhunter.current.scan"
+WorkerLifecycle:
+  implementation: "spawn_workers + coordinator shutdown guard; standard scope joins"
   folded_into: "buildhunter.current.scan"
 HunterMetadata:
   source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"

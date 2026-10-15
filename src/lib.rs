@@ -1,5 +1,6 @@
 use hunter_fs_core::{
-    DirectoryEvent, DirectoryVisit, MeasuredSize, metadata_bytes, visit_directory,
+    DirectoryEvent, DirectoryVisit, MeasuredSize, metadata_bytes, spawn_workers, visit_directory,
+    worker_count,
 };
 use std::{
     borrow::Cow,
@@ -598,9 +599,7 @@ fn scan_internal(
         }
     };
     let queue = WorkQueue::default();
-    let workers = std::thread::available_parallelism()
-        .map_or(1, std::num::NonZeroUsize::get)
-        .min(MAX_SCAN_WORKERS);
+    let workers = worker_count(MAX_SCAN_WORKERS);
     let (sender, receiver) = std::sync::mpsc::channel();
     let worker_qos = thread_qos::capture();
     let profile_state = control
@@ -610,7 +609,7 @@ fn scan_internal(
     let profile = profile_state.as_ref();
     let (artifacts, warnings, had_errors, changed) = std::thread::scope(|scope| {
         // Closing on every exit, including a panicking callback, lets the workers finish.
-        let _close = CloseOnDrop(&queue);
+        let _close = queue.close_on_drop();
         // Dropping the sender, also during unwinding, stops the sampler before the join.
         let _stop_sampler = profile.map(|state| {
             let (stop, signal) = std::sync::mpsc::channel::<()>();
@@ -620,14 +619,13 @@ fn scan_internal(
             });
             stop
         });
-        for _ in 0..workers {
+        spawn_workers(scope, &queue, workers, {
             let sender = sender.clone();
-            let queue = &queue;
-            scope.spawn(move || {
+            move |queue| {
                 thread_qos::apply(worker_qos);
                 run_worker(queue, &sender, control, probes, legacy_policy)
-            });
-        }
+            }
+        });
         drop(sender);
         let mut scanner = Scanner {
             root,
@@ -816,61 +814,7 @@ enum WorkerMessage {
     },
 }
 
-#[derive(Default)]
-struct WorkQueue {
-    state: std::sync::Mutex<QueueState>,
-    ready: std::sync::Condvar,
-}
-
-#[derive(Default)]
-struct QueueState {
-    tasks: Vec<ListTask>,
-    closed: bool,
-}
-
-impl WorkQueue {
-    fn push(&self, task: ListTask) {
-        self.state.lock().unwrap().tasks.push(task);
-        self.ready.notify_one();
-    }
-
-    /// Last in, first out: depth-first order completes artifacts early and bounds the queue.
-    fn pop(&self) -> Option<ListTask> {
-        let mut state = self.state.lock().unwrap();
-        loop {
-            if state.closed {
-                return None;
-            }
-            if let Some(task) = state.tasks.pop() {
-                return Some(task);
-            }
-            state = self.ready.wait(state).unwrap();
-        }
-    }
-
-    fn close(&self) {
-        self.state.lock().unwrap().closed = true;
-        self.ready.notify_all();
-    }
-}
-
-struct CloseOnDrop<'a>(&'a WorkQueue);
-
-struct CloseOnPanic<'a>(&'a WorkQueue);
-
-impl Drop for CloseOnPanic<'_> {
-    fn drop(&mut self) {
-        if std::thread::panicking() {
-            self.0.close();
-        }
-    }
-}
-
-impl Drop for CloseOnDrop<'_> {
-    fn drop(&mut self) {
-        self.0.close();
-    }
-}
+type WorkQueue = hunter_fs_core::WorkQueue<ListTask>;
 
 fn run_worker(
     queue: &WorkQueue,
@@ -879,9 +823,8 @@ fn run_worker(
     probes: &Probes,
     legacy_policy: bool,
 ) {
-    // A panicking worker would never send its pending messages; closing the queue lets the
-    // other workers exit, which disconnects the channel and releases the caller.
-    let _close = CloseOnPanic(queue);
+    // Hunter closes the queue on worker panic. Platform access/QoS and
+    // task-specific listing/measurement remain owned by this host.
     let _materialization = match materialization::Guard::enter() {
         Ok(guard) => guard,
         Err(error) => {
@@ -1289,7 +1232,9 @@ where
         };
         self.nodes.push(Some(node));
         self.set_outstanding(self.outstanding + 1);
-        self.queue.push(task);
+        if self.queue.push(task).is_err() {
+            self.control.fail();
+        }
     }
 
     fn discover(&mut self, path: &Path, nested: bool, language: u32, kind: u32) -> u64 {
@@ -2233,6 +2178,69 @@ mod tests {
                 ..Probes::default()
             },
         )
+    }
+
+    #[test]
+    fn callback_unwind_closes_scoped_workers_and_allows_a_followup_scan() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/object.o"), b"data").unwrap();
+        for panic_policy in [true, false] {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                scan_with_policy(
+                    &tree.0,
+                    ScanOptions::default(),
+                    &ScanControl::new(),
+                    |facts| {
+                        if panic_policy && facts.name() == Some(".build") {
+                            panic!("injected policy panic");
+                        }
+                        rust_cli_policy(facts, false)
+                    },
+                    |event| {
+                        if !panic_policy && matches!(event, ScanEvent::ArtifactDiscovered(_)) {
+                            panic!("injected observer panic");
+                        }
+                    },
+                )
+            }));
+            assert!(result.is_err());
+            let report = scan_with_policy(
+                &tree.0,
+                ScanOptions::default(),
+                &ScanControl::new(),
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            );
+            assert_eq!(report.status, ScanStatus::Completed);
+            assert_eq!(report.artifacts.len(), 1);
+        }
+    }
+    #[test]
+    fn worker_probe_panic_propagates_without_stranding_scanner() {
+        let tree = TempTree::new();
+        fs::create_dir(tree.0.join(".build")).unwrap();
+        let triggered = std::sync::Arc::new(AtomicBool::new(false));
+        let flag = triggered.clone();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            scan_hooked(&tree, move |point, path| {
+                if point == ProbePoint::ReadDir && path.file_name() == Some(OsStr::new(".build")) {
+                    flag.store(true, Ordering::SeqCst);
+                    panic!("injected worker probe panic");
+                }
+                Ok(())
+            })
+        }));
+        assert!(triggered.load(Ordering::SeqCst));
+        assert!(result.is_err());
+        let report = scan_with_policy(
+            &tree.0,
+            ScanOptions::default(),
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
     }
 
     #[test]

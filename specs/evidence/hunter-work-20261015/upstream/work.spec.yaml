@@ -1,0 +1,97 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.work
+  title: Scoped recursive-work coordination
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Queue opaque recursive tasks and launch scoped workers with shutdown on
+    coordinator exit or worker panic.
+scope:
+  boundedContext: work_coordination
+  includes:
+  - Generic LIFO task ownership, close/reject/release, blocking wait, scoped worker
+    clones, positive caller cap and panic-triggered shutdown.
+  excludes:
+  - Filesystem selection, product classification, result aggregation, cloud/QoS setup,
+    in-flight I/O interruption, detached threads and bounded whole-queue memory.
+provides:
+  capabilities:
+  - id: hunter.fs.work
+    role: primary
+    summary: Support recursive task expansion with generic queue shutdown and scoped
+      worker launch.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: queue
+    kind: library
+    summary: WorkQueue<T>::push/pop/close/close_on_drop; spawn_workers(scope, queue,
+      count, worker); worker_count(maximum).
+  outbound: []
+constraints:
+- id: ownership
+  level: MUST
+  statement: pop consumes jobs in LIFO order. Closing rejects future pushes, wakes
+    all waiters and releases queued payloads outside the mutex. In-flight jobs remain
+    worker-owned until they finish/drop.
+- id: scope_lifetime
+  level: MUST
+  statement: Borrow workers from caller-owned std::thread::Scope; spawn_workers only
+    launches, and outer scope completion is the join boundary. Coordinator MUST retain
+    close_on_drop inside the scope so closing happens before join on normal exit/unwind.
+- id: panic
+  level: MUST
+  statement: Worker panic closes queue before that worker exits. Other idle workers
+    may then return; std scope propagates worker panic after joining. Host owns result
+    channel closure and active task cancellation. Generic payload destructors/closure
+    Clone must not panic during unwinding.
+- id: budgets
+  level: MUST
+  statement: Count/cap is positive and worker_count limits available parallelism to
+    the caller maximum. Queue remains unbounded; LIFO scheduling does not establish
+    a pending-memory budget or interrupt blocking I/O.
+effects:
+  sideEffects:
+  - id: threads
+    kind: event_emit
+    summary: Launch scoped threads, synchronize task ownership and invoke host worker
+      closures; consumer effects remain caller-owned.
+evidence:
+- id: work_source
+  kind: source
+  path: crates/hunter-fs-core/src/work.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.ownership
+  - constraints.scope_lifetime
+  - constraints.panic
+  - constraints.budgets
+- id: work_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports:
+  - scope
+  - constraints.scope_lifetime
+  - constraints.budgets
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Queue/scoped launch extracted from BuildHunter bb21773. Draft observed contract;
+    filesystem recursion/status remain host-owned. Scope join is not the return of
+    spawn_workers.
+implementationBindings:
+- id: work_implementation
+  scope: component
+  language: rust
+  files:
+    owned:
+    - crates/hunter-fs-core/src/work.rs
+    border:
+    - crates/hunter-fs-core/src/lib.rs

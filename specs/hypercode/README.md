@@ -65,3 +65,7 @@ identities are in hunter-parent-review-20261014; initial extraction records rema
 Portable extraction adds HunterPortable roles at 8295d14 via exact vendored
 source. Fresh identities and map copies are under hunter-portable-20261014.
 Full recursive scanner extraction remains pending.
+
+Generic scoped work extraction at Hunter 836d764 adds HunterWork roles. Fresh
+identities/maps are under hunter-work-20261015. Host filesystem recursion/task bodies
+remain local; worker launch return is not the join boundary. Prior records are historical.

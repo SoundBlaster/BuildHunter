@@ -284,3 +284,6 @@ mod tests {
         assert_eq!(paths, vec![t.0.join(name)]);
     }
 }
+
+mod work;
+pub use work::{ShutdownGuard, WorkQueue, spawn_workers, worker_count};

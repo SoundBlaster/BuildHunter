@@ -134,3 +134,7 @@ specs/validation/hunter-metadata-20261014 receipts.
 Portable extraction follow-up: root scanner now adopts std-only Hunter enumeration
 and metadata sizing via an exact offline-vendored snapshot. Recursive orchestration
 remains local. Details: hunter-portable-extraction.md.
+
+Scoped work follow-up: generic queue/launch/shutdown now belong to Hunter;
+recursive filesystem selection and task bodies remain in BuildHunter.
+See hunter-worker-extraction.md; no full engine extraction is claimed.

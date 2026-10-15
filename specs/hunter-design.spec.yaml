@@ -117,4 +117,6 @@ provenance:
   - >-
     Further partial extraction at 8295d1418c03d1295cea86f4781352469fa27c78 provides hunter.fs.portable:
     one-directory iteration and metadata byte calculation. Host still owns recursion, workers, guards and scan lifetime.
+  - Generic recursive-work queue/scoped launch now extracted at 836d764328212fcccb944e0f0a69ba79421b3dcd.
+    Full filesystem planning/lifecycle remains a host assembly obligation, not completed hunter.design.scan.
 implementationBindings: []
