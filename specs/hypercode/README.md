@@ -87,3 +87,8 @@ Serial task/result bookkeeping at Hunter a24a94526f14819d50c928a666e847ca22eb1ae
 with TaskIdentity/ResponseAccounting/DeferredState. Current map/source identities:
 hunter-ledger-20261015; host protocol, actual worker lifetime and subtree accounting
 remain separate. Prior records are historical.
+
+Subtree totals/readiness at Hunter d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51 add HunterSubtreeProgress
+with ByteAggregation/CompletionReadiness/PartialCompletion. Current source/map
+identities: hunter-subtrees-20261015. Membership, dependent completion ordering and
+actual scan lifetime remain host duties; prior receipts are historical.

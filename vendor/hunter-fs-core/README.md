@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -116,3 +116,26 @@ scope join. Vector/map capacities remain until drop, so the registry has no fixe
 memory bound. Tests cover out-of-order IDs/results, ignored responses, setup
 failure, stopped-state release and invalid host operations. No full scan engine
 or runtime resource improvement follows from this extraction.
+
+## Subtree byte and completion progress
+
+SubtreeProgress holds numeric progress for one host-selected subtree. add_bytes
+saturates u64 addition; set_bytes replaces the total for a known leaf. Host chooses
+consistent byte units, routes contributions and owns membership/deduplication.
+mark_partial is sticky. add_pending_directory/finish_pending_directory announce
+and retire descendant work, without queueing anything (invalid counter operations
+panic). finish_root records that root processing finished. is_ready requires that
+flag, zero pending directories and no prior completion; it proves no worker join.
+
+complete(force_partial) returns current bytes and stored_partial OR force_partial
+once, then None. It deliberately does not require readiness: the host checks it
+for ordinary directory completion, may finalize a known leaf directly, or may
+force a partial prefix on early stop. Pending counts are not cleared and later
+host updates are not frozen, but no second completion value is returned. The host
+orders dependent completions and publishes status/events; no hierarchy, paths,
+IDs, callbacks or owned heap buffers live inside this state.
+
+Tests cover empty/finished roots, early/late directory completion, separate nested
+states, saturating sums, explicit leaf totals, partial flags, forced partial prefixes,
+one-shot completion and invalid counters. Full tree scheduling, metadata effects,
+whole-scan memory and lifetime remain separate from this numeric helper.

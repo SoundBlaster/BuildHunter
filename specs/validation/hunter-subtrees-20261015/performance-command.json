@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "scripts/compare_performance.py",
+    "--baseline-ref",
+    "d68a834edfbaf0ffdfcc9c1738bbe2598db25be5",
+    "--output-dir",
+    "/tmp/buildhunter-subtree-performance"
+  ],
+  "exit_code": 0,
+  "note": "Runtime source matches final file hashes; dirty candidate_sha identifies only the checkout base."
+}

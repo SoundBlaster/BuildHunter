@@ -1,7 +1,8 @@
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryTaskLedger, DirectoryVisit,
-    MeasuredSize, PlannedChild, metadata_bytes, spawn_workers, visit_directory, worker_count,
+    MeasuredSize, PlannedChild, SubtreeProgress, metadata_bytes, spawn_workers, visit_directory,
+    worker_count,
 };
 use std::{
     borrow::Cow,
@@ -996,16 +997,6 @@ struct FileSlot {
     artifact: Option<u64>,
 }
 
-#[derive(Default)]
-struct ArtifactProgress {
-    bytes: u64,
-    /// Directories below the artifact root that are queued but not yet finished.
-    pending: usize,
-    partial: bool,
-    root_finished: bool,
-    completed: bool,
-}
-
 struct Scanner<'a, P, E> {
     root: &'a Path,
     options: ScanOptions,
@@ -1017,7 +1008,7 @@ struct Scanner<'a, P, E> {
     queue: &'a WorkQueue,
     receiver: std::sync::mpsc::Receiver<WorkerMessage>,
     artifacts: Vec<Artifact>,
-    progress: Vec<ArtifactProgress>,
+    progress: Vec<SubtreeProgress>,
     warnings: Vec<ScanWarning>,
     had_errors: bool,
     changed: bool,
@@ -1096,7 +1087,7 @@ where
         self.warnings.push(warning.clone());
         self.emit(&ScanEvent::Warning(warning));
         for id in chain {
-            self.progress[Self::index(*id)].partial = true;
+            self.progress[Self::index(*id)].mark_partial();
         }
     }
 
@@ -1187,8 +1178,8 @@ where
         }
         // Stopping leaves open artifacts; report them innermost first, as partial.
         for index in (0..self.progress.len()).rev() {
-            if !self.progress[index].completed {
-                self.progress[index].partial = true;
+            if !self.progress[index].is_completed() {
+                self.progress[index].mark_partial();
                 self.complete(index as u64 + 1);
             }
         }
@@ -1218,16 +1209,17 @@ where
         }
         self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
         self.artifacts.push(artifact);
-        self.progress.push(ArtifactProgress::default());
+        self.progress.push(SubtreeProgress::default());
         id
     }
 
     fn complete(&mut self, id: u64) {
         let index = Self::index(id);
-        let progress = &mut self.progress[index];
-        progress.completed = true;
-        let bytes = progress.bytes;
-        let partial = progress.partial || self.control.should_stop();
+        let completion = self.progress[index]
+            .complete(self.control.should_stop())
+            .expect("each artifact completes once");
+        let bytes = completion.bytes;
+        let partial = completion.partial;
         self.artifacts[index].bytes = bytes;
         self.artifacts[index].partial = partial;
         self.emit(&ScanEvent::ArtifactCompleted { id, bytes, partial });
@@ -1307,10 +1299,10 @@ where
         }
         for id in chain {
             let progress = &mut self.progress[Self::index(*id)];
-            progress.bytes = progress.bytes.saturating_add(bytes);
+            progress.add_bytes(bytes);
         }
         if let Some(id) = slot.artifact {
-            self.progress[Self::index(id)].bytes = bytes;
+            self.progress[Self::index(id)].set_bytes(bytes);
             self.complete(id);
         }
     }
@@ -1401,7 +1393,7 @@ where
             match child {
                 PlannedChild::Directory { request, .. } => {
                     for id in &chain {
-                        self.progress[Self::index(*id)].pending += 1;
+                        self.progress[Self::index(*id)].add_pending_directory();
                     }
                     let child_node = DirNode {
                         path: request.path.clone(),
@@ -1473,7 +1465,7 @@ where
                     }
                     for id in &chain {
                         let progress = &mut self.progress[Self::index(*id)];
-                        progress.bytes = progress.bytes.saturating_add(bytes);
+                        progress.add_bytes(bytes);
                     }
                 }
                 Err(error) => self.io_error(&path, error, &chain),
@@ -1493,14 +1485,14 @@ where
     /// whose subtree has no queued directories left, innermost first.
     fn finish_directory(&mut self, chain: &[u64], parent_len: usize) {
         for id in &chain[..parent_len] {
-            self.progress[Self::index(*id)].pending -= 1;
+            self.progress[Self::index(*id)].finish_pending_directory();
         }
         if let Some(id) = chain.get(parent_len) {
-            self.progress[Self::index(*id)].root_finished = true;
+            self.progress[Self::index(*id)].finish_root();
         }
         for id in chain.iter().rev() {
             let progress = &self.progress[Self::index(*id)];
-            if progress.root_finished && progress.pending == 0 && !progress.completed {
+            if progress.is_ready() {
                 self.complete(*id);
             }
         }
@@ -2103,6 +2095,80 @@ mod tests {
         assert_eq!(report.status, ScanStatus::CompletedWithChanges);
         assert!(report.artifacts[0].partial);
         assert!(report.warnings[0].message.contains("Changed during scan"));
+    }
+
+    #[test]
+    fn nested_subtrees_propagate_partial_sizes_and_complete_innermost_once() {
+        let tree = TempTree::new();
+        let build = tree.0.join(".build");
+        let cache = build.join("__pycache__");
+        fs::create_dir_all(&cache).unwrap();
+        fs::write(build.join("object.o"), b"12345").unwrap();
+        fs::write(cache.join("good.pyc"), b"1234567").unwrap();
+        let denied = cache.join("denied.pyc");
+        fs::write(&denied, b"unmeasured").unwrap();
+        let failed_path = denied.clone();
+        let probes = Probes {
+            hook: Some(Box::new(move |point, path| {
+                if point == ProbePoint::Metadata && path == failed_path {
+                    Err(std::io::Error::from(std::io::ErrorKind::PermissionDenied))
+                } else {
+                    Ok(())
+                }
+            })),
+            ..Probes::default()
+        };
+        let mut completed = Vec::new();
+        let report = scan_with_probes(
+            &tree.0,
+            ScanOptions {
+                apparent_size: true,
+            },
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |event| {
+                if let ScanEvent::ArtifactCompleted { id, .. } = event {
+                    completed.push(*id);
+                }
+            },
+            &probes,
+        );
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert_eq!(report.warnings.len(), 1);
+        assert_eq!(
+            report.warnings[0].relative_path,
+            Path::new(".build/__pycache__/denied.pyc")
+        );
+        let find = |path: &str| {
+            report
+                .artifacts
+                .iter()
+                .find(|a| a.relative_path == Path::new(path))
+                .unwrap()
+        };
+        let outer = find(".build");
+        let inner = find(".build/__pycache__");
+        let good = find(".build/__pycache__/good.pyc");
+        let failed = find(".build/__pycache__/denied.pyc");
+        assert_eq!(report.artifacts.len(), 4);
+        let cache_bytes = fs::symlink_metadata(&cache).unwrap().len();
+        assert_eq!(inner.bytes, cache_bytes + 7);
+        assert_eq!(
+            outer.bytes,
+            fs::symlink_metadata(&build).unwrap().len() + 5 + cache_bytes + 7
+        );
+        assert_eq!(report.total_bytes(), outer.bytes);
+        assert!(outer.partial && inner.partial && failed.partial);
+        assert_eq!(failed.bytes, 0);
+        assert_eq!(good.bytes, 7);
+        assert!(!good.partial);
+        let position = |id| completed.iter().position(|seen| *seen == id).unwrap();
+        assert!(position(good.id) < position(inner.id));
+        assert!(position(failed.id) < position(inner.id));
+        assert!(position(inner.id) < position(outer.id));
+        for artifact in &report.artifacts {
+            assert_eq!(completed.iter().filter(|id| **id == artifact.id).count(), 1);
+        }
     }
 
     #[test]
