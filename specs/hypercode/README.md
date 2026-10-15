@@ -97,3 +97,8 @@ Serial result execution at Hunter 3af2a4dd549f473e79364b45f248197ee4ec57ee adds 
 with ResultPump/IdleCheckpoint/StopBoundary. Latest map/source identities and frozen
 maps are under hunter-execution-20261015. Root admission, backend effects, product
 finalization/status and actual scan lifetime remain host assembly responsibilities.
+
+Native backend/root observation at Hunter 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db adds
+HunterFilesystemBackend with NativePathAccess/RootInitialization. Current identities
+and frozen maps are under hunter-backend-20261015. Guard/admission/marker/bulk effects
+and full engine lifecycle remain host responsibilities.

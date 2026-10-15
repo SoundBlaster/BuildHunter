@@ -1,0 +1,18 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "-B",
+    "scripts/compare_performance.py",
+    "--baseline-ref",
+    "7ef5bd98e1b4deca3c5b5f212ff5f89f41b9eba9",
+    "--output-dir",
+    "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/performance-backend"
+  ],
+  "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+  "exit_code": 0,
+  "stdout": "HEAD is now at 7ef5bd9 Adopt Hunter serial scan execution loop (#77)\n| Scenario / metric | Base median (ms) | Candidate median (ms) | Result |\n|---|---:|---:|---|\n| source-tree / elapsed_ns | 3.290 | 3.293 | PASS |\n| source-tree / first_artifact_ns | 0.412 | 0.454 | PASS |\n| many-roots / elapsed_ns | 78.060 | 78.729 | PASS |\n| many-roots / first_artifact_ns | 3.326 | 3.451 | PASS |\n| pruned-git / elapsed_ns | 0.209 | 0.212 | PASS |\n| cancel / elapsed_ns | 1.899 | 1.876 | PASS |\n| cancel / first_artifact_ns | 1.808 | 1.792 | PASS |\n| cancel / cancellation_latency_ns | 0.086 | 0.081 | PASS |\n\n",
+  "stderr": "Preparing worktree (detached HEAD 7ef5bd9)\n   Compiling hunter-fs-core v0.1.0 (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/buildhunter-performance-682uxiu0/baseline/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/buildhunter-performance-682uxiu0/baseline)\n    Finished `release` profile [optimized] target(s) in 1.86s\n   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n    Finished `release` profile [optimized] target(s) in 0.90s\n",
+  "note": "Separate baseline/candidate output directories and temporary fixture/worktree routed to verified TB5."
+}

@@ -47,6 +47,9 @@ BuildHunterRuntime
       ResultPump
       IdleCheckpoint
       StopBoundary
+    HunterFilesystemBackend
+      NativePathAccess
+      RootInitialization
     HunterMetadata
     PluginScanning
       CandidateObservation
