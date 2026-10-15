@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -139,3 +139,32 @@ Tests cover empty/finished roots, early/late directory completion, separate nest
 states, saturating sums, explicit leaf totals, partial flags, forced partial prefixes,
 one-shot completion and invalid counters. Full tree scheduling, metadata effects,
 whole-scan memory and lifetime remain separate from this numeric helper.
+
+## Serial scan execution
+
+drive_scan runs an already initialized coordinator's receive loop. ScanCoordinator
+supplies outstanding work, stop checks, checkpoints, receipt accounting and opaque
+message dispatch. Zero outstanding work wins at a loop boundary; otherwise stop
+ends the loop. Each iteration checkpoints, waits, retires a received response,
+checks stop again, then dispatches. Dispatch may add new work. Stop after receipt
+returns Stopped even if the count reached zero, and drops the received payload.
+Unread responses remain in the host-owned receiver.
+
+None selects blocking receive; a positive optional duration enables idle checkpoint
+and stop checks. Zero duration panics. Timeout never retires a response; disconnect
+returns Disconnected without changing counts. A stop triggered during checkpoint
+is checked after receipt or on the next timeout loop, preserving the original host
+boundary. Blocking receive/syscalls/callbacks cannot be interrupted by this helper.
+The host must ensure response/disconnect or enable timed waits for idle cancellation.
+
+The host and messages can borrow non-Send/non-static state. Callbacks stay on the
+calling thread and their panics propagate. The pump owns no buffers/channels/workers.
+Drained/Stopped/Disconnected describe loop exit only, not final statuses or joins.
+Host owns root admission, backends/guards, result protocol, partial finalization,
+status mapping and terminal publication. Queue/helper shutdown guards must survive
+inside the outer thread scope on every exit; actual scope completion joins workers.
+This extracts common execution mechanics, not a complete generic filesystem engine.
+
+Ten tests cover empty/pre-stopped work, recursive dispatch, both stop boundaries,
+timeout checkpoints, disconnected channels, callback panic, zero timeout rejection
+and borrowed non-Send state. Existing worker panic/join tests remain separate gates.
