@@ -35,6 +35,10 @@ BuildHunterRuntime
     HunterChildTraversal
       ChildAdmission
       RecursiveRequests
+    HunterTaskLedger
+      TaskIdentity
+      ResponseAccounting
+      DeferredState
     HunterMetadata
     PluginScanning
       CandidateObservation

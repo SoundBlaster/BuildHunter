@@ -1,0 +1,1 @@
+Public upstream draft from Hunter a24a94526f14819d50c928a666e847ca22eb1ae1, original specs/task-ledger.spec.yaml. Evidence only; runtime is the exact eight-file std-only core snapshot in UPSTREAM.json.

@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -90,3 +90,29 @@ retains guards, schedules requests, accounts for descendants/results and maps st
 into final status. Full recursion/lifecycle/reporting and memory budgets remain
 outside this helper. Tests cover filtering/order/indices/context cloning, terminal
 stop, empty input, stale observations without I/O and Unix raw paths/symlinks.
+
+## Serial task ledger
+
+DirectoryTaskLedger is an in-memory registry for a serial host coordinator, not a
+scheduler or protocol validator. register(request,state) assigns a zero-based,
+non-reused usize ID, moves request values into a task, stores opaque state and
+reserves one expected listing response. The host then enqueues the returned task;
+queue rejection remains a host failure decision. outstanding counts messages,
+not running jobs or bytes. take_listing moves state once and reserves an additional
+response when measuring is true. Invalid/repeated listing IDs panic.
+
+The host calls response_received once for each received message, before its stop
+check or result dispatch. It retires one expected message (panic at zero), including
+setup failure followed by host shutdown. After a measuring listing the host defers
+Some pending state or None for speculative work it will ignore, at most once per
+ID, before consuming Measured. take_measurement moves/removes the state once;
+ignored/unknown/repeated measurement IDs yield None. Neither deferral nor lookup
+changes counters or validates wire order/identity. The host owns those obligations,
+channels, cancellation, queue lifetime, recursive accounting and final status.
+
+Payloads are opaque and never cloned. Unclaimed listing/deferred values release
+on ledger drop, independently of worker completion; retain guards until actual
+scope join. Vector/map capacities remain until drop, so the registry has no fixed
+memory bound. Tests cover out-of-order IDs/results, ignored responses, setup
+failure, stopped-state release and invalid host operations. No full scan engine
+or runtime resource improvement follows from this extraction.

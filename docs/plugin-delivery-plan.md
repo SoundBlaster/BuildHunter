@@ -154,3 +154,16 @@ coordinator/result bookkeeping is the next boundary; whole-scan memory budgets
 remain open. See docs/hunter-child-traversal.md and the fresh source/runtime/map
 receipts in specs/validation/hunter-children-20261015. Historical receipts are
 retained and do not validate this revision; contracts remain draft.
+
+## Task/result ledger — 2026-10-15
+
+HunterTaskLedger now owns non-reused IDs, opaque listing/deferred state and
+expected-response counting. BuildHunter supplies DirNode/PendingMeasure, retires
+each received message before stop/dispatch, preserves ignored speculative results
+and mirrors counts into existing profiling. Queue rejection/setup failure, guard
+lifetime, scope join, subtree completion, C1–C4 product decisions and terminal
+status remain host-owned. C5 is open: arena/map capacity and unbounded channels/
+reports remain. New draft capability and current scan bindings are covered by
+specs/validation/hunter-ledger-20261015 and specs/evidence/hunter-ledger-20261015;
+prior receipts remain historical. See docs/hunter-task-ledger.md for protocol and
+ownership duties; no full target lifecycle/resource acceptance is claimed.

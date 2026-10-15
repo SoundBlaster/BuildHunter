@@ -82,3 +82,8 @@ Host-selected recursive child requests at Hunter 491399c849f9d95beae564caab32dd6
 HunterChildTraversal/ChildAdmission/RecursiveRequests roles; current/target
 map identities are under hunter-children-20261015. Product selection/aggregation
 and full recursive coordinator remain host-owned. Previous receipts are historical.
+
+Serial task/result bookkeeping at Hunter a24a94526f14819d50c928a666e847ca22eb1ae1 adds HunterTaskLedger
+with TaskIdentity/ResponseAccounting/DeferredState. Current map/source identities:
+hunter-ledger-20261015; host protocol, actual worker lifetime and subtree accounting
+remain separate. Prior records are historical.

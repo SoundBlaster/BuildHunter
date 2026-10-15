@@ -1,0 +1,233 @@
+[
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 57 tests\ntest process_resources::tests::current_process_has_resident_memory_and_monotonic_cpu_accounting ... ok\ntest policy_table::tests::projection_uses_actual_names_exact_precedence_suffixes_and_invalid_cell ... ok\ntest resources::tests::cpu_is_not_clamped_to_one_core_and_ram_is_time_weighted ... ok\ntest resources::tests::decreasing_cpu_counters_are_unavailable_not_an_underflow ... ok\ntest materialization::darwin::tests::guard_restores_policy_after_nested_use_and_unwind ... ok\ntest resources::tests::unavailable_readings_are_gaps_and_not_zeroes ... ok\ntest policy_table::tests::table_ffi_rejects_invalid_arguments_without_calling_events ... ok\ntest policy_table::tests::all_projection_cells_round_trip_and_ignore_unknown_marker_bits ... ok\ntest profile::tests::records_from_any_thread_stay_strictly_ordered ... ok\ntest policy_table::tests::table_scan_preserves_cancellation_and_partial_completion_events ... ok\ntest materialization::darwin::tests::scan_restores_coordinator_after_callback_panics ... ok\ntest tests::cancelled_profile_still_emits_a_terminal_snapshot ... ok\ntest materialization::darwin::tests::scan_protects_coordinator_and_restores_it_after_cancel ... ok\ntest materialization::darwin::tests::every_filesystem_probe_has_downloads_disabled ... ok\ntest tests::coordinator_consumes_ignored_speculative_measurement_before_finishing ... ok\ntest tests::disappearance_of_selected_root_remains_an_error ... ok\ntest tests::candidate_observer_bypasses_name_gate_and_legacy_marker_probes ... ok\ntest tests::ffi_profile_payload_can_be_copied_during_callback ... ok\ntest tests::filter_catalog_is_generated_from_public_descriptors_and_has_stable_ffi_storage ... ok\ntest policy_table::tests::table_scan_matches_callback_events_and_uses_an_owned_table_copy ... ok\ntest tests::cancellation_emits_a_partial_completion_and_terminal_state ... ok\ntest tests::filter_ids_are_individual_and_keep_existing_classification_eligibility ... ok\ntest tests::ffi_policy_failure_marks_an_open_artifact_measurement_partial ... ok\ntest tests::managed_cloud_paths_match_only_standard_user_locations ... ok\ntest tests::callback_unwind_closes_scoped_workers_and_allows_a_followup_scan ... ok\ntest tests::identified_cloud_skip_is_not_mistaken_for_temporary_file_churn ... ok\ntest tests::excluding_roots_traverses_them_and_keeps_subtree_measurement_whole ... ok\ntest tests::ffi_policy_failure_stops_before_visiting_other_candidates ... ok\ntest profile::tests::a_long_stall_loses_no_samples ... ok\ntest tests::new_files_before_listing_are_included_and_after_listing_wait_for_rescan ... ok\ntest tests::rust_cli_profile_preserves_environment_opt_in_and_marker_rules ... ok\ntest tests::planned_children_preserve_nested_sizes_and_host_pruning ... ok\ntest tests::renamed_file_is_reported_as_changed_without_counting_its_new_name_twice ... ok\ntest tests::selected_cloud_location_is_marked_without_filesystem_probes ... ok\ntest tests::profiling_preserves_results_and_counts_nested_measurements_once ... ok\ntest tests::selected_artifact_root_uses_dot_as_its_relative_path ... ok\ntest tests::real_errors_still_make_a_changing_scan_incomplete ... ok\ntest tests::unreadable_symlinked_marker_is_visible_for_parent_and_selected_artifact ... ok\ntest tests::selected_root_vanishing_after_listing_is_not_ordinary_child_churn ... ok\ntest tests::symlinked_markers_count_when_they_resolve_to_files ... ok\ntest tests::swift_policy_events_measure_outer_roots_and_keep_path_bytes ... ok\ntest tests::vanished_directory_marks_ancestors_but_not_other_artifacts ... ok\ntest tests::markers_come_from_directory_listings_without_extra_probes ... ok\ntest tests::vanished_file_marks_its_artifact_partial_without_failing_the_scan ... ok\ntest thread_qos::tests::propagates_default_class_and_relative_priority ... ok\ntest thread_qos::tests::propagates_user_initiated_class_and_relative_priority ... ok\ntest thread_qos::tests::unspecified_qos_is_a_no_op ... ok\ntest tests::worker_phase_timings_are_opt_in_and_preserve_the_report ... ok\ntest tests::worker_probe_panic_propagates_without_stranding_scanner ... ok\ntest tests::worker_publishes_listing_before_metadata_and_cancelled_measurement_response ... ok\ntest tests::nodes_outside_artifacts_are_typed_without_metadata_calls ... ok\ntest tests::directories_are_listed_off_the_calling_thread_and_callbacks_stay_on_it ... ok\ntest tests::temporary_trees_have_independent_paths_and_cleanup ... ok\ntest profile::tests::sampler_ticks_on_interval_boundaries_until_stopped ... ok\ntest tests::external_cancel_while_a_worker_measures_still_returns ... ok\ntest tests::profile_updates_inside_a_large_directory_response ... ok\ntest tests::blocked_event_consumer_does_not_thin_the_profile_timeline ... ok\n\ntest result: ok. 57 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.03s\n\n\nrunning 4 tests\ntest tests::escapes_json ... ok\ntest profile_report::tests::zero_elapsed_and_duplicate_samples_never_emit_nonfinite_rates ... ok\ntest tests::shared_scanner_preserves_nested_and_language_filter_behavior ... ok\ntest profile_report::tests::bounded_history_keeps_whole_scan_mean_and_peak ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.71s\n     Running unittests src/lib.rs (target/debug/deps/build_hunter-7ebf2bdcc41ac026)\n     Running unittests src/main.rs (target/debug/deps/build_hunter-e8279440a0600375)\n   Doc-tests build_hunter\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 61 tests\ntest policy_table::tests::projection_uses_actual_names_exact_precedence_suffixes_and_invalid_cell ... ok\ntest bulk_metadata::tests::rejects_truncated_overflowing_and_negative_records ... ok\ntest bulk_metadata::tests::validates_name_references_sizes_and_per_entry_errors ... ok\ntest materialization::darwin::tests::guard_restores_policy_after_nested_use_and_unwind ... ok\ntest process_resources::tests::current_process_has_resident_memory_and_monotonic_cpu_accounting ... ok\ntest policy_table::tests::table_ffi_rejects_invalid_arguments_without_calling_events ... ok\ntest resources::tests::cpu_is_not_clamped_to_one_core_and_ram_is_time_weighted ... ok\ntest bulk_metadata::tests::does_not_open_a_symlinked_directory ... ok\ntest resources::tests::decreasing_cpu_counters_are_unavailable_not_an_underflow ... ok\ntest policy_table::tests::all_projection_cells_round_trip_and_ignore_unknown_marker_bits ... ok\ntest resources::tests::unavailable_readings_are_gaps_and_not_zeroes ... ok\ntest materialization::darwin::tests::scan_protects_coordinator_and_restores_it_after_cancel ... ok\ntest profile::tests::records_from_any_thread_stay_strictly_ordered ... ok\ntest bulk_metadata::tests::batch_sizes_match_stat_for_files_sparse_files_and_hard_links ... ok\ntest policy_table::tests::table_scan_preserves_cancellation_and_partial_completion_events ... ok\ntest materialization::darwin::tests::scan_restores_coordinator_after_callback_panics ... ok\ntest tests::cancelled_profile_still_emits_a_terminal_snapshot ... ok\ntest materialization::darwin::tests::every_filesystem_probe_has_downloads_disabled ... ok\ntest tests::disappearance_of_selected_root_remains_an_error ... ok\ntest tests::coordinator_consumes_ignored_speculative_measurement_before_finishing ... ok\ntest policy_table::tests::table_scan_matches_callback_events_and_uses_an_owned_table_copy ... ok\ntest tests::ffi_profile_payload_can_be_copied_during_callback ... ok\ntest tests::filter_catalog_is_generated_from_public_descriptors_and_has_stable_ffi_storage ... ok\ntest tests::filter_ids_are_individual_and_keep_existing_classification_eligibility ... ok\ntest tests::candidate_observer_bypasses_name_gate_and_legacy_marker_probes ... ok\ntest tests::managed_cloud_paths_match_only_standard_user_locations ... ok\ntest tests::ffi_policy_failure_marks_an_open_artifact_measurement_partial ... ok\ntest tests::callback_unwind_closes_scoped_workers_and_allows_a_followup_scan ... ok\ntest tests::cancellation_emits_a_partial_completion_and_terminal_state ... ok\ntest tests::identified_cloud_skip_is_not_mistaken_for_temporary_file_churn ... ok\ntest tests::excluding_roots_traverses_them_and_keeps_subtree_measurement_whole ... ok\ntest profile::tests::a_long_stall_loses_no_samples ... ok\ntest tests::ffi_policy_failure_stops_before_visiting_other_candidates ... ok\ntest tests::new_files_before_listing_are_included_and_after_listing_wait_for_rescan ... ok\ntest tests::rust_cli_profile_preserves_environment_opt_in_and_marker_rules ... ok\ntest tests::profiling_preserves_results_and_counts_nested_measurements_once ... ok\ntest tests::real_errors_still_make_a_changing_scan_incomplete ... ok\ntest tests::planned_children_preserve_nested_sizes_and_host_pruning ... ok\ntest tests::selected_artifact_root_uses_dot_as_its_relative_path ... ok\ntest tests::renamed_file_is_reported_as_changed_without_counting_its_new_name_twice ... ok\ntest tests::selected_cloud_location_is_marked_without_filesystem_probes ... ok\ntest tests::selected_root_vanishing_after_listing_is_not_ordinary_child_churn ... ok\ntest tests::swift_policy_events_measure_outer_roots_and_keep_path_bytes ... ok\ntest tests::unreadable_symlinked_marker_is_visible_for_parent_and_selected_artifact ... ok\ntest tests::markers_come_from_directory_listings_without_extra_probes ... ok\ntest tests::vanished_file_marks_its_artifact_partial_without_failing_the_scan ... ok\ntest tests::worker_phase_timings_are_opt_in_and_preserve_the_report ... ok\ntest thread_qos::tests::propagates_default_class_and_relative_priority ... ok\ntest tests::symlinked_markers_count_when_they_resolve_to_files ... ok\ntest thread_qos::tests::unspecified_qos_is_a_no_op ... ok\ntest thread_qos::tests::propagates_user_initiated_class_and_relative_priority ... ok\ntest tests::worker_publishes_listing_before_metadata_and_cancelled_measurement_response ... ok\ntest tests::vanished_directory_marks_ancestors_but_not_other_artifacts ... ok\ntest tests::worker_probe_panic_propagates_without_stranding_scanner ... ok\ntest tests::nodes_outside_artifacts_are_typed_without_metadata_calls ... ok\ntest tests::directories_are_listed_off_the_calling_thread_and_callbacks_stay_on_it ... ok\ntest tests::temporary_trees_have_independent_paths_and_cleanup ... ok\ntest profile::tests::sampler_ticks_on_interval_boundaries_until_stopped ... ok\ntest tests::external_cancel_while_a_worker_measures_still_returns ... ok\ntest tests::profile_updates_inside_a_large_directory_response ... ok\ntest tests::blocked_event_consumer_does_not_thin_the_profile_timeline ... ok\n\ntest result: ok. 61 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.03s\n\n\nrunning 4 tests\ntest tests::escapes_json ... ok\ntest profile_report::tests::zero_elapsed_and_duplicate_samples_never_emit_nonfinite_rates ... ok\ntest tests::shared_scanner_preserves_nested_and_language_filter_behavior ... ok\ntest profile_report::tests::bounded_history_keeps_whole_scan_mean_and_peak ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.00s\n     Running unittests src/lib.rs (target/debug/deps/build_hunter-a660cc3900d3d5f2)\n     Running unittests src/main.rs (target/debug/deps/build_hunter-80dc4e383cbb4ca9)\n   Doc-tests build_hunter\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/hunter-ledger-vendor-ag__ki4a/hunter-fs-core/Cargo.toml",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 31 tests\ntest ledger::tests::ignored_measurement_still_needs_a_response_but_has_no_payload ... ok\ntest ledger::tests::dropping_stopped_ledger_releases_unclaimed_listing_and_pending_payloads_once ... ok\ntest ledger::tests::registration_assigns_nonreused_ids_and_retains_request_values ... ok\ntest ledger::tests::listed_and_measured_messages_keep_separate_response_counts ... ok\ntest ledger::tests::setup_failure_receipt_leaves_unclaimed_state_for_drop ... ok\ntest ledger::tests::duplicate_listing_is_a_host_protocol_error - should panic ... ok\ntest ledger::tests::response_without_outstanding_work_is_a_host_protocol_error - should panic ... ok\ntest children::tests::empty_or_all_skipped_listing_completes_without_stop ... ok\ntest children::tests::routing_uses_supplied_observation_without_new_io ... ok\ntest tests::failed_open_preserves_path_and_os_error_even_if_cancelled ... ok\ntest tests::empty_directory_completes_without_observations ... ok\ntest children::tests::selection_preserves_order_indices_and_clones_context_only_for_directories ... ok\ntest children::tests::directory_symlink_is_a_leaf_and_raw_path_is_preserved ... ok\ntest task::tests::symbolic_link_and_directory_slots_do_not_invoke_backend ... ok\ntest task::tests::cancellation_keeps_original_slot_prefix ... ok\ntest work::tests::close_releases_queued_payloads_without_dropping_in_flight_payload ... ok\ntest work::tests::lifo_and_closed_queue_returns_task_ownership ... ok\ntest work::tests::coordinator_unwind_closes_queue_before_scope_join ... ok\ntest work::tests::closing_releases_all_idle_workers ... ok\ntest work::tests::worker_cap_is_positive_and_respected ... ok\ntest task::tests::slot_alignment_and_directory_prepare_file_order_are_preserved ... ok\ntest children::tests::stop_is_terminal_and_keeps_already_returned_prefix ... ok\ntest work::tests::workers_can_expand_recursive_tasks_and_finish_before_return ... ok\ntest work::tests::worker_panic_closes_peers_before_coordinator_exits ... ok\ntest task::tests::cancelled_plan_still_prepares_after_directory_error_but_does_not_measure_slots ... ok\ntest tests::enumerates_directory_file_and_link_without_following_link_target ... ok\ntest tests::sparse_file_sizes_match_platform_metadata ... ok\ntest task::tests::intent_and_host_prefetch_select_plan_without_context_policy ... ok\ntest tests::cancellation_retains_only_the_emitted_prefix ... ok\ntest tests::hard_links_remain_individually_measured ... ok\ntest tests::iteration_errors_do_not_discard_later_entries ... ok\n\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/hunter-ledger-vendor-ag__ki4a/hunter-fs-core)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s\n     Running unittests src/lib.rs (/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/hunter-ledger-vendor-ag__ki4a/hunter-fs-core/target/debug/deps/hunter_fs_core-fc40e6547d42589b)\n   Doc-tests hunter_fs_core\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/hunter-ledger-vendor-ag__ki4a/hunter-fs-core/Cargo.toml",
+      "--offline",
+      "--release"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 31 tests\ntest ledger::tests::dropping_stopped_ledger_releases_unclaimed_listing_and_pending_payloads_once ... ok\ntest ledger::tests::listed_and_measured_messages_keep_separate_response_counts ... ok\ntest ledger::tests::ignored_measurement_still_needs_a_response_but_has_no_payload ... ok\ntest ledger::tests::registration_assigns_nonreused_ids_and_retains_request_values ... ok\ntest ledger::tests::setup_failure_receipt_leaves_unclaimed_state_for_drop ... ok\ntest ledger::tests::duplicate_listing_is_a_host_protocol_error - should panic ... ok\ntest ledger::tests::response_without_outstanding_work_is_a_host_protocol_error - should panic ... ok\ntest tests::empty_directory_completes_without_observations ... ok\ntest children::tests::routing_uses_supplied_observation_without_new_io ... ok\ntest tests::failed_open_preserves_path_and_os_error_even_if_cancelled ... ok\ntest children::tests::directory_symlink_is_a_leaf_and_raw_path_is_preserved ... ok\ntest children::tests::selection_preserves_order_indices_and_clones_context_only_for_directories ... ok\ntest children::tests::empty_or_all_skipped_listing_completes_without_stop ... ok\ntest tests::cancellation_retains_only_the_emitted_prefix ... ok\ntest work::tests::close_releases_queued_payloads_without_dropping_in_flight_payload ... ok\ntest task::tests::intent_and_host_prefetch_select_plan_without_context_policy ... ok\ntest work::tests::lifo_and_closed_queue_returns_task_ownership ... ok\ntest task::tests::cancelled_plan_still_prepares_after_directory_error_but_does_not_measure_slots ... ok\ntest task::tests::cancellation_keeps_original_slot_prefix ... ok\ntest task::tests::slot_alignment_and_directory_prepare_file_order_are_preserved ... ok\ntest children::tests::stop_is_terminal_and_keeps_already_returned_prefix ... ok\ntest work::tests::closing_releases_all_idle_workers ... ok\ntest work::tests::worker_cap_is_positive_and_respected ... ok\ntest work::tests::coordinator_unwind_closes_queue_before_scope_join ... ok\ntest task::tests::symbolic_link_and_directory_slots_do_not_invoke_backend ... ok\ntest work::tests::workers_can_expand_recursive_tasks_and_finish_before_return ... ok\ntest tests::iteration_errors_do_not_discard_later_entries ... ok\ntest tests::sparse_file_sizes_match_platform_metadata ... ok\ntest work::tests::worker_panic_closes_peers_before_coordinator_exits ... ok\ntest tests::enumerates_directory_file_and_link_without_following_link_target ... ok\ntest tests::hard_links_remain_individually_measured ... ok\n\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/hunter-ledger-vendor-ag__ki4a/hunter-fs-core)\n    Finished `release` profile [optimized] target(s) in 0.50s\n     Running unittests src/lib.rs (/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/hunter-ledger-vendor-ag__ki4a/hunter-fs-core/target/release/deps/hunter_fs_core-c687ed5419297fdf)\n   Doc-tests hunter_fs_core\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "crates/buildhunter-plugin-scanner/Cargo.toml",
+      "--locked"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest report_pins_catalog_identity_and_unknown_exclusions ... ok\ntest parent_of_selected_root_is_unknown_and_not_read ... ok\ntest cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\ntest git_is_a_host_prune_even_when_children_match_plugins ... ok\ntest file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok\ntest excluding_outer_target_preserves_distinct_enabled_inner_target ... ok\ntest ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok\ntest symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok\ntest excluded_parent_keeps_traversing_descendants ... ok\ntest nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok\ntest diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/crates/buildhunter-plugin-scanner)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.24s\n     Running unittests src/lib.rs (crates/buildhunter-plugin-scanner/target/debug/deps/buildhunter_plugin_scanner-ae21e3d73a1a59b1)\n     Running tests/scanning.rs (crates/buildhunter-plugin-scanner/target/debug/deps/scanning-b7b93c5bb336f8c0)\n     Running tests/unsupported.rs (crates/buildhunter-plugin-scanner/target/debug/deps/unsupported-fa6b3aa3b3bd531e)\n   Doc-tests buildhunter_plugin_scanner\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "crates/buildhunter-plugin-scanner/Cargo.toml",
+      "--locked",
+      "--release"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest report_pins_catalog_identity_and_unknown_exclusions ... ok\ntest cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok\ntest parent_of_selected_root_is_unknown_and_not_read ... ok\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\ntest symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok\ntest file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok\ntest git_is_a_host_prune_even_when_children_match_plugins ... ok\ntest excluding_outer_target_preserves_distinct_enabled_inner_target ... ok\ntest nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok\ntest ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok\ntest excluded_parent_keeps_traversing_descendants ... ok\ntest diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/crates/buildhunter-plugin-scanner)\n    Finished `release` profile [optimized] target(s) in 3.78s\n     Running unittests src/lib.rs (crates/buildhunter-plugin-scanner/target/release/deps/buildhunter_plugin_scanner-3590aa054efe6f8c)\n     Running tests/scanning.rs (crates/buildhunter-plugin-scanner/target/release/deps/scanning-9546a71a2d720a71)\n     Running tests/unsupported.rs (crates/buildhunter-plugin-scanner/target/release/deps/unsupported-08ad8cb0d84f6a3d)\n   Doc-tests buildhunter_plugin_scanner\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n    Checking build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.51s\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/verify_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "stdout": "Hunter vendored snapshot verified: a24a94526f14819d50c928a666e847ca22eb1ae1\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.016s\n\nOK\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "build",
+      "--locked"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s\n"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_cli.py",
+      "target/debug/build-hunter"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ".............\n----------------------------------------------------------------------\nRan 13 tests in 0.319s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_offline_cli.py"
+    ],
+    "exit_code": 0,
+    "stdout": "Fresh Cargo home: offline CLI check, install and launch passed\n",
+    "stderr": "    Checking hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n    Checking build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s\n  Installing build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)\n    Finished `release` profile [optimized] target(s) in 1.25s\n  Installing /var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/buildhunter-offline-hbzm6xk3/install/bin/build-hunter\n   Installed package `build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-task-plan)` (executable `build-hunter`)\nwarning: be sure to add `/var/folders/n1/5qrr5k4142l48nzsh8x44t9r0000gn/T/buildhunter-offline-hbzm6xk3/install/bin` to your PATH to be able to run the installed binaries\n"
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"capabilities\": [\n    \"arsenal.design.catalog\",\n    \"buildhunter.current.application\",\n    \"buildhunter.current.bridge\",\n    \"buildhunter.current.classification\",\n    \"buildhunter.current.scan\",\n    \"buildhunter.design.product\",\n    \"buildhunter.plugin.policy\",\n    \"buildhunter.plugin.scan\",\n    \"hunter.design.scan\",\n    \"rifle.design.rules\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/arsenal-design.spec.yaml\",\n    \"specs/buildhunter-design.spec.yaml\",\n    \"specs/current-application.spec.yaml\",\n    \"specs/current-bridge.spec.yaml\",\n    \"specs/current-classification.spec.yaml\",\n    \"specs/current-scan.spec.yaml\",\n    \"specs/hunter-design.spec.yaml\",\n    \"specs/plugin-policy.spec.yaml\",\n    \"specs/plugin-scanner.spec.yaml\",\n    \"specs/rifle-design.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"BuildHunter current boundaries and target module architecture\",\n    \"package_id\": \"buildhunter.module_architecture\",\n    \"version\": \"0.1.0-draft.10\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 21,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.portable\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.work\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.child_traversal\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.task_ledger\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.bridge\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/hunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.design.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: arsenal.design.catalog\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/arsenal-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.catalog.validate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.program.evaluate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.plugin.policy\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scoped_metadata\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "BuildHunterRuntime\n  Clients\n    CommandLine\n    MacApplication\n      WindowSession\n      ReportPresentation\n      FolderActions\n      Export\n      Settings\n  SharedRuntime\n    Scanner\n      Traversal\n      Measurement\n      CloudGuard\n      ResourceProfile\n    ArtifactClassification\n      CandidateSelection\n      MarkerVocabulary\n      ClientPolicy\n      FilterCatalog\n    PluginPolicy\n      CatalogValidation\n      EffectivePlan\n      CandidateClassification\n    HunterPortable\n      DirectoryEnumeration\n      MetadataSizing\n    HunterWork\n      TaskScheduling\n      WorkerLifecycle\n    HunterDirectoryTasks\n      TaskContext\n      PositionalMeasurement\n      ResultEnvelope\n    HunterChildTraversal\n      ChildAdmission\n      RecursiveRequests\n    HunterTaskLedger\n      TaskIdentity\n      ResponseAccounting\n      DeferredState\n    HunterMetadata\n    PluginScanning\n      CandidateObservation\n      MarkerAcquisition\n      TargetRouting\n    RustSwiftBridge\n      PolicyTable\n      EventChannel\n      AccessLifetime\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "HunterProducts\n  Hunter\n    Traversal\n    MetadataMeasurement\n    PlatformGuards\n    ScanLifecycle\n    Telemetry\n  Rifle\n    RuleModel\n    CatalogValidation\n    PlanCompilation\n    Evaluation\n    SwiftAuthoring\n  BuildHunter\n    BasicPlugins\n    ArtifactPolicy\n    ScanAssembly\n    CommandLine\n    MacApplication\n  Arsenal\n    CommercialPlugins\n    PluginFixtures\n  StoreDistribution\n    PinnedComposition\n    SigningAndRelease\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  }
+]

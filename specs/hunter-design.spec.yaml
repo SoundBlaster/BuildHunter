@@ -123,4 +123,6 @@ provenance:
     Host keeps recursive child policy, guarded backend callbacks and report aggregation.
   - Child request planning now delegates to hunter.fs.child_traversal at 491399c849f9d95beae564caab32dd668be75a2c.
     Recursive execution/accounting, guards and final lifecycle remain host-owned. This is partial target progress only.
+  - Task identity, opaque listing/deferred storage and response counting now delegate to hunter.fs.task_ledger at a24a94526f14819d50c928a666e847ca22eb1ae1.
+    Host still owns protocol validity, queues/join, recursive accounting and terminal status. Target lifecycle/memory requirements are not fully implemented.
 implementationBindings: []
