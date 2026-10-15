@@ -1,8 +1,8 @@
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryTaskLedger, DirectoryVisit,
-    MeasuredSize, PlannedChild, SubtreeProgress, metadata_bytes, spawn_workers, visit_directory,
-    worker_count,
+    MeasuredSize, PlannedChild, ScanCoordinator, SubtreeProgress, drive_scan, metadata_bytes,
+    spawn_workers, visit_directory, worker_count,
 };
 use std::{
     borrow::Cow,
@@ -638,7 +638,6 @@ fn scan_internal(
             emit: &mut emit,
             probes,
             queue: &queue,
-            receiver,
             artifacts: Vec::new(),
             progress: Vec::new(),
             warnings: Vec::new(),
@@ -647,7 +646,10 @@ fn scan_internal(
             tasks: DirectoryTaskLedger::default(),
             profile,
         };
-        scanner.run();
+        scanner.run(&receiver);
+        // Keep the original channel lifetime: release unread responses before scope join.
+        // Moving receiver into this closure also drops it here if a callback unwinds.
+        drop(receiver);
         (
             scanner.artifacts,
             scanner.warnings,
@@ -1006,7 +1008,6 @@ struct Scanner<'a, P, E> {
     emit: &'a mut E,
     probes: &'a Probes,
     queue: &'a WorkQueue,
-    receiver: std::sync::mpsc::Receiver<WorkerMessage>,
     artifacts: Vec<Artifact>,
     progress: Vec<SubtreeProgress>,
     warnings: Vec<ScanWarning>,
@@ -1014,6 +1015,53 @@ struct Scanner<'a, P, E> {
     changed: bool,
     tasks: DirectoryTaskLedger<DirNode, PendingMeasure>,
     profile: Option<&'a profile::ProfileState>,
+}
+
+impl<P, E> ScanCoordinator for Scanner<'_, P, E>
+where
+    P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
+    E: FnMut(&ScanEvent),
+{
+    type Message = WorkerMessage;
+    fn outstanding(&self) -> usize {
+        self.tasks.outstanding()
+    }
+    fn should_stop(&self) -> bool {
+        self.control.should_stop()
+    }
+    fn checkpoint(&mut self) {
+        self.emit_profile();
+    }
+    fn response_received(&mut self) {
+        self.tasks.response_received();
+        self.sync_outstanding();
+    }
+    fn dispatch(&mut self, message: WorkerMessage) {
+        match message {
+            WorkerMessage::SetupFailed(error) => {
+                self.warn(
+                    self.root,
+                    format!("Cannot prevent cloud downloads on scanner worker: {error}"),
+                    &[],
+                );
+                self.control.fail();
+            }
+            WorkerMessage::Directory(DirectoryResult::Listed {
+                id: node,
+                listing,
+                measuring,
+            }) => self.process_listing(node, listing, measuring),
+            WorkerMessage::Directory(DirectoryResult::Measured(DirectoryMeasurement {
+                id: node,
+                directory,
+                files,
+            })) => {
+                if let Some(pending) = self.tasks.take_measurement(node) {
+                    self.finish_measure(pending, Some(directory), files);
+                }
+            }
+        }
+    }
 }
 
 impl<P, E> Scanner<'_, P, E>
@@ -1095,7 +1143,7 @@ where
         usize::try_from(id - 1).expect("artifact IDs fit in memory")
     }
 
-    fn run(&mut self) {
+    fn run(&mut self, receiver: &std::sync::mpsc::Receiver<WorkerMessage>) {
         if let Some(profile) = self.profile {
             profile.record();
         }
@@ -1130,52 +1178,9 @@ where
                 }
             }
         }
-        while self.tasks.outstanding() > 0 && !self.control.should_stop() {
-            self.emit_profile();
-            let message = if self.profile.is_some() {
-                // Wake at least once per interval to deliver what the sampler queued.
-                match self.receiver.recv_timeout(profile::PROFILE_INTERVAL) {
-                    Ok(message) => message,
-                    Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
-                    Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
-                }
-            } else {
-                let Ok(message) = self.receiver.recv() else {
-                    break;
-                };
-                message
-            };
-            self.tasks.response_received();
-            self.sync_outstanding();
-            // Messages after a stop may be partial; open artifacts are completed below.
-            if self.control.should_stop() {
-                break;
-            }
-            match message {
-                WorkerMessage::SetupFailed(error) => {
-                    self.warn(
-                        self.root,
-                        format!("Cannot prevent cloud downloads on scanner worker: {error}"),
-                        &[],
-                    );
-                    self.control.fail();
-                }
-                WorkerMessage::Directory(DirectoryResult::Listed {
-                    id: node,
-                    listing,
-                    measuring,
-                }) => self.process_listing(node, listing, measuring),
-                WorkerMessage::Directory(DirectoryResult::Measured(DirectoryMeasurement {
-                    id: node,
-                    directory,
-                    files,
-                })) => {
-                    if let Some(pending) = self.tasks.take_measurement(node) {
-                        self.finish_measure(pending, Some(directory), files);
-                    }
-                }
-            }
-        }
+        let wake_interval = self.profile.map(|_| profile::PROFILE_INTERVAL);
+        // Hunter drives result waiting/checkpoints; product dispatch and finalization stay here.
+        drive_scan(self, receiver, wake_interval);
         // Stopping leaves open artifacts; report them innermost first, as partial.
         for index in (0..self.progress.len()).rev() {
             if !self.progress[index].is_completed() {
@@ -2257,7 +2262,6 @@ mod tests {
             emit: &mut emit,
             probes: &probes,
             queue: &queue,
-            receiver,
             artifacts: Vec::new(),
             progress: Vec::new(),
             warnings: Vec::new(),
@@ -2266,10 +2270,10 @@ mod tests {
             tasks: DirectoryTaskLedger::default(),
             profile: None,
         };
-        scanner.run();
+        scanner.run(&receiver);
         assert_eq!(scanner.tasks.outstanding(), 0);
         assert!(matches!(
-            scanner.receiver.try_recv(),
+            receiver.try_recv(),
             Err(std::sync::mpsc::TryRecvError::Empty)
         ));
         assert!(
@@ -2280,6 +2284,88 @@ mod tests {
         assert!(!scanner.had_errors);
         assert!(!control.should_stop());
         queue.close();
+    }
+
+    #[test]
+    fn coordinator_profile_cancellation_preserves_receipt_and_dispatch_boundaries() {
+        for queued_response in [false, true] {
+            let tree = TempTree::new();
+            let control = ScanControl::new();
+            let probes = Probes::default();
+            let queue = WorkQueue::default();
+            let (sender, receiver) = std::sync::mpsc::channel();
+            if queued_response {
+                sender
+                    .send(WorkerMessage::SetupFailed(std::io::Error::from(
+                        std::io::ErrorKind::PermissionDenied,
+                    )))
+                    .unwrap();
+            }
+            let profile = profile::ProfileState::new();
+            profile.record();
+            let mut policy = |_: &Path, _: &CandidateFacts, _: CandidateNodeKind| {
+                panic!("cancelled result must not reach classification")
+            };
+            let mut samples = 0;
+            let mut emit = |event: &ScanEvent| {
+                if matches!(event, ScanEvent::Profile(_)) {
+                    samples += 1;
+                    control.cancel();
+                } else {
+                    panic!("cancelled setup error must not be dispatched");
+                }
+            };
+            let mut scanner = Scanner {
+                root: &tree.0,
+                options: ScanOptions::default(),
+                control: &control,
+                policy: &mut policy,
+                legacy_policy: true,
+                emit: &mut emit,
+                probes: &probes,
+                queue: &queue,
+                artifacts: Vec::new(),
+                progress: Vec::new(),
+                warnings: Vec::new(),
+                had_errors: false,
+                changed: false,
+                tasks: DirectoryTaskLedger::default(),
+                profile: Some(&profile),
+            };
+            scanner.enqueue(
+                DirNode {
+                    path: tree.0.clone(),
+                    parent_markers: None,
+                    chain: Vec::new(),
+                    root_metadata: None,
+                },
+                DirectoryRequest {
+                    path: tree.0.clone(),
+                    context: 0,
+                    measure: false,
+                },
+            );
+            assert_eq!(
+                drive_scan(
+                    &mut scanner,
+                    &receiver,
+                    Some(std::time::Duration::from_millis(1))
+                ),
+                hunter_fs_core::CoordinatorExit::Stopped
+            );
+            let outstanding = usize::from(!queued_response);
+            assert_eq!(scanner.tasks.outstanding(), outstanding);
+            assert_eq!(
+                profile.counters.pending_tasks.load(Ordering::Relaxed),
+                outstanding as u64
+            );
+            assert!(scanner.warnings.is_empty());
+            assert!(!scanner.had_errors && !control.is_failed());
+            assert!(control.is_cancelled());
+            assert_eq!(samples, 1);
+            drop(sender);
+            queue.close();
+        }
     }
 
     #[test]

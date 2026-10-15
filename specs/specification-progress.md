@@ -405,3 +405,22 @@ and their runtime identity remain unchanged. Fresh binding/source/map identities
 and structural receipts: validation/hunter-subtree-review-20261015. Earlier tests
 and performance receipts retain their original source scope; they were not rerun
 for this documentation correction. Structural success is not runtime acceptance.
+
+## Serial scan result execution — 2026-10-15
+
+HunterScanExecution at 3af2a4dd549f473e79364b45f248197ee4ec57ee now owns result waiting, optional
+idle timeouts, checkpoints and receipt-before-stop dispatch ordering. BuildHunter
+supplies ScanCoordinator for policy-specific messages and retains root admission,
+guarded filesystem backends, partial result finalization, status precedence and
+terminal publication after actual worker/sampler scope join. The new deterministic
+profile-cancellation witness covers queued and idle cases; existing cancellation,
+observer/worker panic, nested partial sizes and plugin integration remain gates.
+
+Affected current scan result_execution/scan_lifetime/memory_scope and target Hunter
+generic_facts/lifecycle/memory_budget are source-bound; constraints remain drafts.
+C1–C4 product migration and C5 storage/channel/report budgets remain outstanding.
+No new owned buffers are introduced by the pump, but no process RAM improvement
+is inferred. Fresh identities/runtime/structural receipts are under
+specs/validation/hunter-execution-20261015 and frozen maps/upstream contract under
+specs/evidence/hunter-execution-20261015. Earlier snapshots/results remain historical.
+Full root/backend execution assembly is still a separate extraction boundary.

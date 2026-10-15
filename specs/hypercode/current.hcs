@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/hunter-subtrees-20261015/source-identity.json"
+  baseline: "specs/validation/hunter-execution-20261015/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -95,7 +95,7 @@ CandidateObservation:
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
   boundary_spec: "hunter.fs.portable (upstream draft)"
   distribution: "exact vendored std-only path dependency"
 DirectoryEnumeration:
@@ -107,7 +107,7 @@ MetadataSizing:
 HunterWork:
   source: "vendor/hunter-fs-core/src/work.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
   boundary_spec: "hunter.fs.work (upstream draft)"
 TaskScheduling:
   implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
@@ -118,7 +118,7 @@ WorkerLifecycle:
 HunterDirectoryTasks:
   source: "vendor/hunter-fs-core/src/task.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
   boundary_spec: "hunter.fs.directory_tasks (upstream draft)"
 TaskContext:
   implementation: "DirectoryTask/ListTask + DirectoryListing; opaque host u32 contexts"
@@ -132,7 +132,7 @@ ResultEnvelope:
 HunterChildTraversal:
   source: "vendor/hunter-fs-core/src/children.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
   boundary_spec: "hunter.fs.child_traversal (upstream draft)"
 ChildAdmission:
   implementation: "ChildTraversal::next_child; host checkpoint/stop/cloud decisions"
@@ -143,7 +143,7 @@ RecursiveRequests:
 HunterTaskLedger:
   source: "vendor/hunter-fs-core/src/ledger.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
   boundary_spec: "hunter.fs.task_ledger (upstream draft)"
 TaskIdentity:
   implementation: "DirectoryTaskLedger::register + take_listing"
@@ -157,7 +157,7 @@ DeferredState:
 HunterSubtreeProgress:
   source: "vendor/hunter-fs-core/src/subtree.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
   boundary_spec: "hunter.fs.subtree_progress (upstream draft)"
 ByteAggregation:
   implementation: "SubtreeProgress::add_bytes/set_bytes; host ancestor routing and size units"
@@ -167,6 +167,20 @@ CompletionReadiness:
   folded_into: "buildhunter.current.scan"
 PartialCompletion:
   implementation: "mark_partial + complete(force_partial); host publishes ArtifactCompleted"
+  folded_into: "buildhunter.current.scan"
+HunterScanExecution:
+  source: "vendor/hunter-fs-core/src/execution.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "3af2a4dd549f473e79364b45f248197ee4ec57ee"
+  boundary_spec: "hunter.fs.scan_execution (upstream draft)"
+ResultPump:
+  implementation: "drive_scan + local Scanner ScanCoordinator; opaque WorkerMessage"
+  folded_into: "buildhunter.current.scan"
+IdleCheckpoint:
+  implementation: "profile interval recv_timeout; checkpoint drains sampler messages"
+  folded_into: "buildhunter.current.scan"
+StopBoundary:
+  implementation: "ledger retirement/profile sync before stop; product dispatch only while running"
   folded_into: "buildhunter.current.scan"
 HunterMetadata:
   source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"

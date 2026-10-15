@@ -92,3 +92,8 @@ Subtree totals/readiness at Hunter d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51 add 
 with ByteAggregation/CompletionReadiness/PartialCompletion. Current source/map
 identities: hunter-subtrees-20261015. Membership, dependent completion ordering and
 actual scan lifetime remain host duties; prior receipts are historical.
+
+Serial result execution at Hunter 3af2a4dd549f473e79364b45f248197ee4ec57ee adds HunterScanExecution
+with ResultPump/IdleCheckpoint/StopBoundary. Latest map/source identities and frozen
+maps are under hunter-execution-20261015. Root admission, backend effects, product
+finalization/status and actual scan lifetime remain host assembly responsibilities.

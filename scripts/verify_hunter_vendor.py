@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 
-FILES = {"Cargo.toml", "LICENSE", "README.md", "src/lib.rs", "src/work.rs", "src/task.rs", "src/children.rs", "src/ledger.rs", "src/subtree.rs"}
+FILES = {"Cargo.toml", "LICENSE", "README.md", "src/lib.rs", "src/work.rs", "src/task.rs", "src/children.rs", "src/ledger.rs", "src/subtree.rs", "src/execution.rs"}
 
 
 def verify(directory):

@@ -1,0 +1,116 @@
+{
+  "recorded_at_utc": "2026-10-15T21:07:43.616752+00:00",
+  "buildhunter_baseline": "10e8aeed81af8db51e04bebcf0033871bb38716e",
+  "buildhunter_runtime_revision": "0bcb37cafd42926e506d60fa492231531f640d23",
+  "hunter_revision": "3af2a4dd549f473e79364b45f248197ee4ec57ee",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "01d339f2f203e87b358f3ec2b1ed18745999aedc710e2bcb2a12ff00471d3c7c"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "f1e63d57fbc31178c0ceab0d2fefc4167af3d5edf35fe51b34dbdab15dc28498"
+    },
+    {
+      "path": "docs/hunter-scan-execution.md",
+      "sha256": "c45c483cfcf62eaf96216b82bd25c2f0d2835da385c2e3bbe79a6910b680f6aa"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "c8a78ea16c3d3337790763aaf7a43c8d7680f4e61c93ce5de76280065f3e96f0"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "7cc556bc706354aee54e7f6b883647a5da945907b6349a5cf278e7dbfb4b5abf"
+    },
+    {
+      "path": "scripts/verify_hunter_vendor.py",
+      "sha256": "f941a30f73a4f8106d849de96a99235bfdacfd1bca369334c537e0ccd7c2d49c"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "22f2236bdf40d4c63a36c9f3de3687c202d4df575e6bff00e1407ef1d8886913"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "ea731a9422699c3649b2d0160b254cb8ee886bee8c46c6e97e9c47de6b37880c"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "4d5d92db686d7ba51f44bb8e31d1c2250994d4ee079f579538d3c9e871312ff8"
+    },
+    {
+      "path": "specs/evidence/hunter-execution-20261015/maps/current.hc",
+      "sha256": "aa0937399968d47db30fb0a1b540c4f700b163678ca79bcfdbe7dad09bf6528c"
+    },
+    {
+      "path": "specs/evidence/hunter-execution-20261015/maps/current.hcs",
+      "sha256": "aa4dee0997c98ade2d03a9c91b43aea9b88d55c06100709961898d6542e16deb"
+    },
+    {
+      "path": "specs/evidence/hunter-execution-20261015/maps/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/evidence/hunter-execution-20261015/maps/target.hcs",
+      "sha256": "85c826636a5f51467d44b2542b14c610f101b277335be9a6abcc1b383992631d"
+    },
+    {
+      "path": "specs/evidence/hunter-execution-20261015/upstream/README.md",
+      "sha256": "42f706b9c5783ebe65f3ad934de40e18926857ca921a69c052e9c5d061d15598"
+    },
+    {
+      "path": "specs/evidence/hunter-execution-20261015/upstream/scan-execution.spec.yaml",
+      "sha256": "90f270c362ddee4ba21d080ba2c14d82e26e19d6704ceda2ef658dd51fad55af"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "ce5c53fe56a1d8849de563a1ce5b20704feb3e3f65a8138079765a70668b5238"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "61aa98af73ed303cb3de7eee830b2ae98fa37e69562c84a70058b38f08bc80d8"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "aa0937399968d47db30fb0a1b540c4f700b163678ca79bcfdbe7dad09bf6528c"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "aa4dee0997c98ade2d03a9c91b43aea9b88d55c06100709961898d6542e16deb"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "85c826636a5f51467d44b2542b14c610f101b277335be9a6abcc1b383992631d"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "0f7120cfa25c1ba5aa8ed679ce31bb026ff4e5b7ba4fced58106d15a33c4aaf6"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "0a8d72376b7c71865d18757b2284c9c99cbf1b77d60510ace70891c076298fcd"
+    },
+    {
+      "path": "vendor/hunter-fs-core/README.md",
+      "sha256": "602673056cf5e6cda4c459c6b2770cb3a2adeb9d694262f55674609169a8891a"
+    },
+    {
+      "path": "vendor/hunter-fs-core/UPSTREAM.json",
+      "sha256": "5dd5f5510a56a5ab895e7914f5ecf8d0b08693760e9ba4ed7e4125b69cb1788f"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/lib.rs",
+      "sha256": "fb0a003dceece9bfff5733e1082cfba7889fa2d0d6a103dfbbb61f0333df2d39"
+    }
+  ]
+}

@@ -179,3 +179,8 @@ budgets are unchanged. Draft current scan/target claims and maps are refreshed;
 source/runtime/performance receipts are in specs/validation/hunter-subtrees-20261015,
 upstream draft/frozen maps in specs/evidence/hunter-subtrees-20261015. Previous
 receipts remain historical. See docs/hunter-subtree-progress.md for assembly duties.
+
+Serial result execution is now delegated to Hunter; BuildHunter retains root/backend
+admission, product messages/finalization/status and outer scoped worker lifetime.
+See [execution boundary](hunter-scan-execution.md) for responsibilities and limits.
+This does not complete the generic filesystem engine or plugin/client migration.

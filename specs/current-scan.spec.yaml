@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.7
+  version: 0.1.0-draft.8
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -48,6 +48,9 @@ requires:
   - id: hunter.fs.subtree_progress
     optional: false
     summary: Saturating byte totals, partial/root/pending progress and one-shot completions; host routes contributions, checks readiness and orders final events.
+  - id: hunter.fs.scan_execution
+    optional: false
+    summary: Serial result waiting/checkpoints and receipt-before-stop dispatch; host owns setup, interpretation, finalization and worker join.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -87,6 +90,15 @@ constraints:
   level: MUST
   statement: 'Do not infer bounded whole-process memory from the Swift event ring: current scanner retains reports
     and directory arena capacity and uses unbounded worker response channels.'
+- id: result_execution
+  level: MUST
+  statement: The result pump checks outstanding work and stop before checkpoint/receive,
+    retires each received response before the post-receipt stop check, and dispatches
+    only if running. Timed profile waits repeat checkpoints without receipt on timeout.
+    Blocking waits and disconnected-channel behavior remain unchanged; channel loss
+    breaks the loop but does not itself override the host final-status precedence.
+    Host initializes root work, finalizes open results, closes queues/stops helpers
+    inside the outer thread scope and publishes Finished only after its join.
 effects:
   sideEffects:
   - id: read_metadata
@@ -164,6 +176,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/subtree.rs
   supports: [constraints.sizes, scope]
+- id: hunter_execution_source
+  kind: source
+  path: vendor/hunter-fs-core/src/execution.rs
+  supports: [constraints.result_execution, constraints.scan_lifetime, constraints.memory_scope, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -194,12 +210,15 @@ provenance:
   - Numeric subtree progress delegates to Hunter d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51 from BuildHunter d68a834.
     Product chain membership, byte-unit choice, readiness use, completion ordering and scan status remain host-owned.
     Fresh source/map/runtime identities are in specs/validation/hunter-subtrees-20261015; no full lifecycle or memory budget follows.
+  - Serial result execution now delegates to hunter.fs.scan_execution at 3af2a4dd549f473e79364b45f248197ee4ec57ee from BuildHunter 10e8aeed.
+    Root admission/backends, product dispatch, partial finalization, terminal status and actual scoped join remain host-owned.
+    Fresh source/map/runtime receipts are in specs/validation/hunter-execution-20261015; full engine/resource acceptance remains partial.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 5235f70656aca71b3e6ba7c4d75b69fd9e32836b
+    revision: 0bcb37cafd42926e506d60fa492231531f640d23
   files:
     owned:
     - src/lib.rs
@@ -216,4 +235,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/children.rs
     - vendor/hunter-fs-core/src/ledger.rs
     - vendor/hunter-fs-core/src/subtree.rs
+    - vendor/hunter-fs-core/src/execution.rs
     - vendor/hunter-fs-core/UPSTREAM.json

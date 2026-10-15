@@ -127,4 +127,7 @@ provenance:
     Host still owns protocol validity, queues/join, recursive accounting and terminal status. Target lifecycle/memory requirements are not fully implemented.
   - Byte aggregation and numeric subtree readiness/partial completion now delegate to hunter.fs.subtree_progress at d04c8fbbf4445e8bf3504f63f120d71fb4cc5a51.
     Membership, dependency ordering, byte-unit choice, acquisition/worker lifetime and final status remain host duties; target acceptance is partial.
+  - Serial result waiting/checkpoints and receipt-before-stop dispatch now delegate to hunter.fs.scan_execution at 3af2a4dd549f473e79364b45f248197ee4ec57ee.
+    Root/backend admission, partial finalization, final status and complete worker/resource lifetime remain host duties.
+    This is partial target implementation with unchanged generic_facts/lifecycle/memory_budget obligations.
 implementationBindings: []

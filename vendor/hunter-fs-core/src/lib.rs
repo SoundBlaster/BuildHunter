@@ -302,3 +302,6 @@ pub use ledger::DirectoryTaskLedger;
 
 mod subtree;
 pub use subtree::{SubtreeCompletion, SubtreeProgress};
+
+mod execution;
+pub use execution::{CoordinatorExit, ScanCoordinator, drive_scan};
