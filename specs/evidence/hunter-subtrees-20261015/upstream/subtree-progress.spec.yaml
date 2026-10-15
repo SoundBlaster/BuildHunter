@@ -1,0 +1,85 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.subtree_progress
+  title: Host-announced subtree size and completion progress
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Accumulate a selected subtree's bytes, track host-announced pending directories
+    and produce at most one owned completion value with partial-size information.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Saturating byte addition, explicit total replacement, sticky partial marking,
+    pending-directory/root progress, readiness and one-shot completion values.
+  excludes:
+  - Membership/hierarchy/ID policy, metadata acquisition, deduplication, unit selection,
+    queues/workers/join, cancellation execution, final status and whole-scan totals/budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.subtree_progress
+    role: primary
+    summary: Maintain numeric progress for one host-selected subtree without interpreting
+      its identity or performing filesystem work.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: progress
+    kind: library
+    summary: SubtreeProgress add_bytes/set_bytes/mark_partial, add_pending_directory,
+      finish_pending_directory, finish_root, is_ready/is_completed and complete(force_partial)
+      -> Option<SubtreeCompletion>.
+  outbound: []
+constraints:
+- id: byte_math
+  level: MUST
+  statement: Start at zero; add_bytes uses saturating u64 addition, set_bytes replaces
+    the total. Host chooses consistent byte units and supplies membership/deduplication;
+    the helper performs no metadata reads or independent size estimation.
+- id: readiness
+  level: MUST
+  statement: Host announces each pending descendant directory before dispatch and retires
+    it once. Counter overflow or retirement at zero panics. Normal readiness requires
+    root processing finished, zero pending directories and no prior completion. This
+    reflects host announcements only, not actual filesystem/worker completion.
+- id: completion
+  level: MUST
+  statement: First complete returns current bytes with stored_partial OR force_partial;
+    subsequent calls return None. Partial marking is sticky. Completion does not require
+    readiness; host must check readiness for normal directory completion, know a leaf
+    can finalize directly, or force a partial prefix on early stop. It does not cancel
+    work, clear pending counters or freeze later host updates; no second completion is returned.
+- id: assembly
+  level: MUST
+  statement: Host owns subtree identity/storage, routes byte/directory contributions and
+    partial notices to chosen states, orders dependent completions, publishes events and
+    chooses final scan status. Primitive state contains no hierarchy, callbacks or owned
+    heap buffers and proves no whole-scan resource/lifetime guarantee.
+effects:
+  sideEffects: []
+evidence:
+- id: subtree_source
+  kind: source
+  path: crates/hunter-fs-core/src/subtree.rs
+  supports: [intent.summary, scope, interfaces, constraints.byte_math, constraints.readiness, constraints.completion, constraints.assembly]
+- id: subtree_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [constraints.assembly]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered numeric progress from BuildHunter at d68a834. Contract remains draft;
+    tests/structural checks are execution evidence rather than owner acceptance.
+implementationBindings:
+- id: subtree_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/subtree.rs]
+    border: [crates/hunter-fs-core/src/lib.rs]

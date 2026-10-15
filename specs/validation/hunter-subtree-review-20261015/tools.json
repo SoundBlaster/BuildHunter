@@ -1,0 +1,10 @@
+[
+  {
+    "executable": "/opt/homebrew/bin/specpm",
+    "sha256": "1c80370f940afd1be509c5bd53fb0c7c6d1bd558d8e6718fdf19b9179ae09142"
+  },
+  {
+    "executable": "/Users/egor/Development/GitHub/0AL/Hypercode/.build/out/Products/Release/hypercode",
+    "sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b"
+  }
+]

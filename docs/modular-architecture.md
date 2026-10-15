@@ -317,3 +317,15 @@ reports remain. New draft capability and current scan bindings are covered by
 specs/validation/hunter-ledger-20261015 and specs/evidence/hunter-ledger-20261015;
 prior receipts remain historical. See docs/hunter-task-ledger.md for protocol and
 ownership duties; no full target lifecycle/resource acceptance is claimed.
+
+## Subtree numeric progress — 2026-10-15
+
+HunterSubtreeProgress now owns saturating byte totals, explicit leaf totals,
+sticky partial flags, pending-directory/root readiness and one-shot completions.
+BuildHunter retains the progress vector/ID mapping, C1–C4 membership/policy/units,
+error/status classification and dependent event order. C5 remains open: no new
+heap buffers are introduced by the primitive, but retained reports/arena/channel
+budgets are unchanged. Draft current scan/target claims and maps are refreshed;
+source/runtime/performance receipts are in specs/validation/hunter-subtrees-20261015,
+upstream draft/frozen maps in specs/evidence/hunter-subtrees-20261015. Previous
+receipts remain historical. See docs/hunter-subtree-progress.md for assembly duties.

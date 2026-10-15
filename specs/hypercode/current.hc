@@ -39,6 +39,10 @@ BuildHunterRuntime
       TaskIdentity
       ResponseAccounting
       DeferredState
+    HunterSubtreeProgress
+      ByteAggregation
+      CompletionReadiness
+      PartialCompletion
     HunterMetadata
     PluginScanning
       CandidateObservation

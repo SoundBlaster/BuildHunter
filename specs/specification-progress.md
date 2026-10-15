@@ -379,3 +379,29 @@ reports remain. New draft capability and current scan bindings are covered by
 specs/validation/hunter-ledger-20261015 and specs/evidence/hunter-ledger-20261015;
 prior receipts remain historical. See docs/hunter-task-ledger.md for protocol and
 ownership duties; no full target lifecycle/resource acceptance is claimed.
+
+## Subtree numeric progress — 2026-10-15
+
+HunterSubtreeProgress now owns saturating byte totals, explicit leaf totals,
+sticky partial flags, pending-directory/root readiness and one-shot completions.
+BuildHunter retains the progress vector/ID mapping, C1–C4 membership/policy/units,
+error/status classification and dependent event order. C5 remains open: no new
+heap buffers are introduced by the primitive, but retained reports/arena/channel
+budgets are unchanged. Draft current scan/target claims and maps are refreshed;
+source/runtime/performance receipts are in specs/validation/hunter-subtrees-20261015,
+upstream draft/frozen maps in specs/evidence/hunter-subtrees-20261015. Previous
+receipts remain historical. See docs/hunter-subtree-progress.md for assembly duties.
+
+## PR #76 implementation binding review — 2026-10-15
+
+Corrected current scan implementation binding to immutable BuildHunter revision
+5235f70656aca71b3e6ba7c4d75b69fd9e32836b, which contains all declared owned/border
+files, including the new vendored subtree primitive. Every bound file is checked
+against its Git object and the current bytes; the original recovery baseline
+48badf9 remains historical. No runtime code, contract requirement, capability,
+map role/profile or parent assembly obligation changes. Current/target map bytes
+remain identical to the frozen hunter-subtrees-20261015 snapshots, so composition
+and their runtime identity remain unchanged. Fresh binding/source/map identities
+and structural receipts: validation/hunter-subtree-review-20261015. Earlier tests
+and performance receipts retain their original source scope; they were not rerun
+for this documentation correction. Structural success is not runtime acceptance.

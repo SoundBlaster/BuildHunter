@@ -299,3 +299,6 @@ pub use children::{ChildDecision, ChildTraversal, DirectoryRequest, PlannedChild
 
 mod ledger;
 pub use ledger::DirectoryTaskLedger;
+
+mod subtree;
+pub use subtree::{SubtreeCompletion, SubtreeProgress};

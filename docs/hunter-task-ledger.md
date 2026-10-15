@@ -46,3 +46,7 @@ This completes the task registry/result-correlation slice. Full generic scan
 execution and subtree completion/aggregation are still separate boundaries.
 Merge the upstream Hunter PR first with its pinned source commit preserved in main
 ancestry, then the dependent BuildHunter PR. Contracts remain descriptive drafts.
+
+Follow-up: hunter-subtree-progress.md records extraction of numeric subtree totals
+and readiness. The product still chooses membership, routes contributions, orders
+completions and maps final status; actual worker lifetime remains separate.
