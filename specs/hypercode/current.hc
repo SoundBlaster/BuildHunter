@@ -43,6 +43,10 @@ BuildHunterRuntime
       ByteAggregation
       CompletionReadiness
       PartialCompletion
+    HunterScanExecution
+      ResultPump
+      IdleCheckpoint
+      StopBoundary
     HunterMetadata
     PluginScanning
       CandidateObservation

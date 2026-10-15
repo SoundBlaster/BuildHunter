@@ -1,0 +1,1 @@
+Upstream descriptive draft copied from SoundBlaster/Hunter at 3af2a4dd549f473e79364b45f248197ee4ec57ee, original path specs/scan-execution.spec.yaml, SHA-256 90f270c362ddee4ba21d080ba2c14d82e26e19d6704ceda2ef658dd51fad55af. This snapshot is evidence, not owner acceptance. Runtime distribution uses the exact separately verified ten-file std-only snapshot.
