@@ -1,0 +1,90 @@
+{
+  "revision": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b",
+  "old_revision_missing_subtree": true,
+  "checks": [
+    {
+      "path": "src/lib.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/lib.rs",
+      "sha256": "336e7a746d5a2fbd70cc354e8ec2486cf6348ceb7d7efe71c71aeebe667e207b",
+      "matches_worktree": true
+    },
+    {
+      "path": "src/materialization.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/materialization.rs",
+      "sha256": "242f3049221e178d3e16021c3d3c9e495d19b16e687241dcf49c72690831b9dc",
+      "matches_worktree": true
+    },
+    {
+      "path": "src/bulk_metadata.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/bulk_metadata.rs",
+      "sha256": "40cbd64a51ec04f8decfb3b41224e8962870d79481bcfe775739acc454a85c1d",
+      "matches_worktree": true
+    },
+    {
+      "path": "src/thread_qos.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/thread_qos.rs",
+      "sha256": "d62bfb3d25e22fbca4d2f18c5956f64033648fa6f1f05e657c13b99020bf798f",
+      "matches_worktree": true
+    },
+    {
+      "path": "src/profile.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/profile.rs",
+      "sha256": "02041d77c5084dfc2a50ad6fff8cb413fed60adaa96c3404389f673c9bfa1ba0",
+      "matches_worktree": true
+    },
+    {
+      "path": "src/process_resources.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/process_resources.rs",
+      "sha256": "989e9d338b1fb1761706a9f5a3f7a9600c88996b8381804327eca87473ccaa5d",
+      "matches_worktree": true
+    },
+    {
+      "path": "src/resources.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:src/resources.rs",
+      "sha256": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/lib.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/src/lib.rs",
+      "sha256": "39cc08dbd2773e3789f53049a796e9e28b06c5a208e58fa12d3ad4f6e1731eb2",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/work.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/task.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/children.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/ledger.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/subtree.rs",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b",
+      "matches_worktree": true
+    },
+    {
+      "path": "vendor/hunter-fs-core/UPSTREAM.json",
+      "git_object": "5235f70656aca71b3e6ba7c4d75b69fd9e32836b:vendor/hunter-fs-core/UPSTREAM.json",
+      "sha256": "0bda829d49bd60cbd7aec51c4ebdcb3ea018d31bc34432f249f2225eb0140791",
+      "matches_worktree": true
+    }
+  ]
+}
