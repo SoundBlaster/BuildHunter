@@ -1,0 +1,90 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.child_traversal
+  title: Host-selected child traversal requests
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Consume a supplied child listing in order and form opaque directory requests
+    or indexed leaf observations after host selection, with terminal stop semantics.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Original child positions, Visit/Skip/Stop host decisions, directory requests,
+    opaque shared context and measurement intent.
+  excludes:
+  - Filesystem I/O, recursive execution, scheduling, ID allocation, interpretation
+    of host context, hierarchical accounting, permissions and final report/status policy.
+provides:
+  capabilities:
+  - id: hunter.fs.child_traversal
+    role: primary
+    summary: Route host-admitted observed directories to requests and other types to
+      indexed entries without rebuilding the listing.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: child_plan
+    kind: library
+    summary: ChildTraversal::new(children, context, measure); next_child(select)
+      returns PlannedChild; is_stopped distinguishes Stop from exhaustion.
+  - id: directory_request
+    kind: library
+    summary: DirectoryRequest::into_task(id) moves path/context/measurement intent into
+      DirectoryTask with caller-assigned identity.
+  outbound: []
+constraints:
+- id: admission
+  level: MUST
+  statement: Invoke the host selector once for each consumed original slot before routing.
+    Skip produces no request; retain original positions after filtering. Stop is terminal
+    and prevents future selector calls. Empty/exhausted input invokes no selector.
+- id: observed_types
+  level: MUST
+  statement: Route supplied directory types to DirectoryRequest and all other types to
+    Entry. Symlinks observed as such never become recursive requests. Do no I/O or type
+    refresh; this is not a filesystem snapshot or path safety guarantee.
+- id: ownership
+  level: MUST
+  statement: Consume the supplied listing without a second child/request vector. Move
+    each emitted path; clone opaque context only for admitted directories and copy the
+    host measurement intent unchanged. Retain the listing buffer/unconsumed suffix
+    until plan drop. Context Clone and selector effects/panics remain
+    host responsibilities; no constant whole-scan memory bound follows.
+- id: assembly
+  level: MUST
+  statement: The host assigns IDs, retains access/guard lifetime, schedules selected requests,
+    accounts for descendants/results and maps stop to final status. The helper itself
+    does not recurse or close work queues.
+effects:
+  sideEffects:
+  - id: host_selection
+    kind: event_emit
+    summary: Synchronously invoke host selector and clone admitted directory context;
+      effects belong to those host implementations, not implicit filesystem access.
+evidence:
+- id: child_source
+  kind: source
+  path: crates/hunter-fs-core/src/children.rs
+  supports: [intent.summary, scope, interfaces, constraints.admission, constraints.observed_types, constraints.ownership]
+- id: child_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [constraints.assembly]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter process_listing at 4b40205. Contract stays draft;
+    tests/structural checks are recorded separately from requirement acceptance.
+implementationBindings:
+- id: child_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/children.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/task.rs]

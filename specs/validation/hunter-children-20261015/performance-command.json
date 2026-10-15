@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "scripts/compare_performance.py",
+    "--baseline-ref",
+    "4b402055c971ffb82f7d13420887300ffcddae17",
+    "--output-dir",
+    "/tmp/buildhunter-children-final-performance"
+  ],
+  "exit_code": 0,
+  "notes": "Final source after explicit listing-buffer drop; report candidate_sha is a dirty-worktree base, exact runtime hashes are in source-identity.json."
+}

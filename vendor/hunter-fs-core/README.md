@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -71,3 +71,22 @@ send the Measured outcome even for a cancelled partial pass. Result callbacks,
 root permissions, timing, bulk acquisition and recursive decisions remain host-owned.
 Tests cover intent/prefetch, slot alignment, callback order/errors, cancellation
 prefix/preparation and Unix symlink omission.
+
+## Host-selected recursive child requests
+
+ChildTraversal consumes an existing listing in order and calls a synchronous host
+selector for each original slot. Visit routes observed directories to DirectoryRequest;
+all other types (including observed directory symlinks) remain indexed Entry values.
+Skip omits that slot without compacting later indices. Stop is terminal and visible
+through is_stopped(); empty/exhausted input never invokes selection. No filesystem
+reads or refreshed type observations occur, so replacement races remain host-owned.
+
+The listing is consumed without another child/task vector; context is opaque and
+cloned only for admitted directories. The original listing buffer and any
+unconsumed suffix stay owned until the plan is dropped. Requests inherit the host measurement flag,
+move paths/context into a DirectoryTask through into_task(id), and never allocate
+IDs themselves. Host selectors/context cloning may have effects or panic. The host
+retains guards, schedules requests, accounts for descendants/results and maps stop
+into final status. Full recursion/lifecycle/reporting and memory budgets remain
+outside this helper. Tests cover filtering/order/indices/context cloning, terminal
+stop, empty input, stale observations without I/O and Unix raw paths/symlinks.

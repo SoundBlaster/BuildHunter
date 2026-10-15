@@ -77,3 +77,8 @@ guarded backend callbacks, recursive selection and aggregation remain host-owned
 Documentation-only upstream review advances the core snapshot to 612b861.
 Latest identities/maps: hunter-task-review-20261015; runtime source and roles
 are unchanged. The previous task extraction receipts remain historical.
+
+Host-selected recursive child requests at Hunter 491399c849f9d95beae564caab32dd668be75a2c add
+HunterChildTraversal/ChildAdmission/RecursiveRequests roles; current/target
+map identities are under hunter-children-20261015. Product selection/aggregation
+and full recursive coordinator remain host-owned. Previous receipts are historical.

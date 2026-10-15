@@ -293,3 +293,6 @@ pub use task::{
     DirectoryListing, DirectoryMeasurement, DirectoryMeasurementPlan, DirectoryResult,
     DirectoryTask, FileMeasurements,
 };
+
+mod children;
+pub use children::{ChildDecision, ChildTraversal, DirectoryRequest, PlannedChild};

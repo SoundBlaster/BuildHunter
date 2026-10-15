@@ -121,4 +121,6 @@ provenance:
     Full filesystem planning/lifecycle remains a host assembly obligation, not completed hunter.design.scan.
   - Typed directory task/result and measurement plan now extracted at e9b77e44f50ac72e543b727a11afa2c28666226e.
     Host keeps recursive child policy, guarded backend callbacks and report aggregation.
+  - Child request planning now delegates to hunter.fs.child_traversal at 491399c849f9d95beae564caab32dd668be75a2c.
+    Recursive execution/accounting, guards and final lifecycle remain host-owned. This is partial target progress only.
 implementationBindings: []
