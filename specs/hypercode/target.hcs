@@ -1,14 +1,14 @@
 # Approved names; target contracts remain draft, extraction is partial.
 HunterProducts:
   status: "target-design-draft"
-  baseline: "specs/validation/hunter-children-20261015/source-identity.json"
+  baseline: "specs/validation/hunter-ledger-20261015/source-identity.json"
   profile: "public"
 Hunter:
   boundary_spec: "hunter.design.scan"
   repository: "Hunter"
   visibility: "public"
   implemented_as_module: true
-  implemented_scope: "Unix scoped metadata + portable enumeration/byte sizing; generic queue/scoped launch/task results/measurement plans/host-selected child requests; full recursive policy pending"
+  implemented_scope: "Unix scoped metadata + portable enumeration/byte sizing; generic queue/scoped launch/task results/measurement plans/host-selected child requests/task-response ledger; full recursive policy pending"
   filesystem_effects: true
   artifact_vocabulary: false
 Rifle:

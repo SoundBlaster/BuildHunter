@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "scripts/compare_performance.py",
+    "--baseline-ref",
+    "7f8c72f2c59de840cf0690d61db8ac5b6ccd6f7c",
+    "--output-dir",
+    "/tmp/buildhunter-ledger-final-performance"
+  ],
+  "exit_code": 0,
+  "note": "Final register API and runtime source; candidate_sha identifies the dirty checkout base, file hashes identify actual inputs."
+}

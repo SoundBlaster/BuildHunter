@@ -1,7 +1,7 @@
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
-    DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, MeasuredSize, PlannedChild,
-    metadata_bytes, spawn_workers, visit_directory, worker_count,
+    DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryTaskLedger, DirectoryVisit,
+    MeasuredSize, PlannedChild, metadata_bytes, spawn_workers, visit_directory, worker_count,
 };
 use std::{
     borrow::Cow,
@@ -643,9 +643,7 @@ fn scan_internal(
             warnings: Vec::new(),
             had_errors: false,
             changed: false,
-            nodes: Vec::new(),
-            awaiting: std::collections::HashMap::new(),
-            outstanding: 0,
+            tasks: DirectoryTaskLedger::default(),
             profile,
         };
         scanner.run();
@@ -1023,10 +1021,7 @@ struct Scanner<'a, P, E> {
     warnings: Vec<ScanWarning>,
     had_errors: bool,
     changed: bool,
-    nodes: Vec<Option<DirNode>>,
-    /// `None` marks a speculative measurement nobody needs.
-    awaiting: std::collections::HashMap<usize, Option<PendingMeasure>>,
-    outstanding: usize,
+    tasks: DirectoryTaskLedger<DirNode, PendingMeasure>,
     profile: Option<&'a profile::ProfileState>,
 }
 
@@ -1043,13 +1038,12 @@ where
         }
     }
 
-    fn set_outstanding(&mut self, outstanding: usize) {
-        self.outstanding = outstanding;
+    fn sync_outstanding(&self) {
         if let Some(profile) = self.profile {
             profile
                 .counters
                 .pending_tasks
-                .store(outstanding as u64, Ordering::Relaxed);
+                .store(self.tasks.outstanding() as u64, Ordering::Relaxed);
         }
     }
 
@@ -1145,7 +1139,7 @@ where
                 }
             }
         }
-        while self.outstanding > 0 && !self.control.should_stop() {
+        while self.tasks.outstanding() > 0 && !self.control.should_stop() {
             self.emit_profile();
             let message = if self.profile.is_some() {
                 // Wake at least once per interval to deliver what the sampler queued.
@@ -1160,7 +1154,8 @@ where
                 };
                 message
             };
-            self.set_outstanding(self.outstanding - 1);
+            self.tasks.response_received();
+            self.sync_outstanding();
             // Messages after a stop may be partial; open artifacts are completed below.
             if self.control.should_stop() {
                 break;
@@ -1184,7 +1179,7 @@ where
                     directory,
                     files,
                 })) => {
-                    if let Some(Some(pending)) = self.awaiting.remove(&node) {
+                    if let Some(pending) = self.tasks.take_measurement(node) {
                         self.finish_measure(pending, Some(directory), files);
                     }
                 }
@@ -1200,9 +1195,8 @@ where
     }
 
     fn enqueue(&mut self, node: DirNode, request: DirectoryRequest<u32>) {
-        let task = request.into_task(self.nodes.len());
-        self.nodes.push(Some(node));
-        self.set_outstanding(self.outstanding + 1);
+        let task = self.tasks.register(request, node);
+        self.sync_outstanding();
         if self.queue.push(task).is_err() {
             self.control.fail();
         }
@@ -1326,17 +1320,16 @@ where
             profile::bump(&profile.counters.entries, 1);
             profile::bump(&profile.counters.directories, 1);
         }
+        let state = self.tasks.take_listing(node, measuring);
         if measuring {
-            self.set_outstanding(self.outstanding + 1);
+            self.sync_outstanding();
         }
         let DirNode {
             path,
             parent_markers,
             mut chain,
             root_metadata,
-        } = self.nodes[node]
-            .take()
-            .expect("each directory is listed once");
+        } = state;
         let parent_len = chain.len();
         let name = path.file_name().map(os_str_bytes).unwrap_or_default();
         let own_markers = listing.context & MARKER_PYVENV_CFG;
@@ -1373,7 +1366,7 @@ where
         }
         if action == CandidateAction::Prune {
             if measuring {
-                self.awaiting.insert(node, None);
+                self.tasks.defer_measurement(node, None);
             }
             self.finish_directory(&chain, parent_len);
             return;
@@ -1443,11 +1436,11 @@ where
         };
         if pending.chain.is_empty() && pending.files.is_empty() {
             if measuring {
-                self.awaiting.insert(node, None);
+                self.tasks.defer_measurement(node, None);
             }
             self.finish_directory(&pending.chain, parent_len);
         } else if measuring {
-            self.awaiting.insert(node, Some(pending));
+            self.tasks.defer_measurement(node, Some(pending));
         } else {
             self.finish_measure(pending, None, Vec::new());
         }
@@ -2158,6 +2151,69 @@ mod tests {
                 ..Probes::default()
             },
         )
+    }
+
+    #[test]
+    fn coordinator_consumes_ignored_speculative_measurement_before_finishing() {
+        let tree = TempTree::new();
+        let root = tree.0.join(".build");
+        fs::create_dir(&root).unwrap();
+        let control = ScanControl::new();
+        let probes = Probes::default();
+        let queue = WorkQueue::default();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        // Script the worker protocol to exercise result consumption deterministically.
+        sender
+            .send(WorkerMessage::Directory(DirectoryResult::Listed {
+                id: 0,
+                listing: Listing::default(),
+                measuring: true,
+            }))
+            .unwrap();
+        sender
+            .send(WorkerMessage::Directory(DirectoryResult::Measured(
+                DirectoryMeasurement {
+                    id: 0,
+                    directory: Err(std::io::Error::from(std::io::ErrorKind::PermissionDenied)),
+                    files: Vec::new(),
+                },
+            )))
+            .unwrap();
+        let mut policy =
+            |_: &Path, _: &CandidateFacts, _: CandidateNodeKind| CandidateAction::Prune;
+        let mut emit = |_: &ScanEvent| {};
+        let mut scanner = Scanner {
+            root: &root,
+            options: ScanOptions::default(),
+            control: &control,
+            policy: &mut policy,
+            legacy_policy: true,
+            emit: &mut emit,
+            probes: &probes,
+            queue: &queue,
+            receiver,
+            artifacts: Vec::new(),
+            progress: Vec::new(),
+            warnings: Vec::new(),
+            had_errors: false,
+            changed: false,
+            tasks: DirectoryTaskLedger::default(),
+            profile: None,
+        };
+        scanner.run();
+        assert_eq!(scanner.tasks.outstanding(), 0);
+        assert!(matches!(
+            scanner.receiver.try_recv(),
+            Err(std::sync::mpsc::TryRecvError::Empty)
+        ));
+        assert!(
+            scanner.warnings.is_empty(),
+            "ignored measurements cannot change status"
+        );
+        assert!(scanner.artifacts.is_empty());
+        assert!(!scanner.had_errors);
+        assert!(!control.should_stop());
+        queue.close();
     }
 
     #[test]

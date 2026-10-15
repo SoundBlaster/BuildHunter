@@ -43,3 +43,7 @@ selection effects and final report/status. The next extraction boundary is
 opaque task/result bookkeeping; product-specific ancestry stays in BuildHunter.
 Merge the upstream Hunter PR first, preserving its source commit ancestry, then
 this consumer. The seven-file std-only vendor snapshot keeps root CLI offline.
+
+Follow-up: hunter-task-ledger.md records the extraction of node/deferred storage,
+ID assignment and response counting. Product-specific state interpretation, result
+protocol ordering, worker lifetime and subtree accounting remain host-owned.

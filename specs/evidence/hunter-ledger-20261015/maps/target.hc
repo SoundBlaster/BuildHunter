@@ -1,0 +1,25 @@
+HunterProducts
+  Hunter
+    Traversal
+    MetadataMeasurement
+    PlatformGuards
+    ScanLifecycle
+    Telemetry
+  Rifle
+    RuleModel
+    CatalogValidation
+    PlanCompilation
+    Evaluation
+    SwiftAuthoring
+  BuildHunter
+    BasicPlugins
+    ArtifactPolicy
+    ScanAssembly
+    CommandLine
+    MacApplication
+  Arsenal
+    CommercialPlugins
+    PluginFixtures
+  StoreDistribution
+    PinnedComposition
+    SigningAndRelease

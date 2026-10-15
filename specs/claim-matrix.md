@@ -25,7 +25,7 @@ the actual reasoning scope; a shared physical file can serve several logical rol
 | Are CLI and GUI equivalent? | `buildhunter.current.classification/client_profiles`, `taxonomy`; `buildhunter.current.application/cli_profile` | `rust_cli_policy`, `src/main.rs: main`; `ClassifyArtifactRoot`, `IsOuterArtifactRoot`, `RustScanBridgeContext` | Source: named/any-name env differences, default env eligibility, nested reporting, tox/nox kinds, lossy CLI JSON. | **C2**: preserve explicit profiles first; decide future harmonization separately. |
 | Are symlinks followed? | `buildhunter.current.scan/symlink_scope` | `src/lib.rs: list_directory, Probes.marker_is_file, visit_file`; Rust test `symlinked_markers_count_when_they_resolve_to_files` | Source/test expectation: traversal excludes links, marker existence resolves recognized links. Test was not run here. | **C3**: distinguish traversal guarantee from marker metadata probes; stricter behavior requires decision. |
 | Is displayed path a safe exact handle? | `buildhunter.current.bridge/invalid_utf8` | `path_bytes`, `RustScanBridgeContext.handle`, `decode`, `ArtifactFolderActions`, `artifactURL` | Source: Rust raw bytes → lossy GUI String + warning → actions construct URL. Exact identity for invalid UTF-8 unproven. | **C4**: choose lossless path/handle contract or disable actions before new ABI. |
-| Is memory bounded? | `buildhunter.current.scan/memory_scope`; `buildhunter.current.bridge/backpressure`; `buildhunter.current.application/view_projection` | Rust `WorkQueue`, mpsc channel, `Scanner.nodes`; Swift `ScanEventChannel.next/close`, `ArtifactNativeTable.Coordinator.update` | Source: ring slots bounded/released; worker/result/arena storage is separate. #61 report is historical evidence for table retention only. | **C5**: separate transport, pending work, retained reports and RSS budgets. |
+| Is memory bounded? | `buildhunter.current.scan/memory_scope`; `buildhunter.current.bridge/backpressure`; `buildhunter.current.application/view_projection` | Rust `WorkQueue`, mpsc channel, `Scanner.tasks` / `DirectoryTaskLedger`; Swift `ScanEventChannel.next/close`, `ArtifactNativeTable.Coordinator.update` | Source: ring slots bounded/released; worker/result/arena storage is separate. #61 report is historical evidence for table retention only. | **C5**: separate transport, pending work, retained reports and RSS budgets. |
 | Does cancellation wait for GUI consumption? | `buildhunter.current.bridge/cancellation`, `backpressure` | `RustScanJob.cancel`, `ScanEventChannel.close`, `ScanEventStreamLifetime` | Source: close discards queued events and wakes producer; host reads can still stall return. | Do not promise an absolute cancellation latency without scenario measurement. |
 | Are settings stable during scan? | `buildhunter.current.classification/filter_snapshot`; `buildhunter.current.bridge/policy_table` | `SearchFilterSettings.snapshot`, `RustScanEventSource.events`, `RustCompiledPolicyTable.compile` | Source: immutable snapshot; representability fallback. Unknown exclusions retained. | New catalog/settings must freeze together with compatible schema identity. |
 | Do companion windows run new scans? | `buildhunter.current.application/shared_report` | `ScanWindowStore`, `BuildHunterApp`, `ArtifactDiagramModel` | Source: same model per scan ID; close main stops scan while retained companion report can remain. | Diagram/warnings ownership belongs to product, not Hunter/Rifle. |
@@ -161,3 +161,16 @@ coordinator/result bookkeeping is the next boundary; whole-scan memory budgets
 remain open. See docs/hunter-child-traversal.md and the fresh source/runtime/map
 receipts in specs/validation/hunter-children-20261015. Historical receipts are
 retained and do not validate this revision; contracts remain draft.
+
+## Task/result ledger — 2026-10-15
+
+HunterTaskLedger now owns non-reused IDs, opaque listing/deferred state and
+expected-response counting. BuildHunter supplies DirNode/PendingMeasure, retires
+each received message before stop/dispatch, preserves ignored speculative results
+and mirrors counts into existing profiling. Queue rejection/setup failure, guard
+lifetime, scope join, subtree completion, C1–C4 product decisions and terminal
+status remain host-owned. C5 is open: arena/map capacity and unbounded channels/
+reports remain. New draft capability and current scan bindings are covered by
+specs/validation/hunter-ledger-20261015 and specs/evidence/hunter-ledger-20261015;
+prior receipts remain historical. See docs/hunter-task-ledger.md for protocol and
+ownership duties; no full target lifecycle/resource acceptance is claimed.

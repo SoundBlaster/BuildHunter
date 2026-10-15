@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.5
+  version: 0.1.0-draft.6
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -42,6 +42,9 @@ requires:
   - id: hunter.fs.child_traversal
     optional: false
     summary: Ordered host-selected directory requests and indexed leaf observations; host owns cloud/stop effects, scheduling, ancestry and status.
+  - id: hunter.fs.task_ledger
+    optional: false
+    summary: Non-reused IDs, opaque listing/deferred state and expected-response accounting; host owns protocol order, queues, join and final status.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -150,6 +153,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/children.rs
   supports: [constraints.scan_lifetime, constraints.symlink_scope, constraints.memory_scope, scope]
+- id: hunter_ledger_source
+  kind: source
+  path: vendor/hunter-fs-core/src/ledger.rs
+  supports: [constraints.scan_lifetime, constraints.memory_scope, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -174,6 +181,9 @@ provenance:
   - Host-selected child request planning delegates to Hunter 491399c849f9d95beae564caab32dd668be75a2c.
     Admission/checkpoint/cloud effects remain local; original indices, marker context and measurement intent are preserved.
     Fresh source/map/runtime receipts are in specs/validation/hunter-children-20261015; this does not complete generic scan extraction.
+  - Serial task/result ledger delegates to Hunter a24a94526f14819d50c928a666e847ca22eb1ae1 from BuildHunter baseline 7f8c72f.
+    Host records each receipt before cancellation/dispatch; opaque pending values retain existing ignored-measurement behavior.
+    Source/map/runtime identities are in specs/validation/hunter-ledger-20261015; no full generic scan lifecycle or memory bound follows.
 implementationBindings:
 - id: implementation
   language: rust
@@ -194,4 +204,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/work.rs
     - vendor/hunter-fs-core/src/task.rs
     - vendor/hunter-fs-core/src/children.rs
+    - vendor/hunter-fs-core/src/ledger.rs
     - vendor/hunter-fs-core/UPSTREAM.json
