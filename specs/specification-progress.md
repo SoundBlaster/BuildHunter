@@ -343,3 +343,14 @@ speedup/full-recursion/UI/live-cloud acceptance. Fresh source/maps/receipts are
 in specs/validation/hunter-tasks-20261015; prior results remain historical.
 Next boundary: generic recursive selection/aggregation requests detached from
 artifact ancestry and speculative prefetch. Contracts remain descriptive drafts.
+
+## Directory task contract review — 2026-10-15
+
+Hunter #4 removes consumer classification terms from its public scope/README.
+Core snapshot now pins 612b861; all Rust sources are byte-identical to e9b77e4.
+Affected roles HunterPortable, HunterWork and HunterDirectoryTasks retain their
+contracts/assembly duties; no capability or runtime behavior changed. Source/map
+identities, updated upstream draft and fresh structural/vendor validation live in
+validation/hunter-task-review-20261015 and evidence/hunter-task-review-20261015.
+Prior runtime/performance receipts remain historical; no acceptance is inferred
+from a wording correction.

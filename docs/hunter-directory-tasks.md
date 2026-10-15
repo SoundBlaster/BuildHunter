@@ -1,6 +1,6 @@
 # Directory task/result planning — 2026-10-15
 
-Hunter #4 at e9b77e44f50ac72e543b727a11afa2c28666226e owns DirectoryTask,
+Hunter #4 at 612b861e4a820fc30043bdd60653c1d6ebb1d2a6 owns DirectoryTask,
 DirectoryListing, DirectoryResult, DirectoryMeasurement and the positional
 DirectoryMeasurementPlan. IDs and task/listing contexts remain opaque. BuildHunter
 uses usize IDs and u32 contexts for its own parent/listing marker bits; Hunter never
@@ -33,3 +33,9 @@ UI/cloud, whole-memory or speedup claim follows from this extraction.
 Merge Hunter #4 first, then this consumer. Next boundary: define generic recursive
 child-selection/aggregation requests so the remaining coordinator can delegate tree
 planning without importing artifact ancestry or marker policy into Hunter.
+
+Review follow-up: documentation-only Hunter revision 612b861 removes consumer
+classification vocabulary from the generic contract. Updated upstream snapshot,
+source/map identities and structural/vendor checks are under
+specs/validation/hunter-task-review-20261015. Runtime source is unchanged; the
+initial extraction test/performance receipts above remain historical.

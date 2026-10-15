@@ -73,3 +73,7 @@ remain local; worker launch return is not the join boundary. Prior records are h
 Directory task/result planning at Hunter e9b77e4 adds HunterDirectoryTasks roles.
 Latest source/map identities: hunter-tasks-20261015. Context interpretation,
 guarded backend callbacks, recursive selection and aggregation remain host-owned.
+
+Documentation-only upstream review advances the core snapshot to 612b861.
+Latest identities/maps: hunter-task-review-20261015; runtime source and roles
+are unchanged. The previous task extraction receipts remain historical.

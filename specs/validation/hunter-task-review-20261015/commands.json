@@ -1,0 +1,107 @@
+[
+  {
+    "command": [
+      "python3",
+      "scripts/verify_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "stdout": "Hunter vendored snapshot verified: 612b861e4a820fc30043bdd60653c1d6ebb1d2a6\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.015s\n\nOK\n"
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"capabilities\": [\n    \"arsenal.design.catalog\",\n    \"buildhunter.current.application\",\n    \"buildhunter.current.bridge\",\n    \"buildhunter.current.classification\",\n    \"buildhunter.current.scan\",\n    \"buildhunter.design.product\",\n    \"buildhunter.plugin.policy\",\n    \"buildhunter.plugin.scan\",\n    \"hunter.design.scan\",\n    \"rifle.design.rules\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/arsenal-design.spec.yaml\",\n    \"specs/buildhunter-design.spec.yaml\",\n    \"specs/current-application.spec.yaml\",\n    \"specs/current-bridge.spec.yaml\",\n    \"specs/current-classification.spec.yaml\",\n    \"specs/current-scan.spec.yaml\",\n    \"specs/hunter-design.spec.yaml\",\n    \"specs/plugin-policy.spec.yaml\",\n    \"specs/plugin-scanner.spec.yaml\",\n    \"specs/rifle-design.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"BuildHunter current boundaries and target module architecture\",\n    \"package_id\": \"buildhunter.module_architecture\",\n    \"version\": \"0.1.0-draft.8\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 19,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.portable\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.work\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.bridge\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/hunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.design.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: arsenal.design.catalog\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/arsenal-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.catalog.validate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.program.evaluate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.plugin.policy\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scoped_metadata\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "BuildHunterRuntime\n  Clients\n    CommandLine\n    MacApplication\n      WindowSession\n      ReportPresentation\n      FolderActions\n      Export\n      Settings\n  SharedRuntime\n    Scanner\n      Traversal\n      Measurement\n      CloudGuard\n      ResourceProfile\n    ArtifactClassification\n      CandidateSelection\n      MarkerVocabulary\n      ClientPolicy\n      FilterCatalog\n    PluginPolicy\n      CatalogValidation\n      EffectivePlan\n      CandidateClassification\n    HunterPortable\n      DirectoryEnumeration\n      MetadataSizing\n    HunterWork\n      TaskScheduling\n      WorkerLifecycle\n    HunterDirectoryTasks\n      TaskContext\n      PositionalMeasurement\n      ResultEnvelope\n    HunterMetadata\n    PluginScanning\n      CandidateObservation\n      MarkerAcquisition\n      TargetRouting\n    RustSwiftBridge\n      PolicyTable\n      EventChannel\n      AccessLifetime\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "HunterProducts\n  Hunter\n    Traversal\n    MetadataMeasurement\n    PlatformGuards\n    ScanLifecycle\n    Telemetry\n  Rifle\n    RuleModel\n    CatalogValidation\n    PlanCompilation\n    Evaluation\n    SwiftAuthoring\n  BuildHunter\n    BasicPlugins\n    ArtifactPolicy\n    ScanAssembly\n    CommandLine\n    MacApplication\n  Arsenal\n    CommercialPlugins\n    PluginFixtures\n  StoreDistribution\n    PinnedComposition\n    SigningAndRelease\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  }
+]

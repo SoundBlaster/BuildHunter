@@ -1,0 +1,1 @@
+Public draft snapshot from Hunter 612b861e4a820fc30043bdd60653c1d6ebb1d2a6, original specs/directory-tasks.spec.yaml. Evidence only; prior snapshot remains historical. Runtime source is unchanged; exact vendored package revision/hashes are in UPSTREAM.json.

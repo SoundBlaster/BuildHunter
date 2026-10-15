@@ -3,7 +3,7 @@
 Std-only primitives extracted from BuildHunter `src/lib.rs` at 13aece6.
 `visit_directory` consumes a host-opened directory iterator, observes file types
 without following targets, emits owned Entry/Error values and checks cancellation
-before type lookup. The host owns open/access/cloud policy, marker decisions,
+before type lookup. The host owns open/access/cloud policy, entry-selection decisions,
 recursion, worker scheduling and report/status aggregation. Failed open emits one
 Error then OpenFailed; other iteration/type errors emit Error and continue.
 A cancelled pass keeps its emitted prefix. Empty iteration completes even if the
@@ -50,7 +50,7 @@ while the coordinator guard is still alive. No full filesystem engine is claimed
 
 DirectoryTask<Id, Context> owns an ID, path, measurement intent and opaque host
 context. DirectoryListing<Context> owns children/errors and opaque listing context.
-Hunter never interprets context as markers, categories or ancestor state.
+Hunter never interprets context or assigns consumer-specific meaning to it.
 measurement_plan combines explicit intent with a host prefetch boolean, creates
 original-position slots for non-directory/non-symlink entries, and borrows the
 job path (no extra directory-path allocation). Initial file types are observations,
