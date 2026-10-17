@@ -305,3 +305,6 @@ pub use subtree::{SubtreeCompletion, SubtreeProgress};
 
 mod execution;
 pub use execution::{CoordinatorExit, ScanCoordinator, drive_scan};
+
+mod backend;
+pub use backend::{FilesystemBackend, RootObservation, StdFilesystem, observe_root};

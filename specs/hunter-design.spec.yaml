@@ -130,4 +130,7 @@ provenance:
   - Serial result waiting/checkpoints and receipt-before-stop dispatch now delegate to hunter.fs.scan_execution at 3af2a4dd549f473e79364b45f248197ee4ec57ee.
     Root/backend admission, partial finalization, final status and complete worker/resource lifetime remain host duties.
     This is partial target implementation with unchanged generic_facts/lifecycle/memory_budget obligations.
+  - Native FilesystemBackend/StdFilesystem and one-call root observations now delegate to hunter.fs.backend at 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db.
+    Host retains cloud/access admission, guard lifetime, marker/bulk policy, scheduling/status and full engine assembly.
+    Only final metadata component no-follow is provided; descriptor-bound traversal and resource requirements remain pending.
 implementationBindings: []

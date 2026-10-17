@@ -184,3 +184,7 @@ Serial result execution is now delegated to Hunter; BuildHunter retains root/bac
 admission, product messages/finalization/status and outer scoped worker lifetime.
 See [execution boundary](hunter-scan-execution.md) for responsibilities and limits.
 This does not complete the generic filesystem engine or plugin/client migration.
+
+Native metadata/listing and one-call root observations now use Hunter; access/cloud
+admission, guarded probes, marker/bulk policy and complete scan assembly remain local.
+See [native backend boundary](hunter-root-backend.md) for responsibilities and limits.

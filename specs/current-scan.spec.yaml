@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.8
+  version: 0.1.0-draft.9
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -51,6 +51,9 @@ requires:
   - id: hunter.fs.scan_execution
     optional: false
     summary: Serial result waiting/checkpoints and receipt-before-stop dispatch; host owns setup, interpretation, finalization and worker join.
+  - id: hunter.fs.backend
+    optional: false
+    summary: Native path metadata/listing seam and one-call root observation; host retains admission, guarded probes, bulk and marker-following policy.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -99,6 +102,15 @@ constraints:
     breaks the loop but does not itself override the host final-status precedence.
     Host initializes root work, finalizes open results, closes queues/stops helpers
     inside the outer thread scope and publishes Finished only after its join.
+- id: root_backend
+  level: MUST
+  statement: After existing cloud admission, observe the selected root once through
+    the guarded Probes backend. Reuse returned metadata for directory startup or
+    selected-entry measurement, even when startup was pre-cancelled. Missing selected
+    roots remain warnings/Incomplete rather than ordinary child churn. Final root
+    symlinks are entries and are not followed; intermediate components/read_dir
+    remain path-based with existing race limits. Probes preserves error decoration,
+    hooks and counters; marker following and bulk acquisition stay product-owned.
 effects:
   sideEffects:
   - id: read_metadata
@@ -180,6 +192,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/execution.rs
   supports: [constraints.result_execution, constraints.scan_lifetime, constraints.memory_scope, scope]
+- id: hunter_backend_source
+  kind: source
+  path: vendor/hunter-fs-core/src/backend.rs
+  supports: [constraints.root_backend, constraints.symlink_scope, constraints.cloud_guard, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -213,12 +229,15 @@ provenance:
   - Serial result execution now delegates to hunter.fs.scan_execution at 3af2a4dd549f473e79364b45f248197ee4ec57ee from BuildHunter 10e8aeed.
     Root admission/backends, product dispatch, partial finalization, terminal status and actual scoped join remain host-owned.
     Fresh source/map/runtime receipts are in specs/validation/hunter-execution-20261015; full engine/resource acceptance remains partial.
+  - Native backend/root observation now delegates to Hunter 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db from BuildHunter 7ef5bd98.
+    Host applies cloud admission/guards and wraps metadata/listing calls with unchanged probes/error decoration.
+    Fresh source/map/runtime receipts are in specs/validation/hunter-backend-20261015; complete engine startup remains pending.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 0bcb37cafd42926e506d60fa492231531f640d23
+    revision: 9a6abebc778d5093f0866488224ba887ae2ebf8f
   files:
     owned:
     - src/lib.rs
@@ -236,4 +255,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/ledger.rs
     - vendor/hunter-fs-core/src/subtree.rs
     - vendor/hunter-fs-core/src/execution.rs
+    - vendor/hunter-fs-core/src/backend.rs
     - vendor/hunter-fs-core/UPSTREAM.json

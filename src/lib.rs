@@ -1,8 +1,9 @@
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryTaskLedger, DirectoryVisit,
-    MeasuredSize, PlannedChild, ScanCoordinator, SubtreeProgress, drive_scan, metadata_bytes,
-    spawn_workers, visit_directory, worker_count,
+    FilesystemBackend, MeasuredSize, PlannedChild, RootObservation, ScanCoordinator, StdFilesystem,
+    SubtreeProgress, drive_scan, metadata_bytes, observe_root, spawn_workers, visit_directory,
+    worker_count,
 };
 use std::{
     borrow::Cow,
@@ -841,7 +842,7 @@ fn run_worker(
         if let Some(plan) = plan {
             let measurement_started = control.timer();
             let measured = plan.measure(
-                |path| probes.metadata(path),
+                |path| probes.symlink_metadata(path),
                 |path, files| {
                     let _ = (path, files);
                     #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
@@ -895,7 +896,7 @@ fn run_worker(
                             // No complete metadata was returned; the portable probe decides
                             // whether this is unsupported metadata or a vanished entry.
                         }
-                        probes.metadata(file).map(MeasuredSize::from)
+                        probes.symlink_metadata(file).map(MeasuredSize::from)
                     }
                 },
                 || control.should_stop(),
@@ -1102,7 +1103,7 @@ where
         {
             // A vanished child is expected on a live tree, but losing the
             // selected root invalidates the scan rather than just that entry.
-            match self.probes.metadata(self.root) {
+            match self.probes.symlink_metadata(self.root) {
                 Ok(metadata) if metadata.is_dir() => {}
                 Ok(_) => {
                     self.warn(self.root, "Selected root is no longer a directory", chain);
@@ -1153,9 +1154,9 @@ where
             self.warn(root, reason, &[]);
             return;
         }
-        match self.probes.metadata(root) {
+        match observe_root(self.probes, root) {
             Err(error) => self.warn(root, error, &[]),
-            Ok(metadata) if metadata.is_dir() => {
+            Ok(RootObservation::Directory(metadata)) => {
                 self.enqueue(
                     DirNode {
                         path: root.to_owned(),
@@ -1170,7 +1171,7 @@ where
                     },
                 );
             }
-            Ok(metadata) => {
+            Ok(RootObservation::Entry(metadata)) => {
                 // A selected file or symlink is its own candidate, measured if classified.
                 let file_type = metadata.file_type();
                 if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
@@ -1288,8 +1289,11 @@ where
         metadata: Option<std::io::Result<MeasuredSize>>,
         chain: &[u64],
     ) {
-        let metadata =
-            metadata.unwrap_or_else(|| self.probes.metadata(&slot.path).map(MeasuredSize::from));
+        let metadata = metadata.unwrap_or_else(|| {
+            self.probes
+                .symlink_metadata(&slot.path)
+                .map(MeasuredSize::from)
+        });
         let bytes = match metadata {
             Ok(metadata) => metadata.bytes(self.options.apparent_size),
             Err(error) => {
@@ -1460,7 +1464,7 @@ where
         if !chain.is_empty() {
             let metadata = match root_metadata {
                 Some(metadata) => Ok(metadata),
-                None => directory.unwrap_or_else(|| self.probes.metadata(&path)),
+                None => directory.unwrap_or_else(|| self.probes.symlink_metadata(&path)),
             };
             match metadata {
                 Ok(metadata) => {
@@ -1530,38 +1534,17 @@ struct Probes {
     listing_threads: std::sync::Mutex<Vec<std::thread::ThreadId>>,
 }
 
-impl Probes {
-    #[cfg(test)]
-    fn hook(&self, point: ProbePoint, path: &Path) -> std::io::Result<()> {
-        self.hook.as_ref().map_or(Ok(()), |hook| hook(point, path))
-    }
-    #[cfg(test)]
-    fn record_policy(&self) {
-        #[cfg(target_os = "macos")]
-        self.materialization_policies
-            .lock()
-            .unwrap()
-            .push(materialization::current_policy());
-    }
-
-    fn metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
+impl FilesystemBackend for Probes {
+    type Entries = fs::ReadDir;
+    fn symlink_metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
         #[cfg(test)]
         {
             self.record_policy();
             self.metadata.fetch_add(1, Ordering::Relaxed);
             self.hook(ProbePoint::Metadata, path)?;
         }
-        fs::symlink_metadata(path).map_err(|error| materialization::describe_error(path, error))
-    }
-
-    fn marker_is_file(&self, path: &Path) -> std::io::Result<bool> {
-        #[cfg(test)]
-        {
-            self.record_policy();
-            self.marker_probes.fetch_add(1, Ordering::Relaxed);
-        }
-        fs::metadata(path)
-            .map(|metadata| metadata.is_file())
+        StdFilesystem
+            .symlink_metadata(path)
             .map_err(|error| materialization::describe_error(path, error))
     }
 
@@ -1576,7 +1559,35 @@ impl Probes {
                 threads.push(thread);
             }
         }
-        fs::read_dir(path).map_err(|error| materialization::describe_error(path, error))
+        StdFilesystem
+            .read_dir(path)
+            .map_err(|error| materialization::describe_error(path, error))
+    }
+}
+
+impl Probes {
+    #[cfg(test)]
+    fn hook(&self, point: ProbePoint, path: &Path) -> std::io::Result<()> {
+        self.hook.as_ref().map_or(Ok(()), |hook| hook(point, path))
+    }
+    #[cfg(test)]
+    fn record_policy(&self) {
+        #[cfg(target_os = "macos")]
+        self.materialization_policies
+            .lock()
+            .unwrap()
+            .push(materialization::current_policy());
+    }
+
+    fn marker_is_file(&self, path: &Path) -> std::io::Result<bool> {
+        #[cfg(test)]
+        {
+            self.record_policy();
+            self.marker_probes.fetch_add(1, Ordering::Relaxed);
+        }
+        fs::metadata(path)
+            .map(|metadata| metadata.is_file())
+            .map_err(|error| materialization::describe_error(path, error))
     }
 
     #[cfg(test)]
@@ -2222,6 +2233,91 @@ mod tests {
                 ..Probes::default()
             },
         )
+    }
+
+    #[test]
+    fn selected_file_reuses_root_metadata_even_with_precancelled_startup() {
+        let tree = TempTree::new();
+        let root = tree.0.join("selected.pyc");
+        fs::write(&root, b"1234567").unwrap();
+        for cancelled in [false, true] {
+            let control = ScanControl::new();
+            if cancelled {
+                control.cancel();
+            }
+            let mut terminal = Vec::new();
+            let report = scan_with_policy(
+                &root,
+                ScanOptions {
+                    apparent_size: true,
+                },
+                &control,
+                |facts| rust_cli_policy(facts, false),
+                |event| {
+                    if let ScanEvent::Finished(status) = event {
+                        terminal.push(*status);
+                    }
+                },
+            );
+            let expected = if cancelled {
+                ScanStatus::Cancelled
+            } else {
+                ScanStatus::Completed
+            };
+            assert_eq!(report.status, expected);
+            assert_eq!(terminal, [expected]);
+            assert_eq!(report.probes.metadata, 1, "reuse the initial observation");
+            assert!(report.probes.listing_threads.is_empty());
+            assert!(report.warnings.is_empty());
+            if cancelled {
+                assert!(report.artifacts.is_empty());
+            } else {
+                assert_eq!(report.artifacts.len(), 1);
+                assert_eq!(report.artifacts[0].relative_path, Path::new("."));
+                assert_eq!(report.artifacts[0].bytes, 7);
+            }
+        }
+    }
+
+    #[test]
+    fn missing_selected_root_remains_incomplete_instead_of_child_churn() {
+        let tree = TempTree::new();
+        let report = scan_with_policy(
+            &tree.0.join("missing"),
+            ScanOptions::default(),
+            &ScanControl::new(),
+            |facts| rust_cli_policy(facts, false),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert_eq!(report.warnings.len(), 1);
+        assert_eq!(report.warnings[0].relative_path, Path::new("."));
+        assert_eq!(report.probes.metadata, 1);
+        assert!(report.probes.listing_threads.is_empty());
+        assert!(report.artifacts.is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn selected_symlink_roots_never_follow_file_directory_or_dangling_targets() {
+        let tree = TempTree::new();
+        fs::write(tree.0.join("file.pyc"), b"payload").unwrap();
+        fs::create_dir(tree.0.join("directory")).unwrap();
+        for target in ["file.pyc", "directory", "missing"] {
+            let root = tree.0.join(format!("link-{target}.pyc"));
+            std::os::unix::fs::symlink(target, &root).unwrap();
+            let report = scan_with_policy(
+                &root,
+                ScanOptions::default(),
+                &ScanControl::new(),
+                |facts| rust_cli_policy(facts, false),
+                |_| {},
+            );
+            assert_eq!(report.status, ScanStatus::Completed);
+            assert!(report.warnings.is_empty() && report.artifacts.is_empty());
+            assert_eq!(report.probes.metadata, 1);
+            assert!(report.probes.listing_threads.is_empty());
+        }
     }
 
     #[test]

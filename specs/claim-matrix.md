@@ -205,3 +205,21 @@ is inferred. Fresh identities/runtime/structural receipts are under
 specs/validation/hunter-execution-20261015 and frozen maps/upstream contract under
 specs/evidence/hunter-execution-20261015. Earlier snapshots/results remain historical.
 Full root/backend execution assembly is still a separate extraction boundary.
+
+## Native backend/root observation — 2026-10-15
+
+HunterFilesystemBackend at 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db now owns the native metadata/
+listing seam and one-call selected-root Directory/Entry observation. BuildHunter
+Probes implements the interface while retaining hooks, error decoration, counters,
+cloud/access admission and platform guards. Marker-following and bulk acquisition
+remain local. Root metadata reuse, missing-root Incomplete, symlink skipping and
+pre-cancelled startup semantics are covered by new application witnesses. Existing
+worker/callback/terminal/profile and plugin integration remain regression gates.
+
+Affected current scan root_backend/symlink_scope/cloud_guard and target Hunter
+generic_facts/io_contract/lifecycle retain draft status. Maps/bindings now identify
+the seam and native race limits; full root/backend execution assembly, descriptor-
+bound traversal, C1–C4 migration and C5 budgets are still pending. No speedup, RAM
+improvement or live-cloud acceptance is inferred. Fresh identities/runtime/structural
+receipts are in specs/validation/hunter-backend-20261015, frozen maps/upstream
+contract in specs/evidence/hunter-backend-20261015. Historical receipts are retained.

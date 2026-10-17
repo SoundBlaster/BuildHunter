@@ -1,0 +1,89 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.backend
+  title: Native filesystem backend and root observation
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Separate native path-based metadata/listing operations from host policy
+    and observe a selected root once for host-owned initialization.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - FilesystemBackend symlink_metadata/read_dir, StdFilesystem delegation and
+    owned Directory/Entry root observations with original metadata.
+  excludes:
+  - Access/cloud admission, content reads, path normalization, worker setup/join,
+    classification, scheduling, stop/status policy, bulk acquisition and descriptors.
+provides:
+  capabilities:
+  - id: hunter.fs.backend
+    role: primary
+    summary: Supply a native filesystem access seam and a one-observation root fact.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: Host supplies effective filesystem permissions and applicable thread guards.
+interfaces:
+  inbound:
+  - id: backend
+    kind: library
+    summary: FilesystemBackend exposes symlink_metadata(Path) -> io::Result<Metadata>
+      and read_dir(Path) -> io::Result<Entries>; Entries yields io::Result<DirEntry>.
+      observe_root(&backend, Path) -> io::Result<RootObservation> returns Directory
+      or Entry containing the owned metadata. StdFilesystem implements both operations.
+  outbound: []
+constraints:
+- id: observation
+  level: MUST
+  statement: observe_root invokes backend.symlink_metadata exactly once and returns
+    Directory when metadata.is_dir, otherwise Entry including symlinks/special files.
+    Return original metadata/errors without retry, extra type lookup, enumeration,
+    path normalization or cancellation checks. Backend/state may be borrowed and
+    need not be Send or Sync; the synchronous caller controls its threading model.
+- id: native_semantics
+  level: MUST
+  statement: StdFilesystem delegates directly to std fs symlink_metadata/read_dir,
+    preserving paths, native results, iterator errors and listing order. Metadata
+    does not follow the final component. Intermediate components and read_dir are
+    path-based and can follow links or replacement races; no anchored/atomic tree
+    or universal no-follow traversal guarantee is established.
+- id: assembly
+  level: MUST
+  statement: Host applies permissions/cloud admission and holds effective platform
+    guards before and through backend calls/iterator use. Host may wrap the backend
+    with probes/error decoration, owns marker-following exceptions and bulk policy,
+    schedules selected directories, admits/measures entries, retains root metadata
+    for reuse and maps failures/stops/status/events. A pre-cancelled host may still
+    observe the root; this helper does not interrupt syscalls or initialize workers.
+effects:
+  sideEffects:
+  - id: native_metadata
+    kind: filesystem_read
+    summary: Read path metadata or open a directory iterator through the supplied backend.
+evidence:
+- id: backend_source
+  kind: source
+  path: crates/hunter-fs-core/src/backend.rs
+  supports: [intent.summary, scope, interfaces, constraints.observation, constraints.native_semantics, constraints.assembly]
+- id: backend_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [constraints.assembly]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter Probes and Scanner root initialization at 7ef5bd98e1b4deca3c5b5f212ff5f89f41b9eba9.
+    Contract remains draft; this native access/root-fact seam is not full engine startup.
+implementationBindings:
+- id: backend_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/backend.rs]
+    border: [crates/hunter-fs-core/src/lib.rs]

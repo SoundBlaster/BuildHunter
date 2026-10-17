@@ -46,3 +46,6 @@ frozen maps and upstream draft contract are in `specs/evidence/hunter-execution-
 Contracts remain draft. Full root/backend execution assembly, descriptor-bound
 recursion, channel/report budgets and live cloud/UI acceptance are still pending.
 Merge Hunter first preserving the pinned commit in main ancestry, then BuildHunter.
+
+Follow-up: [native backend/root observations](hunter-root-backend.md) now delegate
+those facts to Hunter. Root access/cloud admission and full scoped startup remain host-owned.

@@ -1,0 +1,1 @@
+Upstream draft copied from SoundBlaster/Hunter at 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db, path specs/filesystem-backend.spec.yaml, SHA-256 8201a2e3fdb25d0305ca9c4916331010b62130b5cdf9e0e15a752e8faf410807. This is source evidence, not owner acceptance.
