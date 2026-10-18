@@ -213,7 +213,7 @@ def verify_workflow(api, workflow, expected):
     query = urllib.parse.urlencode({"head_sha": expected["head"], "event": "pull_request"})
     runs = api.pages(f"actions/workflows/{workflow}/runs?{query}", "workflow_runs")
     runs = [r for r in runs if r["head_sha"] == expected["head"] and r["event"] == "pull_request"
-            and r["path"] == ".github/workflows/" + workflow
+            and r["path"].split("@", 1)[0] == ".github/workflows/" + workflow
             and any(p["number"] == expected["pr"] for p in r["pull_requests"])]
     if not runs:
         raise NotReady(f"Missing {workflow} for PR {expected['pr']}")

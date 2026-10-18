@@ -214,8 +214,19 @@ class EvidenceTests(unittest.TestCase):
             with self.assertRaises(NotReady):
                 verify(api, 2, True)
 
+    def test_ref_qualified_workflow_paths_supply_evidence(self):
+        for ref in ["main", "refs/heads/main", "refs/pull/2/merge"]:
+            with self.subTest(ref=ref):
+                api = Fixture()
+                api.green()
+                for runs in api.runs.values():
+                    for run in runs:
+                        run["path"] += "@" + ref
+                self.assertEqual(verify(api, 2, True, require_tip=True)["tip"], 2)
+
     def test_wrong_workflow_pr_or_event_cannot_supply_evidence(self):
-        for key, value in [("path", ".github/workflows/evil.yml"), ("event", "workflow_dispatch"),
+        for key, value in [("path", ".github/workflows/evil.yml"),
+                           ("path", ".github/workflows/evil.yml@main"), ("event", "workflow_dispatch"),
                            ("pull_requests", [{"number": 99}]), ("head_sha", OTHER)]:
             api = Fixture()
             api.green()
