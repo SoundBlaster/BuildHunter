@@ -320,3 +320,6 @@ pub use measurement::{DirectoryMeasurementBackend, FileMeasurementBackend};
 
 mod session;
 pub use session::run_scoped_workers;
+
+mod admission;
+pub use admission::{RootAdmission, admit_root};
