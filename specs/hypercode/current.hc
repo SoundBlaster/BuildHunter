@@ -73,6 +73,9 @@ BuildHunterRuntime
       HelperStartup
       QueueShutdown
       JoinBoundary
+    HunterRootAdmission
+      HostRootPreflight
+      RootAdmissionOutcome
     HunterMetadata
     PluginScanning
       CandidateObservation

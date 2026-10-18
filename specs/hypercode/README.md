@@ -122,3 +122,8 @@ Scoped startup/join at Hunter 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad adds Hunt
 HelperStartup/QueueShutdown/JoinBoundary and product ScanSession admission/launch/
 terminal roles. Fresh identities/maps are under hunter-session-20261018; root
 admission/guard and full generic engine assembly remain pending.
+
+Root admission now delegates sequencing to Hunter `cc1d8054ea0882e8f954e8bb6b0e6de03cff1495`; the host still owns
+cloud policy/guards, scheduling/status and the skip-versus-error control flow.
+See [root admission](../../docs/hunter-root-admission.md) and the new
+`hunter-admission-20261018` evidence; full engine assembly remains pending.

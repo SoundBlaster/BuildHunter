@@ -1,0 +1,79 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.root_admission
+  title: Host-selected root admission outcome
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Sequence opaque host preflight before a single native root observation.
+scope:
+  boundedContext: filesystem_acquisition
+  includes: [admit_root and RootAdmission]
+  excludes:
+  - Access/cloud policy, guard acquisition, cancellation, retries, normalization,
+    classification, scheduling, product statuses and terminal publication.
+provides:
+  capabilities:
+  - id: hunter.fs.root_admission
+    role: primary
+    summary: Distinguish opaque host rejection, owned metadata and observation error.
+requires:
+  capabilities:
+  - id: hunter.fs.backend
+    optional: false
+    summary: observe_root provides original metadata/error without enumeration.
+interfaces:
+  inbound:
+  - id: admission
+    kind: library
+    summary: admit_root(backend, original path, FnOnce preflight returning optional reason).
+  outbound: []
+constraints:
+- id: sequencing
+  level: MUST
+  statement: Invoke preflight exactly once on the original path before backend access.
+    Some(reason) returns Skipped with the original reason and zero backend calls;
+    otherwise call observe_root once and return Observed or Unavailable unchanged.
+    Callback effects are separate and may include I/O. A callback panic propagates
+    without subsequent backend access.
+- id: ownership
+  level: MUST
+  statement: Accept borrowed non-Send backend, callback and reason without Clone or
+    static bounds. Preserve owned metadata/error payload without re-reading,
+    enumerating, normalizing, retrying or adding cancellation checks. Existing
+    final-component no-follow and intermediate-path race scope are unchanged.
+- id: host_policy
+  level: MUST
+  statement: Host retains effective guards, meaning of rejection, root scheduling,
+    warnings, error/status mapping and finalization. Unavailable and Skipped are
+    distinct facts; neither prescribes whether the host returns early.
+effects:
+  sideEffects:
+  - id: observation
+    kind: filesystem_read
+    summary: One backend root metadata observation only after host preflight allows it.
+  - id: preflight
+    kind: event_emit
+    summary: Invoke host callback synchronously; its independent effects remain host-owned.
+evidence:
+- id: admission_source
+  kind: source
+  path: crates/hunter-fs-core/src/admission.rs
+  supports: [intent.summary, scope, interfaces, constraints.sequencing, constraints.ownership, constraints.host_policy]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter Scanner::run at c4a0c2fb48f8c8512a47ba9c2a2b31cd5fa36194.
+    Four new seam tests complement existing backend no-follow/raw-path witnesses.
+    Draft contract is not owner acceptance or live cloud-provider validation.
+implementationBindings:
+- id: admission_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/admission.rs]
+    border: [crates/hunter-fs-core/src/backend.rs, crates/hunter-fs-core/src/lib.rs]

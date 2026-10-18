@@ -353,3 +353,8 @@ bulk effects are separate from WorkerAdapter. See [measurement boundary](hunter-
 Scoped worker startup/shutdown/join now lives in Hunter; product admission/QoS,
 status and terminal publication are isolated in BuildHunter scan_session.rs.
 See [scoped session boundary](hunter-scoped-session.md).
+
+Root admission now delegates sequencing to Hunter `cc1d8054ea0882e8f954e8bb6b0e6de03cff1495`; the host still owns
+cloud policy/guards, scheduling/status and the skip-versus-error control flow.
+See [root admission](../docs/hunter-root-admission.md) and the new
+`hunter-admission-20261018` evidence; full engine assembly remains pending.

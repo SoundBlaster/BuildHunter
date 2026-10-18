@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/hunter-session-20261018/source-identity.json"
+  baseline: "specs/validation/hunter-admission-20261018/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -117,7 +117,7 @@ CandidateObservation:
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.portable (upstream draft)"
   distribution: "exact vendored std-only path dependency"
 DirectoryEnumeration:
@@ -129,7 +129,7 @@ MetadataSizing:
 HunterWork:
   source: "vendor/hunter-fs-core/src/work.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.work (upstream draft)"
 TaskScheduling:
   implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
@@ -140,7 +140,7 @@ WorkerLifecycle:
 HunterDirectoryTasks:
   source: "vendor/hunter-fs-core/src/task.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.directory_tasks (upstream draft)"
 TaskContext:
   implementation: "DirectoryTask/ListTask + DirectoryListing; opaque host u32 contexts"
@@ -166,7 +166,7 @@ TerminalPublication:
 Traversal:
   source: "vendor/hunter-fs-core/src/children.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.child_traversal (upstream draft)"
 ChildAdmission:
   implementation: "ChildTraversal::next_child; host checkpoint/stop/cloud decisions"
@@ -177,7 +177,7 @@ RecursiveRequests:
 HunterTaskLedger:
   source: "vendor/hunter-fs-core/src/ledger.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.task_ledger (upstream draft)"
 TaskIdentity:
   implementation: "DirectoryTaskLedger::register + take_listing"
@@ -191,7 +191,7 @@ DeferredState:
 HunterSubtreeProgress:
   source: "vendor/hunter-fs-core/src/subtree.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.subtree_progress (upstream draft)"
 ByteAggregation:
   implementation: "SubtreeProgress::add_bytes/set_bytes; host ancestor routing and size units"
@@ -205,7 +205,7 @@ PartialCompletion:
 HunterScanExecution:
   source: "vendor/hunter-fs-core/src/execution.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.scan_execution (upstream draft)"
 ResultPump:
   implementation: "drive_scan + local Scanner ScanCoordinator; opaque WorkerMessage"
@@ -219,7 +219,7 @@ StopBoundary:
 HunterFilesystemBackend:
   source: "vendor/hunter-fs-core/src/backend.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.backend (upstream draft)"
 NativePathAccess:
   implementation: "StdFilesystem + guarded local Probes trait implementation; marker/bulk exceptions stay local"
@@ -230,7 +230,7 @@ RootInitialization:
 HunterDirectoryWorker:
   source: "vendor/hunter-fs-core/src/worker.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.directory_worker (upstream draft)"
 TaskExecution:
   implementation: "run_directory_worker + local WorkerAdapter; guard retained outside loop"
@@ -244,7 +244,7 @@ PublicationBoundary:
 HunterDirectoryListing:
   source: "vendor/hunter-fs-core/src/listing.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.directory_listing (upstream draft)"
 OrderedCollection:
   implementation: "collect_directory over host-opened entries; ordered owned children/errors"
@@ -258,7 +258,7 @@ AcquisitionOutcome:
 HunterMeasurementBackend:
   source: "vendor/hunter-fs-core/src/measurement.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.measurement_backend (upstream draft)"
 DirectoryPreparation:
   implementation: "measure_with: directory_metadata then prepare_files, including error/pre-cancel"
@@ -272,7 +272,7 @@ SharedSlotExecution:
 HunterScopedSession:
   source: "vendor/hunter-fs-core/src/session.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
   boundary_spec: "hunter.fs.scoped_session (upstream draft)"
 HelperStartup:
   implementation: "start host helpers before workers and caller-thread coordinator"
@@ -316,3 +316,14 @@ TargetRouting:
     environments_default: bool
   EventChannel:
     capacity: int >= 1 <= 4096
+HunterRootAdmission:
+  source: "vendor/hunter-fs-core/src/admission.rs"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495"
+  boundary_spec: "hunter.fs.root_admission (upstream draft)"
+HostRootPreflight:
+  implementation: "host cloud_skip_reason before backend metadata; guards stay local"
+  folded_into: "buildhunter.current.scan"
+RootAdmissionOutcome:
+  implementation: "opaque Skipped/Observed/Unavailable; host return/pump/scheduling/status"
+  folded_into: "buildhunter.current.scan"

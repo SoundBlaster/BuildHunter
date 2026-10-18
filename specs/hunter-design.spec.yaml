@@ -145,4 +145,7 @@ provenance:
   - run_scoped_workers now assembles helper startup, worker launch, coordinator, stop/close and actual join at 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad.
     BuildHunter product session still owns root admission, guards/QoS, setup/status/terminal semantics and final profiling.
     This is partial lifecycle extraction; arbitrary callback termination, full generic root/guard assembly and memory budgets remain pending.
+  - admit_root at cc1d8054ea0882e8f954e8bb6b0e6de03cff1495 sequences opaque host preflight and root metadata observation.
+    Access policy/guards, scheduling, status and full engine assembly are not transferred.
+    This is partial lifecycle ownership, not full target conformance or acceptance.
 implementationBindings: []

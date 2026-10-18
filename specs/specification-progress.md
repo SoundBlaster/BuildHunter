@@ -562,3 +562,29 @@ no speedup, RAM bound or native UI/home/live-provider acceptance is inferred.
 Next boundary: introduce a generic root-admission outcome so callers can decide
 whether to schedule a directory, measure an entry or return an owned setup error
 without encoding BuildHunter status vocabulary into Hunter.
+
+## Root admission outcome — 2026-10-18
+
+HunterRootAdmission at cc1d8054ea0882e8f954e8bb6b0e6de03cff1495 adds `admit_root` and `RootAdmission`:
+opaque host preflight once on the original path, then one backend observation only
+if allowed. `Skipped(reason)` has no backend observation; `Observed` owns original
+Directory/Entry metadata; `Unavailable` owns the unchanged error. Callback effects
+remain independent. No new stop check, path normalization, enumeration or retry.
+BuildHunter still owns cloud policy/guards, reasons/warnings, classification,
+scheduling and terminal status. Skip warns and returns before the pump; metadata
+error warns and follows the existing pump/finalization path. Startup guard failure
+continues to use the separate product session Warning/Finished(Failed) path.
+
+Four upstream seam tests cover borrowed non-Send reasons/backend, ordering and
+single metadata use, original error identity and callback panic with no backend I/O.
+Existing host root tests cover pre-cancelled files, missing roots, final symlinks
+and synthetic macOS cloud paths. They are not live-provider validation. Current
+root_admission/root_backend/cloud_guard and target lifecycle remain draft; marker,
+filter, bridge, GUI and plugin contracts are unchanged. Frozen maps/upstream draft:
+specs/evidence/hunter-admission-20261018; fresh commands/source identities:
+specs/validation/hunter-admission-20261018. Historical evidence stays historical.
+
+Full guard/backend assembly, descriptor recursion, default plugin migration and C5
+budgets remain pending. This slice makes no speedup, RAM-bound or UI/home acceptance
+claim. Next boundary: define generic backend/guard setup lifetime without moving
+product cloud policy or status vocabulary into Hunter.
