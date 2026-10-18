@@ -1,0 +1,120 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.delivery.ci
+  title: Stack-aware CI planning and batch evidence gate
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Reduce repeated macOS validation while binding merge evidence to current batch sources and base.
+scope:
+  boundedContext: build_validation
+  includes: [CI applicability, per-run plans, read-only verification, trusted status publication, additive ruleset proposal]
+  excludes:
+  - Runtime scanning, branch-rules deployment before merge, deliberate maintainer prefix bypass,
+    external merge-bot authorization and guaranteed API/event atomicity.
+provides:
+  capabilities:
+  - id: buildhunter.delivery.ci
+    role: primary
+    summary: Verify applicable current CI jobs and receipts for every member and the combined ready tip.
+requires:
+  capabilities:
+  - id: platform.github.actions
+    optional: false
+    summary: Native stack metadata, Actions runs/jobs/artifacts, GraphQL reviews, statuses and protected-branch enforcement.
+interfaces:
+  inbound:
+  - id: planner
+    kind: cli
+    summary: stack_ci.py plan; reads workflow environment/event and emits heavy/macos/matrix outputs and a JSON receipt.
+  - id: publisher
+    kind: cli
+    summary: stack_ci.py publish; default-branch-only privileged workflow refreshes live commit status evidence when enabled.
+  - id: preflight
+    kind: cli
+    summary: stack_ci.py verify-merge --pr tip; authenticated read-only current batch/review validation before gh stack merge.
+  - id: ruleset_plan
+    kind: cli
+    summary: stack_ci_ruleset.py emits an additive payload without remote mutation.
+  outbound: []
+constraints:
+- id: rollout
+  level: MUST
+  statement: Default-off mode retains applicable full macOS validation. Activate only after the
+    workflow exists on main, a producer-bound strict required gate is installed, and a native
+    canary establishes hosted behavior. No repository settings are changed by this source slice.
+- id: scheduling
+  level: MUST
+  statement: In optimized mode run applicable cheap checks on each layer and macOS checks only
+    on a ready combined tip. Ordinary ready PRs retain macOS validation. Reject stale workflow
+    head/base, unregistered dependent branches and unverified/non-linear native stacks. Classify
+    the cumulative trunk diff, including old rename paths; uncertain/truncated diffs are heavy.
+- id: evidence
+  level: MUST
+  statement: Require current source/base/budget identity, latest matching pull_request workflow
+    runs, actual successful applicable jobs and exact bounded nonexpired plan receipts. A skipped
+    job is not test evidence. Lower cheap results may remain valid when upper/draft state changes;
+    a new tip needs its own macOS evidence. Preserve native review/ruleset requirements.
+- id: trust
+  level: MUST
+  statement: Privileged publisher executes default-branch code only, never PR code or artifact
+    payloads. Parse bounded JSON without extraction, strip auth on cross-host redirects, and
+    leave uncertain/failed/stale evidence pending. Refresh observed head statuses before verification.
+- id: merge_scope
+  level: MUST
+  statement: Verify current paginated review threads and reject prefix selection in CLI preflight.
+    Commit-status evidence alone cannot prevent an intentional maintainer prefix merge; operators
+    must select the complete tested tip. Hard target restriction requires separate bot authorization.
+    API/event races remain; recheck immediately before merge and use strict up-to-date rules.
+effects:
+  sideEffects:
+  - id: github_read
+    kind: network_read
+    summary: Read native stacks, base/head identities, runs/jobs/artifacts and GraphQL reviews.
+  - id: status_publication
+    kind: network_write
+    summary: Opt-in trusted publisher writes the constant Stack CI gate status on observed head revisions.
+  - id: runner_work
+    kind: process_spawn
+    summary: Existing applicable Linux/Windows/macOS builds/tests execute via workflows; no local app build is required for this CI-only slice.
+evidence:
+- id: source
+  kind: source
+  path: scripts/ci/stack_ci.py
+  supports: [intent.summary, interfaces, constraints.rollout, constraints.scheduling, constraints.evidence, constraints.trust, constraints.merge_scope]
+- id: fixtures
+  kind: test
+  path: scripts/ci/test_stack_ci.py
+  supports: [constraints.scheduling, constraints.evidence, constraints.trust, constraints.merge_scope]
+- id: rollout_document
+  kind: documentation
+  path: docs/stack-ci.md
+  supports: [constraints.rollout, constraints.merge_scope, scope]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered existing workflows at 86c3def; stack CI policy is approved separately in AGENTS.md.
+    Local fixtures/read-only probes are not hosted publisher/canary acceptance or measured runner savings.
+implementationBindings:
+- id: ci_implementation
+  scope: component
+  language: python
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 5779b8bcaef03e919b6cd9a83b6aa0bdf95e68b0
+  files:
+    owned:
+    - .github/actionlint.yaml
+    - .github/workflows/changes.yml
+    - .github/workflows/ci.yml
+    - .github/workflows/macos.yml
+    - .github/workflows/performance.yml
+    - .github/workflows/stack-gate.yml
+    - scripts/ci/stack_ci.py
+    - scripts/ci/test_stack_ci.py
+    - scripts/ci/stack_ci_ruleset.py
+    border: [scripts/ci/changes.py]

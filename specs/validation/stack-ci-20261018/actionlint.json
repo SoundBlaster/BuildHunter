@@ -1,0 +1,92 @@
+{
+  "commands": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "go",
+        "run",
+        "github.com/rhysd/actionlint/cmd/actionlint@v1.7.12",
+        "-shellcheck=",
+        "-pyflakes=",
+        "-oneline",
+        ".github/workflows/changes.yml"
+      ],
+      "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "go",
+        "run",
+        "github.com/rhysd/actionlint/cmd/actionlint@v1.7.12",
+        "-shellcheck=",
+        "-pyflakes=",
+        "-oneline",
+        ".github/workflows/ci.yml"
+      ],
+      "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "go",
+        "run",
+        "github.com/rhysd/actionlint/cmd/actionlint@v1.7.12",
+        "-shellcheck=",
+        "-pyflakes=",
+        "-oneline",
+        ".github/workflows/macos.yml"
+      ],
+      "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "go",
+        "run",
+        "github.com/rhysd/actionlint/cmd/actionlint@v1.7.12",
+        "-shellcheck=",
+        "-pyflakes=",
+        "-oneline",
+        ".github/workflows/performance.yml"
+      ],
+      "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "go",
+        "run",
+        "github.com/rhysd/actionlint/cmd/actionlint@v1.7.12",
+        "-shellcheck=",
+        "-pyflakes=",
+        "-oneline",
+        ".github/workflows/stack-gate.yml"
+      ],
+      "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "GOCACHE": "/Volumes/TB5/Developer/Caches/go-build",
+  "GOMODCACHE": "/Volumes/TB5/Developer/Caches/go-mod",
+  "limit": "Per-file processes; only documented stacked enum warning excluded; shellcheck/pyflakes not run"
+}

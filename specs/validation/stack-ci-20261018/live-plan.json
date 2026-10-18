@@ -1,0 +1,25 @@
+{
+  "recorded_at_utc": "2026-10-18T10:18:49.034665+00:00",
+  "operation": "read-only plan for existing standalone docs PR",
+  "plan": {
+    "schema": 1,
+    "repository": "SoundBlaster/BuildHunter",
+    "pr": 85,
+    "head": "e90b093c7c830e6b1016988b0a4e4ee55f0f7590",
+    "base_ref": "main",
+    "base": "86c3defd3d40f36940340070f9eaa113191e2323",
+    "stack": null,
+    "members": [
+      {
+        "pr": 85,
+        "head": "e90b093c7c830e6b1016988b0a4e4ee55f0f7590",
+        "draft": false
+      }
+    ],
+    "tip": 85,
+    "ready": true,
+    "enabled": false,
+    "heavy": false,
+    "macos": false
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "verified_volume_uuid": "04B9F65E-894C-4A7C-B517-FC542E8D8E36",
+  "fixture_temp_root": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19",
+  "python_bytecode": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/python/bytecode",
+  "go_build_cache": "/Volumes/TB5/Developer/Caches/go-build",
+  "go_module_cache": "/Volumes/TB5/Developer/Caches/go-mod"
+}

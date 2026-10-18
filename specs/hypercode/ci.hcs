@@ -1,0 +1,47 @@
+BuildValidation:
+  status: "implemented, opt-in; hosted activation/canary pending"
+  boundary_spec: "buildhunter.delivery.ci"
+  profile: "standalone"
+ChangePlanning:
+  source: "scripts/ci/stack_ci.py"
+  implementation: "plan + evidence; default-off STACK_MACOS_CI"
+NativeStackIdentity:
+  implementation: "live REST member heads/base + ancestor and readiness checks"
+CumulativeDiff:
+  source: "scripts/ci/changes.py"
+  implementation: "trunk cumulative compare; conservative unknown/truncation/rename paths"
+LightweightChecks:
+  source: ".github/workflows/ci.yml"
+  implementation: "Linux/Windows Rust/CLI and schema checks on applicable layers"
+MacOSChecks:
+  source: ".github/workflows/macos.yml"
+  implementation: "five jobs across macos/ci/performance workflows; standalone or ready tip"
+PlanReceipts:
+  source: ".github/workflows/changes.yml"
+  implementation: "bounded immutable JSON artifact per workflow run"
+BatchEvidenceGate:
+  source: "scripts/ci/stack_ci.py"
+  implementation: "verify; not active until producer-bound required status and variable rollout"
+CurrentJobs:
+  implementation: "latest matching PR run + successful applicable fixed job names + exact receipt"
+ReviewThreads:
+  implementation: "paginated GraphQL threads/reviewDecision, native rules still authoritative"
+TrustedStatusPublication:
+  source: ".github/workflows/stack-gate.yml"
+  implementation: "default-branch-only code, read APIs + statuses write; invalidate before refresh"
+MergePreflight:
+  source: "scripts/ci/stack_ci.py"
+  implementation: "verify-merge requires selected tip; status alone cannot forbid intentional prefix"
+RulesetProposal:
+  source: "scripts/ci/stack_ci_ruleset.py"
+  implementation: "read-only additive payload; apply after merge, before opt-in"
+@layer[tip]:
+  BuildValidation:
+    profile: "native-stack-tip"
+@layer[lower]:
+  BuildValidation:
+    profile: "native-stack-lower"
+@contract:
+  BuildValidation:
+    status: string
+    boundary_spec: string

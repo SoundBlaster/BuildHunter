@@ -588,3 +588,21 @@ Full guard/backend assembly, descriptor recursion, default plugin migration and 
 budgets remain pending. This slice makes no speedup, RAM-bound or UI/home acceptance
 claim. Next boundary: define generic backend/guard setup lifetime without moving
 product cloud policy or status vocabulary into Hunter.
+
+## Stack-aware CI budget — 2026-10-18
+
+Separate BuildValidation/CI map and draft buildhunter.delivery.ci recover planning,
+per-layer cheap checks, ready-tip macOS checks, plan receipts, trusted publication,
+review-aware preflight and additive ruleset proposal. Application current/target
+runtime maps and scan/classification/bridge/plugin contracts are unchanged: CI is
+an out-of-runtime delivery boundary, not an additional scanner component.
+
+Default-off rollout preserves current applicable checks; enabling the variable,
+installing a producer-bound strict required gate and hosted native canary remain
+post-merge work. Local adversarial fixtures and ordinary read-only GitHub planning
+are scoped evidence, not actual privileged publication or demonstrated savings.
+Status checks cannot prohibit intentional prefix selection; use fresh tip-only
+preflight and native stack merge. Hard server-side merge-target restriction needs
+separate bot authorization. Runtime source evidence remains historical/current for
+its unchanged claim scope; new CI identities/commands are recorded separately in
+specs/validation/stack-ci-20261018. No user Xcode scheme changes are included.
