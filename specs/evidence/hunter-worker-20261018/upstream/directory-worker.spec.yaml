@@ -1,0 +1,97 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.directory_worker
+  title: Directory worker protocol execution
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Execute queued directory tasks with listing-before-measurement publication
+    while delegating filesystem and prefetch policy to a synchronous host adapter.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - DirectoryWorker callbacks and a generic WorkQueue consumer for DirectoryTask values.
+  excludes:
+  - Thread startup/join, guards, filesystem implementation, classification, recursive
+    admission/accounting, timing, stop/status policy, wire/FFI and whole-scan budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.directory_worker
+    role: primary
+    summary: Publish typed Listed before invoking a measurement plan and publish its outcome.
+requires:
+  capabilities:
+  - id: hunter.fs.work
+    optional: false
+    summary: Host-owned task queue and enclosing shutdown/scoped-worker lifetime.
+  - id: hunter.fs.directory_tasks
+    optional: false
+    summary: Opaque task/result identity and original-position measurement plans.
+interfaces:
+  inbound:
+  - id: worker_loop
+    kind: library
+    summary: run_directory_worker(queue, mutable DirectoryWorker); associated Id is Clone,
+      Context opaque; list, prefetch, measure and publish are synchronous host callbacks.
+  outbound: []
+constraints:
+- id: ordering
+  level: MUST
+  statement: Pop a task, list, request host prefetch, construct the intent-OR-prefetch
+    plan, publish Listed with the cloned task ID and measuring flag, invoke measure
+    only for an accepted measuring listing, then publish Measured. Host must execute
+    the supplied plan preserving its ID and original slot semantics. Continue taking
+    tasks after accepted results until closure; queue order is not modified.
+- id: rejection
+  level: MUST
+  statement: A false publish result returns immediately, without invoking measurement
+    after a rejected Listed or taking another task after either rejected publication.
+    Do not close the shared queue, retry publication or interrupt another worker.
+- id: stop_boundary
+  level: MUST
+  statement: Do not add cancellation checks between callbacks or before queue pop.
+    Host listing/measurement implement cancellation, including publishing the returned
+    cancelled prefix. An open empty queue blocks; in-flight callbacks are not interrupted.
+- id: assembly
+  level: MUST
+  statement: Host owns effective permissions and guard lifetime through callbacks,
+    channel delivery, timing and error decoration. Callbacks and ID cloning may
+    panic and unwind through the loop. Use the enclosing scoped launch panic guard
+    and coordinator shutdown guard to close the queue and join actual workers.
+    The helper itself neither catches panic nor proves complete scan termination.
+- id: ownership
+  level: MUST
+  statement: Statically dispatch host effects without new task vectors or boxed
+    adapters; allow borrowed non-Send state/context. The existing plan owns selected
+    child paths and borrows the current task path. Queue and result sink memory
+    remain unbounded by this helper; callback allocation is host-owned.
+effects:
+  sideEffects:
+  - id: host_callbacks
+    kind: event_emit
+    summary: Consume queued tasks and invoke host listing/measurement/publication callbacks.
+evidence:
+- id: worker_source
+  kind: source
+  path: crates/hunter-fs-core/src/worker.rs
+  supports: [intent.summary, scope, interfaces, constraints.ordering, constraints.rejection, constraints.stop_boundary, constraints.assembly, constraints.ownership]
+- id: worker_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [scope, constraints.assembly, constraints.ownership]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter run_worker at 39e8275f7b68dddce4e1be71e7c75d0eba1d9fa6.
+    Draft contract and observed test results are separate from owner acceptance.
+implementationBindings:
+- id: worker_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/worker.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/task.rs, crates/hunter-fs-core/src/work.rs]

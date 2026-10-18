@@ -133,4 +133,7 @@ provenance:
   - Native FilesystemBackend/StdFilesystem and one-call root observations now delegate to hunter.fs.backend at 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db.
     Host retains cloud/access admission, guard lifetime, marker/bulk policy, scheduling/status and full engine assembly.
     Only final metadata component no-follow is provided; descriptor-bound traversal and resource requirements remain pending.
+  - DirectoryWorker/run_directory_worker now delegate shared listing-first measurement publication at a1b30a7967ed40f146bf4540af7fcdda4e3809b4.
+    Host retains marker/prefetch interpretation, guarded filesystem/bulk callbacks, timing, channel mapping and actual scope lifetime.
+    Full engine startup, default plugin migration and whole-scan resource budgets remain pending.
 implementationBindings: []

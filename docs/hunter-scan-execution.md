@@ -49,3 +49,7 @@ Merge Hunter first preserving the pinned commit in main ancestry, then BuildHunt
 
 Follow-up: [native backend/root observations](hunter-root-backend.md) now delegate
 those facts to Hunter. Root access/cloud admission and full scoped startup remain host-owned.
+
+Follow-up: the [directory worker protocol](hunter-directory-worker.md) now delegates
+listing-first measurement publication to Hunter. Platform/backend policy and actual
+scope lifetime remain host-owned.

@@ -188,3 +188,7 @@ This does not complete the generic filesystem engine or plugin/client migration.
 Native metadata/listing and one-call root observations now use Hunter; access/cloud
 admission, guarded probes, marker/bulk policy and complete scan assembly remain local.
 See [native backend boundary](hunter-root-backend.md) for responsibilities and limits.
+
+The shared directory worker protocol now lives in Hunter, with marker/prefetch,
+guarded backend/bulk policy and timers in BuildHunter WorkerAdapter. See
+[directory worker boundary](hunter-directory-worker.md) for lifecycle and rejection limits.

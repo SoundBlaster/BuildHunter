@@ -50,6 +50,10 @@ BuildHunterRuntime
     HunterFilesystemBackend
       NativePathAccess
       RootInitialization
+    HunterDirectoryWorker
+      TaskExecution
+      ListingFirst
+      PublicationBoundary
     HunterMetadata
     PluginScanning
       CandidateObservation
