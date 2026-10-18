@@ -28,3 +28,8 @@ pending-macOS rejection probes are preserved as scoped first-head observations.
 Current CI map properties now describe repository activation; runtime maps and
 scan/plugin contracts remain unchanged. Final hosted acceptance and measured
 savings are still pending. No credential values are recorded.
+
+The Hypercode executable does not support `--version`: that identity probe's exit 1
+is retained in `review-validation.json`. `hypercode-identity.json` records its binary
+SHA-256 instead. All map/profile, SpecPM and offline-test validation commands pass;
+the unsupported version flag is not reported as a failed conformance check.
