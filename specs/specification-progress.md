@@ -617,3 +617,13 @@ synchronize events. Draft buildhunter.delivery.ci scheduling/evidence requiremen
 are unchanged; source binding is refreshed. CI maps and all runtime contracts/maps
 are unchanged because no roles, edges or runtime behavior changed. Earlier receipts
 remain historical; fresh review validation is in stack-ci-review-20261018.
+
+### Draft readiness canary — 2026-10-18
+
+Add an offline three-layer regression: a draft at any depth holds macOS work for
+the entire batch while cheap checks remain applicable; clearing that draft enables
+only the final tip. The draft buildhunter.delivery.ci scheduling requirement is
+unchanged, and its source binding is refreshed. CI/current/target runtime maps and
+all scanner/plugin/bridge contracts remain unchanged: no component or role changed.
+Fresh local validation is in specs/validation/stack-ci-canary-20261018; hosted rollout
+observations are recorded separately rather than inferred from these fixtures.
