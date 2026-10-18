@@ -597,10 +597,12 @@ review-aware preflight and additive ruleset proposal. Application current/target
 runtime maps and scan/classification/bridge/plugin contracts are unchanged: CI is
 an out-of-runtime delivery boundary, not an additional scanner component.
 
-Default-off rollout preserves current applicable checks; enabling the variable,
-installing a producer-bound strict required gate and hosted native canary remain
-post-merge work. Local adversarial fixtures and ordinary read-only GitHub planning
-are scoped evidence, not actual privileged publication or demonstrated savings.
+The source default remains opt-in. Repository activation was applied on 2026-10-18:
+main requires the Actions-produced Stack CI gate with strict up-to-date checks,
+and STACK_MACOS_CI=true. Bootstrap publisher 39162179998 ran from main and left the
+old #84 evidence pending. Current activation/provenance is recorded separately in
+specs/validation/stack-ci-rollout-20261018. Native canary final acceptance and measured
+runner-minute savings remain pending; local fixtures are not hosted acceptance.
 Status checks cannot prohibit intentional prefix selection; use fresh tip-only
 preflight and native stack merge. Hard server-side merge-target restriction needs
 separate bot authorization. Runtime source evidence remains historical/current for
@@ -627,3 +629,14 @@ unchanged, and its source binding is refreshed. CI/current/target runtime maps a
 all scanner/plugin/bridge contracts remain unchanged: no component or role changed.
 Fresh local validation is in specs/validation/stack-ci-canary-20261018; hosted rollout
 observations are recorded separately rather than inferred from these fixtures.
+
+### Hosted activation and review provenance — 2026-10-18
+
+Current CI map properties and the claim matrix now describe the active required
+Actions-bound gate, strict base checks and true repository variable. Runtime maps
+and scanner/plugin/bridge contracts remain unchanged. The draft delivery contract
+retains its requirements; provenance distinguishes deployed settings, the first
+canary head's green CI, review-blocked preflight and pending revised-tip acceptance.
+Frozen active maps, timestamped acquisitions, tool identities, server mutation order
+and bootstrap pending diagnostics are in stack-ci-rollout-20261018. Historical
+pre-activation evidence is retained separately, not promoted to current proof.

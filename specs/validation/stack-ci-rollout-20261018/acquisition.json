@@ -1,0 +1,184 @@
+{
+  "records": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "--version"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:12.792037+00:00",
+      "exit_code": 0,
+      "stdout": "gh version 2.92.0 (2026-04-28)\nhttps://github.com/cli/cli/releases/tag/v2.92.0\n",
+      "stderr": "",
+      "output": null
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "--version"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:12.816973+00:00",
+      "exit_code": 0,
+      "stdout": "git version 2.54.0 (Apple Git-157)\n",
+      "stderr": "",
+      "output": null
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "--version"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:12.830113+00:00",
+      "exit_code": 0,
+      "stdout": "Python 3.9.6\n",
+      "stderr": "",
+      "output": null
+    },
+    {
+      "command": [
+        "rtk",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "rtk 0.37.2\n"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/rulesets/24388855"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:12.848787+00:00",
+      "exit_code": 0,
+      "stdout": null,
+      "stderr": "",
+      "output": "ruleset-current.json"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/actions/variables/STACK_MACOS_CI"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:14.081030+00:00",
+      "exit_code": 0,
+      "stdout": null,
+      "stderr": "",
+      "output": "variable-details.json"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "run",
+        "view",
+        "39162179998",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--log"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:15.048999+00:00",
+      "exit_code": 0,
+      "stdout": null,
+      "stderr": "",
+      "output": "publisher-output.txt",
+      "filter": "Timestamped Refresh current batch evidence lines containing pending, STACK_MACOS_CI:, or Run python3; token environment line excluded."
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/commits/45b6f8b2bc514bbea65e5ea31e84e35fb120bc70/status"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:17.068198+00:00",
+      "exit_code": 0,
+      "stdout": null,
+      "stderr": "",
+      "output": "status-84.json"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "run",
+        "view",
+        "39162399249",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--json",
+        "databaseId,headSha,status,conclusion,jobs,url"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:18.125522+00:00",
+      "exit_code": 0,
+      "stdout": "{\"conclusion\":\"success\",\"databaseId\":39162399249,\"headSha\":\"877d2c77895c6edf7c8d02219756bff7507ee0e8\",\"jobs\":[{\"completedAt\":\"2026-10-18T20:14:46Z\",\"conclusion\":\"success\",\"databaseId\":117778279636,\"name\":\"Plugin contract schemas\",\"startedAt\":\"2026-10-18T20:14:38Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:39Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:39Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:40Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:39Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:40Z\",\"conclusion\":\"success\",\"name\":\"Run actions/setup-python@v5\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:40Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:42Z\",\"conclusion\":\"success\",\"name\":\"Run python -m pip install -r scripts/plugin-contract-requirements.txt\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:40Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:43Z\",\"conclusion\":\"success\",\"name\":\"Run python scripts/test_plugin_contract.py\",\"number\":5,\"startedAt\":\"2026-10-18T20:14:42Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:43Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/setup-python@v5\",\"number\":9,\"startedAt\":\"2026-10-18T20:14:43Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:43Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":10,\"startedAt\":\"2026-10-18T20:14:43Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:43Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":11,\"startedAt\":\"2026-10-18T20:14:43Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399249/job/117778279636\"},{\"completedAt\":\"2026-10-18T20:14:48Z\",\"conclusion\":\"success\",\"databaseId\":117778279911,\"name\":\"changes / classify\",\"startedAt\":\"2026-10-18T20:14:38Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:40Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:39Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:41Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:40Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:41Z\",\"conclusion\":\"success\",\"name\":\"Test change classification\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:41Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:44Z\",\"conclusion\":\"success\",\"name\":\"Classify complete event diff\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:41Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:45Z\",\"conclusion\":\"success\",\"name\":\"Record immutable CI plan\",\"number\":5,\"startedAt\":\"2026-10-18T20:14:44Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:45Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":10,\"startedAt\":\"2026-10-18T20:14:45Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:45Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":11,\"startedAt\":\"2026-10-18T20:14:45Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399249/job/117778279911\"},{\"completedAt\":\"2026-10-18T20:16:32Z\",\"conclusion\":\"success\",\"databaseId\":117778325568,\"name\":\"Rust and CLI (windows-latest)\",\"startedAt\":\"2026-10-18T20:14:50Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:53Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:51Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:00Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:53Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:20Z\",\"conclusion\":\"success\",\"name\":\"Run dtolnay/rust-toolchain@stable\",\"number\":3,\"startedAt\":\"2026-10-18T20:15:00Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:21Z\",\"conclusion\":\"success\",\"name\":\"Run cargo fmt --check\",\"number\":4,\"startedAt\":\"2026-10-18T20:15:20Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:31Z\",\"conclusion\":\"success\",\"name\":\"Run cargo test --locked\",\"number\":5,\"startedAt\":\"2026-10-18T20:15:21Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:37Z\",\"conclusion\":\"success\",\"name\":\"Run cargo test --locked --all-features\",\"number\":6,\"startedAt\":\"2026-10-18T20:15:31Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:43Z\",\"conclusion\":\"success\",\"name\":\"Vendored Hunter primitives\",\"number\":7,\"startedAt\":\"2026-10-18T20:15:37Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:02Z\",\"conclusion\":\"success\",\"name\":\"Independent plugin policy checks\",\"number\":8,\"startedAt\":\"2026-10-18T20:15:43Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:19Z\",\"conclusion\":\"success\",\"name\":\"Plugin scanner integration\",\"number\":9,\"startedAt\":\"2026-10-18T20:16:02Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:23Z\",\"conclusion\":\"success\",\"name\":\"Fresh-cache offline CLI regression\",\"number\":10,\"startedAt\":\"2026-10-18T20:16:19Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:24Z\",\"conclusion\":\"success\",\"name\":\"Run cargo clippy --locked --all-targets --all-features -- -D warnings\",\"number\":11,\"startedAt\":\"2026-10-18T20:16:23Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:27Z\",\"conclusion\":\"success\",\"name\":\"Run cargo build --locked --release\",\"number\":12,\"startedAt\":\"2026-10-18T20:16:24Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:28Z\",\"conclusion\":\"success\",\"name\":\"CLI integration tests\",\"number\":13,\"startedAt\":\"2026-10-18T20:16:27Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:29Z\",\"conclusion\":\"success\",\"name\":\"Performance report tests\",\"number\":14,\"startedAt\":\"2026-10-18T20:16:28Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:30Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":28,\"startedAt\":\"2026-10-18T20:16:29Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:30Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":29,\"startedAt\":\"2026-10-18T20:16:30Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399249/job/117778325568\"},{\"completedAt\":\"2026-10-18T20:16:21Z\",\"conclusion\":\"success\",\"databaseId\":117778325647,\"name\":\"Rust and CLI (macos-26)\",\"startedAt\":\"2026-10-18T20:14:56Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:58Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:57Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:00Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:58Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:09Z\",\"conclusion\":\"success\",\"name\":\"Run dtolnay/rust-toolchain@stable\",\"number\":3,\"startedAt\":\"2026-10-18T20:15:00Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:09Z\",\"conclusion\":\"success\",\"name\":\"Run cargo fmt --check\",\"number\":4,\"startedAt\":\"2026-10-18T20:15:09Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:18Z\",\"conclusion\":\"success\",\"name\":\"Run cargo test --locked\",\"number\":5,\"startedAt\":\"2026-10-18T20:15:09Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:23Z\",\"conclusion\":\"success\",\"name\":\"Run cargo test --locked --all-features\",\"number\":6,\"startedAt\":\"2026-10-18T20:15:18Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:28Z\",\"conclusion\":\"success\",\"name\":\"Vendored Hunter primitives\",\"number\":7,\"startedAt\":\"2026-10-18T20:15:23Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:46Z\",\"conclusion\":\"success\",\"name\":\"Independent plugin policy checks\",\"number\":8,\"startedAt\":\"2026-10-18T20:15:28Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:09Z\",\"conclusion\":\"success\",\"name\":\"Plugin scanner integration\",\"number\":9,\"startedAt\":\"2026-10-18T20:15:46Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:13Z\",\"conclusion\":\"success\",\"name\":\"Fresh-cache offline CLI regression\",\"number\":10,\"startedAt\":\"2026-10-18T20:16:09Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:14Z\",\"conclusion\":\"success\",\"name\":\"Run cargo clippy --locked --all-targets --all-features -- -D warnings\",\"number\":11,\"startedAt\":\"2026-10-18T20:16:13Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:16Z\",\"conclusion\":\"success\",\"name\":\"Run cargo build --locked --release\",\"number\":12,\"startedAt\":\"2026-10-18T20:16:14Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:17Z\",\"conclusion\":\"success\",\"name\":\"CLI integration tests\",\"number\":13,\"startedAt\":\"2026-10-18T20:16:16Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:17Z\",\"conclusion\":\"success\",\"name\":\"Performance report tests\",\"number\":14,\"startedAt\":\"2026-10-18T20:16:17Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:18Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":28,\"startedAt\":\"2026-10-18T20:16:17Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:16:19Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":29,\"startedAt\":\"2026-10-18T20:16:18Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399249/job/117778325647\"},{\"completedAt\":\"2026-10-18T20:15:53Z\",\"conclusion\":\"success\",\"databaseId\":117778325695,\"name\":\"Rust and CLI (ubuntu-latest)\",\"startedAt\":\"2026-10-18T20:14:50Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:51Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:51Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:52Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:51Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:01Z\",\"conclusion\":\"success\",\"name\":\"Run dtolnay/rust-toolchain@stable\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:52Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:01Z\",\"conclusion\":\"success\",\"name\":\"Run cargo fmt --check\",\"number\":4,\"startedAt\":\"2026-10-18T20:15:01Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:05Z\",\"conclusion\":\"success\",\"name\":\"Run cargo test --locked\",\"number\":5,\"startedAt\":\"2026-10-18T20:15:01Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:09Z\",\"conclusion\":\"success\",\"name\":\"Run cargo test --locked --all-features\",\"number\":6,\"startedAt\":\"2026-10-18T20:15:05Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:13Z\",\"conclusion\":\"success\",\"name\":\"Vendored Hunter primitives\",\"number\":7,\"startedAt\":\"2026-10-18T20:15:09Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:27Z\",\"conclusion\":\"success\",\"name\":\"Independent plugin policy checks\",\"number\":8,\"startedAt\":\"2026-10-18T20:15:13Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:46Z\",\"conclusion\":\"success\",\"name\":\"Plugin scanner integration\",\"number\":9,\"startedAt\":\"2026-10-18T20:15:27Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:49Z\",\"conclusion\":\"success\",\"name\":\"Fresh-cache offline CLI regression\",\"number\":10,\"startedAt\":\"2026-10-18T20:15:46Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:49Z\",\"conclusion\":\"success\",\"name\":\"Run cargo clippy --locked --all-targets --all-features -- -D warnings\",\"number\":11,\"startedAt\":\"2026-10-18T20:15:49Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:51Z\",\"conclusion\":\"success\",\"name\":\"Run cargo build --locked --release\",\"number\":12,\"startedAt\":\"2026-10-18T20:15:49Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:51Z\",\"conclusion\":\"success\",\"name\":\"CLI integration tests\",\"number\":13,\"startedAt\":\"2026-10-18T20:15:51Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:52Z\",\"conclusion\":\"success\",\"name\":\"Performance report tests\",\"number\":14,\"startedAt\":\"2026-10-18T20:15:51Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:52Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":28,\"startedAt\":\"2026-10-18T20:15:52Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:52Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":29,\"startedAt\":\"2026-10-18T20:15:52Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399249/job/117778325695\"}],\"status\":\"completed\",\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399249\"}\n",
+      "stderr": "",
+      "output": null
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "run",
+        "view",
+        "39162399350",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--json",
+        "databaseId,headSha,status,conclusion,jobs,url"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:20.216094+00:00",
+      "exit_code": 0,
+      "stdout": "{\"conclusion\":\"success\",\"databaseId\":39162399350,\"headSha\":\"877d2c77895c6edf7c8d02219756bff7507ee0e8\",\"jobs\":[{\"completedAt\":\"2026-10-18T20:14:39Z\",\"conclusion\":\"success\",\"databaseId\":117778259940,\"name\":\"changes / classify\",\"startedAt\":\"2026-10-18T20:14:32Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:33Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:32Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:34Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:33Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:34Z\",\"conclusion\":\"success\",\"name\":\"Test change classification\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:34Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:37Z\",\"conclusion\":\"success\",\"name\":\"Classify complete event diff\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:34Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:38Z\",\"conclusion\":\"success\",\"name\":\"Record immutable CI plan\",\"number\":5,\"startedAt\":\"2026-10-18T20:14:37Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:38Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":10,\"startedAt\":\"2026-10-18T20:14:38Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:38Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":11,\"startedAt\":\"2026-10-18T20:14:38Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399350/job/117778259940\"},{\"completedAt\":\"2026-10-18T20:20:21Z\",\"conclusion\":\"success\",\"databaseId\":117778292470,\"name\":\"macOS performance tests\",\"startedAt\":\"2026-10-18T20:14:45Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:47Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:46Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:49Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:47Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:49Z\",\"conclusion\":\"success\",\"name\":\"Run maxim-lobanov/setup-xcode@v1\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:49Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:20:16Z\",\"conclusion\":\"success\",\"name\":\"Release clock, memory, and scaling tests\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:49Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:20:18Z\",\"conclusion\":\"success\",\"name\":\"Publish performance evidence\",\"number\":5,\"startedAt\":\"2026-10-18T20:20:16Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:20:18Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":10,\"startedAt\":\"2026-10-18T20:20:18Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:20:19Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":11,\"startedAt\":\"2026-10-18T20:20:18Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399350/job/117778292470\"},{\"completedAt\":\"2026-10-18T20:29:50Z\",\"conclusion\":\"success\",\"databaseId\":117778292488,\"name\":\"macOS unit and UI tests\",\"startedAt\":\"2026-10-18T20:14:49Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:51Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:50Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:53Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:51Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:54Z\",\"conclusion\":\"success\",\"name\":\"Run maxim-lobanov/setup-xcode@v1\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:53Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:29:43Z\",\"conclusion\":\"success\",\"name\":\"Build and test\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:54Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:29:44Z\",\"conclusion\":\"success\",\"name\":\"Collect Screener traces\",\"number\":5,\"startedAt\":\"2026-10-18T20:29:43Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:29:46Z\",\"conclusion\":\"success\",\"name\":\"Publish test evidence\",\"number\":6,\"startedAt\":\"2026-10-18T20:29:44Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:29:47Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":12,\"startedAt\":\"2026-10-18T20:29:46Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:29:48Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":13,\"startedAt\":\"2026-10-18T20:29:47Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399350/job/117778292488\"},{\"completedAt\":\"2026-10-18T20:19:27Z\",\"conclusion\":\"success\",\"databaseId\":117778292549,\"name\":\"macOS Release build\",\"startedAt\":\"2026-10-18T20:14:45Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:46Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:45Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:48Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:46Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:48Z\",\"conclusion\":\"success\",\"name\":\"Run maxim-lobanov/setup-xcode@v1\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:48Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:19:21Z\",\"conclusion\":\"success\",\"name\":\"Build Release\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:48Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:19:23Z\",\"conclusion\":\"success\",\"name\":\"Publish build log\",\"number\":5,\"startedAt\":\"2026-10-18T20:19:21Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:19:23Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":10,\"startedAt\":\"2026-10-18T20:19:23Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:19:24Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":11,\"startedAt\":\"2026-10-18T20:19:23Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399350/job/117778292549\"}],\"status\":\"completed\",\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399350\"}\n",
+      "stderr": "",
+      "output": null
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "run",
+        "view",
+        "39162399437",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--json",
+        "databaseId,headSha,status,conclusion,jobs,url"
+      ],
+      "acquired_at_utc": "2026-10-18T20:35:22.200463+00:00",
+      "exit_code": 0,
+      "stdout": "{\"conclusion\":\"success\",\"databaseId\":39162399437,\"headSha\":\"877d2c77895c6edf7c8d02219756bff7507ee0e8\",\"jobs\":[{\"completedAt\":\"2026-10-18T20:14:42Z\",\"conclusion\":\"success\",\"databaseId\":117778260281,\"name\":\"changes / classify\",\"startedAt\":\"2026-10-18T20:14:32Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:34Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:33Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:35Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:34Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:36Z\",\"conclusion\":\"success\",\"name\":\"Test change classification\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:35Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:39Z\",\"conclusion\":\"success\",\"name\":\"Classify complete event diff\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:36Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:40Z\",\"conclusion\":\"success\",\"name\":\"Record immutable CI plan\",\"number\":5,\"startedAt\":\"2026-10-18T20:14:39Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:40Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":10,\"startedAt\":\"2026-10-18T20:14:40Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:40Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":11,\"startedAt\":\"2026-10-18T20:14:40Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399437/job/117778260281\"},{\"completedAt\":\"2026-10-18T20:15:21Z\",\"conclusion\":\"success\",\"databaseId\":117778304286,\"name\":\"Scanner comparison (ubuntu-latest)\",\"startedAt\":\"2026-10-18T20:14:44Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:46Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:45Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:47Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:46Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:56Z\",\"conclusion\":\"success\",\"name\":\"Run dtolnay/rust-toolchain@stable\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:47Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:04Z\",\"conclusion\":\"success\",\"name\":\"Compare baseline and candidate on the same fixture\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:56Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:04Z\",\"conclusion\":\"skipped\",\"name\":\"Compare opt-in macOS batch metadata backend\",\"number\":5,\"startedAt\":\"2026-10-18T20:15:04Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:19Z\",\"conclusion\":\"success\",\"name\":\"Record process CPU and RAM and profiling overhead\",\"number\":6,\"startedAt\":\"2026-10-18T20:15:04Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:19Z\",\"conclusion\":\"success\",\"name\":\"Publish job summary\",\"number\":7,\"startedAt\":\"2026-10-18T20:15:19Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:20Z\",\"conclusion\":\"success\",\"name\":\"Publish raw samples and comparison\",\"number\":8,\"startedAt\":\"2026-10-18T20:15:19Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:20Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":16,\"startedAt\":\"2026-10-18T20:15:20Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:20Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":17,\"startedAt\":\"2026-10-18T20:15:20Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399437/job/117778304286\"},{\"completedAt\":\"2026-10-18T20:15:47Z\",\"conclusion\":\"success\",\"databaseId\":117778304350,\"name\":\"Scanner comparison (macos-26)\",\"startedAt\":\"2026-10-18T20:14:47Z\",\"status\":\"completed\",\"steps\":[{\"completedAt\":\"2026-10-18T20:14:48Z\",\"conclusion\":\"success\",\"name\":\"Set up job\",\"number\":1,\"startedAt\":\"2026-10-18T20:14:47Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:50Z\",\"conclusion\":\"success\",\"name\":\"Run actions/checkout@v4\",\"number\":2,\"startedAt\":\"2026-10-18T20:14:48Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:14:56Z\",\"conclusion\":\"success\",\"name\":\"Run dtolnay/rust-toolchain@stable\",\"number\":3,\"startedAt\":\"2026-10-18T20:14:50Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:07Z\",\"conclusion\":\"success\",\"name\":\"Compare baseline and candidate on the same fixture\",\"number\":4,\"startedAt\":\"2026-10-18T20:14:56Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:14Z\",\"conclusion\":\"success\",\"name\":\"Compare opt-in macOS batch metadata backend\",\"number\":5,\"startedAt\":\"2026-10-18T20:15:07Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:42Z\",\"conclusion\":\"success\",\"name\":\"Record process CPU and RAM and profiling overhead\",\"number\":6,\"startedAt\":\"2026-10-18T20:15:14Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:42Z\",\"conclusion\":\"success\",\"name\":\"Publish job summary\",\"number\":7,\"startedAt\":\"2026-10-18T20:15:42Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:43Z\",\"conclusion\":\"success\",\"name\":\"Publish raw samples and comparison\",\"number\":8,\"startedAt\":\"2026-10-18T20:15:42Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:44Z\",\"conclusion\":\"success\",\"name\":\"Post Run actions/checkout@v4\",\"number\":16,\"startedAt\":\"2026-10-18T20:15:43Z\",\"status\":\"completed\"},{\"completedAt\":\"2026-10-18T20:15:44Z\",\"conclusion\":\"success\",\"name\":\"Complete job\",\"number\":17,\"startedAt\":\"2026-10-18T20:15:44Z\",\"status\":\"completed\"}],\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399437/job/117778304350\"}],\"status\":\"completed\",\"url\":\"https://github.com/SoundBlaster/BuildHunter/actions/runs/39162399437\"}\n",
+      "stderr": "",
+      "output": null
+    }
+  ],
+  "source": {
+    "trusted_publisher_revision": "d01d4ed43cae3e2e86b385ac08d964c45eeb8e9b",
+    "canary_test_revision": "713f6f074e8c71b21875d88fe2482de23c356929",
+    "maps": [
+      {
+        "path": "specs/hypercode/ci.hc",
+        "sha256": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a"
+      },
+      {
+        "path": "specs/hypercode/ci.hcs",
+        "sha256": "b3803c0407ff181f47b4fcfc3937629cf13cb8ba64ab77d5bf56c6053b49e351"
+      }
+    ]
+  },
+  "limits": "Original snapshots are historical. Current re-reads have their own acquisition times. Mutation ordering uses server-side timestamps, not invented command start times."
+}

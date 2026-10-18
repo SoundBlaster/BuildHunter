@@ -1,0 +1,3 @@
+publish	Refresh current batch evidence	﻿2026-10-18T20:11:40.6542283Z ##[group]Run python3 scripts/ci/stack_ci.py publish
+publish	Refresh current batch evidence	2026-10-18T20:11:40.6798031Z   STACK_MACOS_CI: true
+publish	Refresh current batch evidence	2026-10-18T20:11:50.6071968Z 84 pending Missing or ambiguous plan receipt
