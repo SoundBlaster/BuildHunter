@@ -92,8 +92,13 @@ only its outdated `stacked` enum diagnostic is narrowly excluded, and the existi
 custom `xcode-27` runner label is declared. Shellcheck/pyflakes are not run by this
 lint command. Hosted parser/CI results are separate from local validation.
 
-Required-gate activation, native canary, actual privileged status publication and
-measured runner-minute savings remain pending until the post-merge rollout above.
+Repository rollout began on 2026-10-18: the main ruleset now requires the Actions-
+produced `Stack CI gate` with strict up-to-date checks, and `STACK_MACOS_CI=true`.
+Publisher workflow [39162179998](https://github.com/SoundBlaster/BuildHunter/actions/runs/39162179998)
+succeeded. A pre-activation PR with old/missing plan receipts remained pending, as
+required. A two-layer native canary is being validated; hosted scheduling and
+measured runner-minute savings must not be inferred from activation alone.
+Activation snapshots are in `specs/validation/stack-ci-rollout-20261018`.
 Runtime scan/bridge/plugin contracts are unchanged. CI has a separate HC map and
 BoundarySpec; it is intentionally outside the application's runtime composition.
 
