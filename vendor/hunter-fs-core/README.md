@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs/src/measurement.rs/src/session.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md and all src/*.rs source files snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
