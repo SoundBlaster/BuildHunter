@@ -1,5 +1,5 @@
 //! Directory-task data and measurement planning. Host owns filesystem policy/backends.
-use crate::MeasuredSize;
+use crate::{DirectoryMeasurementBackend, FileMeasurementBackend, MeasuredSize};
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -71,7 +71,7 @@ impl<Id> DirectoryMeasurementPlan<'_, Id> {
         self,
         directory: D,
         prepare: P,
-        mut should_stop: S,
+        should_stop: S,
     ) -> DirectoryMeasurement<Id>
     where
         D: FnOnce(&Path) -> io::Result<fs::Metadata>,
@@ -80,7 +80,30 @@ impl<Id> DirectoryMeasurementPlan<'_, Id> {
         S: FnMut() -> bool,
     {
         let directory = directory(self.path);
-        let mut measure = prepare(self.path, &self.files);
+        let measure = prepare(self.path, &self.files);
+        self.measure_prepared(directory, measure, should_stop)
+    }
+
+    /// Typed equivalent of measure, sharing its ordering/slot/cancellation behavior.
+    /// Host publishes Listed first, supplies stop policy separately, and retains
+    /// access/materialization guards through prepared state use/drop and completion.
+    /// Backend errors are results; callback panics propagate without a completion.
+    pub fn measure_with<B: DirectoryMeasurementBackend>(
+        self,
+        backend: &mut B,
+        should_stop: impl FnMut() -> bool,
+    ) -> DirectoryMeasurement<Id> {
+        let directory = backend.directory_metadata(self.path);
+        let mut prepared = backend.prepare_files(self.path, &self.files);
+        self.measure_prepared(directory, |path| prepared.measure(path), should_stop)
+    }
+
+    fn measure_prepared(
+        self,
+        directory: io::Result<fs::Metadata>,
+        mut measure: impl FnMut(&Path) -> io::Result<MeasuredSize>,
+        mut should_stop: impl FnMut() -> bool,
+    ) -> DirectoryMeasurement<Id> {
         let mut files = Vec::with_capacity(self.files.len());
         for slot in self.files {
             if should_stop() {
