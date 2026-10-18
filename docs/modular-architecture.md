@@ -358,3 +358,9 @@ Root admission now delegates sequencing to Hunter `cc1d8054ea0882e8f954e8bb6b0e6
 cloud policy/guards, scheduling/status and the skip-versus-error control flow.
 See [root admission](../docs/hunter-root-admission.md) and the new
 `hunter-admission-20261018` evidence; full engine assembly remains pending.
+
+Guard/backend lifetime and native Darwin policy RAII now live in Hunter `3a3db1e270ff54ba757027df3a55b9d378ee0525`.
+Host scope placement, cloud paths/error decoration and product status stay local;
+see [guarded backend lifetime](hunter-backend-lifetime.md) and `hunter-lifetime-20261018` evidence.
+This supersedes earlier pending guard-lifetime ownership notes for the integrated
+Rust coordinator/workers; full engine/backend algorithm assembly remains pending.

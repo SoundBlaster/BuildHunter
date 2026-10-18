@@ -1,0 +1,208 @@
+{
+  "recorded_at_utc": "2026-10-18T09:20:06.981546+00:00",
+  "buildhunter_baseline": "86c3defd3d40f36940340070f9eaa113191e2323",
+  "buildhunter_runtime_revision": "9c1e36bd7477c2ae5b73af4a5ef8ec589386fc8c",
+  "hunter_revision": "3a3db1e270ff54ba757027df3a55b9d378ee0525",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "01d339f2f203e87b358f3ec2b1ed18745999aedc710e2bcb2a12ff00471d3c7c"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "f1e63d57fbc31178c0ceab0d2fefc4167af3d5edf35fe51b34dbdab15dc28498"
+    },
+    {
+      "path": "docs/hunter-backend-lifetime.md",
+      "sha256": "092a9970690ce32bd21d82d23fed6bd9bb789826f68437b4359720148bf5c361"
+    },
+    {
+      "path": "docs/hunter-root-admission.md",
+      "sha256": "d46430fae64c1a082917830caaaee48f4838e75bc8bc806ebbed4336613bac05"
+    },
+    {
+      "path": "docs/hunter-scoped-session.md",
+      "sha256": "45b2cea9dd3647f0428f13ced45a272149b3809844701b1269d20b0cde8f4ec4"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "14cbaba0508d45b1c004e65d6398d726ba265f7b3604505eaa2bb0648d3ee67e"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "b807d4198e6fa6722e874c4fdb23d67f85752658037d234d4d043bab5adb12be"
+    },
+    {
+      "path": "scripts/verify_hunter_vendor.py",
+      "sha256": "e564d206029811e74551fba122392c35d868f458c9dca04cd2b165cba719981b"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "328b19025bf1f961e27fa647a804e6130477409b630411d161956bed3c347238"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "f2136cdd62adea22b6231ee3e3339b204c5148a454e9279203b092c0422ad5bd"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "129c421a3237e3e07dd85b83e2aa3fa5af4eb4e94a25073b892dfd0897ef5b76"
+    },
+    {
+      "path": "specs/evidence/hunter-lifetime-20261018/maps/current.hc",
+      "sha256": "899c89e2170208da62ce1f7554669a7247241ca31ac6f88a7d28cb2fe3007d0e"
+    },
+    {
+      "path": "specs/evidence/hunter-lifetime-20261018/maps/current.hcs",
+      "sha256": "bfeb4d8c40dd41dbf34c9c2f95788e6fdfd13f5c82b65e40a100a7f3acd85917"
+    },
+    {
+      "path": "specs/evidence/hunter-lifetime-20261018/maps/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/evidence/hunter-lifetime-20261018/maps/target.hcs",
+      "sha256": "af3a92bebb635d921e277dd34d09c0fffc855415d3ab116796c2a1a441ad09f4"
+    },
+    {
+      "path": "specs/evidence/hunter-lifetime-20261018/upstream/README.md",
+      "sha256": "67c7cd3fa864bfde5c769007dd2a09f14ae9b78b5418718e076a4eaa2747abd0"
+    },
+    {
+      "path": "specs/evidence/hunter-lifetime-20261018/upstream/backend-lifetime.spec.yaml",
+      "sha256": "54eb9f5dd4b3fdcd1323ebca395d6b85bfe60b1ef3bfe375cdc51a519b12b0f2"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "96ef0534ee3028f631fdf99c4ab3aa556a2b55a246ffb737cfd57df869340ac3"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "6511b61567164d335e64971a6b50a657806f56b21283b3190630cafe63043e0f"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "899c89e2170208da62ce1f7554669a7247241ca31ac6f88a7d28cb2fe3007d0e"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "bfeb4d8c40dd41dbf34c9c2f95788e6fdfd13f5c82b65e40a100a7f3acd85917"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "af3a92bebb635d921e277dd34d09c0fffc855415d3ab116796c2a1a441ad09f4"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "e8bcb6967650f44091f2add5e652e2561ddda6a1c4bbc7d996a32d804eb5e13f"
+    },
+    {
+      "path": "src/bulk_metadata.rs",
+      "sha256": "40cbd64a51ec04f8decfb3b41224e8962870d79481bcfe775739acc454a85c1d"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "218cdf4a2e5aed6bdf040b2ccab8608a19ea14300a60337be1e683e04a599751"
+    },
+    {
+      "path": "src/materialization.rs",
+      "sha256": "99aafc312ba44f3ef41eaf69b99462c0daba0888e6fd9863b344bf2164749d1e"
+    },
+    {
+      "path": "src/measurement.rs",
+      "sha256": "fe6a09fb2a56acb307f653929d375a8b8fd6316f0b6c6235938db6f81d00d319"
+    },
+    {
+      "path": "src/process_resources.rs",
+      "sha256": "989e9d338b1fb1761706a9f5a3f7a9600c88996b8381804327eca87473ccaa5d"
+    },
+    {
+      "path": "src/profile.rs",
+      "sha256": "02041d77c5084dfc2a50ad6fff8cb413fed60adaa96c3404389f673c9bfa1ba0"
+    },
+    {
+      "path": "src/resources.rs",
+      "sha256": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f"
+    },
+    {
+      "path": "src/scan_session.rs",
+      "sha256": "1f4ea10d4219ad018f536e41c3980987b09d7393240e2d1ed8487cfede30dc91"
+    },
+    {
+      "path": "src/thread_qos.rs",
+      "sha256": "d62bfb3d25e22fbca4d2f18c5956f64033648fa6f1f05e657c13b99020bf798f"
+    },
+    {
+      "path": "vendor/hunter-fs-core/README.md",
+      "sha256": "407d986a60a11d5e9a3a5190a4adb2533ed92862cdcf3733aa34cf18ba8cc31d"
+    },
+    {
+      "path": "vendor/hunter-fs-core/UPSTREAM.json",
+      "sha256": "cffd99f5a7db279cab32fe8a3afcc28109f2b3c4e1a2018106e9883b679d3891"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/admission.rs",
+      "sha256": "d88e14a775a0980e33162784867891fa2337fb276e21233a67bb5feb6fc43887"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/backend.rs",
+      "sha256": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/lib.rs",
+      "sha256": "782841d8210d5d0f9b0cd1c322cf0305d594dcf262e9a3e9d322e6b545e25495"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/lifetime.rs",
+      "sha256": "74f61ce81c9e78b241bb9fae664f69aee79d684dc14ba212d231cda8ab0018e7"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/listing.rs",
+      "sha256": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/materialization.rs",
+      "sha256": "5d45250d5a7a6c1a7fadb9ad8f49eabd457538a2ec8a6ab3eeff173a029131a2"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/measurement.rs",
+      "sha256": "7366e1a3377bd9005c22ddd7f603c52c2d09da4a28ca2045cdd85df3dff90f7d"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/session.rs",
+      "sha256": "1f1b3256d3df6f5ad090901aae752fdf53a60bcb643e32f545ea369a47ee71c4"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/task.rs",
+      "sha256": "906bce62ddad02953c2b2710491cafbca9849fc68a54e041da52a2e89664cf5a"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/worker.rs",
+      "sha256": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1"
+    }
+  ]
+}

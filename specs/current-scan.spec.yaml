@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.14
+  version: 0.1.0-draft.15
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -69,6 +69,9 @@ requires:
   - id: hunter.fs.root_admission
     optional: false
     summary: Opaque host preflight before one root observation; host interprets skip/error and chooses scheduling/finalization.
+  - id: hunter.fs.backend_lifetime
+    optional: false
+    summary: Same-thread guard/backend construction and reverse cleanup; Hunter owns Darwin thread-policy RAII, host owns placement/status.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -100,6 +103,18 @@ constraints:
   level: MUST
   statement: Traversal skips symbolic links; marker_is_file uses fs::metadata to resolve recognized symlinked marker
     files. This exception is observed, not a universal no-follow guarantee.
+- id: backend_lifetime
+  level: MUST
+  statement: Run coordinator and each worker through Hunter with_guarded_backend.
+    Enter Hunter NonMaterializingIoGuard before backend preparation; retain it through
+    body completion and owned backend drop. Coordinator body includes sampler/worker
+    join, final profiles and Finished. Worker body owns WorkerAdapter through the
+    directory-worker loop; prepared measurement state drops before the adapter/guard.
+    Guard failure maps to existing Warning/Finished(Failed) or SetupFailed paths.
+    Actual backend factories are infallible borrowed Probes or WorkerAdapter assembly;
+    generic backend-setup errors are uninhabited in this integration. Cloud path
+    policy and dataless error decoration stay product-owned. The public guard alias
+    is source-compatible. Restoration remains best effort on ordinary unwind, not abort.
 - id: cloud_guard
   level: MUST
   statement: Enter the macOS non-materialization guard before traversal and on workers; guard setup failure ends
@@ -164,8 +179,9 @@ constraints:
     prepared state use/drop; queues, receiver, joins and status are unchanged.
 - id: scoped_session
   level: MUST
-  statement: Keep root guard admission, profile/QoS setup, coordinator construction,
-    final status and event/report publication in product scan_session::run. Hunter
+  statement: Product scan_session::run selects the guard/backend constructors and owns
+    profile/QoS setup, coordinator construction, final status and event/report publication.
+    Hunter owns guarded backend lifetime around that body. Hunter
     starts host sampler helpers, launches workers, invokes coordinator on caller
     thread, drops helper-stop guard, closes queue and joins before returning. Move
     receiver into coordinator and release unread responses before return/unwind
@@ -286,6 +302,14 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/admission.rs
   supports: [constraints.root_admission, constraints.root_backend, constraints.cloud_guard, scope]
+- id: hunter_lifetime_source
+  kind: source
+  path: vendor/hunter-fs-core/src/lifetime.rs
+  supports: [constraints.backend_lifetime, constraints.scan_lifetime, constraints.cloud_guard, scope]
+- id: hunter_thread_guard_source
+  kind: source
+  path: vendor/hunter-fs-core/src/materialization.rs
+  supports: [constraints.backend_lifetime, constraints.cloud_guard, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -337,12 +361,15 @@ provenance:
   - Root preflight/observation sequencing delegates to Hunter cc1d8054ea0882e8f954e8bb6b0e6de03cff1495.
     Skipped and Unavailable retain distinct host control flow; policies/guards/status remain local.
     Fresh identities and receipts are in specs/validation/hunter-admission-20261018.
+  - Guard/backend scopes now delegate to Hunter 3a3db1e270ff54ba757027df3a55b9d378ee0525; the Darwin thread guard is owned upstream.
+    Host keeps cloud path/error/status policy; coordinator retains final publication inside the lifetime body.
+    Fresh source/map/runtime receipts are in specs/validation/hunter-lifetime-20261018.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 20216e2b10636c4201155f2287e667ef8f8f6a61
+    revision: d54f573602462b3d6f19f63da531205876a00eaa
   files:
     owned:
     - src/lib.rs
@@ -368,4 +395,6 @@ implementationBindings:
     - vendor/hunter-fs-core/src/measurement.rs
     - vendor/hunter-fs-core/src/session.rs
     - vendor/hunter-fs-core/src/admission.rs
+    - vendor/hunter-fs-core/src/lifetime.rs
+    - vendor/hunter-fs-core/src/materialization.rs
     - vendor/hunter-fs-core/UPSTREAM.json

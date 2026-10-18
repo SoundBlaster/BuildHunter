@@ -102,8 +102,9 @@ provenance:
   - Repository activation observed 2026-10-18 (ruleset 24388855, Actions app 15368,
     strict up-to-date checks, STACK_MACOS_CI=true); source default remains off.
     Acquisition commands, server timestamps and bootstrap diagnostics are in
-    specs/validation/stack-ci-rollout-20261018. Final canary acceptance and savings
-    remain separate pending evidence, not an accepted requirement change.
+    specs/validation/stack-ci-rollout-20261018. Native canary 74b8c6b subsequently passed and merged at 1a09c34; timed receipts
+    are in specs/validation/stack-ci-accepted-20261019. No measured savings or
+    runtime scanner acceptance follows, and requirements remain draft.
 implementationBindings:
 - id: ci_implementation
   scope: component

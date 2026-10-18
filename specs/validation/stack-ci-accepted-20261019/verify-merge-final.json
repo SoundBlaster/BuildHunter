@@ -1,0 +1,16 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/ci/stack_ci.py",
+    "verify-merge",
+    "--pr",
+    "89"
+  ],
+  "budget_mode": true,
+  "recorded_at_utc": "2026-10-18T20:58:50.723993+00:00",
+  "exit_code": 0,
+  "stdout": "{\"base\": \"d01d4ed43cae3e2e86b385ac08d964c45eeb8e9b\", \"base_ref\": \"main\", \"enabled\": true, \"head\": \"74b8c6bcef984599d0937a0bf5909112ec0858e5\", \"heavy\": true, \"macos\": true, \"members\": [{\"draft\": false, \"head\": \"6096d9dbc15f922fd6b52f4d024876daab8974fb\", \"pr\": 88}, {\"draft\": false, \"head\": \"74b8c6bcef984599d0937a0bf5909112ec0858e5\", \"pr\": 89}], \"pr\": 89, \"ready\": true, \"repository\": \"SoundBlaster/BuildHunter\", \"schema\": 1, \"stack\": 90, \"tip\": 89}\n",
+  "stderr": ""
+}

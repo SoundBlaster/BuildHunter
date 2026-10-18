@@ -23,3 +23,9 @@ are unchanged. Hunter acquires no guard and has no product status vocabulary.
 Four new upstream tests and existing product root witnesses verify the seam.
 Draft capability `hunter.fs.root_admission` does not claim full reusable startup,
 live cloud-provider behavior, UI/home acceptance or a resource improvement.
+
+Guard/backend lifetime and native Darwin policy RAII now live in Hunter `3a3db1e270ff54ba757027df3a55b9d378ee0525`.
+Host scope placement, cloud paths/error decoration and product status stay local;
+see [guarded backend lifetime](hunter-backend-lifetime.md) and `hunter-lifetime-20261018` evidence.
+This supersedes earlier pending guard-lifetime ownership notes for the integrated
+Rust coordinator/workers; full engine/backend algorithm assembly remains pending.

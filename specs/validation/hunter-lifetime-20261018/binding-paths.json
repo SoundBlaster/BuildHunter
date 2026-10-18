@@ -1,0 +1,31 @@
+{
+  "revision": "9c1e36bd7477c2ae5b73af4a5ef8ec589386fc8c",
+  "paths": [
+    "src/lib.rs",
+    "src/scan_session.rs",
+    "src/measurement.rs",
+    "src/materialization.rs",
+    "src/bulk_metadata.rs",
+    "src/thread_qos.rs",
+    "src/profile.rs",
+    "src/process_resources.rs",
+    "src/resources.rs",
+    "vendor/hunter-fs-core/src/lib.rs",
+    "vendor/hunter-fs-core/src/work.rs",
+    "vendor/hunter-fs-core/src/task.rs",
+    "vendor/hunter-fs-core/src/children.rs",
+    "vendor/hunter-fs-core/src/ledger.rs",
+    "vendor/hunter-fs-core/src/subtree.rs",
+    "vendor/hunter-fs-core/src/execution.rs",
+    "vendor/hunter-fs-core/src/backend.rs",
+    "vendor/hunter-fs-core/src/worker.rs",
+    "vendor/hunter-fs-core/src/listing.rs",
+    "vendor/hunter-fs-core/src/measurement.rs",
+    "vendor/hunter-fs-core/src/session.rs",
+    "vendor/hunter-fs-core/src/admission.rs",
+    "vendor/hunter-fs-core/src/lifetime.rs",
+    "vendor/hunter-fs-core/src/materialization.rs",
+    "vendor/hunter-fs-core/UPSTREAM.json"
+  ],
+  "all_exist_and_match": true
+}

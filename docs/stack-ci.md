@@ -105,3 +105,11 @@ BoundarySpec; it is intentionally outside the application's runtime composition.
 References: [native CI metadata](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/optimizing-ci-for-stacked-pull-requests),
 [stack API](https://docs.github.com/en/rest/pulls/stacks),
 [workflow_run](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run).
+
+Canary #90 (#88 → #89) subsequently passed at tip 74b8c6b and merged into main
+1a09c34. Actual job placement was zero successful macOS jobs on the lower layer
+and five on the tip. Both Actions-produced gates and full read-only preflight
+passed; draft, incomplete-CI, changed-head and prefix rejection observations are
+recorded separately. Timed pre-merge receipts and subsequent merge confirmation:
+`specs/validation/stack-ci-accepted-20261019`. This demonstrates the configured
+scheduling/gate behavior, not a measured monetary saving or a scanner speedup.

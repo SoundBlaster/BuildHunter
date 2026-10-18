@@ -1,0 +1,138 @@
+[
+  {
+    "run": 39162376622,
+    "head": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+    "url": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376622",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "Plugin contract schemas",
+        "conclusion": "success"
+      },
+      {
+        "name": "changes / classify",
+        "conclusion": "success"
+      },
+      {
+        "name": "Rust and CLI (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "Rust and CLI (windows-latest)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "run": 39162376643,
+    "head": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+    "url": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376643",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "changes / classify",
+        "conclusion": "success"
+      },
+      {
+        "name": "macOS unit and UI tests",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "macOS Release build",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "macOS performance tests",
+        "conclusion": "skipped"
+      }
+    ]
+  },
+  {
+    "run": 39162376599,
+    "head": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+    "url": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376599",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "changes / classify",
+        "conclusion": "success"
+      },
+      {
+        "name": "Scanner comparison (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "run": 39164104219,
+    "head": "74b8c6bcef984599d0937a0bf5909112ec0858e5",
+    "url": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104219",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "Plugin contract schemas",
+        "conclusion": "success"
+      },
+      {
+        "name": "changes / classify",
+        "conclusion": "success"
+      },
+      {
+        "name": "Rust and CLI (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "Rust and CLI (macos-26)",
+        "conclusion": "success"
+      },
+      {
+        "name": "Rust and CLI (windows-latest)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "run": 39164104242,
+    "head": "74b8c6bcef984599d0937a0bf5909112ec0858e5",
+    "url": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104242",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "changes / classify",
+        "conclusion": "success"
+      },
+      {
+        "name": "macOS unit and UI tests",
+        "conclusion": "success"
+      },
+      {
+        "name": "macOS Release build",
+        "conclusion": "success"
+      },
+      {
+        "name": "macOS performance tests",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "run": 39164104370,
+    "head": "74b8c6bcef984599d0937a0bf5909112ec0858e5",
+    "url": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104370",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "changes / classify",
+        "conclusion": "success"
+      },
+      {
+        "name": "Scanner comparison (macos-26)",
+        "conclusion": "success"
+      },
+      {
+        "name": "Scanner comparison (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ]
+  }
+]

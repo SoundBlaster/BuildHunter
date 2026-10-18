@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs/src/measurement.rs/src/session.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md and all src/*.rs source files snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -308,3 +308,18 @@ classification, scheduling, warnings and final publication remain host-owned.
 No cancellation check or normalization is added; pre-cancelled observation and
 final-component no-follow semantics remain. See `specs/root-admission.spec.yaml`
 in the upstream repository; this is a draft sequencing boundary, not full startup.
+
+`with_guarded_backend(enter, prepare, run)` owns a synchronous guard/backend scope:
+enter guard, prepare backend, run body, drop backend, drop guard. Setup failures
+retain original Guard/Backend errors. Neither resource nor result needs Send.
+The host must finish scoped work and keep guard-dependent resources inside the body;
+externally borrowed backend state and unused callback captures are not owned by the
+helper. Restoration is not guaranteed on abort/double panic or faulty guard Drop.
+
+`NonMaterializingIoGuard` now supplies the original Darwin thread-policy RAII in
+Hunter (also re-exported by hunter-fs). It cannot move across threads on macOS;
+restoration is best effort, and non-macOS uses a no-op. This does not guarantee all
+providers refuse downloads. Hosts still choose where to apply guards and own cloud
+paths, backend algorithms, warnings/status and terminal events. The default plugin
+migration, full engine assembly and whole-process resource budgets remain pending.
+See the upstream `specs/backend-lifetime.spec.yaml` draft and fresh validation.
