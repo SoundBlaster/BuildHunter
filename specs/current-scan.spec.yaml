@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.12
+  version: 0.1.0-draft.13
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -63,6 +63,9 @@ requires:
   - id: hunter.fs.measurement_backend
     optional: false
     summary: Typed directory/prepared-file backend and shared slot loop; native/bulk policy, guards, errors, timers and status stay host-owned.
+  - id: hunter.fs.scoped_session
+    optional: false
+    summary: Helper startup, scoped worker launch, caller-thread coordinator and stop/close-before-join fence; host retains admission, QoS and terminal policy.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -109,8 +112,9 @@ constraints:
     only if running. Timed profile waits repeat checkpoints without receipt on timeout.
     Blocking waits and disconnected-channel behavior remain unchanged; channel loss
     breaks the loop but does not itself override the host final-status precedence.
-    Host initializes root work, finalizes open results, closes queues/stops helpers
-    inside the outer thread scope and publishes Finished only after its join.
+    Host initializes root work and finalizes open results. Hunter scoped session
+    stops host helpers and closes the queue inside the outer thread scope; the
+    product session publishes Finished only after actual join.
 - id: root_backend
   level: MUST
   statement: After existing cloud admission, observe the selected root once through
@@ -147,6 +151,17 @@ constraints:
     errors, per-entry consumption, Unsupported/missing fallback, counters and error
     decoration in the host measurement module. Retain the outer worker guard through
     prepared state use/drop; queues, receiver, joins and status are unchanged.
+- id: scoped_session
+  level: MUST
+  statement: Keep root guard admission, profile/QoS setup, coordinator construction,
+    final status and event/report publication in product scan_session::run. Hunter
+    starts host sampler helpers, launches workers, invokes coordinator on caller
+    thread, drops helper-stop guard, closes queue and joins before returning. Move
+    receiver into coordinator and release unread responses before return/unwind
+    joins. Worker SetupFailed still passes through the existing host result pump.
+    Admission failure emits Warning then Finished(Failed) without starting work;
+    successful scoped completion drains final profiles before one Finished. Callback
+    or worker panic unwinds without product Finished. Keep guards through join.
 effects:
   sideEffects:
   - id: read_metadata
@@ -248,6 +263,14 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/measurement.rs
   supports: [constraints.measurement_backend, constraints.scan_lifetime, scope]
+- id: product_session_source
+  kind: source
+  path: src/scan_session.rs
+  supports: [constraints.scoped_session, constraints.scan_lifetime, constraints.terminal, constraints.cloud_guard, constraints.result_execution, scope]
+- id: hunter_session_source
+  kind: source
+  path: vendor/hunter-fs-core/src/session.rs
+  supports: [constraints.scoped_session, constraints.scan_lifetime, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -293,15 +316,19 @@ provenance:
   - Typed preparation/measurement now delegates to Hunter 1eb300054c24bbf56a936287fbd586c4fb39079c; native/bulk effects moved to src/measurement.rs from WorkerAdapter.
     Initial source baseline dec3ad60; fresh evidence is in specs/validation/hunter-measurement-20261018.
     Host guards, timing, native errors/fallbacks and complete engine assembly remain local.
+  - Product startup/status moved to src/scan_session.rs; Hunter 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad owns scoped launch/shutdown/join assembly.
+    Baseline bf3b1bd2; fresh identities/commands are in specs/validation/hunter-session-20261018.
+    Host keeps admission/QoS, setup-error interpretation and Finished after join; full generic root/guard assembly remains pending.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: c2cd2b857d73ff98b41f9653276918c23018cc5d
+    revision: b4647e5de8821db51a65b300922a1cb39c925e91
   files:
     owned:
     - src/lib.rs
+    - src/scan_session.rs
     - src/measurement.rs
     - src/materialization.rs
     - src/bulk_metadata.rs
@@ -321,4 +348,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/worker.rs
     - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/src/measurement.rs
+    - vendor/hunter-fs-core/src/session.rs
     - vendor/hunter-fs-core/UPSTREAM.json

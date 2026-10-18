@@ -39,3 +39,6 @@ I/O, post-list hooks and full scope lifetime remain host-owned.
 Follow-up: [typed measurement preparation](hunter-measurement-backend.md) moves
 native/bulk effects into the local measurement module and leaves WorkerAdapter
 with timing/delegation. The outer guard and full worker lifetime remain unchanged.
+
+Follow-up: [scoped session assembly](hunter-scoped-session.md) now owns helper stop,
+queue closure and actual join. Product admission, QoS and terminal events remain local.

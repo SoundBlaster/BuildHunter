@@ -349,3 +349,7 @@ order. See [directory acquisition boundary](hunter-directory-listing.md).
 
 Typed preparation/measurement now uses Hunter's backend seam; BuildHunter native/
 bulk effects are separate from WorkerAdapter. See [measurement boundary](hunter-measurement-backend.md).
+
+Scoped worker startup/shutdown/join now lives in Hunter; product admission/QoS,
+status and terminal publication are isolated in BuildHunter scan_session.rs.
+See [scoped session boundary](hunter-scoped-session.md).

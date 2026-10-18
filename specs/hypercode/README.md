@@ -117,3 +117,8 @@ Typed preparation at Hunter 1eb300054c24bbf56a936287fbd586c4fb39079c adds Hunter
 DirectoryPreparation/PreparedFileEffects/SharedSlotExecution. Host Measurement now
 shows NativeMeasurementBackend/BatchPreparation/MetadataFallback separately. Fresh
 identities/frozen maps are under hunter-measurement-20261018; full startup is pending.
+
+Scoped startup/join at Hunter 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad adds HunterScopedSession with
+HelperStartup/QueueShutdown/JoinBoundary and product ScanSession admission/launch/
+terminal roles. Fresh identities/maps are under hunter-session-20261018; root
+admission/guard and full generic engine assembly remain pending.

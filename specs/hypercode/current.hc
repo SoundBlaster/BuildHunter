@@ -9,6 +9,10 @@ BuildHunterRuntime
       Settings
   SharedRuntime
     Scanner
+      ScanSession
+        StartupAdmission
+        ScopedLaunch
+        TerminalPublication
       Traversal
       Measurement
         NativeMeasurementBackend
@@ -65,6 +69,10 @@ BuildHunterRuntime
       DirectoryPreparation
       PreparedFileEffects
       SharedSlotExecution
+    HunterScopedSession
+      HelperStartup
+      QueueShutdown
+      JoinBoundary
     HunterMetadata
     PluginScanning
       CandidateObservation

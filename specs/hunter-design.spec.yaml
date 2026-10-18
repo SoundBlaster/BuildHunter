@@ -142,4 +142,7 @@ provenance:
   - Typed DirectoryMeasurementBackend/prepared FileMeasurementBackend state now delegates to Hunter 1eb300054c24bbf56a936287fbd586c4fb39079c.
     BuildHunter separately owns native/bulk preparation/fallbacks; both typed and closure APIs share the same slot execution.
     This is partial measurement ownership, not acceptance of full startup/cloud/lifecycle/resource requirements.
+  - run_scoped_workers now assembles helper startup, worker launch, coordinator, stop/close and actual join at 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad.
+    BuildHunter product session still owns root admission, guards/QoS, setup/status/terminal semantics and final profiling.
+    This is partial lifecycle extraction; arbitrary callback termination, full generic root/guard assembly and memory budgets remain pending.
 implementationBindings: []

@@ -1,0 +1,1 @@
+Upstream draft from SoundBlaster/Hunter at 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad, path specs/scoped-session.spec.yaml, SHA-256 384109dbfaa79f945a1fde20728df48d976cab59178d4b0d76d54dce47dd0111. Source evidence, not owner acceptance.
