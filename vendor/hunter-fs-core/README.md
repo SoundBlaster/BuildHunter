@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -221,3 +221,28 @@ Seven tests cover intent/prefetch and listing-before-measurement ordering, listi
 only, rejection at both publications, cancelled results, closed queue, continued
 LIFO tasks and callback panic. Existing scope/join and measurement-slot tests remain
 separate gates; no whole-scan resource improvement is inferred.
+
+## Owned directory acquisition
+
+collect_directory consumes host-opened entries through visit_directory and returns
+(DirectoryListing<Context>, DirectoryVisit). Children/types and errors retain their
+original encounter order and raw paths. One synchronous host observer receives
+each successfully typed entry before it is retained and may update opaque context.
+An observer error is qualified with that child path; it does not remove the child
+or roll back context. Iterator/type errors never invoke the entry observer. Context
+can borrow non-Send state and need not implement Clone or Default. No second listing
+buffer is introduced. A path is cloned only to qualify an observer error.
+
+Cancellation uses the existing visitor boundaries: no extra stop check is added.
+An observer-triggered stop retains its current child/context/error before the next
+check. Empty input completes; failed opens return their error/OpenFailed even when
+already stopped. Callbacks/iterators can panic, and their panics propagate. The host
+owns open/guard lifetime, context meaning, observer effects, post-list hooks, final
+status and recursive scheduling. Observer I/O may intentionally follow a link;
+the helper itself only observes FileType and does not resolve targets or read file
+contents. Native pathname races remain; no descriptor snapshot or memory bound.
+
+Seven macOS tests cover order/borrowed context, iteration and observer errors,
+observer-triggered cancellation, open failure, empty input, link types, callback
+panic and host-supplied iterator paths. Linux adds raw non-UTF-8 names. Existing
+visitor, worker protocol and guard/join gates remain separate. No speedup is inferred.

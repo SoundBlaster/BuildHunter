@@ -311,3 +311,6 @@ pub use backend::{FilesystemBackend, RootObservation, StdFilesystem, observe_roo
 
 mod worker;
 pub use worker::{DirectoryWorker, run_directory_worker};
+
+mod listing;
+pub use listing::collect_directory;
