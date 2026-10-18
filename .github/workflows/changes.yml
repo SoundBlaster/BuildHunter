@@ -1,28 +1,54 @@
 name: Classify changes
 on:
   workflow_call:
+    inputs:
+      plan_name:
+        required: true
+        type: string
     outputs:
       heavy:
         description: Whether the event needs application builds and benchmarks
         value: ${{ jobs.classify.outputs.heavy }}
+      macos:
+        value: ${{ jobs.classify.outputs.macos }}
+      rust_matrix:
+        value: ${{ jobs.classify.outputs.rust_matrix }}
+      performance_os:
+        value: ${{ jobs.classify.outputs.performance_os }}
 permissions:
   contents: read
+  pull-requests: read
 jobs:
   classify:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       heavy: ${{ steps.diff.outputs.heavy }}
+      macos: ${{ steps.diff.outputs.macos }}
+      rust_matrix: ${{ steps.diff.outputs.rust_matrix }}
+      performance_os: ${{ steps.diff.outputs.performance_os }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Test change classification
-        run: python3 scripts/ci/test_changes.py
+        run: |
+          python3 scripts/ci/test_changes.py
+          python3 scripts/ci/test_stack_ci.py
       - name: Classify complete event diff
         id: diff
         env:
-          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ github.token }}
+          STACK_MACOS_CI: ${{ vars.STACK_MACOS_CI || 'false' }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: python3 scripts/ci/changes.py
+        run: python3 scripts/ci/stack_ci.py plan
+      - name: Record immutable CI plan
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-plan-${{ inputs.plan_name }}
+          path: ${{ runner.temp }}/ci-plan.json
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true

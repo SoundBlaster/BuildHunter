@@ -3,12 +3,19 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited, stacked]
   workflow_dispatch:
 permissions:
   contents: read
+  pull-requests: read
+concurrency:
+  group: rust-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   changes:
     uses: ./.github/workflows/changes.yml
+    with:
+      plan_name: rust
   check:
     needs: changes
     if: needs.changes.outputs.heavy == 'true'
@@ -16,14 +23,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            suffix: ''
-          - os: macos-26
-            suffix: ''
-          - os: windows-latest
-            suffix: '.exe'
+      matrix: ${{ fromJSON(needs.changes.outputs.rust_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

@@ -1,0 +1,47 @@
+{
+  "tool": "PyYAML 6.0.3",
+  "loader": "BaseLoader",
+  "files": [
+    {
+      "path": ".github/workflows/changes.yml",
+      "sha256": "6a33f06169d4d712c1df30a3a5247b4c4b1ac3d0998e10d2872f0d7e4d4554bf",
+      "jobs": [
+        "classify"
+      ]
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "fa5ee31979e06a6c6e07a3d96d75108729c114fb9cf76fd5f845beba46b79309",
+      "jobs": [
+        "changes",
+        "check",
+        "plugin-contract"
+      ]
+    },
+    {
+      "path": ".github/workflows/macos.yml",
+      "sha256": "c530cc2cd97dc03a153130c86d2087e4287905b78e0ffef4b6294081d2c38cdb",
+      "jobs": [
+        "changes",
+        "performance",
+        "release",
+        "tests"
+      ]
+    },
+    {
+      "path": ".github/workflows/performance.yml",
+      "sha256": "e29292fdbb88afcccbf621dc6cb4a884b0287f9f429fd0fd8c55cb146c383015",
+      "jobs": [
+        "changes",
+        "scanner"
+      ]
+    },
+    {
+      "path": ".github/workflows/stack-gate.yml",
+      "sha256": "2172700de76ae650a5658f22b8b3dd95f9ab368f00801421e3b7669332c0fb59",
+      "jobs": [
+        "publish"
+      ]
+    }
+  ]
+}

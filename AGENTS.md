@@ -42,9 +42,11 @@ design; target module names do not imply existing crates/repositories.
 
 ## Stacked PRs and macOS CI budget
 
-This is the agreed workflow policy. Stack-aware macOS gating and its required
-merge gate still need a separate implementation PR. Until they are deployed and
-verified, keep every existing required check: this document does not authorize
+This is the agreed workflow policy. Stack-aware gating is implemented in
+`scripts/ci/stack_ci.py` and the CI workflows, behind the default-off
+`STACK_MACOS_CI` variable. Follow `docs/stack-ci.md` to install the required gate
+and validate a native-stack canary after merge. Until that rollout is complete,
+keep every existing required check: this document does not authorize
 skipping checks, treating pending jobs as passed, or weakening branch protection.
 
 - Group consecutive, reviewable refactoring slices into bounded native stacks
@@ -84,3 +86,11 @@ skipping checks, treating pending jobs as passed, or weakening branch protection
 
 References: [GitHub CI optimization for stacks](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/optimizing-ci-for-stacked-pull-requests),
 [stack requirements](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests).
+
+For an optimized batch, run `stack_ci.py verify-merge --pr <tip>` with
+`STACK_MACOS_CI=true` and an authenticated read token immediately before
+`gh stack merge <tip>`. This preflight rejects prefixes and rechecks actual jobs,
+receipts and GraphQL review threads. The commit-status gate alone cannot distinguish
+an intentional prefix merge from an atomic whole-stack merge; do not bypass the
+preflight by merging a lower layer through the UI. A hard server-side restriction
+on merge target would require additional merge-bot/application authorization.

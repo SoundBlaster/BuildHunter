@@ -1,0 +1,84 @@
+{
+  "recorded_at_utc": "2026-10-18T10:23:26.417665+00:00",
+  "trunk_baseline": "86c3defd3d40f36940340070f9eaa113191e2323",
+  "policy_layer": "e90b093c7c830e6b1016988b0a4e4ee55f0f7590",
+  "implementation_revision": "5779b8bcaef03e919b6cd9a83b6aa0bdf95e68b0",
+  "files": [
+    {
+      "path": ".github/actionlint.yaml",
+      "sha256": "97dd2bfca09cc49f43f54f3778df8cc528bd3781a9797ae74d2209aca04b1021"
+    },
+    {
+      "path": ".github/workflows/changes.yml",
+      "sha256": "6a33f06169d4d712c1df30a3a5247b4c4b1ac3d0998e10d2872f0d7e4d4554bf"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "fa5ee31979e06a6c6e07a3d96d75108729c114fb9cf76fd5f845beba46b79309"
+    },
+    {
+      "path": ".github/workflows/macos.yml",
+      "sha256": "c530cc2cd97dc03a153130c86d2087e4287905b78e0ffef4b6294081d2c38cdb"
+    },
+    {
+      "path": ".github/workflows/performance.yml",
+      "sha256": "e29292fdbb88afcccbf621dc6cb4a884b0287f9f429fd0fd8c55cb146c383015"
+    },
+    {
+      "path": ".github/workflows/stack-gate.yml",
+      "sha256": "2172700de76ae650a5658f22b8b3dd95f9ab368f00801421e3b7669332c0fb59"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "c9a162ddf839f9aed4821db903befb2279c3b272c5a4c4c25b4223336f5ea6d4"
+    },
+    {
+      "path": "docs/stack-ci.md",
+      "sha256": "b3653772b84648008c27114b97190202d42ccb7f300cdff0093126b42496d4a6"
+    },
+    {
+      "path": "scripts/ci/stack_ci.py",
+      "sha256": "35dcadbb1d9db9bc7d8e8393efaaccaae6dbaaa3dc0541deaff82314ba01c62b"
+    },
+    {
+      "path": "scripts/ci/stack_ci_ruleset.py",
+      "sha256": "c60cd3ea419d61911339e1340e8e90fb8b8164fdac4383103cc86fe4518bf45e"
+    },
+    {
+      "path": "scripts/ci/test_stack_ci.py",
+      "sha256": "1af0bebebe47c85779ff5d13e0531fe2f42044ebb8d8b7fd0a504bfd2e50fd9d"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "6491ca861911ba054e2521cd335e22e1fe1e1380c955c1503f499676101d6d69"
+    },
+    {
+      "path": "specs/ci-validation.spec.yaml",
+      "sha256": "b676343f14d85d3dbe3bd52e8b126dd622f5110695bfc3399734f2c37eff5974"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "c20626df338a620c165e804f87758aa0147c0d8a114914b9461a8af42f542a7c"
+    },
+    {
+      "path": "specs/evidence/stack-ci-20261018/maps/ci.hc",
+      "sha256": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a"
+    },
+    {
+      "path": "specs/evidence/stack-ci-20261018/maps/ci.hcs",
+      "sha256": "f0263c4d960b8eeade54a9f86835a93980146ca65b9c02ab3ac9448b8f760395"
+    },
+    {
+      "path": "specs/hypercode/ci.hc",
+      "sha256": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a"
+    },
+    {
+      "path": "specs/hypercode/ci.hcs",
+      "sha256": "f0263c4d960b8eeade54a9f86835a93980146ca65b9c02ab3ac9448b8f760395"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "bdd5b3b8b8d82b8e6abdf42fd8b13e1d5a9400e1027519c6a2b09726b70e661b"
+    }
+  ]
+}
