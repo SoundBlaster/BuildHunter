@@ -323,3 +323,21 @@ providers refuse downloads. Hosts still choose where to apply guards and own clo
 paths, backend algorithms, warnings/status and terminal events. The default plugin
 migration, full engine assembly and whole-process resource budgets remain pending.
 See the upstream `specs/backend-lifetime.spec.yaml` draft and fresh validation.
+
+## Guarded scan assembly
+
+`with_scan_session(enter, prepare, maximum_workers, run)` composes the guard/backend
+scope with an owned empty task queue and available-parallelism worker cap. Its body
+receives the backend and a non-cloneable `ScanSession` launch token. Consuming
+`ScanSession::run(worker, start_helpers, coordinate)` starts scoped helpers/workers,
+provides the queue to the caller-thread coordinator, then stops helpers, closes the
+queue and joins before returning. Host finalization can run after that return while
+backend/guard remain alive. An unused token starts no threads. Zero cap panics after
+successful preparation; guard/backend errors bypass cap selection and body.
+
+The host still calls `admit_root` inside its coordinator, preserving admission timing
+relative to launch; it owns task semantics, channels, QoS, cancellation/status and
+final publication. Move unread receivers into the coordinator and drop them before
+return/unwind join. No guard-dependent resources may escape the body. This is a
+bounded session assembly, not a complete recursive scanner, bounded memory guarantee
+or plugin classifier. See upstream `specs/scan-assembly.spec.yaml` (draft).

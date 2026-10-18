@@ -2,9 +2,9 @@
 use crate::{
     CandidateAction, CandidateFacts, CandidateNodeKind, DirectoryTaskLedger, MAX_SCAN_WORKERS,
     Probes, ScanControl, ScanEvent, ScanOptions, ScanReport, ScanStatus, ScanWarning, Scanner,
-    WorkQueue, materialization, profile, run_worker, thread_qos,
+    materialization, profile, run_worker, thread_qos,
 };
-use hunter_fs_core::{GuardedSetupError, run_scoped_workers, with_guarded_backend, worker_count};
+use hunter_fs_core::{GuardedSetupError, with_scan_session};
 use std::{
     path::{Path, PathBuf},
     sync::atomic::Ordering,
@@ -19,13 +19,12 @@ pub(super) fn run(
     probes: &Probes,
     legacy_policy: bool,
 ) -> ScanReport {
-    let result = with_guarded_backend(
+    let result = with_scan_session(
         materialization::Guard::enter,
         || Ok::<_, std::convert::Infallible>(probes),
-        |backend| {
+        MAX_SCAN_WORKERS,
+        |backend, session| {
             let probes = *backend;
-            let queue = WorkQueue::default();
-            let workers = worker_count(MAX_SCAN_WORKERS);
             let (sender, receiver) = std::sync::mpsc::channel();
             let worker_qos = thread_qos::capture();
             let profile_state = control
@@ -33,9 +32,7 @@ pub(super) fn run(
                 .load(Ordering::Acquire)
                 .then(profile::ProfileState::new);
             let profile = profile_state.as_ref();
-            let (artifacts, warnings, had_errors, changed) = run_scoped_workers(
-                &queue,
-                workers,
+            let (artifacts, warnings, had_errors, changed) = session.run(
                 {
                     let sender = sender.clone();
                     move |queue| {
@@ -54,7 +51,7 @@ pub(super) fn run(
                         stop
                     })
                 },
-                || {
+                |queue| {
                     drop(sender);
                     let mut scanner = Scanner {
                         root,
@@ -64,7 +61,7 @@ pub(super) fn run(
                         legacy_policy,
                         emit: &mut emit,
                         probes,
-                        queue: &queue,
+                        queue,
                         artifacts: Vec::new(),
                         progress: Vec::new(),
                         warnings: Vec::new(),
