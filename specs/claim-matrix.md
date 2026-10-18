@@ -378,10 +378,12 @@ review-aware preflight and additive ruleset proposal. Application current/target
 runtime maps and scan/classification/bridge/plugin contracts are unchanged: CI is
 an out-of-runtime delivery boundary, not an additional scanner component.
 
-Default-off rollout preserves current applicable checks; enabling the variable,
-installing a producer-bound strict required gate and hosted native canary remain
-post-merge work. Local adversarial fixtures and ordinary read-only GitHub planning
-are scoped evidence, not actual privileged publication or demonstrated savings.
+The source default remains opt-in. Repository activation was applied on 2026-10-18:
+main requires the Actions-produced Stack CI gate with strict up-to-date checks,
+and STACK_MACOS_CI=true. Bootstrap publisher 39162179998 ran from main and left the
+old #84 evidence pending. Current activation/provenance is recorded separately in
+specs/validation/stack-ci-rollout-20261018. Native canary final acceptance and measured
+runner-minute savings remain pending; local fixtures are not hosted acceptance.
 Status checks cannot prohibit intentional prefix selection; use fresh tip-only
 preflight and native stack merge. Hard server-side merge-target restriction needs
 separate bot authorization. Runtime source evidence remains historical/current for

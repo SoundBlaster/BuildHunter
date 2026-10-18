@@ -1,0 +1,15 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/ci/stack_ci.py",
+    "verify-merge",
+    "--pr",
+    "89"
+  ],
+  "budget_mode": true,
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/scripts/ci/stack_ci.py\", line 348, in <module>\n    main()\n  File \"/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/scripts/ci/stack_ci.py\", line 316, in main\n    print(json.dumps(verify(api, args.pr, enabled, require_tip=True), sort_keys=True))\n  File \"/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/scripts/ci/stack_ci.py\", line 254, in verify\n    api.reviews(member[\"pr\"])\n  File \"/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/scripts/ci/stack_ci.py\", line 96, in reviews\n    raise NotReady(\"Unresolved review threads\")\n__main__.NotReady: Unresolved review threads\n"
+}

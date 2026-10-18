@@ -1,0 +1,54 @@
+{
+  "88": {
+    "schema": 1,
+    "repository": "SoundBlaster/BuildHunter",
+    "pr": 88,
+    "head": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+    "base_ref": "main",
+    "base": "d01d4ed43cae3e2e86b385ac08d964c45eeb8e9b",
+    "stack": 90,
+    "members": [
+      {
+        "pr": 88,
+        "head": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+        "draft": true
+      },
+      {
+        "pr": 89,
+        "head": "877d2c77895c6edf7c8d02219756bff7507ee0e8",
+        "draft": true
+      }
+    ],
+    "tip": 89,
+    "ready": false,
+    "enabled": true,
+    "heavy": true,
+    "macos": false
+  },
+  "89": {
+    "schema": 1,
+    "repository": "SoundBlaster/BuildHunter",
+    "pr": 89,
+    "head": "877d2c77895c6edf7c8d02219756bff7507ee0e8",
+    "base_ref": "main",
+    "base": "d01d4ed43cae3e2e86b385ac08d964c45eeb8e9b",
+    "stack": 90,
+    "members": [
+      {
+        "pr": 88,
+        "head": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+        "draft": true
+      },
+      {
+        "pr": 89,
+        "head": "877d2c77895c6edf7c8d02219756bff7507ee0e8",
+        "draft": true
+      }
+    ],
+    "tip": 89,
+    "ready": false,
+    "enabled": true,
+    "heavy": true,
+    "macos": false
+  }
+}

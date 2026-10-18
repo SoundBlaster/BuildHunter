@@ -1,10 +1,10 @@
 BuildValidation:
-  status: "implemented, opt-in; hosted activation/canary pending"
+  status: "repository gate active 2026-10-18; final native-canary acceptance pending"
   boundary_spec: "buildhunter.delivery.ci"
   profile: "standalone"
 ChangePlanning:
   source: "scripts/ci/stack_ci.py"
-  implementation: "plan + evidence; default-off STACK_MACOS_CI"
+  implementation: "plan + evidence; source default-off, repository STACK_MACOS_CI=true"
 NativeStackIdentity:
   implementation: "live REST member heads/base + ancestor and readiness checks"
 CumulativeDiff:
@@ -21,7 +21,7 @@ PlanReceipts:
   implementation: "bounded immutable JSON artifact per workflow run"
 BatchEvidenceGate:
   source: "scripts/ci/stack_ci.py"
-  implementation: "verify; not active until producer-bound required status and variable rollout"
+  implementation: "verify; required Actions app 15368 status active with strict base checks"
 CurrentJobs:
   implementation: "latest matching PR run + successful applicable fixed job names + exact receipt"
 ReviewThreads:
@@ -34,7 +34,7 @@ MergePreflight:
   implementation: "verify-merge requires selected tip; status alone cannot forbid intentional prefix"
 RulesetProposal:
   source: "scripts/ci/stack_ci_ruleset.py"
-  implementation: "read-only additive payload; apply after merge, before opt-in"
+  implementation: "read-only additive payload; deployed 2026-10-18 before repository opt-in"
 @layer[tip]:
   BuildValidation:
     profile: "native-stack-tip"

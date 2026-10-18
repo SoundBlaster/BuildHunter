@@ -99,6 +99,11 @@ provenance:
   notes:
   - Recovered existing workflows at 86c3def; stack CI policy is approved separately in AGENTS.md.
     Local fixtures/read-only probes are not hosted publisher/canary acceptance or measured runner savings.
+  - Repository activation observed 2026-10-18 (ruleset 24388855, Actions app 15368,
+    strict up-to-date checks, STACK_MACOS_CI=true); source default remains off.
+    Acquisition commands, server timestamps and bootstrap diagnostics are in
+    specs/validation/stack-ci-rollout-20261018. Final canary acceptance and savings
+    remain separate pending evidence, not an accepted requirement change.
 implementationBindings:
 - id: ci_implementation
   scope: component
