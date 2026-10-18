@@ -1,0 +1,793 @@
+{
+  "observed_at_utc": "2026-10-18T20:57:45.527154+00:00",
+  "prs": [
+    {
+      "pr": {
+        "headRefOid": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+        "mergeStateStatus": "CLEAN",
+        "mergeable": "MERGEABLE",
+        "number": 88,
+        "statusCheckRollup": [
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:02Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279139/job/117777894832",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:12:56Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:57Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327144/job/117778092950",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:13:49Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:29Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376622/job/117778207657",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:14:19Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:05Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279101/job/117777894813",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:12:56Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:59Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327124/job/117778090376",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:13:49Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:26Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376599/job/117778210929",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:14:19Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:15Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279054/job/117777895182",
+            "name": "publish",
+            "startedAt": "2026-10-18T20:12:56Z",
+            "status": "COMPLETED",
+            "workflowName": "Stack CI gate publisher"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:06Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279067/job/117777894598",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:12:56Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:48Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327109/job/117778045150",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:13:37Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:23Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376643/job/117778189604",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:14:14Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:46Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279101/job/117777934728",
+            "name": "Scanner comparison (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:13:07Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:17Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327124/job/117778137925",
+            "name": "Scanner comparison (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:14:01Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:06Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279067/job/117777940042",
+            "name": "macOS unit and UI tests",
+            "startedAt": "2026-10-18T20:13:06Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:48Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327109/job/117778098020",
+            "name": "macOS unit and UI tests",
+            "startedAt": "2026-10-18T20:13:49Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:23Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376643/job/117778235011",
+            "name": "macOS unit and UI tests",
+            "startedAt": "2026-10-18T20:14:24Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:06Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279139/job/117777894610",
+            "name": "Plugin contract schemas",
+            "startedAt": "2026-10-18T20:12:56Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:55Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327144/job/117778092803",
+            "name": "Plugin contract schemas",
+            "startedAt": "2026-10-18T20:13:49Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:27Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376622/job/117778207641",
+            "name": "Plugin contract schemas",
+            "startedAt": "2026-10-18T20:14:19Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:15:00Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376599/job/117778246397",
+            "name": "Scanner comparison (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:14:29Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:47Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279139/job/117777926550",
+            "name": "Rust and CLI (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:13:05Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:14Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327144/job/117778133648",
+            "name": "Rust and CLI (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:13:59Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:06Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279067/job/117777940329",
+            "name": "macOS performance tests",
+            "startedAt": "2026-10-18T20:13:06Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:48Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327109/job/117778098451",
+            "name": "macOS performance tests",
+            "startedAt": "2026-10-18T20:13:49Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:23Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376643/job/117778235358",
+            "name": "macOS performance tests",
+            "startedAt": "2026-10-18T20:14:24Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:15:41Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376622/job/117778257107",
+            "name": "Rust and CLI (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:14:31Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:39Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279139/job/117777926537",
+            "name": "Rust and CLI (windows-latest)",
+            "startedAt": "2026-10-18T20:13:04Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:16Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327144/job/117778133646",
+            "name": "Rust and CLI (windows-latest)",
+            "startedAt": "2026-10-18T20:14:00Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:16:43Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376622/job/117778257139",
+            "name": "Rust and CLI (windows-latest)",
+            "startedAt": "2026-10-18T20:14:31Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:06Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162279067/job/117777940222",
+            "name": "macOS Release build",
+            "startedAt": "2026-10-18T20:13:06Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:13:48Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162327109/job/117778098380",
+            "name": "macOS Release build",
+            "startedAt": "2026-10-18T20:13:49Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:14:23Z",
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39162376643/job/117778235173",
+            "name": "macOS Release build",
+            "startedAt": "2026-10-18T20:14:24Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "StatusContext",
+            "context": "Stack CI gate",
+            "startedAt": "2026-10-18T20:56:31Z",
+            "state": "SUCCESS",
+            "targetUrl": "https://github.com/SoundBlaster/BuildHunter/pull/89"
+          }
+        ]
+      },
+      "status": {
+        "state": "success",
+        "statuses": [
+          {
+            "url": "https://api.github.com/repos/SoundBlaster/BuildHunter/statuses/6096d9dbc15f922fd6b52f4d024876daab8974fb",
+            "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+            "id": 56645012835,
+            "node_id": "SC_kwDOU2hwxM8AAAANME5NYw",
+            "state": "success",
+            "description": "Current batch CI evidence verified; merge only the tested tip",
+            "target_url": "https://github.com/SoundBlaster/BuildHunter/pull/89",
+            "context": "Stack CI gate",
+            "created_at": "2026-10-18T20:56:31Z",
+            "updated_at": "2026-10-18T20:56:31Z"
+          }
+        ],
+        "sha": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+        "total_count": 1,
+        "repository": {
+          "id": 1399353540,
+          "node_id": "R_kgDOU2hwxA",
+          "name": "BuildHunter",
+          "full_name": "SoundBlaster/BuildHunter",
+          "private": false,
+          "owner": {
+            "login": "SoundBlaster",
+            "id": 809319,
+            "node_id": "MDQ6VXNlcjgwOTMxOQ==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/809319?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/SoundBlaster",
+            "html_url": "https://github.com/SoundBlaster",
+            "followers_url": "https://api.github.com/users/SoundBlaster/followers",
+            "following_url": "https://api.github.com/users/SoundBlaster/following{/other_user}",
+            "gists_url": "https://api.github.com/users/SoundBlaster/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/SoundBlaster/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/SoundBlaster/subscriptions",
+            "organizations_url": "https://api.github.com/users/SoundBlaster/orgs",
+            "repos_url": "https://api.github.com/users/SoundBlaster/repos",
+            "events_url": "https://api.github.com/users/SoundBlaster/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/SoundBlaster/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/SoundBlaster/BuildHunter",
+          "description": "Hunt down build artifacts and development caches",
+          "fork": false,
+          "url": "https://api.github.com/repos/SoundBlaster/BuildHunter",
+          "forks_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/forks",
+          "keys_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/teams",
+          "hooks_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/hooks",
+          "issue_events_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/events",
+          "assignees_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/tags",
+          "blobs_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/languages",
+          "stargazers_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/stargazers",
+          "contributors_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/contributors",
+          "subscribers_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/subscribers",
+          "subscription_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/subscription",
+          "commits_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/merges",
+          "archive_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/downloads",
+          "issues_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/labels{/name}",
+          "releases_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/deployments"
+        },
+        "commit_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/commits/6096d9dbc15f922fd6b52f4d024876daab8974fb",
+        "url": "https://api.github.com/repos/SoundBlaster/BuildHunter/commits/6096d9dbc15f922fd6b52f4d024876daab8974fb/status"
+      }
+    },
+    {
+      "pr": {
+        "headRefOid": "74b8c6bcef984599d0937a0bf5909112ec0858e5",
+        "mergeStateStatus": "CLEAN",
+        "mergeable": "MERGEABLE",
+        "number": 89,
+        "statusCheckRollup": [
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:50Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071385/job/117783234837",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:36:25Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:56Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071383/job/117783234757",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:36:47Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:50Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071391/job/117783234779",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:36:25Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:44:58Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104219/job/117783329851",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:44:48Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:45:35Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104370/job/117783351155",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:45:24Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:40:13Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104242/job/117783329725",
+            "name": "changes / classify",
+            "startedAt": "2026-10-18T20:40:03Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:50Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071385/job/117783234604",
+            "name": "Plugin contract schemas",
+            "startedAt": "2026-10-18T20:36:25Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:56Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071383/job/117783350419",
+            "name": "Scanner comparison (${{ matrix.os }})",
+            "startedAt": "2026-10-18T20:36:57Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:51Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071391/job/117783329469",
+            "name": "macOS unit and UI tests",
+            "startedAt": "2026-10-18T20:36:51Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:39:31Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104219/job/117783329628",
+            "name": "Plugin contract schemas",
+            "startedAt": "2026-10-18T20:39:23Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:46:52Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104370/job/117785288779",
+            "name": "Scanner comparison (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:46:16Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:55:58Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104242/job/117784082018",
+            "name": "macOS unit and UI tests",
+            "startedAt": "2026-10-18T20:41:41Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:47:13Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104370/job/117785288703",
+            "name": "Scanner comparison (macos-26)",
+            "startedAt": "2026-10-18T20:45:44Z",
+            "status": "COMPLETED",
+            "workflowName": "Scanner performance"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:51Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071385/job/117783329535",
+            "name": "Rust and CLI (${{ matrix.os }})",
+            "startedAt": "2026-10-18T20:36:51Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:51Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071391/job/117783329042",
+            "name": "macOS performance tests",
+            "startedAt": "2026-10-18T20:36:51Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:46:30Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104219/job/117785152486",
+            "name": "Rust and CLI (ubuntu-latest)",
+            "startedAt": "2026-10-18T20:45:40Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:51:25Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104242/job/117784082095",
+            "name": "macOS performance tests",
+            "startedAt": "2026-10-18T20:41:47Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:48:25Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104219/job/117785152586",
+            "name": "Rust and CLI (windows-latest)",
+            "startedAt": "2026-10-18T20:46:27Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:46:17Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104219/job/117785152528",
+            "name": "Rust and CLI (macos-26)",
+            "startedAt": "2026-10-18T20:45:04Z",
+            "status": "COMPLETED",
+            "workflowName": "Rust CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:36:50Z",
+            "conclusion": "CANCELLED",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164071391/job/117783329195",
+            "name": "macOS Release build",
+            "startedAt": "2026-10-18T20:36:51Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "CheckRun",
+            "completedAt": "2026-10-18T20:51:54Z",
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/SoundBlaster/BuildHunter/actions/runs/39164104242/job/117784082066",
+            "name": "macOS Release build",
+            "startedAt": "2026-10-18T20:43:36Z",
+            "status": "COMPLETED",
+            "workflowName": "macOS CI"
+          },
+          {
+            "__typename": "StatusContext",
+            "context": "Stack CI gate",
+            "startedAt": "2026-10-18T20:56:33Z",
+            "state": "SUCCESS",
+            "targetUrl": "https://github.com/SoundBlaster/BuildHunter/pull/89"
+          }
+        ]
+      },
+      "status": {
+        "state": "success",
+        "statuses": [
+          {
+            "url": "https://api.github.com/repos/SoundBlaster/BuildHunter/statuses/74b8c6bcef984599d0937a0bf5909112ec0858e5",
+            "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+            "id": 56645013483,
+            "node_id": "SC_kwDOU2hwxM8AAAANME5P6w",
+            "state": "success",
+            "description": "Current batch CI evidence verified; merge only the tested tip",
+            "target_url": "https://github.com/SoundBlaster/BuildHunter/pull/89",
+            "context": "Stack CI gate",
+            "created_at": "2026-10-18T20:56:33Z",
+            "updated_at": "2026-10-18T20:56:33Z"
+          }
+        ],
+        "sha": "74b8c6bcef984599d0937a0bf5909112ec0858e5",
+        "total_count": 1,
+        "repository": {
+          "id": 1399353540,
+          "node_id": "R_kgDOU2hwxA",
+          "name": "BuildHunter",
+          "full_name": "SoundBlaster/BuildHunter",
+          "private": false,
+          "owner": {
+            "login": "SoundBlaster",
+            "id": 809319,
+            "node_id": "MDQ6VXNlcjgwOTMxOQ==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/809319?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/SoundBlaster",
+            "html_url": "https://github.com/SoundBlaster",
+            "followers_url": "https://api.github.com/users/SoundBlaster/followers",
+            "following_url": "https://api.github.com/users/SoundBlaster/following{/other_user}",
+            "gists_url": "https://api.github.com/users/SoundBlaster/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/SoundBlaster/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/SoundBlaster/subscriptions",
+            "organizations_url": "https://api.github.com/users/SoundBlaster/orgs",
+            "repos_url": "https://api.github.com/users/SoundBlaster/repos",
+            "events_url": "https://api.github.com/users/SoundBlaster/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/SoundBlaster/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/SoundBlaster/BuildHunter",
+          "description": "Hunt down build artifacts and development caches",
+          "fork": false,
+          "url": "https://api.github.com/repos/SoundBlaster/BuildHunter",
+          "forks_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/forks",
+          "keys_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/teams",
+          "hooks_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/hooks",
+          "issue_events_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/events",
+          "assignees_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/tags",
+          "blobs_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/languages",
+          "stargazers_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/stargazers",
+          "contributors_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/contributors",
+          "subscribers_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/subscribers",
+          "subscription_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/subscription",
+          "commits_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/merges",
+          "archive_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/downloads",
+          "issues_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/labels{/name}",
+          "releases_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/deployments"
+        },
+        "commit_url": "https://api.github.com/repos/SoundBlaster/BuildHunter/commits/74b8c6bcef984599d0937a0bf5909112ec0858e5",
+        "url": "https://api.github.com/repos/SoundBlaster/BuildHunter/commits/74b8c6bcef984599d0937a0bf5909112ec0858e5/status"
+      }
+    }
+  ],
+  "acquisition": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "pr",
+        "view",
+        "88",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--json",
+        "number,headRefOid,mergeStateStatus,mergeable,statusCheckRollup"
+      ],
+      "acquired_at_utc": "2026-10-18T20:57:41.701952+00:00",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/commits/6096d9dbc15f922fd6b52f4d024876daab8974fb/status"
+      ],
+      "acquired_at_utc": "2026-10-18T20:57:42.930273+00:00",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "pr",
+        "view",
+        "89",
+        "--repo",
+        "SoundBlaster/BuildHunter",
+        "--json",
+        "number,headRefOid,mergeStateStatus,mergeable,statusCheckRollup"
+      ],
+      "acquired_at_utc": "2026-10-18T20:57:44.374109+00:00",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "gh",
+        "api",
+        "repos/SoundBlaster/BuildHunter/commits/74b8c6bcef984599d0937a0bf5909112ec0858e5/status"
+      ],
+      "acquired_at_utc": "2026-10-18T20:57:45.526910+00:00",
+      "exit_code": 0
+    }
+  ]
+}

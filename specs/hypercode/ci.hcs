@@ -1,5 +1,5 @@
 BuildValidation:
-  status: "repository gate active 2026-10-18; final native-canary acceptance pending"
+  status: "repository gate active; native canary 74b8c6b verified and merged at 1a09c34"
   boundary_spec: "buildhunter.delivery.ci"
   profile: "standalone"
 ChangePlanning:

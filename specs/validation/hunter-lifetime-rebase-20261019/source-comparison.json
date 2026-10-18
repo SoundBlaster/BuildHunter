@@ -1,0 +1,40 @@
+{
+  "old_head": "45b6f8b2bc514bbea65e5ea31e84e35fb120bc70",
+  "rebased_source_head": "dfa6d7fee9f35e3429b362419f7c457e7f3b3f6b",
+  "runtime_binding": "d54f573602462b3d6f19f63da531205876a00eaa",
+  "new_trunk": "1a09c34071c2a9e0a6dc5615bc99ee2d664f2531",
+  "source_equality": [
+    {
+      "path": "src",
+      "old_git_object": "2a4974f145ddbf17d5e4817bc7781c73e5277405",
+      "rebased_git_object": "2a4974f145ddbf17d5e4817bc7781c73e5277405",
+      "unchanged": true
+    },
+    {
+      "path": "vendor",
+      "old_git_object": "c2c749bf2f01077401851e80aade930bad3c4f7d",
+      "rebased_git_object": "c2c749bf2f01077401851e80aade930bad3c4f7d",
+      "unchanged": true
+    },
+    {
+      "path": "Cargo.toml",
+      "old_git_object": "cb8f21071b9680c0dce6100cd034394254a636ef",
+      "rebased_git_object": "cb8f21071b9680c0dce6100cd034394254a636ef",
+      "unchanged": true
+    },
+    {
+      "path": "Cargo.lock",
+      "old_git_object": "dba98046c39b39e1da552f8116c261e00d3a9669",
+      "rebased_git_object": "dba98046c39b39e1da552f8116c261e00d3a9669",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/verify_hunter_vendor.py",
+      "old_git_object": "5feabb1cea7ed9233a99720e87ca36c880edc84b",
+      "rebased_git_object": "5feabb1cea7ed9233a99720e87ca36c880edc84b",
+      "unchanged": true
+    }
+  ],
+  "upstream_pin": "3a3db1e270ff54ba757027df3a55b9d378ee0525",
+  "limit": "Runtime content equality is not fresh test evidence; historical benchmarks are not relabelled."
+}

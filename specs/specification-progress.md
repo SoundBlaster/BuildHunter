@@ -601,8 +601,9 @@ The source default remains opt-in. Repository activation was applied on 2026-10-
 main requires the Actions-produced Stack CI gate with strict up-to-date checks,
 and STACK_MACOS_CI=true. Bootstrap publisher 39162179998 ran from main and left the
 old #84 evidence pending. Current activation/provenance is recorded separately in
-specs/validation/stack-ci-rollout-20261018. Native canary final acceptance and measured
-runner-minute savings remain pending; local fixtures are not hosted acceptance.
+specs/validation/stack-ci-rollout-20261018. Native canary #90 was subsequently verified and merged at 1a09c34; its timed
+receipts are in specs/validation/stack-ci-accepted-20261019. Measured runner-minute
+savings remain unclaimed; local fixtures are not hosted acceptance.
 Status checks cannot prohibit intentional prefix selection; use fresh tip-only
 preflight and native stack merge. Hard server-side merge-target restriction needs
 separate bot authorization. Runtime source evidence remains historical/current for
@@ -677,3 +678,19 @@ Full backend algorithm assembly, descriptor recursion, default plugin migration 
 C5 resource budgets remain pending. Next boundary: define reusable scan assembly
 that composes root admission, guarded backend scope and scoped workers without
 moving product classification/status or expanding the existing no-follow scope.
+
+### Lifetime PR rebase onto activated CI — 2026-10-19
+
+Rebased #84 onto main 1a09c34071c2a9e0a6dc5615bc99ee2d664f2531 after native stack
+#90 merged. Combined the lifetime and CI progress/claim records, and advanced the
+package draft version without dropping either contract. Runtime, Cargo and vendor
+inputs are byte-identical to the pre-rebase #84 head 45b6f8b; Hunter remains pinned
+to 3a3db1e270ff54ba757027df3a55b9d378ee0525 (upstream #15 is still open). The scan
+implementation binding identifies the rebased immutable runtime/pin commit.
+
+Current/target runtime maps and delivery CI maps retain their roles and properties;
+no runtime behavior or accepted requirements changed. Historical lifetime benchmark
+receipts remain historical. Fresh rebase input comparisons, structural/vendor checks
+and local tests are in specs/validation/hunter-lifetime-rebase-20261019; fresh hosted
+validation must bind the new head/base/budget mode. No fresh local UI/home or provider
+acceptance and no new speedup, RAM-bound or billed-cost claim follows from the rebase.

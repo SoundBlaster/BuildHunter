@@ -1,0 +1,47 @@
+BuildValidation:
+  status: "repository gate active; native canary 74b8c6b verified and merged at 1a09c34"
+  boundary_spec: "buildhunter.delivery.ci"
+  profile: "standalone"
+ChangePlanning:
+  source: "scripts/ci/stack_ci.py"
+  implementation: "plan + evidence; source default-off, repository STACK_MACOS_CI=true"
+NativeStackIdentity:
+  implementation: "live REST member heads/base + ancestor and readiness checks"
+CumulativeDiff:
+  source: "scripts/ci/changes.py"
+  implementation: "trunk cumulative compare; conservative unknown/truncation/rename paths"
+LightweightChecks:
+  source: ".github/workflows/ci.yml"
+  implementation: "Linux/Windows Rust/CLI and schema checks on applicable layers"
+MacOSChecks:
+  source: ".github/workflows/macos.yml"
+  implementation: "five jobs across macos/ci/performance workflows; standalone or ready tip"
+PlanReceipts:
+  source: ".github/workflows/changes.yml"
+  implementation: "bounded immutable JSON artifact per workflow run"
+BatchEvidenceGate:
+  source: "scripts/ci/stack_ci.py"
+  implementation: "verify; required Actions app 15368 status active with strict base checks"
+CurrentJobs:
+  implementation: "latest matching PR run + successful applicable fixed job names + exact receipt"
+ReviewThreads:
+  implementation: "paginated GraphQL threads/reviewDecision, native rules still authoritative"
+TrustedStatusPublication:
+  source: ".github/workflows/stack-gate.yml"
+  implementation: "default-branch-only code, read APIs + statuses write; invalidate before refresh"
+MergePreflight:
+  source: "scripts/ci/stack_ci.py"
+  implementation: "verify-merge requires selected tip; status alone cannot forbid intentional prefix"
+RulesetProposal:
+  source: "scripts/ci/stack_ci_ruleset.py"
+  implementation: "read-only additive payload; deployed 2026-10-18 before repository opt-in"
+@layer[tip]:
+  BuildValidation:
+    profile: "native-stack-tip"
+@layer[lower]:
+  BuildValidation:
+    profile: "native-stack-lower"
+@contract:
+  BuildValidation:
+    status: string
+    boundary_spec: string

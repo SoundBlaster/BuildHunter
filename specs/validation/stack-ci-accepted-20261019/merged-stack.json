@@ -1,0 +1,22 @@
+[
+  {
+    "headRefOid": "6096d9dbc15f922fd6b52f4d024876daab8974fb",
+    "mergeCommit": {
+      "oid": "6d4659cc305d13e06f90358644d285e759d1c1d6"
+    },
+    "mergedAt": "2026-10-18T21:05:59Z",
+    "number": 88,
+    "state": "MERGED",
+    "url": "https://github.com/SoundBlaster/BuildHunter/pull/88"
+  },
+  {
+    "headRefOid": "74b8c6bcef984599d0937a0bf5909112ec0858e5",
+    "mergeCommit": {
+      "oid": "1a09c34071c2a9e0a6dc5615bc99ee2d664f2531"
+    },
+    "mergedAt": "2026-10-18T21:06:00Z",
+    "number": 89,
+    "state": "MERGED",
+    "url": "https://github.com/SoundBlaster/BuildHunter/pull/89"
+  }
+]
