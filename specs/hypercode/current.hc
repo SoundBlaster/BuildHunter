@@ -54,6 +54,10 @@ BuildHunterRuntime
       TaskExecution
       ListingFirst
       PublicationBoundary
+    HunterDirectoryListing
+      OrderedCollection
+      ContextObservation
+      AcquisitionOutcome
     HunterMetadata
     PluginScanning
       CandidateObservation

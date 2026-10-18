@@ -342,3 +342,7 @@ See [native backend boundary](hunter-root-backend.md) for responsibilities and l
 The shared directory worker protocol now lives in Hunter, with marker/prefetch,
 guarded backend/bulk policy and timers in BuildHunter WorkerAdapter. See
 [directory worker boundary](hunter-directory-worker.md) for lifecycle and rejection limits.
+
+Owned directory listing acquisition now lives in Hunter. BuildHunter keeps its
+marker context observer and intentional link-following effects in the same entry
+order. See [directory acquisition boundary](hunter-directory-listing.md).

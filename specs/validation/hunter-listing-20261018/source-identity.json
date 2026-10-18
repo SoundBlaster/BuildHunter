@@ -1,0 +1,216 @@
+{
+  "recorded_at_utc": "2026-10-18T05:53:48.402321+00:00",
+  "buildhunter_baseline": "f3c66858360aa475690aae9d9445d21b4ca0b72f",
+  "buildhunter_runtime_revision": "c70724d469d823774450bc387ecb90be1c5e2905",
+  "hunter_revision": "29bc8b0f60d0d192fe8e2529216f50ce4c9854c6",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "01d339f2f203e87b358f3ec2b1ed18745999aedc710e2bcb2a12ff00471d3c7c"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "f1e63d57fbc31178c0ceab0d2fefc4167af3d5edf35fe51b34dbdab15dc28498"
+    },
+    {
+      "path": "docs/hunter-directory-listing.md",
+      "sha256": "3b9da3e7908ad7edfbf96bb91542a58267845a2fbab631e5d2ed41ed92d91de1"
+    },
+    {
+      "path": "docs/hunter-directory-worker.md",
+      "sha256": "bedeccec58700ae16675bb4f2718f698cf10f7234ece773a762d57cece13dde4"
+    },
+    {
+      "path": "docs/modular-architecture.md",
+      "sha256": "1c7bca33c83fecf782b64e90d2e69b35e347c440bb8da3296c2b7476621da3a6"
+    },
+    {
+      "path": "docs/plugin-delivery-plan.md",
+      "sha256": "94a7546fde825f2d44228ddf0a25ba7082f77b5c93733ecbd51181ebdcc8cf6c"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift",
+      "sha256": "987bcd4e3f3577826f011ad63c6941c907f410deeb5169ebfc25c9dc9e43ab1b"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift",
+      "sha256": "6ee3737c5b528b890d58ddfea840249614b4fc9445e8d7e5b65369db77485304"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/IsOuterArtifactRoot.swift",
+      "sha256": "ece6261278e86ff231318aba3a80efee7ea05cb1b3dd3762832d014d44fce597"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/IsScannableArtifactCandidate.swift",
+      "sha256": "88be91e284b8fdd470c1c80b00d71a168cfe305ba94c0085daeca3ccc8015b63"
+    },
+    {
+      "path": "macos/Sources/BuildHunter/Domain/SearchFilters.swift",
+      "sha256": "af0cac3a972cf5206dd6ff16b3f445da9aa8479a16ba5ab618db65a74fa8291d"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift",
+      "sha256": "50f9e460ee13158cb43a9d6d220dd70bf9305166aabbd25c266e919c96b95636"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift",
+      "sha256": "c6a9a8199366d2fa2c5136e50c3a9ee2e5bc9ebaceac0fa99fc7c8f5eed09629"
+    },
+    {
+      "path": "macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift",
+      "sha256": "78cb8b9d751101604bd119bca1f15963076704892836ccdb4b0c8eb663e36a6f"
+    },
+    {
+      "path": "scripts/verify_hunter_vendor.py",
+      "sha256": "0df5345e8bc0bdb0cdaadd662f0f752083582c045f67a1937764382bc3ddba6e"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "01ea4476719b8d8f8923aa9dd08228968a43cefdc77ab8be3fd9bcdec57236ad"
+    },
+    {
+      "path": "specs/claim-matrix.md",
+      "sha256": "4cee21e207e9ca1ac932723318973ed5fa372e47b17958a5ba3f78bc537bc63d"
+    },
+    {
+      "path": "specs/current-classification.spec.yaml",
+      "sha256": "22f8fd87040a1f4cb34544107f9c9df806c5c19d8a6149d39d5f8b2cdaa2359f"
+    },
+    {
+      "path": "specs/current-scan.spec.yaml",
+      "sha256": "6ae06d2e688c49807811461f8228390a6c91562f1e915e4682bab038e77a2e2a"
+    },
+    {
+      "path": "specs/evidence/hunter-listing-20261018/maps/current.hc",
+      "sha256": "4e33ef90e25c379675eef232f1c04b6b48ac0d695f82facd112810e2af3b2c2f"
+    },
+    {
+      "path": "specs/evidence/hunter-listing-20261018/maps/current.hcs",
+      "sha256": "0ed61ff0cbf9336e24374ce0d8ea8992ae2a747478719f86f8f7524b37f35e62"
+    },
+    {
+      "path": "specs/evidence/hunter-listing-20261018/maps/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/evidence/hunter-listing-20261018/maps/target.hcs",
+      "sha256": "05462cd07ec08fc3c7a482fcdc8aa93c1a0139cd16319c7403eb6aa1cfa27e26"
+    },
+    {
+      "path": "specs/evidence/hunter-listing-20261018/upstream/README.md",
+      "sha256": "e1b6342fa96259e473d8985abb135b5c27894f447df3d214cb65d8135cc452cc"
+    },
+    {
+      "path": "specs/evidence/hunter-listing-20261018/upstream/directory-listing.spec.yaml",
+      "sha256": "08ddcd8bb1bd5e5bbc88c2cf583692ca0850190f9147a531a20e9f4515ff36d0"
+    },
+    {
+      "path": "specs/hunter-design.spec.yaml",
+      "sha256": "49ba172db7cdc8ac3a175985b375519e752783ea25d55374affa55ab66f84d6e"
+    },
+    {
+      "path": "specs/hypercode/README.md",
+      "sha256": "5a4b270176c5526035d03fa51615c17e3ecc797749cf487fa6862bc2e4500f70"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "4e33ef90e25c379675eef232f1c04b6b48ac0d695f82facd112810e2af3b2c2f"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "0ed61ff0cbf9336e24374ce0d8ea8992ae2a747478719f86f8f7524b37f35e62"
+    },
+    {
+      "path": "specs/hypercode/target.hc",
+      "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+    },
+    {
+      "path": "specs/hypercode/target.hcs",
+      "sha256": "05462cd07ec08fc3c7a482fcdc8aa93c1a0139cd16319c7403eb6aa1cfa27e26"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "ea3b1f97635281fbc4d6696dc7080357af2a2222f1ab9bdd28040b400f7cb823"
+    },
+    {
+      "path": "src/bulk_metadata.rs",
+      "sha256": "40cbd64a51ec04f8decfb3b41224e8962870d79481bcfe775739acc454a85c1d"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "b7076a8c82c9c3b8dda35757ad5ab09556051c2c74b3858e31042ecde19c8170"
+    },
+    {
+      "path": "src/main.rs",
+      "sha256": "e2ad362ff35b67c61545045984be32f36ae514d1c117f8a8ae600f8f3f81e08d"
+    },
+    {
+      "path": "src/materialization.rs",
+      "sha256": "242f3049221e178d3e16021c3d3c9e495d19b16e687241dcf49c72690831b9dc"
+    },
+    {
+      "path": "src/process_resources.rs",
+      "sha256": "989e9d338b1fb1761706a9f5a3f7a9600c88996b8381804327eca87473ccaa5d"
+    },
+    {
+      "path": "src/profile.rs",
+      "sha256": "02041d77c5084dfc2a50ad6fff8cb413fed60adaa96c3404389f673c9bfa1ba0"
+    },
+    {
+      "path": "src/resources.rs",
+      "sha256": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f"
+    },
+    {
+      "path": "src/thread_qos.rs",
+      "sha256": "d62bfb3d25e22fbca4d2f18c5956f64033648fa6f1f05e657c13b99020bf798f"
+    },
+    {
+      "path": "vendor/hunter-fs-core/README.md",
+      "sha256": "bafc73956d923bdb841c3484d98923d29a8a105da2bef1b8cc99b25ce730547c"
+    },
+    {
+      "path": "vendor/hunter-fs-core/UPSTREAM.json",
+      "sha256": "7db21fb754bd43bbdce5765d7186a3f52d4b25ececde2fca74a6c567dfa49f7b"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/backend.rs",
+      "sha256": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/lib.rs",
+      "sha256": "47bc702f07662bf3e375515eb7a6ab91a4950cf6723938a50a5915147f95fc56"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/listing.rs",
+      "sha256": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    },
+    {
+      "path": "vendor/hunter-fs-core/src/worker.rs",
+      "sha256": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1"
+    }
+  ]
+}

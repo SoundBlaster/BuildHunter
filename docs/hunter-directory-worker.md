@@ -31,3 +31,7 @@ source/tool/command receipts live under specs/evidence/hunter-worker-20261018 an
 specs/validation/hunter-worker-20261018. Contracts remain draft; no local UI/home or
 live-cloud acceptance and no speedup/RAM improvement is claimed. Merge Hunter with
 its pinned ancestry preserved before this consumer.
+
+Follow-up: [owned directory acquisition](hunter-directory-listing.md) now separates
+listing collection from the host marker observer. Guarded open, per-entry marker
+I/O, post-list hooks and full scope lifetime remain host-owned.
