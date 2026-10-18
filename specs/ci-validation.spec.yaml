@@ -105,7 +105,7 @@ implementationBindings:
   language: python
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 2967aac761a9385641e2f1873669e019decaba83
+    revision: 713f6f074e8c71b21875d88fe2482de23c356929
   files:
     owned:
     - .github/actionlint.yaml
