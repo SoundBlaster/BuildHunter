@@ -1,0 +1,14 @@
+{
+  "implementation_revision": "2967aac761a9385641e2f1873669e019decaba83",
+  "policy_revision": "e5439da72cb318dec598fb891596549fa8bfd3c8",
+  "files": [
+    {
+      "path": "scripts/ci/stack_ci.py",
+      "sha256": "00b314aa9e344997395ef98a75effa4fa6a85dfd53b7eeef32abb82667c39671"
+    },
+    {
+      "path": "scripts/ci/test_stack_ci.py",
+      "sha256": "d8086fe627921bbbb2600b8d67dcecf497bab005c7c1b4609aab1729e14aeee5"
+    }
+  ]
+}

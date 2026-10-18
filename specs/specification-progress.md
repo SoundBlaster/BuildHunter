@@ -606,3 +606,14 @@ preflight and native stack merge. Hard server-side merge-target restriction need
 separate bot authorization. Runtime source evidence remains historical/current for
 its unchanged claim scope; new CI identities/commands are recorded separately in
 specs/validation/stack-ci-20261018. No user Xcode scheme changes are included.
+
+### Stack CI review fixes — 2026-10-18
+
+The delivery evidence verifier accepts both exact and ref-qualified workflow paths
+while still requiring the exact workflow filename, event, head and linked PR.
+Regression fixtures cover branch refs, pull-request refs and a wrong ref-qualified
+workflow. AGENTS now explicitly requires every layer to be ready, including on
+synchronize events. Draft buildhunter.delivery.ci scheduling/evidence requirements
+are unchanged; source binding is refreshed. CI maps and all runtime contracts/maps
+are unchanged because no roles, edges or runtime behavior changed. Earlier receipts
+remain historical; fresh review validation is in stack-ci-review-20261018.
