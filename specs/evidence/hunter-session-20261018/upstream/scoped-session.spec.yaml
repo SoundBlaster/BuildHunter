@@ -1,0 +1,88 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.scoped_session
+  title: Scoped worker session startup and join
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Assemble helper startup, worker launch, caller-thread coordination,
+    ordered shutdown and actual scoped join without interpreting host messages.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - run_scoped_workers, enclosing thread scope and helper-stop/queue-close lifetime.
+  excludes:
+  - Root access admission, platform guards/QoS, worker bodies, result channels,
+    cancellation/error/status policy, terminal events, watchdogs and resource budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.scoped_session
+    role: primary
+    summary: Return the caller-thread coordinator result only after scoped threads join.
+requires:
+  capabilities:
+  - id: hunter.fs.work
+    optional: false
+    summary: Queue close-on-drop/panic and bounded-count scoped worker launch.
+interfaces:
+  inbound:
+  - id: session
+    kind: library
+    summary: run_scoped_workers(queue, positive count, cloneable Send worker,
+      start_helpers(scope) -> guard, coordinate() -> result). Helper startup and
+      coordinator/result need not be Send. Helper guard may borrow external state.
+  outbound: []
+constraints:
+- id: startup
+  level: MUST
+  statement: Enter thread scope, retain queue close guard, call host helper startup,
+    launch the requested positive worker count using spawn_workers, then invoke
+    coordinator synchronously on the calling thread. Helpers may spawn within the
+    same scope; their returned stop guard must be independent of the scope borrow.
+- id: shutdown
+  level: MUST
+  statement: Drop helper-stop guard before queue closure and close queue before
+    actual scope join, on ordinary return or coordinator unwind. Return the result
+    only after every scoped thread joins. Worker panic closes peers through existing
+    launch guards; thread scope propagates worker panic after joining.
+- id: captures
+  level: MUST
+  statement: Own helper-start, worker and coordinator closures inside the scope body
+    so unused captures release on startup unwind before join. Host moves receivers
+    into coordinator and releases unread channels before returning/unwinding; never
+    return a resource that must be released for workers/helpers to finish.
+- id: host_obligations
+  level: MUST
+  statement: Host admits root access, holds effective guards, applies QoS, interprets
+    setup failures and final status, and publishes terminal only after helper return.
+    Stop guard/capture/task destructors must be well-behaved, helpers must stop on
+    guard drop, and workers must respond to queue closure/host stop. This helper
+    cannot interrupt active I/O/callbacks or guarantee termination of arbitrary code.
+    Root setup failure may return before any scope/worker is created.
+effects:
+  sideEffects:
+  - id: scoped_threads
+    kind: event_emit
+    summary: Launch scoped threads, invoke host callbacks, close queue and join;
+      no separate process or filesystem effect is introduced by this helper.
+evidence:
+- id: session_source
+  kind: source
+  path: crates/hunter-fs-core/src/session.rs
+  supports: [intent.summary, scope, interfaces, constraints.startup, constraints.shutdown, constraints.captures, constraints.host_obligations]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter scan_internal at bf3b1bd236b7dbf510eb71b83c9cbd3df95e835a.
+    Setup/status/terminal policy remains host-owned. Draft contract is not acceptance.
+implementationBindings:
+- id: session_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/session.rs]
+    border: [crates/hunter-fs-core/src/work.rs, crates/hunter-fs-core/src/lib.rs]

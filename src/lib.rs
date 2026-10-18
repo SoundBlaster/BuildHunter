@@ -1,10 +1,11 @@
+#[cfg(test)]
+use hunter_fs_core::spawn_workers;
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryListing, DirectoryMeasurement,
     DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask,
     DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, MeasuredSize,
     PlannedChild, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress,
     collect_directory, drive_scan, metadata_bytes, observe_root, run_directory_worker,
-    spawn_workers, worker_count,
 };
 use std::{
     borrow::Cow,
@@ -27,6 +28,7 @@ pub use resources::{ResourceHistory, ResourceSummary};
 mod bulk_metadata;
 mod materialization;
 mod measurement;
+mod scan_session;
 /// Thread-scoped protection for filesystem preflight before starting a scan.
 /// On macOS this refuses materialization; other platforms use a no-op guard.
 pub use materialization::Guard as NonMaterializingIoGuard;
@@ -546,7 +548,7 @@ pub fn scan_with_candidate_observer(
     observer: impl FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
     emit: impl FnMut(&ScanEvent),
 ) -> ScanReport {
-    scan_internal(
+    scan_session::run(
         root,
         options,
         control,
@@ -565,7 +567,7 @@ fn scan_with_probes(
     emit: impl FnMut(&ScanEvent),
     probes: &Probes,
 ) -> ScanReport {
-    scan_internal(
+    scan_session::run(
         root,
         options,
         control,
@@ -574,118 +576,6 @@ fn scan_with_probes(
         probes,
         true,
     )
-}
-
-fn scan_internal(
-    root: &Path,
-    options: ScanOptions,
-    control: &ScanControl,
-    mut policy: impl FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
-    mut emit: impl FnMut(&ScanEvent),
-    probes: &Probes,
-    legacy_policy: bool,
-) -> ScanReport {
-    let _materialization = match materialization::Guard::enter() {
-        Ok(guard) => guard,
-        Err(error) => {
-            let warning = ScanWarning {
-                relative_path: PathBuf::from("."),
-                message: format!("Cannot prevent cloud downloads; scan was not started: {error}"),
-            };
-            emit(&ScanEvent::Warning(warning.clone()));
-            emit(&ScanEvent::Finished(ScanStatus::Failed));
-            return ScanReport {
-                artifacts: Vec::new(),
-                warnings: vec![warning],
-                status: ScanStatus::Failed,
-                #[cfg(test)]
-                probes: probes.counts(),
-            };
-        }
-    };
-    let queue = WorkQueue::default();
-    let workers = worker_count(MAX_SCAN_WORKERS);
-    let (sender, receiver) = std::sync::mpsc::channel();
-    let worker_qos = thread_qos::capture();
-    let profile_state = control
-        .profiling
-        .load(Ordering::Acquire)
-        .then(profile::ProfileState::new);
-    let profile = profile_state.as_ref();
-    let (artifacts, warnings, had_errors, changed) = std::thread::scope(|scope| {
-        // Closing on every exit, including a panicking callback, lets the workers finish.
-        let _close = queue.close_on_drop();
-        // Dropping the sender, also during unwinding, stops the sampler before the join.
-        let _stop_sampler = profile.map(|state| {
-            let (stop, signal) = std::sync::mpsc::channel::<()>();
-            scope.spawn(move || {
-                thread_qos::apply(worker_qos);
-                state.run_sampler(&signal);
-            });
-            stop
-        });
-        spawn_workers(scope, &queue, workers, {
-            let sender = sender.clone();
-            move |queue| {
-                thread_qos::apply(worker_qos);
-                run_worker(queue, &sender, control, probes, legacy_policy)
-            }
-        });
-        drop(sender);
-        let mut scanner = Scanner {
-            root,
-            options,
-            control,
-            policy: &mut policy,
-            legacy_policy,
-            emit: &mut emit,
-            probes,
-            queue: &queue,
-            artifacts: Vec::new(),
-            progress: Vec::new(),
-            warnings: Vec::new(),
-            had_errors: false,
-            changed: false,
-            tasks: DirectoryTaskLedger::default(),
-            profile,
-        };
-        scanner.run(&receiver);
-        // Keep the original channel lifetime: release unread responses before scope join.
-        // Moving receiver into this closure also drops it here if a callback unwinds.
-        drop(receiver);
-        (
-            scanner.artifacts,
-            scanner.warnings,
-            scanner.had_errors,
-            scanner.changed,
-        )
-    });
-    let status = if control.is_failed() {
-        ScanStatus::Failed
-    } else if control.is_cancelled() {
-        ScanStatus::Cancelled
-    } else if had_errors {
-        ScanStatus::Incomplete
-    } else if changed {
-        ScanStatus::CompletedWithChanges
-    } else {
-        ScanStatus::Completed
-    };
-    if let Some(profile) = profile {
-        profile.counters.pending_tasks.store(0, Ordering::Relaxed);
-        profile.record();
-        for sample in profile.drain() {
-            emit(&ScanEvent::Profile(sample));
-        }
-    }
-    emit(&ScanEvent::Finished(status));
-    ScanReport {
-        artifacts,
-        warnings,
-        status,
-        #[cfg(test)]
-        probes: probes.counts(),
-    }
 }
 
 pub fn rust_cli_policy(facts: &CandidateFacts, include_environments: bool) -> CandidateAction {
@@ -1969,7 +1859,7 @@ mod tests {
         let caller = std::thread::current().id();
         let probes = Probes::default();
         let mut observed = Vec::new();
-        let report = scan_internal(
+        let report = scan_session::run(
             &tree.0,
             ScanOptions {
                 apparent_size: true,

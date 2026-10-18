@@ -309,3 +309,37 @@ or memory-budget improvement is inferred.
 
 Next boundary: consolidate root admission and scoped worker startup behind an
 explicit host-effects interface, preserving SetupFailed/Finished and join ordering.
+
+## Scoped startup and terminal boundary — 2026-10-18
+
+HunterScopedSession at 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad assembles helper startup, worker launch, synchronous
+caller-thread coordination, helper-stop guard drop, queue closure and actual scope
+join. BuildHunter src/scan_session.rs now owns admission/profile/QoS/channel setup,
+coordinator construction, status precedence and event/report publication. The root
+materialization guard remains active through join/final publication; worker setup
+failure stays an opaque SetupFailed response interpreted by the existing pump.
+Receiver is moved into the coordinator and unread replies release before join,
+including unwind; exact relative capture-destructor ordering is not promised.
+
+Five upstream witnesses cover helper stop before queue close, worker/helper join,
+caller-thread non-Send results, opaque setup failure, receiver release on coordinator/
+startup unwind and worker-panic peer closure. Two product tests cover the failed-
+admission handler (Warning then Finished(Failed), no work) and final profile drain
+before one caller-thread Finished. These do not inject an actual OS guard failure.
+Existing callback/worker panic, SetupFailed routing, profile/cancel, native/bulk,
+marker and plugin tests remain gates. Panic unwinds rather than emitting product
+Finished; arbitrary user callbacks must still terminate for scope join to finish.
+
+Affected current scan scoped_session/scan_lifetime/result_execution/terminal/cloud_guard
+and target lifecycle claims remain draft. Current CLI/GUI maps distinguish product
+ScanSession from generic HunterScopedSession. Classification, filters, bridge ABI,
+application and plugin contracts stay unchanged; root source entrypoint rename is
+private. Full generic root admission/guard assembly, descriptor recursion, default
+plugin migration and C5 budgets are still pending. Fresh source/map/command receipts:
+specs/validation/hunter-session-20261018; frozen upstream/maps:
+specs/evidence/hunter-session-20261018. Historical receipts remain historical;
+no speedup, RAM bound or native UI/home/live-provider acceptance is inferred.
+
+Next boundary: introduce a generic root-admission outcome so callers can decide
+whether to schedule a directory, measure an entry or return an owned setup error
+without encoding BuildHunter status vocabulary into Hunter.

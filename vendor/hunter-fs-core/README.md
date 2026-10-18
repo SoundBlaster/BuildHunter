@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs/src/measurement.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs/src/measurement.rs/src/session.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -270,3 +270,31 @@ Five tests cover typed ordering/slot identity/errors with borrowed non-Send stat
 pre-cancelled directory failure/preparation, partial cancellation, empty/omitted
 slots and prepared-state release on success/cancellation/panic. Existing closure
 API and scoped worker tests remain gates; full engine lifecycle stays separate.
+
+## Scoped worker session
+
+run_scoped_workers owns one thread::scope. It retains the queue shutdown guard,
+starts host helpers, launches a positive count of cloned workers, then invokes the
+coordinator on the calling thread. Host helper startup returns an owned stop guard;
+its drop precedes queue closure, and both precede actual join. The coordinator
+result is returned only after all workers/helpers join. It can own non-Send state;
+helper-start/coordinator callbacks and guards may borrow external resources.
+
+Helper-start, worker and coordinator closures are owned in the scope body. If
+startup unwinds, even unused coordinator captures release before helper join. Host
+must move receivers into the coordinator, drop unread responses before returning
+or unwinding, and avoid returning resources that workers need released to exit.
+Callback panics propagate; worker panic closes peers through the existing launch
+guard and scope propagates it after join. Low-level spawn_workers remains available.
+
+Host owns root admission, effective platform guards, QoS, worker/message protocol,
+setup errors and terminal/status publication after return. Helpers must stop when
+their guard drops; workers must react to queue closure or host stop. All destructors
+must be well-behaved. This helper cannot interrupt syscalls/callbacks or join code
+that never exits; there is no watchdog or whole-scan memory budget. Root setup
+failure can remain a host early return before any scope exists.
+
+Five tests cover helper-stop-before-close, actual worker/helper join, caller-thread
+non-Send results, opaque setup failure before a terminal boundary, receiver release
+on coordinator/startup unwind, and worker panic closing peers. Existing low-level
+worker, directory protocol and cancellation tests stay separate gates.
