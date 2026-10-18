@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.13
+  version: 0.1.0-draft.14
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -66,6 +66,9 @@ requires:
   - id: hunter.fs.scoped_session
     optional: false
     summary: Helper startup, scoped worker launch, caller-thread coordinator and stop/close-before-join fence; host retains admission, QoS and terminal policy.
+  - id: hunter.fs.root_admission
+    optional: false
+    summary: Opaque host preflight before one root observation; host interprets skip/error and chooses scheduling/finalization.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -115,6 +118,14 @@ constraints:
     Host initializes root work and finalizes open results. Hunter scoped session
     stops host helpers and closes the queue inside the outer thread scope; the
     product session publishes Finished only after actual join.
+- id: root_admission
+  level: MUST
+  statement: Delegate initial cloud preflight and metadata sequencing to Hunter
+    admit_root. Host Skipped handling warns and returns before the result pump;
+    Unavailable warns but retains the existing pump/finalization path. Observed
+    Directory/Entry uses original metadata and existing scheduling/classification.
+    Cloud guard lifetime, lexical cloud policy and product status stay local;
+    no stop check is added before root observation.
 - id: root_backend
   level: MUST
   statement: After existing cloud admission, observe the selected root once through
@@ -271,6 +282,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/session.rs
   supports: [constraints.scoped_session, constraints.scan_lifetime, scope]
+- id: hunter_admission_source
+  kind: source
+  path: vendor/hunter-fs-core/src/admission.rs
+  supports: [constraints.root_admission, constraints.root_backend, constraints.cloud_guard, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -319,12 +334,15 @@ provenance:
   - Product startup/status moved to src/scan_session.rs; Hunter 31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad owns scoped launch/shutdown/join assembly.
     Baseline bf3b1bd2; fresh identities/commands are in specs/validation/hunter-session-20261018.
     Host keeps admission/QoS, setup-error interpretation and Finished after join; full generic root/guard assembly remains pending.
+  - Root preflight/observation sequencing delegates to Hunter cc1d8054ea0882e8f954e8bb6b0e6de03cff1495.
+    Skipped and Unavailable retain distinct host control flow; policies/guards/status remain local.
+    Fresh identities and receipts are in specs/validation/hunter-admission-20261018.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: b4647e5de8821db51a65b300922a1cb39c925e91
+    revision: 20216e2b10636c4201155f2287e667ef8f8f6a61
   files:
     owned:
     - src/lib.rs
@@ -349,4 +367,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/src/measurement.rs
     - vendor/hunter-fs-core/src/session.rs
+    - vendor/hunter-fs-core/src/admission.rs
     - vendor/hunter-fs-core/UPSTREAM.json

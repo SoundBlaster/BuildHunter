@@ -4,8 +4,8 @@ use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryListing, DirectoryMeasurement,
     DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask,
     DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, MeasuredSize,
-    PlannedChild, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress,
-    collect_directory, drive_scan, metadata_bytes, observe_root, run_directory_worker,
+    PlannedChild, RootAdmission, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress,
+    admit_root, collect_directory, drive_scan, metadata_bytes, run_directory_worker,
 };
 use std::{
     borrow::Cow,
@@ -993,13 +993,13 @@ where
         }
         self.emit_profile();
         let root = self.root;
-        if let Some(reason) = cloud_skip_reason(root) {
-            self.warn(root, reason, &[]);
-            return;
-        }
-        match observe_root(self.probes, root) {
-            Err(error) => self.warn(root, error, &[]),
-            Ok(RootObservation::Directory(metadata)) => {
+        match admit_root(self.probes, root, cloud_skip_reason) {
+            RootAdmission::Skipped(reason) => {
+                self.warn(root, reason, &[]);
+                return;
+            }
+            RootAdmission::Unavailable(error) => self.warn(root, error, &[]),
+            RootAdmission::Observed(RootObservation::Directory(metadata)) => {
                 self.enqueue(
                     DirNode {
                         path: root.to_owned(),
@@ -1014,7 +1014,7 @@ where
                     },
                 );
             }
-            Ok(RootObservation::Entry(metadata)) => {
+            RootAdmission::Observed(RootObservation::Entry(metadata)) => {
                 // A selected file or symlink is its own candidate, measured if classified.
                 let file_type = metadata.file_type();
                 if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {

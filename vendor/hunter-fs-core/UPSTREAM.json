@@ -1,12 +1,12 @@
 {
   "repository": "https://github.com/SoundBlaster/Hunter",
-  "revision": "31fd0bad749cdac63bc42f36ffe72bcd81b0c1ad",
+  "revision": "cc1d8054ea0882e8f954e8bb6b0e6de03cff1495",
   "source_directory": "crates/hunter-fs-core",
   "files": {
     "Cargo.toml": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b",
     "LICENSE": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1",
-    "README.md": "d1a6e6e32057eba52b4ca08f73c585117beea22ab8d14b9b3efe121a234cce5f",
-    "src/lib.rs": "2a141ce33e6a499f2d1e08d4595d68e7075633268a3badd83c884c9cd61bd121",
+    "README.md": "9358eec0d1556cb9924495c5523584a08da849555c19ff0b0cd790847fd0d513",
+    "src/lib.rs": "f58154ddca9604ce95b8af02cc5d14f6b98389df3b7efc8c44dc7c2f144b1e72",
     "src/work.rs": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160",
     "src/task.rs": "906bce62ddad02953c2b2710491cafbca9849fc68a54e041da52a2e89664cf5a",
     "src/children.rs": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8",
@@ -17,6 +17,7 @@
     "src/worker.rs": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1",
     "src/listing.rs": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e",
     "src/measurement.rs": "7366e1a3377bd9005c22ddd7f603c52c2d09da4a28ca2045cdd85df3dff90f7d",
-    "src/session.rs": "1f1b3256d3df6f5ad090901aae752fdf53a60bcb643e32f545ea369a47ee71c4"
+    "src/session.rs": "1f1b3256d3df6f5ad090901aae752fdf53a60bcb643e32f545ea369a47ee71c4",
+    "src/admission.rs": "d88e14a775a0980e33162784867891fa2337fb276e21233a67bb5feb6fc43887"
   }
 }

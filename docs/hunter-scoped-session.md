@@ -31,3 +31,8 @@ specs/evidence/hunter-session-20261018 and specs/validation/hunter-session-20261
 No speedup/RAM claim or local native UI/home/live-cloud acceptance is made. Merge
 Hunter preserving the pinned ancestry before this consumer. Root admission/guards,
 default plugin migration, descriptor recursion and resource budgets remain pending.
+
+Root admission now delegates sequencing to Hunter `cc1d8054ea0882e8f954e8bb6b0e6de03cff1495`; the host still owns
+cloud policy/guards, scheduling/status and the skip-versus-error control flow.
+See [root admission](../docs/hunter-root-admission.md) and the new
+`hunter-admission-20261018` evidence; full engine assembly remains pending.
