@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -66,8 +66,9 @@ files. Errors are owned and stay at the same slot. Host may fill missing results
 later, decide statuses/partial outcomes and own platform/cloud guard lifetime.
 
 DirectoryResult provides Listed/Measured envelopes with matching host IDs. It does
-not enforce a wire protocol: the host must publish Listed before measuring and
-send the Measured outcome even for a cancelled partial pass. Result callbacks,
+not enforce a wire protocol alone. The DirectoryWorker loop below publishes Listed
+before measuring and sends Measured even for a cancelled partial pass. Direct users
+of the plan retain those obligations. Result callbacks,
 root permissions, timing, bulk acquisition and recursive decisions remain host-owned.
 Tests cover intent/prefetch, slot alignment, callback order/errors, cancellation
 prefix/preparation and Unix symlink omission.
@@ -195,3 +196,28 @@ Tests cover directory/file metadata reuse, one-call/error/raw-path preservation,
 borrowed non-Sync backend state, listing paths/open errors and final links to file,
 directory and missing targets. Linux additionally covers a non-UTF-8 root name.
 Full filesystem engine initialization and live provider/race acceptance remain pending.
+
+## Directory worker protocol
+
+run_directory_worker pops DirectoryTask values from WorkQueue and delegates listing,
+opaque-context prefetch selection, measurement and publication to DirectoryWorker.
+It constructs the existing measurement plan and publishes Listed before invoking
+measure. It then publishes Measured, including a cancelled prefix returned by the
+host. The adapter must execute the supplied plan preserving its ID/slot semantics.
+The loop does not add cancellation checks or retry a rejected publication. A false
+publish result returns immediately without measuring after a rejected listing or
+popping the next task. It does not close the shared queue or stop other workers.
+
+Callbacks are synchronous and statically dispatched; borrowed non-Send host state
+and opaque contexts are supported. The loop adds no task vectors or trait-object
+allocation. IDs are cloned for publication/correlation. Host owns timing, access,
+thread setup/guards, backend preparation, stop semantics and error decoration.
+Host callbacks/ID cloning can panic; panics propagate. Use spawn_workers for its
+close-on-panic guard and keep coordinator shutdown inside the enclosing scope.
+An empty open queue blocks until work or closure; callback/syscall cancellation
+is not interruptible. Full startup, classification and final status stay outside.
+
+Seven tests cover intent/prefetch and listing-before-measurement ordering, listing
+only, rejection at both publications, cancelled results, closed queue, continued
+LIFO tasks and callback panic. Existing scope/join and measurement-slot tests remain
+separate gates; no whole-scan resource improvement is inferred.
