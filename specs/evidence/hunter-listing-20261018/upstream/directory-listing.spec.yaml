@@ -1,0 +1,98 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.directory_listing
+  title: Owned directory listing acquisition
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Collect host-opened directory entries and path-qualified errors while
+    preserving ordered synchronous host observations and opaque context.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Owned DirectoryListing assembly, synchronous entry observer/context update and
+    DirectoryVisit outcome from the existing portable visitor.
+  excludes:
+  - Directory opening, permission/cloud/guard policy, observer interpretation,
+    recursion, measurement, status/terminal events, snapshots and resource budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.directory_listing
+    role: primary
+    summary: Return an owned listing/context and visit outcome from a supplied iterator.
+requires:
+  capabilities:
+  - id: hunter.fs.portable
+    optional: false
+    summary: Existing visitor supplies ordered observations, errors and stop boundaries.
+interfaces:
+  inbound:
+  - id: collect
+    kind: library
+    summary: collect_directory(path, Result<iterator>, context, should_stop, observe)
+      returns (DirectoryListing<Context>, DirectoryVisit); observe borrows child Path,
+      observed FileType and mutable context, and returns io::Result<()>.
+  outbound: []
+constraints:
+- id: ownership
+  level: MUST
+  statement: Move each successful observed path/type into one children vector in
+    iterator order. Context is opaque and need not be Clone, Default, Send or static.
+    Do not normalize/decode paths, create a second listing buffer or open a directory.
+    The input iterator and observer may allocate or perform host-owned effects.
+- id: observer
+  level: MUST
+  statement: Invoke the synchronous observer once for each successful entry type,
+    before retaining the child. Observer error is retained at that child path and
+    does not discard the child or roll back context changes. Continue after errors;
+    observer/stop/iterator panics propagate without visiting later entries.
+- id: errors
+  level: MUST
+  statement: Preserve visitor errors in encounter order; iteration errors use the
+    supplied directory path, type errors the entry path. Failed open returns one
+    directory error and OpenFailed even if already stopped. Error observations
+    do not invoke the entry observer. Preserve owned I/O error identity/codes.
+- id: stop_boundary
+  level: MUST
+  statement: Add no stop checks beyond the existing visitor check before entry type
+    lookup. Cancellation requested by an observer retains the current child/context
+    and any observer error, then stops at the next visitor check. Empty input is
+    Completed even if stopped; an iterator may acquire one entry before checking.
+    Active callbacks/syscalls cannot be interrupted. Return the visitor outcome.
+- id: assembly
+  level: MUST
+  statement: Host opens entries under effective access/cloud policy, retains guards
+    through iteration/observation, interprets context and owns observer I/O, intentional
+    link following, post-list hooks, cancellation/status mapping and recursive tasks.
+    Observed FileType does not follow link targets; host observer may explicitly do
+    so. Path replacement/intermediate symlinks remain native pathname race limits.
+effects:
+  sideEffects:
+  - id: listing_reads
+    kind: filesystem_read
+    summary: Consume host iterator/file types and invoke host observer; no added content reads or writes.
+evidence:
+- id: listing_source
+  kind: source
+  path: crates/hunter-fs-core/src/listing.rs
+  supports: [intent.summary, scope, interfaces, constraints.ownership, constraints.observer, constraints.errors, constraints.stop_boundary, constraints.assembly]
+- id: listing_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [constraints.assembly, scope]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter list_directory at f3c66858360aa475690aae9d9445d21b4ca0b72f.
+    Draft contract and execution evidence remain distinct from owner acceptance.
+implementationBindings:
+- id: listing_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/listing.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/task.rs]

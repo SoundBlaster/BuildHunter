@@ -107,3 +107,8 @@ Directory worker protocol at Hunter a1b30a7967ed40f146bf4540af7fcdda4e3809b4 add
 HunterDirectoryWorker with TaskExecution/ListingFirst/PublicationBoundary. Current
 identities and frozen maps are under hunter-worker-20261018. Host retains marker/
 prefetch and guarded metadata/bulk/timing policy; full startup remains pending.
+
+Owned listing acquisition at Hunter 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6 adds HunterDirectoryListing with
+OrderedCollection/ContextObservation/AcquisitionOutcome. Current source/map
+identities and frozen maps are under hunter-listing-20261018. The local marker
+observer keeps product semantics and I/O; full engine startup remains pending.

@@ -467,3 +467,32 @@ new speedup, RAM budget or native UI/home/live-provider acceptance is inferred.
 
 Next boundary: separate policy-free directory acquisition from listing marker
 collection, then assess startup/backend assembly using the same guarded adapter.
+
+## Directory acquisition and marker observer — 2026-10-18
+
+HunterDirectoryListing at 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6 now owns collection of host-opened entries/errors
+and the visit outcome. Its synchronous entry observer receives opaque mutable
+context before each child is retained. BuildHunter observe_legacy_marker keeps
+regular-marker bits and intentional symlink-marker I/O/errors local and in the
+same encounter order; it performs no marker probes when legacy policy is disabled.
+Do not move these callbacks to a second pass: cancellation and live-tree races
+would change. Post-list hooks, guarded opening, worker timing and status stay local.
+
+Seven upstream macOS tests cover order/context/errors, cancellation, failed/empty
+input, symlink observations, callback panic and supplied paths; Linux adds raw names.
+The new application witness covers regular/symlink/directory/dangling marker types,
+retained children/errors and disabled-policy probe suppression. Existing marker,
+bulk, worker/result, profile/cancel/panic, scope and plugin tests remain gates.
+
+Affected current scan directory_listing/symlink_scope/cloud_guard and classification
+selection/catalog bindings are refreshed. Classification decisions/filters and
+C1–C4 remain unchanged; marker effects stay in scan, not pure decision policy.
+Current CLI/GUI maps add HunterDirectoryListing; target generic_facts/io_contract/
+lifecycle are still partial and draft. Full startup, descriptor recursion, default
+plugin migration and C5 budgets remain pending. No new Swift UI/home/live-provider
+acceptance or speedup/RAM improvement is inferred. Fresh source/maps/commands:
+specs/validation/hunter-listing-20261018; frozen maps/upstream draft:
+specs/evidence/hunter-listing-20261018. Historical receipts remain historical.
+
+Next boundary: separate guarded metadata measurement/backend preparation from the
+product worker adapter before assembling a full reusable scan startup/lifecycle.

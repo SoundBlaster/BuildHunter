@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.classification
   title: Current artifact classification and filters
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
@@ -131,12 +131,16 @@ provenance:
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
+  - Listing marker interpretation moved into local observe_legacy_marker at c70724d469d823774450bc387ecb90be1c5e2905.
+    The marker catalog, candidate/prefetch decisions, client profiles and filters are unchanged.
+    Marker acquisition effects belong to current.scan/directory_listing, not this decision boundary.
+    Binding paths are refreshed; local Rust witnesses do not establish new Swift UI acceptance.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+    revision: c70724d469d823774450bc387ecb90be1c5e2905
   files:
     owned:
     - src/lib.rs

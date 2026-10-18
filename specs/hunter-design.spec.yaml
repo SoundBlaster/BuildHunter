@@ -136,4 +136,7 @@ provenance:
   - DirectoryWorker/run_directory_worker now delegate shared listing-first measurement publication at a1b30a7967ed40f146bf4540af7fcdda4e3809b4.
     Host retains marker/prefetch interpretation, guarded filesystem/bulk callbacks, timing, channel mapping and actual scope lifetime.
     Full engine startup, default plugin migration and whole-scan resource budgets remain pending.
+  - collect_directory now owns ordered listing/context-observer acquisition at 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6.
+    Context remains opaque; host opens under guards, interprets markers, follows marker symlinks intentionally and owns post-list behavior/status.
+    This is partial generic_facts/io_contract progress, not full startup or resource-budget acceptance.
 implementationBindings: []

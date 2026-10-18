@@ -1,10 +1,10 @@
 use hunter_fs_core::{
-    ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
+    ChildDecision, ChildTraversal, DirectoryListing, DirectoryMeasurement,
     DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask,
     DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, MeasuredSize,
-    PlannedChild, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress, drive_scan,
-    metadata_bytes, observe_root, run_directory_worker, spawn_workers, visit_directory,
-    worker_count,
+    PlannedChild, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress,
+    collect_directory, drive_scan, metadata_bytes, observe_root, run_directory_worker,
+    spawn_workers, worker_count,
 };
 use std::{
     borrow::Cow,
@@ -947,44 +947,43 @@ fn list_directory(
     probes: &Probes,
     legacy_policy: bool,
 ) -> Listing {
-    let mut listing = Listing::default();
-    let outcome = visit_directory(
+    let (listing, outcome) = collect_directory(
         path,
         probes.read_dir(path),
+        0,
         || control.should_stop(),
-        |event| {
-            match event {
-                DirectoryEvent::Error { path, error } => listing.errors.push((path, error)),
-                DirectoryEvent::Entry {
-                    path: child,
-                    file_type,
-                } => {
-                    let marker = child.file_name().map_or(0, marker_flag);
-                    // Legacy symlink-marker policy remains host-owned and unchanged.
-                    if legacy_policy && marker != 0 {
-                        if file_type.is_file() {
-                            listing.context |= marker;
-                        } else if file_type.is_symlink() {
-                            match probes.marker_is_file(&child) {
-                                Ok(true) => listing.context |= marker,
-                                Ok(false) => {}
-                                Err(error) => listing.errors.push((child.clone(), error)),
-                            }
-                        }
-                    }
-                    listing.children.push((child, file_type));
-                }
-            }
+        |child, file_type, markers| {
+            observe_legacy_marker(child, file_type, markers, probes, legacy_policy)
         },
     );
     if outcome == DirectoryVisit::OpenFailed {
         return listing;
     }
     #[cfg(test)]
+    let mut listing = listing;
+    #[cfg(test)]
     if let Err(error) = probes.hook(ProbePoint::Listed, path) {
         listing.errors.push((path.to_owned(), error));
     }
     listing
+}
+
+/// Context interpretation and intentional marker-link following stay product-owned.
+fn observe_legacy_marker(
+    child: &Path,
+    file_type: fs::FileType,
+    markers: &mut u32,
+    probes: &Probes,
+    legacy_policy: bool,
+) -> std::io::Result<()> {
+    let marker = child.file_name().map_or(0, marker_flag);
+    if legacy_policy
+        && marker != 0
+        && (file_type.is_file() || (file_type.is_symlink() && probes.marker_is_file(child)?))
+    {
+        *markers |= marker;
+    }
+    Ok(())
 }
 
 /// A directory waiting for its listing. `chain` holds the artifacts strictly above it.
@@ -2473,6 +2472,44 @@ mod tests {
             assert_eq!(samples, 1);
             drop(sender);
             queue.close();
+        }
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn listing_marker_observer_preserves_links_errors_and_policy_disabled_mode() {
+        let tree = TempTree::new();
+        fs::write(tree.0.join("Cargo.toml"), b"regular").unwrap();
+        fs::write(tree.0.join("data"), b"target").unwrap();
+        std::os::unix::fs::symlink("data", tree.0.join("pyproject.toml")).unwrap();
+        std::os::unix::fs::symlink("missing", tree.0.join("setup.py")).unwrap();
+        fs::create_dir(tree.0.join("setup.cfg")).unwrap();
+        let _guard = materialization::Guard::enter().unwrap();
+        for legacy_policy in [true, false] {
+            let probes = Probes::default();
+            let listing = list_directory(&tree.0, &ScanControl::new(), &probes, legacy_policy);
+            assert_eq!(
+                listing.children.len(),
+                5,
+                "observer failure must retain its child"
+            );
+            let link = listing
+                .children
+                .iter()
+                .find(|(p, _)| p.ends_with("setup.py"))
+                .unwrap();
+            assert!(link.1.is_symlink());
+            if legacy_policy {
+                assert_eq!(listing.context, MARKER_CARGO_TOML | MARKER_PYPROJECT_TOML);
+                assert_eq!(probes.counts().marker_probes, 2);
+                assert_eq!(listing.errors.len(), 1);
+                assert_eq!(listing.errors[0].0, tree.0.join("setup.py"));
+                assert_eq!(listing.errors[0].1.kind(), std::io::ErrorKind::NotFound);
+            } else {
+                assert_eq!(listing.context, 0);
+                assert_eq!(probes.counts().marker_probes, 0);
+                assert!(listing.errors.is_empty());
+            }
         }
     }
 

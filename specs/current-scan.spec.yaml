@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.10
+  version: 0.1.0-draft.11
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -57,6 +57,9 @@ requires:
   - id: hunter.fs.directory_worker
     optional: false
     summary: Shared synchronous worker protocol publishes listing before measurement; host retains guarded listing/prefetch/backend/timing callbacks and actual scope lifetime.
+  - id: hunter.fs.directory_listing
+    optional: false
+    summary: Owned listing/error collection plus visit outcome with an opaque synchronous entry observer; host owns marker context and post-list hooks.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -123,6 +126,15 @@ constraints:
     portable/bulk metadata preparation, fallback/error decoration and opt-in timers
     inside WorkerAdapter. Guard setup failure still sends SetupFailed; panic/queue
     closure and terminal publication retain their enclosing scope obligations.
+- id: directory_listing
+  level: MUST
+  statement: Open the directory through guarded Probes and collect entries/errors via
+    Hunter collect_directory. Invoke local observe_legacy_marker per successful entry
+    before storing it, without delaying marker I/O until after enumeration. Regular
+    recognized files and intentional symlink-marker following retain their prior
+    bit/error behavior. Retain child/context on observer error; disabled legacy
+    policy performs no marker probes. Preserve visitor order/stop/outcome semantics
+    and invoke the test post-list hook after all outcomes except OpenFailed.
 effects:
   sideEffects:
   - id: read_metadata
@@ -212,6 +224,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/worker.rs
   supports: [constraints.directory_worker, constraints.scan_lifetime, constraints.cloud_guard, scope]
+- id: hunter_listing_source
+  kind: source
+  path: vendor/hunter-fs-core/src/listing.rs
+  supports: [constraints.directory_listing, constraints.symlink_scope, constraints.cloud_guard, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -251,12 +267,15 @@ provenance:
   - Directory worker protocol now delegates to Hunter a1b30a7967ed40f146bf4540af7fcdda4e3809b4 from BuildHunter 39e8275f.
     WorkerAdapter retains marker/prefetch/backend/timing policy; guard setup precedes the complete loop.
     Fresh source/map/runtime receipts are in specs/validation/hunter-worker-20261018; full engine startup remains pending.
+  - Owned listing acquisition now delegates to Hunter 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6 from BuildHunter f3c66858.
+    BuildHunter observe_legacy_marker retains regular/symlink marker context and errors in the same per-entry order.
+    Fresh source/map/runtime receipts are in specs/validation/hunter-listing-20261018; full engine startup remains pending.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: a2985eeb8e204ded3e9037b4e6d719d637c5d524
+    revision: c70724d469d823774450bc387ecb90be1c5e2905
   files:
     owned:
     - src/lib.rs
@@ -276,4 +295,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/execution.rs
     - vendor/hunter-fs-core/src/backend.rs
     - vendor/hunter-fs-core/src/worker.rs
+    - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/UPSTREAM.json

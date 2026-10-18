@@ -1,0 +1,17 @@
+{
+  "revision": "c70724d469d823774450bc387ecb90be1c5e2905",
+  "paths": [
+    "src/lib.rs",
+    "src/main.rs",
+    "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift",
+    "macos/Sources/BuildHunter/Domain/SearchFilters.swift",
+    "macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift",
+    "macos/Sources/BuildHunter/Domain/IsScannableArtifactCandidate.swift",
+    "macos/Sources/BuildHunter/Domain/IsOuterArtifactRoot.swift",
+    "macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift",
+    "macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift",
+    "macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift"
+  ],
+  "all_exist_and_match": true,
+  "policy_semantics_unchanged": true
+}
