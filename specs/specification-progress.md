@@ -640,3 +640,40 @@ canary head's green CI, review-blocked preflight and pending revised-tip accepta
 Frozen active maps, timestamped acquisitions, tool identities, server mutation order
 and bootstrap pending diagnostics are in stack-ci-rollout-20261018. Historical
 pre-activation evidence is retained separately, not promoted to current proof.
+
+## Guarded backend lifetime — 2026-10-18
+
+HunterBackendLifetime at 3a3db1e270ff54ba757027df3a55b9d378ee0525 now owns with_guarded_backend and native
+NonMaterializingIoGuard. Enter guard, prepare backend, run synchronous body, drop
+owned backend, then restore/drop guard on the same thread. Original Guard/Backend
+setup errors remain distinct. Guard restoration is best effort; abort/double panic
+and unused callback-capture destructor ordering are outside the cleanup contract.
+Borrowed external backend state remains externally owned. Host must not extract
+guard-dependent resources and must finish scoped work inside the body.
+
+BuildHunter coordinator includes worker/sampler join and final Profile/Finished in
+the lifetime body. Workers prepare an owned WorkerAdapter and keep prepared metadata
+state use/drop inside it. Public NonMaterializingIoGuard remains a compatibility
+alias; cloud path policy, dataless error decoration, QoS/status/terminal choices stay
+local. Actual backend factories are infallible; generic backend failure is tested
+upstream, not asserted as an existing product failure path. Independent plugin
+scanner gets the same alias; its separately pinned descriptor helper is unchanged.
+
+Five generic witnesses cover ordering, setup failures, same-thread non-Send use,
+factory/body/destructor panic and join-before-release. One native Darwin witness
+covers nested policy restoration/unwind. Two host witnesses cover injected worker
+guard failure -> SetupFailed without I/O and backend panic -> same-thread guard
+release. Existing actual-macOS probe/cancel/callback-panic tests remain gates.
+These are not live provider or UI/home acceptance, speedup or RAM-bound evidence.
+Current backend_lifetime/cloud_guard/scoped_session/scan_lifetime and target lifecycle
+claims remain draft; classification, filter, bridge ABI, GUI and plugin rules stay
+unchanged. New current map also repairs the stale HunterChildTraversal selector
+(previously split into an unmatched HunterChildScanSession and duplicate Traversal).
+This source-binding correction does not change runtime behavior or historical maps.
+
+Fresh source/maps/commands: specs/validation/hunter-lifetime-20261018; frozen upstream
+and maps: specs/evidence/hunter-lifetime-20261018. Prior evidence remains historical.
+Full backend algorithm assembly, descriptor recursion, default plugin migration and
+C5 resource budgets remain pending. Next boundary: define reusable scan assembly
+that composes root admission, guarded backend scope and scoped workers without
+moving product classification/status or expanding the existing no-follow scope.

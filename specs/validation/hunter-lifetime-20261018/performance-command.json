@@ -1,0 +1,21 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "-B",
+    "scripts/compare_performance.py",
+    "--baseline-ref",
+    "86c3defd3d40f36940340070f9eaa113191e2323",
+    "--output-dir",
+    "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/performance-backend-lifetime"
+  ],
+  "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+  "env": {
+    "TMPDIR": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19",
+    "CARGO_TARGET_DIR": "unset; harness sets isolated --target-dir",
+    "CARGO_BUILD_BUILD_DIR": "unset"
+  },
+  "runtime_revision": "ee6ba0cc384d551f224a44c2a48109d48d0d24f1",
+  "exit_code": 0
+}

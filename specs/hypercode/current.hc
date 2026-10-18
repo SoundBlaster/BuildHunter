@@ -76,6 +76,10 @@ BuildHunterRuntime
     HunterRootAdmission
       HostRootPreflight
       RootAdmissionOutcome
+    HunterBackendLifetime
+      GuardedPreparation
+      BackendRelease
+      ThreadMaterializationPolicy
     HunterMetadata
     PluginScanning
       CandidateObservation

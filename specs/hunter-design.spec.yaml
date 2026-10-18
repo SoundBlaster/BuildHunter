@@ -148,4 +148,7 @@ provenance:
   - admit_root at cc1d8054ea0882e8f954e8bb6b0e6de03cff1495 sequences opaque host preflight and root metadata observation.
     Access policy/guards, scheduling, status and full engine assembly are not transferred.
     This is partial lifecycle ownership, not full target conformance or acceptance.
+  - with_guarded_backend and Darwin NonMaterializingIoGuard at 3a3db1e270ff54ba757027df3a55b9d378ee0525 own generic lifetime and native thread-policy RAII.
+    BuildHunter chooses scope placement/backends and owns path/error/status/terminal policy.
+    Default plugin migration, descriptor recursion, full engine assembly and budgets remain pending.
 implementationBindings: []
