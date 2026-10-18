@@ -61,8 +61,9 @@ skipping checks, treating pending jobs as passed, or weakening branch protection
   performance jobs on the ready top layer containing the complete batch. Keep the
   batch in draft while assembling it so each temporary top does not start a full
   run. Standalone ready PRs must still receive applicable macOS validation.
-- Use verified native stack metadata (`stack.position == stack.size`) for top-layer
-  selection. Missing metadata on an ordinary PR must not skip its checks; uncertain
+- Use verified native stack metadata (`stack.position == stack.size`) and explicit
+  ready state (all stack members have `draft == false`) for top-layer selection.
+  Draft state must suppress expensive jobs on synchronization events too. Missing metadata on an ordinary PR must not skip its checks; uncertain
   classification must request validation or block merge, never assume success.
 - A required inexpensive merge gate must verify that the current stack tip has
   successful applicable macOS checks for the exact tested revision and base, and
