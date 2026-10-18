@@ -69,6 +69,9 @@ requires:
   - id: hunter.fs.root_admission
     optional: false
     summary: Opaque host preflight before one root observation; host interprets skip/error and chooses scheduling/finalization.
+  - id: hunter.fs.scan_assembly
+    optional: false
+    summary: Compose owned queue and single-use launch inside guarded backend lifetime.
   - id: hunter.fs.backend_lifetime
     optional: false
     summary: Same-thread guard/backend construction and reverse cleanup; Hunter owns Darwin thread-policy RAII, host owns placement/status.
@@ -181,7 +184,9 @@ constraints:
   level: MUST
   statement: Product scan_session::run selects the guard/backend constructors and owns
     profile/QoS setup, coordinator construction, final status and event/report publication.
-    Hunter owns guarded backend lifetime around that body. Hunter
+    Hunter with_scan_session owns guarded backend lifetime, the empty shared queue
+    and capped worker-count selection. Its non-cloneable ScanSession token is
+    consumed once to launch scoped work; root admit_root stays in coordinator. Hunter
     starts host sampler helpers, launches workers, invokes coordinator on caller
     thread, drops helper-stop guard, closes queue and joins before returning. Move
     receiver into coordinator and release unread responses before return/unwind
@@ -189,6 +194,11 @@ constraints:
     Admission failure emits Warning then Finished(Failed) without starting work;
     successful scoped completion drains final profiles before one Finished. Callback
     or worker panic unwinds without product Finished. Keep guards through join.
+- id: session_assembly
+  level: MUST
+  statement: Delegate guard/backend scope, queue construction and capped parallelism
+    to with_scan_session and consume ScanSession::run once. Keep profile/QoS,
+    root admission policy, task semantics and final event/report publication local.
 effects:
   sideEffects:
   - id: read_metadata
@@ -310,6 +320,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/materialization.rs
   supports: [constraints.backend_lifetime, constraints.cloud_guard, scope]
+- id: scan_assembly_source
+  kind: source
+  path: vendor/hunter-fs-core/src/assembly.rs
+  supports: [constraints.session_assembly, constraints.scoped_session, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -369,7 +383,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: d54f573602462b3d6f19f63da531205876a00eaa
+    revision: 9a0e363ea7b36e57b93d7f5d5ecffa6e0319d6de
   files:
     owned:
     - src/lib.rs
@@ -393,6 +407,7 @@ implementationBindings:
     - vendor/hunter-fs-core/src/worker.rs
     - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/src/measurement.rs
+    - vendor/hunter-fs-core/src/assembly.rs
     - vendor/hunter-fs-core/src/session.rs
     - vendor/hunter-fs-core/src/admission.rs
     - vendor/hunter-fs-core/src/lifetime.rs

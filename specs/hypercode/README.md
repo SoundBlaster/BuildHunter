@@ -133,3 +133,8 @@ Host scope placement, cloud paths/error decoration and product status stay local
 see [guarded backend lifetime](../../docs/hunter-backend-lifetime.md) and `hunter-lifetime-20261018` evidence.
 This supersedes earlier pending guard-lifetime ownership notes for the integrated
 Rust coordinator/workers; full engine/backend algorithm assembly remains pending.
+
+Guarded queue/single-launch assembly now binds Hunter `9f445cf8468e2f341d8e8e20782854fb391d5979`.
+HunterScanAssembly owns queue/count and the consumed launch token; root admission
+remains inside the product coordinator. Current identities and structural/runtime
+receipts are under `hunter-assembly-20261019`; full recursive engine is pending.

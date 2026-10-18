@@ -443,3 +443,27 @@ receipts remain historical. Fresh rebase input comparisons, structural/vendor ch
 and local tests are in specs/validation/hunter-lifetime-rebase-20261019; fresh hosted
 validation must bind the new head/base/budget mode. No fresh local UI/home or provider
 acceptance and no new speedup, RAM-bound or billed-cost claim follows from the rebase.
+
+### Guarded scan assembly — 2026-10-19
+
+Hunter `9f445cf8468e2f341d8e8e20782854fb391d5979` adds the draft
+hunter.fs.scan_assembly boundary. `with_scan_session` composes guarded backend
+lifetime with the empty owned queue and capped parallelism. Its non-cloneable
+ScanSession token is consumed once for helper/worker startup, caller coordinator,
+stop/close and join. Product finalization remains inside the outer guarded body.
+Root `admit_root` remains inside Scanner::run rather than being moved before worker
+startup: this preserves existing event/cancellation and SetupFailed timing.
+
+Affected claims: current scan session_assembly/scoped_session/scan_lifetime/terminal,
+target Hunter ScanLifecycle and BuildHunter ScanAssembly. Classification, filter,
+bridge ABI, GUI behavior, root no-follow scope and admission policy are unchanged;
+their prior receipts remain historical, not fresh end-to-end acceptance. Four
+upstream witnesses plus a compile-fail single-use check cover integrated ordering,
+setup rejection, unwind/channel release and unused token/invalid cap cleanup.
+Fresh identities/commands are in specs/validation/hunter-assembly-20261019.
+
+This remains bounded session assembly. Backend algorithms, descriptor recursion,
+default plugin migration, complete generic scanner, C5 resource budgets and live
+home/cloud/UI acceptance remain outstanding. Next boundary: define the generic
+coordinator adapter for root scheduling and task/result accounting, keeping product
+classification and status/event translation in BuildHunter.
