@@ -139,4 +139,7 @@ provenance:
   - collect_directory now owns ordered listing/context-observer acquisition at 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6.
     Context remains opaque; host opens under guards, interprets markers, follows marker symlinks intentionally and owns post-list behavior/status.
     This is partial generic_facts/io_contract progress, not full startup or resource-budget acceptance.
+  - Typed DirectoryMeasurementBackend/prepared FileMeasurementBackend state now delegates to Hunter 1eb300054c24bbf56a936287fbd586c4fb39079c.
+    BuildHunter separately owns native/bulk preparation/fallbacks; both typed and closure APIs share the same slot execution.
+    This is partial measurement ownership, not acceptance of full startup/cloud/lifecycle/resource requirements.
 implementationBindings: []

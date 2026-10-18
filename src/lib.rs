@@ -26,6 +26,7 @@ pub use resources::{ResourceHistory, ResourceSummary};
 #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
 mod bulk_metadata;
 mod materialization;
+mod measurement;
 /// Thread-scoped protection for filesystem preflight before starting a scan.
 /// On macOS this refuses materialization; other platforms use a no-op guard.
 pub use materialization::Guard as NonMaterializingIoGuard;
@@ -857,67 +858,8 @@ impl DirectoryWorker for WorkerAdapter<'_> {
         plan: DirectoryMeasurementPlan<'_, usize>,
     ) -> DirectoryMeasurement<usize> {
         let control = self.control;
-        let probes = self.probes;
         let measurement_started = control.timer();
-        let measured = plan.measure(
-            |path| probes.symlink_metadata(path),
-            |path, files| {
-                let _ = (path, files);
-                #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
-                let mut injected = std::collections::HashMap::new();
-                #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
-                for file in files.iter().flatten() {
-                    if let Err(error) = probes.hook(ProbePoint::Metadata, file) {
-                        injected.insert(file.clone(), error);
-                    }
-                }
-                #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-                let mut bulk = if files.iter().any(Option::is_some) {
-                    if control.profiling.load(Ordering::Relaxed) {
-                        control.bulk_directories.fetch_add(1, Ordering::Relaxed);
-                    }
-                    #[cfg(test)]
-                    probes.record_policy();
-                    Some(bulk_metadata::read(path, control))
-                } else {
-                    None
-                };
-                move |file: &Path| {
-                    #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-                    if let Some(result) = &mut bulk {
-                        #[cfg(test)]
-                        if let Some(error) = injected.remove(file) {
-                            return Err(error);
-                        }
-                        match result {
-                            Ok(entries) => {
-                                let name = file.file_name().map(os_str_bytes).unwrap_or_default();
-                                if let Some(size) = entries.remove(name.as_ref()) {
-                                    return size.map_err(|error| {
-                                        materialization::describe_error(file, error)
-                                    });
-                                }
-                            }
-                            Err(error) if error.kind() == std::io::ErrorKind::Unsupported => {}
-                            Err(error) => {
-                                let error = error.raw_os_error().map_or_else(
-                                    || std::io::Error::new(error.kind(), error.to_string()),
-                                    std::io::Error::from_raw_os_error,
-                                );
-                                return Err(materialization::describe_error(file, error));
-                            }
-                        }
-                        if control.profiling.load(Ordering::Relaxed) {
-                            control.bulk_fallbacks.fetch_add(1, Ordering::Relaxed);
-                        }
-                        // No complete metadata was returned; the portable probe decides
-                        // whether this is unsupported metadata or a vanished entry.
-                    }
-                    probes.symlink_metadata(file).map(MeasuredSize::from)
-                }
-            },
-            || control.should_stop(),
-        );
+        let measured = measurement::measure_directory(plan, control, self.probes);
         ScanControl::record_time(&control.measurement_ns, measurement_started);
         measured
     }

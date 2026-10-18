@@ -11,6 +11,9 @@ BuildHunterRuntime
     Scanner
       Traversal
       Measurement
+        NativeMeasurementBackend
+        BatchPreparation
+        MetadataFallback
       CloudGuard
       ResourceProfile
     ArtifactClassification
@@ -58,6 +61,10 @@ BuildHunterRuntime
       OrderedCollection
       ContextObservation
       AcquisitionOutcome
+    HunterMeasurementBackend
+      DirectoryPreparation
+      PreparedFileEffects
+      SharedSlotExecution
     HunterMetadata
     PluginScanning
       CandidateObservation

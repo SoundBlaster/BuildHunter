@@ -277,3 +277,35 @@ specs/evidence/hunter-listing-20261018. Historical receipts remain historical.
 
 Next boundary: separate guarded metadata measurement/backend preparation from the
 product worker adapter before assembling a full reusable scan startup/lifecycle.
+
+## Typed measurement backend — 2026-10-18
+
+HunterMeasurementBackend at 1eb300054c24bbf56a936287fbd586c4fb39079c provides typed directory observation/preparation
+and owned prepared file state. The existing closure and new typed plan APIs share
+one original-position slot loop. BuildHunter src/measurement.rs owns MetadataBackend
+and PreparedFiles: native/bulk acquisition, injected probe errors, entry consumption,
+Unsupported/missing fallback, counters and error decoration. WorkerAdapter now only
+times/delegates measurement. The thread materialization guard remains outside the
+complete worker loop and prepared state drops before result publication or on unwind.
+
+Five upstream tests cover ordering/slots/ID/errors, borrowed non-Send state,
+pre-cancelled directory error/preparation, cancellation, empty/omitted slots and
+prepared-state drop including panic. Two host witnesses cover directory error plus
+pre-cancellation and synthetic batch consumption/fallback/error provenance under
+the active guard. Existing cloud, bulk, marker, profile/cancel/panic, scope and plugin
+tests remain gates. No new local UI/home/live-provider acceptance is claimed.
+
+Current scan measurement_backend/sizes/cloud_guard/lifetime and target Hunter
+io_contract/lifecycle claims remain draft. Classification, bridge, application and
+plugin contracts are unchanged: no marker, filter, FFI or client semantics moved.
+Their prior implementation-specific evidence remains scoped to unchanged claims;
+current scan binding adds both measurement modules at the immutable runtime commit.
+CLI/GUI maps show host native effects and generic Hunter mechanics separately; target
+ownership is still partial. Full startup/guard assembly, descriptor recursion,
+default plugin migration and C5 budgets remain pending. Fresh sources/maps/commands:
+specs/validation/hunter-measurement-20261018; frozen maps/upstream draft:
+specs/evidence/hunter-measurement-20261018. Prior receipts stay historical; no speedup
+or memory-budget improvement is inferred.
+
+Next boundary: consolidate root admission and scoped worker startup behind an
+explicit host-effects interface, preserving SetupFailed/Finished and join ordering.

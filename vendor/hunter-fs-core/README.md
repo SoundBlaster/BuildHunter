@@ -17,7 +17,7 @@ The boolean selects apparent bytes when true and allocated bytes when false.
 
 This package has no external dependencies. It is separate from Unix `hunter-fs`,
 which uses libc. Consumers needing fresh-cache offline builds may vendor the exact
-Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs snapshot, recording the upstream revision and hashes.
+Cargo.toml/LICENSE/README.md/src/lib.rs/src/work.rs/src/task.rs/src/children.rs/src/ledger.rs/src/subtree.rs/src/execution.rs/src/backend.rs/src/worker.rs/src/listing.rs/src/measurement.rs snapshot, recording the upstream revision and hashes.
 That vendored copy is distribution of Hunter source, not a second implementation.
 
 Tests cover cancellation prefix, open/iteration error ordering, empty directories,
@@ -246,3 +246,27 @@ Seven macOS tests cover order/borrowed context, iteration and observer errors,
 observer-triggered cancellation, open failure, empty input, link types, callback
 panic and host-supplied iterator paths. Linux adds raw non-UTF-8 names. Existing
 visitor, worker protocol and guard/join gates remain separate. No speedup is inferred.
+
+## Typed measurement backend
+
+DirectoryMeasurementPlan::measure_with accepts a mutable DirectoryMeasurementBackend
+and a separate stop callback. directory_metadata runs first, then prepare_files
+returns owned state implementing FileMeasurementBackend::measure. Preparation runs
+even after directory error, pre-cancellation, empty slots or omitted-only slots.
+The typed and closure entrypoints share one slot loop, preserving original indices,
+None values, error objects, task ID and cancellation prefixes without another buffer.
+
+Prepared state can borrow existing external resources but not the temporary mutable
+backend borrow or the transient path/slot arguments. The host copies or moves any
+state it must retain and owns native/batch selection, fallbacks, error decoration,
+timing and effective guards. There are no Send/Sync, static lifetime, trait-object
+or boxing requirements. Prepared state drops before return and on callback/stop
+unwind; a panic propagates instead of yielding a completed measurement. The host
+must publish Listed first and keep access/platform guards until prepared state drops.
+Stop remains separate host policy; active I/O/callbacks cannot be interrupted.
+No new retries, status mapping, link semantics or memory budget are introduced.
+
+Five tests cover typed ordering/slot identity/errors with borrowed non-Send state,
+pre-cancelled directory failure/preparation, partial cancellation, empty/omitted
+slots and prepared-state release on success/cancellation/panic. Existing closure
+API and scoped worker tests remain gates; full engine lifecycle stays separate.

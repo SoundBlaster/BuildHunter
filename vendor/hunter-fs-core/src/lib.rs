@@ -314,3 +314,6 @@ pub use worker::{DirectoryWorker, run_directory_worker};
 
 mod listing;
 pub use listing::collect_directory;
+
+mod measurement;
+pub use measurement::{DirectoryMeasurementBackend, FileMeasurementBackend};

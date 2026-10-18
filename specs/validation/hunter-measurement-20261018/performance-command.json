@@ -1,0 +1,20 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "-B",
+    "scripts/compare_performance.py",
+    "--baseline-ref",
+    "dec3ad603bef36997498b9432ffae572ae019c77",
+    "--output-dir",
+    "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/performance-measurement-backend"
+  ],
+  "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+  "exit_code": 0,
+  "environment": {
+    "TMPDIR": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19",
+    "CARGO_TARGET_DIR": "unset; harness owns per-variant --target-dir",
+    "CARGO_BUILD_BUILD_DIR": "unset; harness owns per-variant --target-dir"
+  }
+}

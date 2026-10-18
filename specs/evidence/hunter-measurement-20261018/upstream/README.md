@@ -1,0 +1,1 @@
+Upstream draft from SoundBlaster/Hunter at 1eb300054c24bbf56a936287fbd586c4fb39079c, path specs/measurement-backend.spec.yaml, SHA-256 bc4289ba34d8ca6d0668a0ac8f7dc4c09d7c94741fb65a32cda8e420869ddd46. Source evidence, not owner acceptance.

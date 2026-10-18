@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.11
+  version: 0.1.0-draft.12
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -60,6 +60,9 @@ requires:
   - id: hunter.fs.directory_listing
     optional: false
     summary: Owned listing/error collection plus visit outcome with an opaque synchronous entry observer; host owns marker context and post-list hooks.
+  - id: hunter.fs.measurement_backend
+    optional: false
+    summary: Typed directory/prepared-file backend and shared slot loop; native/bulk policy, guards, errors, timers and status stay host-owned.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -122,9 +125,9 @@ constraints:
   statement: After worker materialization guard setup, execute directory tasks through
     Hunter DirectoryWorker. Publish Listed before measurement and send a returned
     cancelled/partial Measured result. On receiver rejection stop before further
-    measurement or another task. Keep marker/prefetch interpretation, guarded
-    portable/bulk metadata preparation, fallback/error decoration and opt-in timers
-    inside WorkerAdapter. Guard setup failure still sends SetupFailed; panic/queue
+    measurement or another task. Keep marker/prefetch interpretation and opt-in timers
+    in the host adapter, and guarded portable/bulk preparation and fallback/error
+    decoration in the host measurement module. Guard setup failure still sends SetupFailed; panic/queue
     closure and terminal publication retain their enclosing scope obligations.
 - id: directory_listing
   level: MUST
@@ -135,6 +138,15 @@ constraints:
     bit/error behavior. Retain child/context on observer error; disabled legacy
     policy performs no marker probes. Preserve visitor order/stop/outcome semantics
     and invoke the test post-list hook after all outcomes except OpenFailed.
+- id: measurement_backend
+  level: MUST
+  statement: WorkerAdapter times measurement::measure_directory; local MetadataBackend
+    observes directory metadata then prepares owned file-measurement state through
+    Hunter measure_with. Prepare after directory errors/pre-cancellation and preserve
+    original slots and partial outcomes. Keep native/bulk acquisition, injected test
+    errors, per-entry consumption, Unsupported/missing fallback, counters and error
+    decoration in the host measurement module. Retain the outer worker guard through
+    prepared state use/drop; queues, receiver, joins and status are unchanged.
 effects:
   sideEffects:
   - id: read_metadata
@@ -228,6 +240,14 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/listing.rs
   supports: [constraints.directory_listing, constraints.symlink_scope, constraints.cloud_guard, scope]
+- id: host_measurement_source
+  kind: source
+  path: src/measurement.rs
+  supports: [constraints.measurement_backend, constraints.sizes, constraints.cloud_guard, scope]
+- id: hunter_measurement_source
+  kind: source
+  path: vendor/hunter-fs-core/src/measurement.rs
+  supports: [constraints.measurement_backend, constraints.scan_lifetime, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -270,15 +290,19 @@ provenance:
   - Owned listing acquisition now delegates to Hunter 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6 from BuildHunter f3c66858.
     BuildHunter observe_legacy_marker retains regular/symlink marker context and errors in the same per-entry order.
     Fresh source/map/runtime receipts are in specs/validation/hunter-listing-20261018; full engine startup remains pending.
+  - Typed preparation/measurement now delegates to Hunter 1eb300054c24bbf56a936287fbd586c4fb39079c; native/bulk effects moved to src/measurement.rs from WorkerAdapter.
+    Initial source baseline dec3ad60; fresh evidence is in specs/validation/hunter-measurement-20261018.
+    Host guards, timing, native errors/fallbacks and complete engine assembly remain local.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: c70724d469d823774450bc387ecb90be1c5e2905
+    revision: c2cd2b857d73ff98b41f9653276918c23018cc5d
   files:
     owned:
     - src/lib.rs
+    - src/measurement.rs
     - src/materialization.rs
     - src/bulk_metadata.rs
     - src/thread_qos.rs
@@ -296,4 +320,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/backend.rs
     - vendor/hunter-fs-core/src/worker.rs
     - vendor/hunter-fs-core/src/listing.rs
+    - vendor/hunter-fs-core/src/measurement.rs
     - vendor/hunter-fs-core/UPSTREAM.json
