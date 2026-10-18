@@ -317,3 +317,6 @@ pub use listing::collect_directory;
 
 mod measurement;
 pub use measurement::{DirectoryMeasurementBackend, FileMeasurementBackend};
+
+mod session;
+pub use session::run_scoped_workers;
