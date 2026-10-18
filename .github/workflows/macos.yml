@@ -3,18 +3,22 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited, stacked]
   workflow_dispatch:
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: macos-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   changes:
     uses: ./.github/workflows/changes.yml
+    with:
+      plan_name: macos
   tests:
     needs: changes
-    if: needs.changes.outputs.heavy == 'true'
+    if: needs.changes.outputs.macos == 'true'
     name: macOS unit and UI tests
     runs-on: xcode-27
     timeout-minutes: 35
@@ -50,7 +54,7 @@ jobs:
           retention-days: 7
   performance:
     needs: changes
-    if: needs.changes.outputs.heavy == 'true'
+    if: needs.changes.outputs.macos == 'true'
     name: macOS performance tests
     runs-on: xcode-27
     timeout-minutes: 35
@@ -77,7 +81,7 @@ jobs:
           retention-days: 7
   release:
     needs: changes
-    if: needs.changes.outputs.heavy == 'true'
+    if: needs.changes.outputs.macos == 'true'
     name: macOS Release build
     runs-on: xcode-27
     timeout-minutes: 35

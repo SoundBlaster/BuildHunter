@@ -3,15 +3,19 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited, stacked]
   workflow_dispatch:
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: performance-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   changes:
     uses: ./.github/workflows/changes.yml
+    with:
+      plan_name: performance
   scanner:
     needs: changes
     if: needs.changes.outputs.heavy == 'true'
@@ -21,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-26]
+        os: ${{ fromJSON(needs.changes.outputs.performance_os) }}
     steps:
       - uses: actions/checkout@v4
         with:

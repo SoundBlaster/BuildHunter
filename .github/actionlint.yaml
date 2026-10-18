@@ -1,0 +1,10 @@
+self-hosted-runner:
+  # Existing project runner label; this does not change runner provisioning.
+  labels: [xcode-27]
+config-variables: [STACK_MACOS_CI]
+paths:
+  .github/workflows/*.{yml,yaml}:
+    ignore:
+      # v1.7.12 predates GitHub's documented native-stack lifecycle action.
+      # https://docs.github.com/en/pull-requests/tutorials/roll-out-stacked-prs
+      - 'invalid activity type "stacked" for "(pull_request|pull_request_target)" Webhook event'
