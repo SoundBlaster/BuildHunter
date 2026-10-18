@@ -196,3 +196,6 @@ guarded backend/bulk policy and timers in BuildHunter WorkerAdapter. See
 Owned directory listing acquisition now lives in Hunter. BuildHunter keeps its
 marker context observer and intentional link-following effects in the same entry
 order. See [directory acquisition boundary](hunter-directory-listing.md).
+
+Typed preparation/measurement now uses Hunter's backend seam; BuildHunter native/
+bulk effects are separate from WorkerAdapter. See [measurement boundary](hunter-measurement-backend.md).

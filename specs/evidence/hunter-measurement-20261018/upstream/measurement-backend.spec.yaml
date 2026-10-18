@@ -1,0 +1,92 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.measurement_backend
+  title: Typed directory measurement backend preparation
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Separate directory observation and prepared file measurement effects from
+    task execution while preserving the existing slot/cancellation protocol.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - DirectoryMeasurementBackend, owned prepared FileMeasurementBackend state and
+    DirectoryMeasurementPlan::measure_with using the existing measurement loop.
+  excludes:
+  - Native/batch backend implementation, permission/cloud guards, backend selection,
+    timing, status/error decoration, worker setup/join and whole-scan budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.measurement_backend
+    role: primary
+    summary: Execute a plan against a synchronous typed backend and owned prepared state.
+requires:
+  capabilities:
+  - id: hunter.fs.directory_tasks
+    optional: false
+    summary: Original-position plan, owned ID, optional file slots and result envelopes.
+interfaces:
+  inbound:
+  - id: typed_measurement
+    kind: library
+    summary: plan.measure_with(mutable backend, should_stop); backend.directory_metadata
+      then prepare_files returns owned Prepared implementing measure(Path) -> Result<MeasuredSize>.
+      Existing closure-based plan.measure remains supported.
+  outbound: []
+constraints:
+- id: ordering
+  level: MUST
+  statement: Invoke directory_metadata then prepare_files once each before per-slot
+    stop checks, even if directory metadata failed or the caller is already stopped.
+    Prepare even empty/omitted-only slots. Both APIs share one original-position
+    loop, preserving None slots, error objects, ID and cancelled prefix semantics.
+- id: preparation
+  level: MUST
+  statement: Preparation receives the borrowed directory path and original optional
+    file paths. Returned prepared state is owned and can borrow external resources;
+    it cannot borrow the temporary mutable backend borrow or transient slot slice.
+    Host must copy/move any state required later and choose effects/fallbacks.
+- id: lifetime
+  level: MUST
+  statement: Drop prepared state before measure_with returns, including cancelled
+    outcomes; callback/stop panics propagate and release prepared state on unwind.
+    Host retains effective guards through observation/preparation/measurement/drop,
+    publishes Listed first, publishes returned partial outcomes, and owns actual join.
+    No Send, Sync, static lifetime or boxed adapter requirement is imposed.
+- id: effects_scope
+  level: MUST
+  statement: Backend errors retain native identity/codes and are returned without
+    retries or status mapping. Host supplies stop independently and owns batching,
+    native metadata/link/race/cloud semantics and error decoration. No content reads,
+    extra stop checks, syscall interruption, second result buffer or resource budget
+    are introduced by this typed entrypoint. Callback effects remain host-owned.
+effects:
+  sideEffects:
+  - id: host_measurement
+    kind: filesystem_read
+    summary: Invoke synchronous host directory/preparation/file measurement effects.
+evidence:
+- id: typed_backend_source
+  kind: source
+  path: crates/hunter-fs-core/src/measurement.rs
+  supports: [intent.summary, scope, interfaces, constraints.preparation, constraints.lifetime, constraints.effects_scope]
+- id: shared_plan_source
+  kind: source
+  path: crates/hunter-fs-core/src/task.rs
+  supports: [constraints.ordering, constraints.lifetime, constraints.effects_scope]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter WorkerAdapter measurement at dec3ad603bef36997498b9432ffae572ae019c77.
+    Backend-specific implementation remains host-owned; draft acceptance and test results are distinct.
+implementationBindings:
+- id: measurement_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/measurement.rs]
+    border: [crates/hunter-fs-core/src/task.rs, crates/hunter-fs-core/src/lib.rs]

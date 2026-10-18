@@ -112,3 +112,8 @@ Owned listing acquisition at Hunter 29bc8b0f60d0d192fe8e2529216f50ce4c9854c6 add
 OrderedCollection/ContextObservation/AcquisitionOutcome. Current source/map
 identities and frozen maps are under hunter-listing-20261018. The local marker
 observer keeps product semantics and I/O; full engine startup remains pending.
+
+Typed preparation at Hunter 1eb300054c24bbf56a936287fbd586c4fb39079c adds HunterMeasurementBackend with
+DirectoryPreparation/PreparedFileEffects/SharedSlotExecution. Host Measurement now
+shows NativeMeasurementBackend/BatchPreparation/MetadataFallback separately. Fresh
+identities/frozen maps are under hunter-measurement-20261018; full startup is pending.

@@ -35,3 +35,7 @@ its pinned ancestry preserved before this consumer.
 Follow-up: [owned directory acquisition](hunter-directory-listing.md) now separates
 listing collection from the host marker observer. Guarded open, per-entry marker
 I/O, post-list hooks and full scope lifetime remain host-owned.
+
+Follow-up: [typed measurement preparation](hunter-measurement-backend.md) moves
+native/bulk effects into the local measurement module and leaves WorkerAdapter
+with timing/delegation. The outer guard and full worker lifetime remain unchanged.
