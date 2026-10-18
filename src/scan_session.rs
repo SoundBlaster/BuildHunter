@@ -4,7 +4,7 @@ use crate::{
     Probes, ScanControl, ScanEvent, ScanOptions, ScanReport, ScanStatus, ScanWarning, Scanner,
     WorkQueue, materialization, profile, run_worker, thread_qos,
 };
-use hunter_fs_core::{run_scoped_workers, worker_count};
+use hunter_fs_core::{GuardedSetupError, run_scoped_workers, with_guarded_backend, worker_count};
 use std::{
     path::{Path, PathBuf},
     sync::atomic::Ordering,
@@ -19,98 +19,104 @@ pub(super) fn run(
     probes: &Probes,
     legacy_policy: bool,
 ) -> ScanReport {
-    let _materialization = match materialization::Guard::enter() {
-        Ok(guard) => guard,
-        Err(error) => {
-            return failed_start(error, &mut emit, probes);
-        }
-    };
-    let queue = WorkQueue::default();
-    let workers = worker_count(MAX_SCAN_WORKERS);
-    let (sender, receiver) = std::sync::mpsc::channel();
-    let worker_qos = thread_qos::capture();
-    let profile_state = control
-        .profiling
-        .load(Ordering::Acquire)
-        .then(profile::ProfileState::new);
-    let profile = profile_state.as_ref();
-    let (artifacts, warnings, had_errors, changed) = run_scoped_workers(
-        &queue,
-        workers,
-        {
-            let sender = sender.clone();
-            move |queue| {
-                thread_qos::apply(worker_qos);
-                run_worker(queue, &sender, control, probes, legacy_policy)
+    let result = with_guarded_backend(
+        materialization::Guard::enter,
+        || Ok::<_, std::convert::Infallible>(probes),
+        |backend| {
+            let probes = *backend;
+            let queue = WorkQueue::default();
+            let workers = worker_count(MAX_SCAN_WORKERS);
+            let (sender, receiver) = std::sync::mpsc::channel();
+            let worker_qos = thread_qos::capture();
+            let profile_state = control
+                .profiling
+                .load(Ordering::Acquire)
+                .then(profile::ProfileState::new);
+            let profile = profile_state.as_ref();
+            let (artifacts, warnings, had_errors, changed) = run_scoped_workers(
+                &queue,
+                workers,
+                {
+                    let sender = sender.clone();
+                    move |queue| {
+                        thread_qos::apply(worker_qos);
+                        run_worker(queue, &sender, control, probes, legacy_policy)
+                    }
+                },
+                |scope| {
+                    // Stop helpers before the shared queue closes and all threads join.
+                    profile.map(|state| {
+                        let (stop, signal) = std::sync::mpsc::channel::<()>();
+                        scope.spawn(move || {
+                            thread_qos::apply(worker_qos);
+                            state.run_sampler(&signal);
+                        });
+                        stop
+                    })
+                },
+                || {
+                    drop(sender);
+                    let mut scanner = Scanner {
+                        root,
+                        options,
+                        control,
+                        policy: &mut policy,
+                        legacy_policy,
+                        emit: &mut emit,
+                        probes,
+                        queue: &queue,
+                        artifacts: Vec::new(),
+                        progress: Vec::new(),
+                        warnings: Vec::new(),
+                        had_errors: false,
+                        changed: false,
+                        tasks: DirectoryTaskLedger::default(),
+                        profile,
+                    };
+                    scanner.run(&receiver);
+                    // Keep the original channel lifetime: release unread responses before scope join.
+                    // Moving receiver into this closure also drops it here if a callback unwinds.
+                    drop(receiver);
+                    (
+                        scanner.artifacts,
+                        scanner.warnings,
+                        scanner.had_errors,
+                        scanner.changed,
+                    )
+                },
+            );
+            let status = if control.is_failed() {
+                ScanStatus::Failed
+            } else if control.is_cancelled() {
+                ScanStatus::Cancelled
+            } else if had_errors {
+                ScanStatus::Incomplete
+            } else if changed {
+                ScanStatus::CompletedWithChanges
+            } else {
+                ScanStatus::Completed
+            };
+            if let Some(profile) = profile {
+                profile.counters.pending_tasks.store(0, Ordering::Relaxed);
+                profile.record();
+                for sample in profile.drain() {
+                    emit(&ScanEvent::Profile(sample));
+                }
+            }
+            emit(&ScanEvent::Finished(status));
+            ScanReport {
+                artifacts,
+                warnings,
+                status,
+                #[cfg(test)]
+                probes: probes.counts(),
             }
         },
-        |scope| {
-            // Stop helpers before the shared queue closes and all threads join.
-            profile.map(|state| {
-                let (stop, signal) = std::sync::mpsc::channel::<()>();
-                scope.spawn(move || {
-                    thread_qos::apply(worker_qos);
-                    state.run_sampler(&signal);
-                });
-                stop
-            })
-        },
-        || {
-            drop(sender);
-            let mut scanner = Scanner {
-                root,
-                options,
-                control,
-                policy: &mut policy,
-                legacy_policy,
-                emit: &mut emit,
-                probes,
-                queue: &queue,
-                artifacts: Vec::new(),
-                progress: Vec::new(),
-                warnings: Vec::new(),
-                had_errors: false,
-                changed: false,
-                tasks: DirectoryTaskLedger::default(),
-                profile,
-            };
-            scanner.run(&receiver);
-            // Keep the original channel lifetime: release unread responses before scope join.
-            // Moving receiver into this closure also drops it here if a callback unwinds.
-            drop(receiver);
-            (
-                scanner.artifacts,
-                scanner.warnings,
-                scanner.had_errors,
-                scanner.changed,
-            )
-        },
     );
-    let status = if control.is_failed() {
-        ScanStatus::Failed
-    } else if control.is_cancelled() {
-        ScanStatus::Cancelled
-    } else if had_errors {
-        ScanStatus::Incomplete
-    } else if changed {
-        ScanStatus::CompletedWithChanges
-    } else {
-        ScanStatus::Completed
-    };
-    if let Some(profile) = profile {
-        profile.counters.pending_tasks.store(0, Ordering::Relaxed);
-        profile.record();
-        for sample in profile.drain() {
-            emit(&ScanEvent::Profile(sample));
-        }
-    }
-    emit(&ScanEvent::Finished(status));
-    ScanReport {
-        artifacts,
-        warnings,
-        status,
-        #[cfg(test)]
-        probes: probes.counts(),
+    match result {
+        Ok(report) => report,
+        Err(GuardedSetupError::Guard(error)) => failed_start(error, &mut emit, probes),
+        Err(GuardedSetupError::Backend(never)) => match never {},
     }
 }
 

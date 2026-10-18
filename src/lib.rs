@@ -3,9 +3,10 @@ use hunter_fs_core::spawn_workers;
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryListing, DirectoryMeasurement,
     DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask,
-    DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, MeasuredSize,
-    PlannedChild, RootAdmission, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress,
-    admit_root, collect_directory, drive_scan, metadata_bytes, run_directory_worker,
+    DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, GuardedSetupError,
+    MeasuredSize, PlannedChild, RootAdmission, RootObservation, ScanCoordinator, StdFilesystem,
+    SubtreeProgress, admit_root, collect_directory, drive_scan, metadata_bytes,
+    run_directory_worker, with_guarded_backend,
 };
 use std::{
     borrow::Cow,
@@ -701,23 +702,43 @@ fn run_worker(
     probes: &Probes,
     legacy_policy: bool,
 ) {
-    // Keep thread policy active through all synchronous Hunter callbacks.
-    let _materialization = match materialization::Guard::enter() {
-        Ok(guard) => guard,
-        Err(error) => {
-            let _ = results.send(WorkerMessage::SetupFailed(error));
-            return;
-        }
-    };
-    run_directory_worker(
+    run_worker_with_guard(
         queue,
-        &mut WorkerAdapter {
-            results,
-            control,
-            probes,
-            legacy_policy,
-        },
+        results,
+        control,
+        probes,
+        legacy_policy,
+        materialization::Guard::enter,
     );
+}
+
+fn run_worker_with_guard<G>(
+    queue: &WorkQueue,
+    results: &std::sync::mpsc::Sender<WorkerMessage>,
+    control: &ScanControl,
+    probes: &Probes,
+    legacy_policy: bool,
+    enter: impl FnOnce() -> std::io::Result<G>,
+) {
+    let result = with_guarded_backend(
+        enter,
+        || {
+            Ok::<_, std::convert::Infallible>(WorkerAdapter {
+                results,
+                control,
+                probes,
+                legacy_policy,
+            })
+        },
+        |backend| run_directory_worker(queue, backend),
+    );
+    match result {
+        Ok(()) => {}
+        Err(GuardedSetupError::Guard(error)) => {
+            let _ = results.send(WorkerMessage::SetupFailed(error));
+        }
+        Err(GuardedSetupError::Backend(never)) => match never {},
+    }
 }
 
 struct WorkerAdapter<'a> {
@@ -2076,6 +2097,62 @@ mod tests {
                 ..Probes::default()
             },
         )
+    }
+
+    #[test]
+    fn worker_guard_failure_publishes_setup_error_without_backend_work() {
+        let queue = WorkQueue::default();
+        queue.close();
+        let probes = Probes::default();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        run_worker_with_guard(&queue, &sender, &ScanControl::new(), &probes, true, || {
+            Err::<(), _>(std::io::Error::from_raw_os_error(13))
+        });
+        let WorkerMessage::SetupFailed(error) = receiver.try_recv().unwrap() else {
+            panic!("setup failure")
+        };
+        assert_eq!(error.raw_os_error(), Some(13));
+        assert!(matches!(
+            receiver.try_recv(),
+            Err(std::sync::mpsc::TryRecvError::Empty)
+        ));
+        assert_eq!(probes.counts().metadata, 0);
+        assert!(probes.counts().listing_threads.is_empty());
+    }
+
+    #[test]
+    fn worker_backend_panic_releases_same_thread_guard() {
+        use std::cell::Cell;
+        let tree = TempTree::new();
+        let queue = WorkQueue::default();
+        queue
+            .push(ListTask {
+                id: 0,
+                path: tree.0.clone(),
+                context: 0,
+                measure: false,
+            })
+            .unwrap();
+        let dropped = Cell::new(false);
+        struct Guard<'a>(&'a Cell<bool>, std::thread::ThreadId);
+        impl Drop for Guard<'_> {
+            fn drop(&mut self) {
+                assert_eq!(std::thread::current().id(), self.1);
+                self.0.set(true);
+            }
+        }
+        let probes = Probes {
+            hook: Some(Box::new(|_, _| panic!("injected backend panic"))),
+            ..Probes::default()
+        };
+        let (sender, _receiver) = std::sync::mpsc::channel();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            run_worker_with_guard(&queue, &sender, &ScanControl::new(), &probes, true, || {
+                Ok(Guard(&dropped, std::thread::current().id()))
+            });
+        }));
+        assert!(result.is_err());
+        assert!(dropped.get());
     }
 
     #[test]

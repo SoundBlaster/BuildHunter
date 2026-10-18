@@ -1,5 +1,5 @@
 //! Portable one-directory enumeration and metadata size primitives.
-//! Product policy, recursion, workers and filesystem access guards are host-owned.
+//! Product policy and native/batch backend selection remain host-owned.
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
 use std::{
@@ -323,3 +323,9 @@ pub use session::run_scoped_workers;
 
 mod admission;
 pub use admission::{RootAdmission, admit_root};
+
+mod lifetime;
+pub use lifetime::{GuardedSetupError, with_guarded_backend};
+
+mod materialization;
+pub use materialization::NonMaterializingIoGuard;
