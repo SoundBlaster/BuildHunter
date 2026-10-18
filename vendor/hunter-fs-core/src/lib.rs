@@ -308,3 +308,6 @@ pub use execution::{CoordinatorExit, ScanCoordinator, drive_scan};
 
 mod backend;
 pub use backend::{FilesystemBackend, RootObservation, StdFilesystem, observe_root};
+
+mod worker;
+pub use worker::{DirectoryWorker, run_directory_worker};

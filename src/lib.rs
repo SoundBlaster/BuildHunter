@@ -1,8 +1,9 @@
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryEvent, DirectoryListing, DirectoryMeasurement,
-    DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryTaskLedger, DirectoryVisit,
-    FilesystemBackend, MeasuredSize, PlannedChild, RootObservation, ScanCoordinator, StdFilesystem,
-    SubtreeProgress, drive_scan, metadata_bytes, observe_root, spawn_workers, visit_directory,
+    DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask,
+    DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, MeasuredSize,
+    PlannedChild, RootObservation, ScanCoordinator, StdFilesystem, SubtreeProgress, drive_scan,
+    metadata_bytes, observe_root, run_directory_worker, spawn_workers, visit_directory,
     worker_count,
 };
 use std::{
@@ -809,8 +810,7 @@ fn run_worker(
     probes: &Probes,
     legacy_policy: bool,
 ) {
-    // Hunter closes the queue on worker panic. Platform access/QoS and
-    // task-specific listing/measurement remain owned by this host.
+    // Keep thread policy active through all synchronous Hunter callbacks.
     let _materialization = match materialization::Guard::enter() {
         Ok(guard) => guard,
         Err(error) => {
@@ -818,99 +818,111 @@ fn run_worker(
             return;
         }
     };
-    while let Some(task) = queue.pop() {
-        let listing_started = control.timer();
-        let listing = list_directory(&task.path, control, probes, legacy_policy);
-        ScanControl::record_time(&control.listing_ns, listing_started);
+    run_directory_worker(
+        queue,
+        &mut WorkerAdapter {
+            results,
+            control,
+            probes,
+            legacy_policy,
+        },
+    );
+}
+
+struct WorkerAdapter<'a> {
+    results: &'a std::sync::mpsc::Sender<WorkerMessage>,
+    control: &'a ScanControl,
+    probes: &'a Probes,
+    legacy_policy: bool,
+}
+impl DirectoryWorker for WorkerAdapter<'_> {
+    type Id = usize;
+    type Context = u32;
+
+    fn list(&mut self, task: &ListTask) -> Listing {
+        let listing_started = self.control.timer();
+        let listing = list_directory(&task.path, self.control, self.probes, self.legacy_policy);
+        ScanControl::record_time(&self.control.listing_ns, listing_started);
+        listing
+    }
+    fn prefetch(&mut self, task: &ListTask, listing: &Listing) -> bool {
         let name = task.path.file_name().map(os_str_bytes).unwrap_or_default();
         // Speculatively measure likely artifact roots; the coordinator reads anything missed.
-        let prefetch = !task.measure
-            && legacy_policy
-            && may_classify_directory(&name, listing.context, task.context);
-        let plan = task.measurement_plan(&listing.children, prefetch);
-        let measuring = plan.is_some();
-        if results
-            .send(WorkerMessage::Directory(DirectoryResult::Listed {
-                id: task.id,
-                listing,
-                measuring,
-            }))
-            .is_err()
-        {
-            return;
-        }
-        if let Some(plan) = plan {
-            let measurement_started = control.timer();
-            let measured = plan.measure(
-                |path| probes.symlink_metadata(path),
-                |path, files| {
-                    let _ = (path, files);
-                    #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
-                    let mut injected = std::collections::HashMap::new();
-                    #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
-                    for file in files.iter().flatten() {
-                        if let Err(error) = probes.hook(ProbePoint::Metadata, file) {
-                            injected.insert(file.clone(), error);
-                        }
+        !task.measure
+            && self.legacy_policy
+            && may_classify_directory(&name, listing.context, task.context)
+    }
+    fn measure(
+        &mut self,
+        plan: DirectoryMeasurementPlan<'_, usize>,
+    ) -> DirectoryMeasurement<usize> {
+        let control = self.control;
+        let probes = self.probes;
+        let measurement_started = control.timer();
+        let measured = plan.measure(
+            |path| probes.symlink_metadata(path),
+            |path, files| {
+                let _ = (path, files);
+                #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
+                let mut injected = std::collections::HashMap::new();
+                #[cfg(all(test, target_os = "macos", feature = "macos-bulk-metadata"))]
+                for file in files.iter().flatten() {
+                    if let Err(error) = probes.hook(ProbePoint::Metadata, file) {
+                        injected.insert(file.clone(), error);
                     }
+                }
+                #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
+                let mut bulk = if files.iter().any(Option::is_some) {
+                    if control.profiling.load(Ordering::Relaxed) {
+                        control.bulk_directories.fetch_add(1, Ordering::Relaxed);
+                    }
+                    #[cfg(test)]
+                    probes.record_policy();
+                    Some(bulk_metadata::read(path, control))
+                } else {
+                    None
+                };
+                move |file: &Path| {
                     #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-                    let mut bulk = if files.iter().any(Option::is_some) {
-                        if control.profiling.load(Ordering::Relaxed) {
-                            control.bulk_directories.fetch_add(1, Ordering::Relaxed);
-                        }
+                    if let Some(result) = &mut bulk {
                         #[cfg(test)]
-                        probes.record_policy();
-                        Some(bulk_metadata::read(path, control))
-                    } else {
-                        None
-                    };
-                    move |file: &Path| {
-                        #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-                        if let Some(result) = &mut bulk {
-                            #[cfg(test)]
-                            if let Some(error) = injected.remove(file) {
-                                return Err(error);
-                            }
-                            match result {
-                                Ok(entries) => {
-                                    let name =
-                                        file.file_name().map(os_str_bytes).unwrap_or_default();
-                                    if let Some(size) = entries.remove(name.as_ref()) {
-                                        return size.map_err(|error| {
-                                            materialization::describe_error(file, error)
-                                        });
-                                    }
-                                }
-                                Err(error) if error.kind() == std::io::ErrorKind::Unsupported => {}
-                                Err(error) => {
-                                    let error = error.raw_os_error().map_or_else(
-                                        || std::io::Error::new(error.kind(), error.to_string()),
-                                        std::io::Error::from_raw_os_error,
-                                    );
-                                    return Err(materialization::describe_error(file, error));
-                                }
-                            }
-                            if control.profiling.load(Ordering::Relaxed) {
-                                control.bulk_fallbacks.fetch_add(1, Ordering::Relaxed);
-                            }
-                            // No complete metadata was returned; the portable probe decides
-                            // whether this is unsupported metadata or a vanished entry.
+                        if let Some(error) = injected.remove(file) {
+                            return Err(error);
                         }
-                        probes.symlink_metadata(file).map(MeasuredSize::from)
+                        match result {
+                            Ok(entries) => {
+                                let name = file.file_name().map(os_str_bytes).unwrap_or_default();
+                                if let Some(size) = entries.remove(name.as_ref()) {
+                                    return size.map_err(|error| {
+                                        materialization::describe_error(file, error)
+                                    });
+                                }
+                            }
+                            Err(error) if error.kind() == std::io::ErrorKind::Unsupported => {}
+                            Err(error) => {
+                                let error = error.raw_os_error().map_or_else(
+                                    || std::io::Error::new(error.kind(), error.to_string()),
+                                    std::io::Error::from_raw_os_error,
+                                );
+                                return Err(materialization::describe_error(file, error));
+                            }
+                        }
+                        if control.profiling.load(Ordering::Relaxed) {
+                            control.bulk_fallbacks.fetch_add(1, Ordering::Relaxed);
+                        }
+                        // No complete metadata was returned; the portable probe decides
+                        // whether this is unsupported metadata or a vanished entry.
                     }
-                },
-                || control.should_stop(),
-            );
-            ScanControl::record_time(&control.measurement_ns, measurement_started);
-            if results
-                .send(WorkerMessage::Directory(DirectoryResult::Measured(
-                    measured,
-                )))
-                .is_err()
-            {
-                return;
-            }
-        }
+                    probes.symlink_metadata(file).map(MeasuredSize::from)
+                }
+            },
+            || control.should_stop(),
+        );
+        ScanControl::record_time(&control.measurement_ns, measurement_started);
+        measured
+    }
+    fn publish(&mut self, result: DirectoryResult<usize, u32>) -> bool {
+        self.results.send(WorkerMessage::Directory(result)).is_ok()
     }
 }
 
@@ -2529,6 +2541,55 @@ mod tests {
             }
         });
         assert!(control.is_cancelled());
+    }
+
+    #[test]
+    fn disconnected_worker_recipient_skips_measurement_and_leaves_next_task_queued() {
+        let tree = TempTree::new();
+        fs::write(tree.0.join("data"), b"payload").unwrap();
+        let queue = WorkQueue::default();
+        for id in [18, 17] {
+            queue
+                .push(ListTask {
+                    id,
+                    path: tree.0.clone(),
+                    measure: true,
+                    context: 0,
+                })
+                .unwrap_or_else(|_| panic!("open queue"));
+        }
+        let (sender, receiver) = std::sync::mpsc::channel();
+        drop(receiver);
+        #[cfg(target_os = "macos")]
+        let (previous_policy, guarded_policy) = {
+            let previous = materialization::current_policy();
+            let _guard = materialization::Guard::enter().unwrap();
+            (previous, materialization::current_policy())
+        };
+        let probes = Probes::default();
+        run_worker(&queue, &sender, &ScanControl::new(), &probes, false);
+        assert_eq!(queue.pop().unwrap().id, 18);
+        queue.close();
+        let counts = probes.counts();
+        assert_eq!(
+            counts.metadata, 0,
+            "rejected listing must suppress metadata and bulk preparation"
+        );
+        assert_eq!(
+            counts.marker_probes, 0,
+            "observer mode keeps legacy policy disabled"
+        );
+        #[cfg(target_os = "macos")]
+        {
+            assert!(!counts.materialization_policies.is_empty());
+            assert!(
+                counts
+                    .materialization_policies
+                    .iter()
+                    .all(|policy| *policy == guarded_policy)
+            );
+            assert_eq!(materialization::current_policy(), previous_policy);
+        }
     }
 
     #[test]

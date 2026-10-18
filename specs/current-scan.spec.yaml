@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.9
+  version: 0.1.0-draft.10
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -38,7 +38,7 @@ requires:
     summary: Generic task queue/shutdown/scoped launch; host supplies coordinator guard, workers, platform setup and result accounting.
   - id: hunter.fs.directory_tasks
     optional: false
-    summary: Opaque task/listing/result types and aligned measurement plans; host publishes Listed first, provides guarded backends and applies final policy.
+    summary: Opaque task/listing/result types and aligned measurement plans; the worker helper publishes Listed first, host provides guarded backends and applies final policy.
   - id: hunter.fs.child_traversal
     optional: false
     summary: Ordered host-selected directory requests and indexed leaf observations; host owns cloud/stop effects, scheduling, ancestry and status.
@@ -54,6 +54,9 @@ requires:
   - id: hunter.fs.backend
     optional: false
     summary: Native path metadata/listing seam and one-call root observation; host retains admission, guarded probes, bulk and marker-following policy.
+  - id: hunter.fs.directory_worker
+    optional: false
+    summary: Shared synchronous worker protocol publishes listing before measurement; host retains guarded listing/prefetch/backend/timing callbacks and actual scope lifetime.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -111,6 +114,15 @@ constraints:
     symlinks are entries and are not followed; intermediate components/read_dir
     remain path-based with existing race limits. Probes preserves error decoration,
     hooks and counters; marker following and bulk acquisition stay product-owned.
+- id: directory_worker
+  level: MUST
+  statement: After worker materialization guard setup, execute directory tasks through
+    Hunter DirectoryWorker. Publish Listed before measurement and send a returned
+    cancelled/partial Measured result. On receiver rejection stop before further
+    measurement or another task. Keep marker/prefetch interpretation, guarded
+    portable/bulk metadata preparation, fallback/error decoration and opt-in timers
+    inside WorkerAdapter. Guard setup failure still sends SetupFailed; panic/queue
+    closure and terminal publication retain their enclosing scope obligations.
 effects:
   sideEffects:
   - id: read_metadata
@@ -196,6 +208,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/backend.rs
   supports: [constraints.root_backend, constraints.symlink_scope, constraints.cloud_guard, scope]
+- id: hunter_worker_source
+  kind: source
+  path: vendor/hunter-fs-core/src/worker.rs
+  supports: [constraints.directory_worker, constraints.scan_lifetime, constraints.cloud_guard, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -232,12 +248,15 @@ provenance:
   - Native backend/root observation now delegates to Hunter 2d94443ae3c0614ff35d4afd98e3f9d0d01e02db from BuildHunter 7ef5bd98.
     Host applies cloud admission/guards and wraps metadata/listing calls with unchanged probes/error decoration.
     Fresh source/map/runtime receipts are in specs/validation/hunter-backend-20261015; complete engine startup remains pending.
+  - Directory worker protocol now delegates to Hunter a1b30a7967ed40f146bf4540af7fcdda4e3809b4 from BuildHunter 39e8275f.
+    WorkerAdapter retains marker/prefetch/backend/timing policy; guard setup precedes the complete loop.
+    Fresh source/map/runtime receipts are in specs/validation/hunter-worker-20261018; full engine startup remains pending.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 9a6abebc778d5093f0866488224ba887ae2ebf8f
+    revision: a2985eeb8e204ded3e9037b4e6d719d637c5d524
   files:
     owned:
     - src/lib.rs
@@ -256,4 +275,5 @@ implementationBindings:
     - vendor/hunter-fs-core/src/subtree.rs
     - vendor/hunter-fs-core/src/execution.rs
     - vendor/hunter-fs-core/src/backend.rs
+    - vendor/hunter-fs-core/src/worker.rs
     - vendor/hunter-fs-core/UPSTREAM.json

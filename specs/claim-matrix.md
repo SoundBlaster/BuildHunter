@@ -223,3 +223,28 @@ bound traversal, C1–C4 migration and C5 budgets are still pending. No speedup,
 improvement or live-cloud acceptance is inferred. Fresh identities/runtime/structural
 receipts are in specs/validation/hunter-backend-20261015, frozen maps/upstream
 contract in specs/evidence/hunter-backend-20261015. Historical receipts are retained.
+
+## Directory worker protocol — 2026-10-18
+
+HunterDirectoryWorker at a1b30a7967ed40f146bf4540af7fcdda4e3809b4 owns queue-pop, host listing/prefetch callbacks,
+plan construction, Listed-before-measurement publication and Measured delivery.
+A rejected result stops this worker before its next effect/task; it does not close
+the shared queue. BuildHunter WorkerAdapter retains marker/prefetch interpretation,
+portable/bulk acquisition, fallback/error decoration and timers. Its materialization
+guard lives outside the complete loop; SetupFailed, scope shutdown/join, receiver
+drop and Finished boundaries retain the previous assembly. Seven upstream tests
+cover the protocol, including borrowed non-Send state. The new application test
+checks receiver loss, no metadata/bulk work, preserved next task and restored I/O
+policy; existing publication/cancellation, worker panic, bulk and profile tests remain gates.
+
+Affected current scan directory_worker/scan_lifetime/cloud_guard and target Hunter
+generic_facts/io_contract/lifecycle remain draft. Current Scanner/Traversal and
+HunterDirectoryWorker roles are updated for CLI and GUI; target map remains a
+partial extraction. C1–C4 default plugin migration, C5 budgets, root/backend setup
+and descriptor-bound recursion remain pending. Source/maps/runtime/structural
+receipts: specs/validation/hunter-worker-20261018; frozen maps/upstream draft:
+specs/evidence/hunter-worker-20261018. Earlier receipts remain historical. No
+new speedup, RAM budget or native UI/home/live-provider acceptance is inferred.
+
+Next boundary: separate policy-free directory acquisition from listing marker
+collection, then assess startup/backend assembly using the same guarded adapter.

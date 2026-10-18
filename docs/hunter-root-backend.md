@@ -38,3 +38,7 @@ draft are in specs/evidence/hunter-backend-20261015. Contracts remain draft.
 No local native UI/home/live-provider acceptance is implied. Full startup/backend
 assembly, descriptor-bound recursion, default plugin migration and resource budgets
 remain separate work. Merge Hunter preserving its pinned commit, then BuildHunter.
+
+Follow-up: the [directory worker protocol](hunter-directory-worker.md) now delegates
+listing-first measurement publication to Hunter. Platform/backend policy and actual
+scope lifetime remain host-owned.

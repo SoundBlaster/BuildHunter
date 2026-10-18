@@ -102,3 +102,8 @@ Native backend/root observation at Hunter 2d94443ae3c0614ff35d4afd98e3f9d0d01e02
 HunterFilesystemBackend with NativePathAccess/RootInitialization. Current identities
 and frozen maps are under hunter-backend-20261015. Guard/admission/marker/bulk effects
 and full engine lifecycle remain host responsibilities.
+
+Directory worker protocol at Hunter a1b30a7967ed40f146bf4540af7fcdda4e3809b4 adds
+HunterDirectoryWorker with TaskExecution/ListingFirst/PublicationBoundary. Current
+identities and frozen maps are under hunter-worker-20261018. Host retains marker/
+prefetch and guarded metadata/bulk/timing policy; full startup remains pending.
