@@ -106,6 +106,27 @@ class PlanTests(unittest.TestCase):
         self.assertNotIn("Rust and CLI (macos-26)", required_jobs("ci.yml", lower))
         self.assertEqual(len(required_jobs("macos.yml", tip)), 4)
 
+    def test_draft_at_any_depth_holds_three_layer_batch(self):
+        for draft in [1, 2, 3]:
+            with self.subTest(draft=draft):
+                api = Fixture()
+                third = copy.deepcopy(api.prs[2])
+                third.update(number=3)
+                third["head"].update(ref="third", sha=OTHER)
+                third["base"].update(ref="tip", sha=TIP)
+                third["stack"].update(position=3)
+                api.prs[3] = third
+                for member in api.prs.values():
+                    member["stack"]["size"] = 3
+                api.prs[draft]["draft"] = True
+                for number in api.prs:
+                    current = plan(api, number, True)
+                    self.assertFalse(current["ready"] or current["macos"])
+                    self.assertIn("Rust and CLI (ubuntu-latest)", required_jobs("ci.yml", current))
+                api.prs[draft]["draft"] = False
+                self.assertEqual([plan(api, number, True)["macos"] for number in api.prs],
+                                 [False, False, True])
+
     def test_disabled_rollout_preserves_full_validation_on_each_layer(self):
         api = Fixture()
         for number in api.prs:
