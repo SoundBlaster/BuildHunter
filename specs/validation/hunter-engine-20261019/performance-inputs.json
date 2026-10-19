@@ -1,5 +1,5 @@
 {
-  "runtime_revision": "1c765b6e94ecd9b1ee9442ba351f3f00ab32847a",
+  "runtime_revision": "79b589313e95997758bd196dd60d0a8cd3b7eb03",
   "baseline_revision": "1f92df7fdad00787e02f2eb029fa09f6007c66ca",
   "note": "Working tree differences are documentation/maps/specifications/validation receipts only. Every runtime/dependency/harness input listed here is byte-identical to the immutable runtime revision.",
   "files": {
@@ -23,13 +23,13 @@
     "vendor/hunter-fs-core/Cargo.toml": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b",
     "vendor/hunter-fs-core/LICENSE": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1",
     "vendor/hunter-fs-core/README.md": "394dabdbba66770e06491571d8f45fce8f2ea8dd05430dc9a289feb2bc83b37e",
-    "vendor/hunter-fs-core/UPSTREAM.json": "991213799dc0b0ff730625a2e274c1c4e73606e378fc9d40afccf558e13f2cfc",
+    "vendor/hunter-fs-core/UPSTREAM.json": "30a49ce3667a76f64ce0d102e078d0024f534b439c729c0c59c8b0878c8e8a15",
     "vendor/hunter-fs-core/src/admission.rs": "d88e14a775a0980e33162784867891fa2337fb276e21233a67bb5feb6fc43887",
     "vendor/hunter-fs-core/src/assembly.rs": "32f422111a85a491b03cd7456a7041e88873a44495229110d48cc721256ed0d1",
     "vendor/hunter-fs-core/src/backend.rs": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87",
     "vendor/hunter-fs-core/src/children.rs": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8",
     "vendor/hunter-fs-core/src/coordinator.rs": "2cd2b6419a9fa6d7ad30fb4493083299c508244c2dbf02974c00ae5df2c37fc8",
-    "vendor/hunter-fs-core/src/engine.rs": "a7bda36a47c510b89f896f1a399c03d0729cf72b02cea357573bd53097c83e77",
+    "vendor/hunter-fs-core/src/engine.rs": "81e08e2b8de585878bda670607796eba967cb8d756e401665c4dfb53da31c078",
     "vendor/hunter-fs-core/src/execution.rs": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae",
     "vendor/hunter-fs-core/src/ledger.rs": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb",
     "vendor/hunter-fs-core/src/lib.rs": "9c272f22201befd78b2117ba9d74d24edd57eea596e6f654f256207523c6d14a",

@@ -439,7 +439,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 1c765b6e94ecd9b1ee9442ba351f3f00ab32847a
+    revision: 79b589313e95997758bd196dd60d0a8cd3b7eb03
   files:
     owned:
     - src/lib.rs

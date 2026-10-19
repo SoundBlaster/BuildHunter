@@ -526,7 +526,7 @@ coordinator, routing and measurement contracts behind a reusable scan entrypoint
 
 ### Composed serial ScanEngine — 2026-10-19
 
-Hunter d728f1a9c13a578df930ff2cc4a42359398d1ee7 composes the coordinator, child routing
+Hunter 920a51afb85efdb21951d61d1ef3894148017cbc composes the coordinator, child routing
 and selected metadata resolver behind consuming ScanEngine run/drive. ScanHandler
 is the single product host contract. Hunter owns typed result dispatch, listing-state
 acquisition/speculative reservation, child callbacks and empty/immediate/deferred/
