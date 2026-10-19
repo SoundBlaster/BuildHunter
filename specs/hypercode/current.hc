@@ -77,6 +77,10 @@ BuildHunterRuntime
     HunterRootAdmission
       HostRootPreflight
       RootAdmissionOutcome
+    HunterScanEngine
+      ResponseInterpretation
+      BranchPreparation
+      DeferredResolution
     HunterEntryProcessing
       ChildRouting
       SelectedMetadata

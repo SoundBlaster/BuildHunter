@@ -69,6 +69,9 @@ requires:
   - id: hunter.fs.root_admission
     optional: false
     summary: Opaque host preflight before one root observation; host interprets skip/error and chooses scheduling/finalization.
+  - id: hunter.fs.scan_engine
+    optional: false
+    summary: Compose root/task execution, serial child routing and deferred selected metadata around the product host.
   - id: hunter.fs.entry_processing
     optional: false
     summary: Serial child routing and selected root/worker/fallback metadata reconciliation around product callbacks.
@@ -147,7 +150,7 @@ constraints:
 - id: root_admission
   level: MUST
   statement: Delegate initial cloud preflight and metadata sequencing to Hunter
-    TraversalCoordinator::run calling admit_root. ArtifactHandler Skipped handling
+    ScanEngine::run through TraversalCoordinator calling admit_root. ArtifactHandler Skipped handling
     warns and declines initialization before the result pump/finish callback;
     Unavailable warns but retains the existing pump/finalization path. Observed
     Directory/Entry uses original metadata and existing scheduling/classification.
@@ -211,7 +214,7 @@ constraints:
 - id: traversal_coordinator
   level: MUST
   statement: Replace private Scanner with ArtifactHandler implementing Hunter
-    TraversalHandler. Hunter coordinator owns TraversalTasks ledger and borrows the
+    ScanHandler. Hunter engine delegates to the coordinator owning TraversalTasks and borrows the
     scoped queue; preserve reserve/telemetry/publish ordering, receipt accounting,
     speculative measurement retirement, root outcome handling and partial completion
     callback timing. Keep marker/classification/ancestry, child-selection policy, selected-size
@@ -220,15 +223,26 @@ constraints:
     coordinator return; unread receiver still releases before the enclosing scope join.
 - id: entry_processing
   level: MUST
-  statement: ArtifactChildren supplies checkpoint/access/stop and directory scheduling/
-    file selection to consuming ChildTraversal::route. Preserve original indices,
-    context clone behavior and stop prefix; release listing before selected measurement.
-    PendingMeasure owns Hunter SelectedMeasurementPlan, whose root/worker/fallback
-    directory precedence and original slot lookup retain cached errors without retry.
-    Missing/out-of-range/consumed slots fall back once through guarded Probes. Keep
-    selected-entry checkpoint cadence, byte mode/aggregation, affected ancestry and
-    partial completion in ArtifactMeasurements/ArtifactHandler callbacks. finish runs
-    before selected/cached buffers release; no cancellation check or I/O is added.
+  statement: ArtifactHandler supplies checkpoint/access/stop, directory scheduling and
+    file selection through ScanHandler. Engine ChildTraversal routing preserves original
+    indices, context clones and stop prefix; release listing before selected measurement.
+    Hunter PendingSelection owns SelectedMeasurementPlan plus opaque ArtifactBranch;
+    root/worker/fallback precedence and original slot lookup retain cached errors without
+    retry. Missing/out-of-range/consumed slots fall back once through guarded Probes.
+    Keep selected-entry checkpoint cadence, byte mode/aggregation, affected ancestry
+    and partial completion in host callbacks. finish_directory runs before selected/
+    cached buffers and branch state release; no cancellation check or I/O is added.
+- id: scan_engine
+  level: MUST
+  statement: ArtifactHandler uses consuming ScanEngine run/drive inside the existing
+    scoped session. After receipt/stop handling, host response decodes SetupFailed or
+    typed DirectoryResult. Engine lists telemetry before taking state, notifies promised
+    measurement count, and calls host preparation. Abandon retains stop/partial policy;
+    Complete records ignored speculative work then finishes the branch. Traverse routes
+    children, completes empty unselected work, defers selected work when promised, or
+    resolves immediately otherwise. Measured consumes deferred selection once; ignored
+    responses have no measurement/status effects. Keep guards, receiver-before-join and
+    final Profile/Finished after join unchanged. Drained is not a success status.
 effects:
   sideEffects:
   - id: read_metadata
@@ -358,6 +372,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/coordinator.rs
   supports: [constraints.traversal_coordinator, constraints.result_execution, constraints.root_admission, scope]
+- id: scan_engine_source
+  kind: source
+  path: vendor/hunter-fs-core/src/engine.rs
+  supports: [constraints.scan_engine, constraints.entry_processing, constraints.traversal_coordinator, constraints.scan_lifetime, scope]
 - id: entry_processing_source
   kind: source
   path: vendor/hunter-fs-core/src/processing.rs
@@ -421,7 +439,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 979b6b89c9772005bf764db72ffdc4cb046247f1
+    revision: 1c765b6e94ecd9b1ee9442ba351f3f00ab32847a
   files:
     owned:
     - src/lib.rs
@@ -446,6 +464,7 @@ implementationBindings:
     - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/src/measurement.rs
     - vendor/hunter-fs-core/src/processing.rs
+    - vendor/hunter-fs-core/src/engine.rs
     - vendor/hunter-fs-core/src/coordinator.rs
     - vendor/hunter-fs-core/src/assembly.rs
     - vendor/hunter-fs-core/src/session.rs

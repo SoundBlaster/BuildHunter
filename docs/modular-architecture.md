@@ -293,7 +293,12 @@ Mac App Store. Собственный сервис загрузки катало
 поведение. При изменении кода карты и контракты обновляются по корневому
 [AGENTS.md](../AGENTS.md), сохраняя прошлые результаты проверки как исторические.
 
-## Recursive child planning — 2026-10-15
+## История выделения
+
+Записи ниже описывают состояние каждого этапа. Текущее объединение приведено в конце;
+ранние упоминания pending не отменяют последующие реализации.
+
+### Recursive child planning — 2026-10-15
 
 ChildTraversal/DirectoryRequest now route host-admitted children through the
 pinned std-only Hunter core. Product marker/classification/ancestry, cloud/stop
@@ -373,3 +378,12 @@ Full generic engine/child-routing assembly remains pending.
 Child routing and selected metadata reconciliation now live in Hunter 2031df50f8324eaaf91856c5dc382d35694b2fd4.
 Product access/selection/aggregation remain in ArtifactChildren and ArtifactMeasurements.
 See [entry processing](hunter-entry-processing.md); complete engine facade remains pending.
+
+### Текущее объединение ScanEngine — 2026-10-19
+
+Общий serial ScanEngine уже объединяет coordinator, routing и выбранные измерения.
+BuildHunter реализует один ScanHandler; ArtifactBranch хранит только продуктовый
+контекст ветки. Прежние отдельные ArtifactChildren/ArtifactMeasurements и PendingMeasure
+больше не нужны. [Граница двигателя](hunter-scan-engine.md) описывает callbacks,
+владение и оставшиеся обязанности приложения. Factory backend/workers, descriptor
+recursion, миграция default plugins и C5 resource budgets ещё не завершены.
