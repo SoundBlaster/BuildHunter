@@ -340,3 +340,6 @@ mod processing;
 pub use processing::{
     ChildHandler, MeasurementHandler, RoutedChildren, SelectedEntry, SelectedMeasurementPlan,
 };
+
+mod engine;
+pub use engine::{BranchPlan, ListingAction, PendingSelection, ScanEngine, ScanHandler, ScanTasks};
