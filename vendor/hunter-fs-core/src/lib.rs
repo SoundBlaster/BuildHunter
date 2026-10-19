@@ -335,3 +335,8 @@ pub use assembly::{ScanSession, with_scan_session};
 
 mod coordinator;
 pub use coordinator::{TraversalCoordinator, TraversalHandler, TraversalOutcome, TraversalTasks};
+
+mod processing;
+pub use processing::{
+    ChildHandler, MeasurementHandler, RoutedChildren, SelectedEntry, SelectedMeasurementPlan,
+};

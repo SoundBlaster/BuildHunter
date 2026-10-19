@@ -1,12 +1,12 @@
 #[cfg(test)]
 use hunter_fs_core::spawn_workers;
 use hunter_fs_core::{
-    ChildDecision, ChildTraversal, DirectoryListing, DirectoryMeasurement,
+    ChildDecision, ChildHandler, ChildTraversal, DirectoryListing, DirectoryMeasurement,
     DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit,
-    DirectoryWorker, FilesystemBackend, GuardedSetupError, MeasuredSize, PlannedChild,
-    RootAdmission, RootObservation, StdFilesystem, SubtreeProgress, TraversalCoordinator,
-    TraversalHandler, TraversalTasks, collect_directory, metadata_bytes, run_directory_worker,
-    with_guarded_backend,
+    DirectoryWorker, FilesystemBackend, GuardedSetupError, MeasuredSize, MeasurementHandler,
+    RootAdmission, RootObservation, SelectedEntry, SelectedMeasurementPlan, StdFilesystem,
+    SubtreeProgress, TraversalCoordinator, TraversalHandler, TraversalTasks, collect_directory,
+    run_directory_worker, with_guarded_backend,
 };
 use std::{
     borrow::Cow,
@@ -851,18 +851,12 @@ struct DirNode {
 /// A listed directory whose sizes are still being read. `chain` includes the directory
 /// itself when it is an artifact; `parent_len` is the length of the chain above it.
 struct PendingMeasure {
-    path: PathBuf,
+    plan: SelectedMeasurementPlan<Option<u64>>,
     chain: Vec<u64>,
     parent_len: usize,
-    root_metadata: Option<fs::Metadata>,
-    files: Vec<FileSlot>,
 }
 
-struct FileSlot {
-    index: usize,
-    path: PathBuf,
-    artifact: Option<u64>,
-}
+type FileSlot = SelectedEntry<Option<u64>>;
 
 type ProductTasks<'a> = TraversalTasks<'a, DirNode, PendingMeasure, u32>;
 
@@ -880,6 +874,85 @@ struct ArtifactHandler<'a, P, E> {
     had_errors: bool,
     changed: bool,
     profile: Option<&'a profile::ProfileState>,
+}
+
+// Product adapters interpret generic Hunter routing and measurement callbacks.
+struct ArtifactChildren<'a, 'env, 'queue, P, E> {
+    owner: &'a mut ArtifactHandler<'env, P, E>,
+    tasks: &'a mut ProductTasks<'queue>,
+    chain: &'a [u64],
+}
+impl<P, E> ChildHandler<u32> for ArtifactChildren<'_, '_, '_, P, E>
+where
+    P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
+    E: FnMut(&ScanEvent),
+{
+    type Selected = FileSlot;
+    fn select(&mut self, index: usize, path: &Path, _: fs::FileType) -> ChildDecision {
+        if index % 32 == 0 {
+            self.owner.emit_profile();
+        }
+        if self.owner.control.should_stop() {
+            return ChildDecision::Stop;
+        }
+        if let Some(reason) = cloud_skip_reason(path) {
+            self.owner.warn(path, reason, self.chain);
+            return ChildDecision::Skip;
+        }
+        ChildDecision::Visit
+    }
+    fn directory(&mut self, _: usize, request: DirectoryRequest<u32>) {
+        for id in self.chain {
+            self.owner.progress[ArtifactHandler::<P, E>::index(*id)].add_pending_directory();
+        }
+        let node = DirNode {
+            path: request.path.clone(),
+            parent_markers: Some(request.context),
+            chain: self.chain.to_vec(),
+            root_metadata: None,
+        };
+        self.owner.enqueue(node, request, self.tasks);
+    }
+    fn entry(&mut self, index: usize, path: PathBuf, file_type: fs::FileType) -> Option<FileSlot> {
+        self.owner.visit_file(path, file_type, index, self.chain)
+    }
+}
+struct ArtifactMeasurements<'a, 'env, P, E> {
+    owner: &'a mut ArtifactHandler<'env, P, E>,
+    chain: &'a [u64],
+    parent_len: usize,
+}
+impl<P, E> MeasurementHandler<Option<u64>> for ArtifactMeasurements<'_, '_, P, E>
+where
+    P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
+    E: FnMut(&ScanEvent),
+{
+    fn directory(&mut self, path: &Path, metadata: std::io::Result<MeasuredSize>) {
+        match metadata {
+            Ok(metadata) => {
+                let bytes = metadata.bytes(self.owner.options.apparent_size);
+                if let Some(profile) = self.owner.profile {
+                    profile::bump(&profile.counters.measured_bytes, bytes);
+                }
+                for id in self.chain {
+                    self.owner.progress[ArtifactHandler::<P, E>::index(*id)].add_bytes(bytes);
+                }
+            }
+            Err(error) => self.owner.io_error(path, error, self.chain),
+        }
+    }
+    fn checkpoint(&mut self, index: usize) {
+        if index % 32 == 0 {
+            self.owner.emit_profile();
+        }
+    }
+    fn entry(&mut self, selected: &FileSlot, metadata: std::io::Result<MeasuredSize>) {
+        self.owner
+            .measure_file(selected, Some(metadata), self.chain);
+    }
+    fn finish(&mut self) {
+        self.owner.finish_directory(self.chain, self.parent_len);
+    }
 }
 
 impl<P, E> TraversalHandler for ArtifactHandler<'_, P, E>
@@ -1169,7 +1242,7 @@ where
         (!chain.is_empty() || artifact.is_some()).then_some(FileSlot {
             index,
             path,
-            artifact,
+            context: artifact,
         })
     }
 
@@ -1180,16 +1253,12 @@ where
         metadata: Option<std::io::Result<MeasuredSize>>,
         chain: &[u64],
     ) {
-        let metadata = metadata.unwrap_or_else(|| {
-            self.probes
-                .symlink_metadata(&slot.path)
-                .map(MeasuredSize::from)
-        });
+        let metadata = slot.resolve_metadata(self.probes, metadata);
         let bytes = match metadata {
             Ok(metadata) => metadata.bytes(self.options.apparent_size),
             Err(error) => {
                 let mut affected = chain.to_vec();
-                affected.extend(slot.artifact);
+                affected.extend(slot.context);
                 self.io_error(&slot.path, error, &affected);
                 0
             }
@@ -1201,7 +1270,7 @@ where
             let progress = &mut self.progress[Self::index(*id)];
             progress.add_bytes(bytes);
         }
-        if let Some(id) = slot.artifact {
+        if let Some(id) = slot.context {
             self.progress[Self::index(id)].set_bytes(bytes);
             self.complete(id);
         }
@@ -1279,60 +1348,27 @@ where
             }
             self.io_error(&error_path, error, &chain);
         }
-        let mut files = Vec::new();
-        let mut children =
-            ChildTraversal::new(listing.children, listing.context, !chain.is_empty());
-        while let Some(child) = children.next_child(|index, path, _| {
-            // Keep checkpoint/stop/access effects in the host, before child routing.
-            if index % 32 == 0 {
-                self.emit_profile();
-            }
-            if self.control.should_stop() {
-                return ChildDecision::Stop;
-            }
-            if let Some(reason) = cloud_skip_reason(path) {
-                self.warn(path, reason, &chain);
-                return ChildDecision::Skip;
-            }
-            ChildDecision::Visit
-        }) {
-            match child {
-                PlannedChild::Directory { request, .. } => {
-                    for id in &chain {
-                        self.progress[Self::index(*id)].add_pending_directory();
-                    }
-                    let child_node = DirNode {
-                        path: request.path.clone(),
-                        parent_markers: Some(request.context),
-                        chain: chain.clone(),
-                        root_metadata: None,
-                    };
-                    self.enqueue(child_node, request, tasks);
-                }
-                PlannedChild::Entry {
-                    index,
-                    path,
-                    file_type,
-                } => {
-                    if let Some(slot) = self.visit_file(path, file_type, index, &chain) {
-                        files.push(slot);
-                    }
-                }
-            }
-        }
-        if children.is_stopped() {
+        let routed = ChildTraversal::new(listing.children, listing.context, !chain.is_empty())
+            .route(&mut ArtifactChildren {
+                owner: self,
+                tasks,
+                chain: &chain,
+            });
+        if routed.stopped {
             return;
         }
-        // Release the consumed listing buffer before coordinator-side measurement.
-        drop(children);
+        // route released the listing/suffix before selected measurement work begins.
         let pending = PendingMeasure {
-            path,
+            plan: SelectedMeasurementPlan {
+                path,
+                include_directory: !chain.is_empty(),
+                root_metadata,
+                entries: routed.selected,
+            },
             chain,
             parent_len,
-            root_metadata,
-            files,
         };
-        if pending.chain.is_empty() && pending.files.is_empty() {
+        if !pending.plan.include_directory && pending.plan.entries.is_empty() {
             if measuring {
                 tasks.defer_measurement(node, None);
             }
@@ -1344,47 +1380,29 @@ where
         }
     }
 
-    /// Sizes from a worker are used when present; anything missing is read here.
+    /// Hunter reconciles root/worker/fallback metadata; the host interprets results.
     fn finish_measure(
         &mut self,
         pending: PendingMeasure,
         directory: Option<std::io::Result<fs::Metadata>>,
-        mut files: Vec<Option<std::io::Result<MeasuredSize>>>,
+        files: Vec<Option<std::io::Result<MeasuredSize>>>,
     ) {
         let PendingMeasure {
-            path,
+            plan,
             chain,
             parent_len,
-            root_metadata,
-            files: slots,
         } = pending;
-        if !chain.is_empty() {
-            let metadata = match root_metadata {
-                Some(metadata) => Ok(metadata),
-                None => directory.unwrap_or_else(|| self.probes.symlink_metadata(&path)),
-            };
-            match metadata {
-                Ok(metadata) => {
-                    let bytes = metadata_bytes(&metadata, self.options.apparent_size);
-                    if let Some(profile) = self.profile {
-                        profile::bump(&profile.counters.measured_bytes, bytes);
-                    }
-                    for id in &chain {
-                        let progress = &mut self.progress[Self::index(*id)];
-                        progress.add_bytes(bytes);
-                    }
-                }
-                Err(error) => self.io_error(&path, error, &chain),
-            }
-        }
-        for (index, slot) in slots.iter().enumerate() {
-            if index % 32 == 0 {
-                self.emit_profile();
-            }
-            let metadata = files.get_mut(slot.index).and_then(Option::take);
-            self.measure_file(slot, metadata, &chain);
-        }
-        self.finish_directory(&chain, parent_len);
+        let probes = self.probes;
+        plan.resolve(
+            probes,
+            directory,
+            files,
+            &mut ArtifactMeasurements {
+                owner: self,
+                chain: &chain,
+                parent_len,
+            },
+        );
     }
 
     /// Marks a directory finished in every artifact above it and completes any artifact

@@ -368,3 +368,26 @@ scope to retain root-observation timing. Classification, markers, child-routing
 policy, selected-subtree membership, report events and final status stay in the host.
 This remains partial engine extraction: see specs/traversal-coordinator.spec.yaml
 (draft); full domain-independent recursion and resource budgets are not promised.
+
+## Child routing and selected measurement resolution
+
+`ChildTraversal::route` drives serial ChildHandler callbacks and collects only
+selected entry payloads, retaining original listing positions and directory context
+clone behavior. Host select handles checkpoints/access/stop; directory callbacks
+own scheduling and entry callbacks own selection. Stop returns a selected prefix;
+empty input performs no callback. Listing/suffix and plan context release before
+return, including stop. Panic releases the plan and selected prefix on unwind.
+
+`SelectedEntry<Context>` stores original index/path and opaque host selection.
+resolve_metadata uses supplied results (including errors) without retry, falling
+back once to backend symlink_metadata only when absent. SelectedMeasurementPlan
+reconciles directory first (root observation > worker result > backend), then selected
+entries by original response index. Missing/out-of-range/already-taken slots fall
+back; duplicate indices consume cached results at most once. Checkpoint receives
+selected-entry position before lookup/I/O; no cancellation check is added. Host
+finish runs before selected/cached buffers release. Panic skips finish and unwinds.
+
+The host owns marker/classification/access policy, measurement inclusion, context
+meaning, byte aggregation and partial/terminal interpretation. No regular-file
+assertion, snapshot/race safety, hard-link deduplication, guard or memory bound is
+added. See specs/entry-processing.spec.yaml (draft) and fresh validation receipts.
