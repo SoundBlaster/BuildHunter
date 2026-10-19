@@ -21,6 +21,12 @@ pub struct BranchPlan<Branch> {
 }
 /// Prepare may abandon without completion (e.g. cancellation), complete without
 /// routing (e.g. pruning), or route children and reconcile selected measurements.
+// Metadata layout differs by platform; this short-lived control value stays inline
+// to avoid one heap allocation for every traversed directory.
+#[allow(
+    clippy::large_enum_variant,
+    reason = "Inline per-directory control avoids a hot-path allocation"
+)]
 pub enum ListingAction<Branch> {
     Abandon,
     Complete(Branch),
@@ -383,6 +389,10 @@ mod tests {
             self.0.set(self.0.get() + 1);
         }
     }
+    #[allow(
+        clippy::large_enum_variant,
+        reason = "Fixture preserves the host inline directory/control envelope"
+    )]
     enum Message {
         Directory(DirectoryResult<usize, u8>),
         Control,
