@@ -138,3 +138,8 @@ Guarded queue/single-launch assembly now binds Hunter `9f445cf8468e2f341d8e8e207
 HunterScanAssembly owns queue/count and the consumed launch token; root admission
 remains inside the product coordinator. Current identities and structural/runtime
 receipts are under `hunter-assembly-20261019`; full recursive engine is pending.
+
+Owned root/task-response coordinator now binds Hunter 10268f69c41890bb23ab4cdc33d25f3aac8e46d1.
+HunterTraversalCoordinator owns admission/pump/accounting; ArtifactHandler remains
+product interpretation without queue/ledger fields. Fresh identities and seven-profile
+validation are under hunter-coordinator-20261019; complete engine remains pending.
