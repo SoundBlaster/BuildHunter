@@ -1,0 +1,442 @@
+{
+  "baseline_sha": "1f92df7fdad00787e02f2eb029fa09f6007c66ca",
+  "candidate_sha": "79b589313e95997758bd196dd60d0a8cd3b7eb03",
+  "candidate_dirty": true,
+  "harness_sha256": "918ab00efd42a3a6e2b5c3e01b2360fe9d56f39a3672fe6381781a02cd22d754",
+  "host": {
+    "system": "macOS-27.0-arm64-arm-64bit",
+    "architecture": "arm64"
+  },
+  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+  "profile": "release",
+  "cache": "warm, shared fixture, interleaved revisions",
+  "threshold": {
+    "ratio": 1.5,
+    "allowance_ns": 5000000,
+    "mad_multiplier": 6
+  },
+  "summaries": {
+    "baseline": {
+      "source-tree": {
+        "elapsed_ns": {
+          "samples": [
+            3215375,
+            3287792,
+            3542167,
+            3230709,
+            3270042,
+            3945000,
+            2906708
+          ],
+          "median": 3270042,
+          "p95": 3945000,
+          "mad": 54667
+        },
+        "first_artifact_ns": {
+          "samples": [
+            309833,
+            364708,
+            1162833,
+            431959,
+            426500,
+            639875,
+            560958
+          ],
+          "median": 431959,
+          "p95": 1162833,
+          "mad": 122126
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        }
+      },
+      "many-roots": {
+        "elapsed_ns": {
+          "samples": [
+            78697458,
+            81960375,
+            78449250,
+            76634333,
+            68380417,
+            86853042,
+            93505917
+          ],
+          "median": 78697458,
+          "p95": 93505917,
+          "mad": 3262917
+        },
+        "first_artifact_ns": {
+          "samples": [
+            3284625,
+            3813083,
+            5352000,
+            2763500,
+            4441542,
+            8284417,
+            3586333
+          ],
+          "median": 3813083,
+          "p95": 8284417,
+          "mad": 628459
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        }
+      },
+      "pruned-git": {
+        "elapsed_ns": {
+          "samples": [
+            211864,
+            226602,
+            214364,
+            199000,
+            198712,
+            221556,
+            210099
+          ],
+          "median": 211864,
+          "p95": 226602,
+          "mad": 9692
+        },
+        "first_artifact_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        }
+      },
+      "cancel": {
+        "elapsed_ns": {
+          "samples": [
+            1909337,
+            1919408,
+            1934216,
+            1835556,
+            1811127,
+            1926256,
+            1872322
+          ],
+          "median": 1909337,
+          "p95": 1934216,
+          "mad": 24879
+        },
+        "first_artifact_ns": {
+          "samples": [
+            1821416,
+            1827706,
+            1842914,
+            1746885,
+            1730948,
+            1837322,
+            1789943
+          ],
+          "median": 1821416,
+          "p95": 1842914,
+          "mad": 21498
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            87897,
+            91681,
+            91266,
+            88658,
+            80158,
+            88914,
+            82364
+          ],
+          "median": 88658,
+          "p95": 91681,
+          "mad": 2608
+        }
+      }
+    },
+    "candidate": {
+      "source-tree": {
+        "elapsed_ns": {
+          "samples": [
+            3219667,
+            2909250,
+            3936083,
+            3129083,
+            3299833,
+            3529250,
+            3192833
+          ],
+          "median": 3219667,
+          "p95": 3936083,
+          "mad": 90584
+        },
+        "first_artifact_ns": {
+          "samples": [
+            781292,
+            402333,
+            676458,
+            336250,
+            444750,
+            433250,
+            548375
+          ],
+          "median": 444750,
+          "p95": 781292,
+          "mad": 103625
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        }
+      },
+      "many-roots": {
+        "elapsed_ns": {
+          "samples": [
+            73373834,
+            68848875,
+            115568334,
+            65348333,
+            77872667,
+            73770000,
+            79194292
+          ],
+          "median": 73770000,
+          "p95": 115568334,
+          "mad": 4921125
+        },
+        "first_artifact_ns": {
+          "samples": [
+            5992709,
+            2809791,
+            4457584,
+            3070916,
+            3411292,
+            3211000,
+            2990750
+          ],
+          "median": 3211000,
+          "p95": 5992709,
+          "mad": 220250
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        }
+      },
+      "pruned-git": {
+        "elapsed_ns": {
+          "samples": [
+            212066,
+            210022,
+            211433,
+            201147,
+            220029,
+            226206,
+            211524
+          ],
+          "median": 211524,
+          "p95": 226206,
+          "mad": 1502
+        },
+        "first_artifact_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "p95": 0,
+          "mad": 0
+        }
+      },
+      "cancel": {
+        "elapsed_ns": {
+          "samples": [
+            1854964,
+            1818970,
+            1856635,
+            1827512,
+            1888514,
+            1934393,
+            1866627
+          ],
+          "median": 1856635,
+          "p95": 1934393,
+          "mad": 29123
+        },
+        "first_artifact_ns": {
+          "samples": [
+            1773114,
+            1732368,
+            1771689,
+            1728391,
+            1799277,
+            1843091,
+            1783510
+          ],
+          "median": 1773114,
+          "p95": 1843091,
+          "mad": 26163
+        },
+        "cancellation_latency_ns": {
+          "samples": [
+            81833,
+            86568,
+            84906,
+            99112,
+            89118,
+            91268,
+            83108
+          ],
+          "median": 86568,
+          "p95": 99112,
+          "mad": 3460
+        }
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "scenario": "source-tree",
+      "metric": "elapsed_ns",
+      "baseline_median_ns": 3270042,
+      "candidate_median_ns": 3219667,
+      "limit_ns": 10776569.0,
+      "regression": false
+    },
+    {
+      "scenario": "source-tree",
+      "metric": "first_artifact_ns",
+      "baseline_median_ns": 431959,
+      "candidate_median_ns": 444750,
+      "limit_ns": 7002444.5,
+      "regression": false
+    },
+    {
+      "scenario": "many-roots",
+      "metric": "elapsed_ns",
+      "baseline_median_ns": 78697458,
+      "candidate_median_ns": 73770000,
+      "limit_ns": 172150439.0,
+      "regression": false
+    },
+    {
+      "scenario": "many-roots",
+      "metric": "first_artifact_ns",
+      "baseline_median_ns": 3813083,
+      "candidate_median_ns": 3211000,
+      "limit_ns": 15811878.5,
+      "regression": false
+    },
+    {
+      "scenario": "pruned-git",
+      "metric": "elapsed_ns",
+      "baseline_median_ns": 211864,
+      "candidate_median_ns": 211524,
+      "limit_ns": 5384960.0,
+      "regression": false
+    },
+    {
+      "scenario": "cancel",
+      "metric": "elapsed_ns",
+      "baseline_median_ns": 1909337,
+      "candidate_median_ns": 1856635,
+      "limit_ns": 8188017.5,
+      "regression": false
+    },
+    {
+      "scenario": "cancel",
+      "metric": "first_artifact_ns",
+      "baseline_median_ns": 1821416,
+      "candidate_median_ns": 1773114,
+      "limit_ns": 8018090.0,
+      "regression": false
+    },
+    {
+      "scenario": "cancel",
+      "metric": "cancellation_latency_ns",
+      "baseline_median_ns": 88658,
+      "candidate_median_ns": 86568,
+      "limit_ns": 5169395.0,
+      "regression": false
+    }
+  ]
+}

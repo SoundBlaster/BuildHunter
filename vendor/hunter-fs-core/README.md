@@ -391,3 +391,41 @@ The host owns marker/classification/access policy, measurement inclusion, contex
 meaning, byte aggregation and partial/terminal interpretation. No regular-file
 assertion, snapshot/race safety, hard-link deduplication, guard or memory bound is
 added. See specs/entry-processing.spec.yaml (draft) and fresh validation receipts.
+
+## Composed serial scan engine
+
+ScanEngine::run combines the existing TraversalCoordinator, ChildTraversal::route
+and SelectedMeasurementPlan::resolve. ScanHandler keeps domain decisions and effects
+in one caller-thread host; State, Branch, Selection, Context, RootReason and Message
+are opaque associated types. ScanTasks binds the common ledger's pending payload to
+an engine-owned PendingSelection (selected plan plus host branch context). No new
+queue, thread, cancellation check or filesystem read is introduced by composition.
+The lower-level coordinator/processors remain available independently.
+
+The engine takes a host-decoded DirectoryResult after receipt/stop handling. For a
+listing it calls listing_received, takes the original state/reserves any promised
+measurement, calls measurement_pending, then prepare_listing. Abandon performs no
+completion/defer repair; the host owns stop/partial meaning. Complete(branch) records
+an ignored speculative measurement and completes the directory without routing.
+Traverse(BranchPlan) releases the interpreted error buffer, routes original children
+and stops with no completion if host selection stops. Empty unselected work completes
+immediately; otherwise the engine defers the selected plan when a worker response is
+promised, or resolves missing metadata immediately through the supplied backend.
+Measured consumes deferred selection once; absent/ignored selection drops its result.
+
+The branch supplies original directory path, inclusion/root observation and opaque
+host state. Metadata precedence, original slots, cached-error/no-retry behavior and
+finish-before-selected-buffer-release retain the processor contract. Branch state
+outlives directory completion and releases afterward. ScanHandler::finish is partial
+loop finalization before ledger drop, distinct from finish_directory and post-join
+terminal publication. Drained can win at a zero-work boundary after a host control
+failure; it is not a success status. Messages and callbacks may borrow non-Send state.
+
+Call the consuming run after worker startup inside ScanSession's guarded scope;
+drive accepts previously initialized tasks. The host still chooses backends/workers,
+valid result protocol, root policy, access/selection, context meaning, scheduling,
+byte interpretation, aggregation, warnings/status and final events. Retain guards,
+release unread receivers before join and provide eventual responses or timed waits.
+This is a serial orchestration facade, not an autonomous worker/backend factory,
+descriptor-based traversal, a race-free snapshot or a memory/CPU budget guarantee.
+See specs/scan-engine.spec.yaml and the integration witnesses in engine.rs.

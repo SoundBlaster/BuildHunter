@@ -1,12 +1,11 @@
 #[cfg(test)]
 use hunter_fs_core::spawn_workers;
 use hunter_fs_core::{
-    ChildDecision, ChildHandler, ChildTraversal, DirectoryListing, DirectoryMeasurement,
-    DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit,
-    DirectoryWorker, FilesystemBackend, GuardedSetupError, MeasuredSize, MeasurementHandler,
-    RootAdmission, RootObservation, SelectedEntry, SelectedMeasurementPlan, StdFilesystem,
-    SubtreeProgress, TraversalCoordinator, TraversalHandler, TraversalTasks, collect_directory,
-    run_directory_worker, with_guarded_backend,
+    BranchPlan, ChildDecision, DirectoryListing, DirectoryMeasurement, DirectoryMeasurementPlan,
+    DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, DirectoryWorker,
+    FilesystemBackend, GuardedSetupError, ListingAction, MeasuredSize, PendingSelection,
+    RootAdmission, RootObservation, ScanEngine, ScanHandler, SelectedEntry, StdFilesystem,
+    SubtreeProgress, TraversalTasks, collect_directory, run_directory_worker, with_guarded_backend,
 };
 use std::{
     borrow::Cow,
@@ -848,17 +847,17 @@ struct DirNode {
     root_metadata: Option<fs::Metadata>,
 }
 
-/// A listed directory whose sizes are still being read. `chain` includes the directory
-/// itself when it is an artifact; `parent_len` is the length of the chain above it.
-struct PendingMeasure {
-    plan: SelectedMeasurementPlan<Option<u64>>,
+/// Product branch interpretation retained across routing and deferred measurement.
+/// `chain` includes a selected directory; `parent_len` is the ancestry above it.
+struct ArtifactBranch {
     chain: Vec<u64>,
     parent_len: usize,
 }
 
 type FileSlot = SelectedEntry<Option<u64>>;
 
-type ProductTasks<'a> = TraversalTasks<'a, DirNode, PendingMeasure, u32>;
+type ProductTasks<'a> =
+    TraversalTasks<'a, DirNode, PendingSelection<ArtifactBranch, Option<u64>>, u32>;
 
 struct ArtifactHandler<'a, P, E> {
     root: &'a Path,
@@ -876,92 +875,14 @@ struct ArtifactHandler<'a, P, E> {
     profile: Option<&'a profile::ProfileState>,
 }
 
-// Product adapters interpret generic Hunter routing and measurement callbacks.
-struct ArtifactChildren<'a, 'env, 'queue, P, E> {
-    owner: &'a mut ArtifactHandler<'env, P, E>,
-    tasks: &'a mut ProductTasks<'queue>,
-    chain: &'a [u64],
-}
-impl<P, E> ChildHandler<u32> for ArtifactChildren<'_, '_, '_, P, E>
-where
-    P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
-    E: FnMut(&ScanEvent),
-{
-    type Selected = FileSlot;
-    fn select(&mut self, index: usize, path: &Path, _: fs::FileType) -> ChildDecision {
-        if index.is_multiple_of(32) {
-            self.owner.emit_profile();
-        }
-        if self.owner.control.should_stop() {
-            return ChildDecision::Stop;
-        }
-        if let Some(reason) = cloud_skip_reason(path) {
-            self.owner.warn(path, reason, self.chain);
-            return ChildDecision::Skip;
-        }
-        ChildDecision::Visit
-    }
-    fn directory(&mut self, _: usize, request: DirectoryRequest<u32>) {
-        for id in self.chain {
-            self.owner.progress[ArtifactHandler::<P, E>::index(*id)].add_pending_directory();
-        }
-        let node = DirNode {
-            path: request.path.clone(),
-            parent_markers: Some(request.context),
-            chain: self.chain.to_vec(),
-            root_metadata: None,
-        };
-        self.owner.enqueue(node, request, self.tasks);
-    }
-    fn entry(&mut self, index: usize, path: PathBuf, file_type: fs::FileType) -> Option<FileSlot> {
-        self.owner.visit_file(path, file_type, index, self.chain)
-    }
-}
-struct ArtifactMeasurements<'a, 'env, P, E> {
-    owner: &'a mut ArtifactHandler<'env, P, E>,
-    chain: &'a [u64],
-    parent_len: usize,
-}
-impl<P, E> MeasurementHandler<Option<u64>> for ArtifactMeasurements<'_, '_, P, E>
-where
-    P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
-    E: FnMut(&ScanEvent),
-{
-    fn directory(&mut self, path: &Path, metadata: std::io::Result<MeasuredSize>) {
-        match metadata {
-            Ok(metadata) => {
-                let bytes = metadata.bytes(self.owner.options.apparent_size);
-                if let Some(profile) = self.owner.profile {
-                    profile::bump(&profile.counters.measured_bytes, bytes);
-                }
-                for id in self.chain {
-                    self.owner.progress[ArtifactHandler::<P, E>::index(*id)].add_bytes(bytes);
-                }
-            }
-            Err(error) => self.owner.io_error(path, error, self.chain),
-        }
-    }
-    fn checkpoint(&mut self, index: usize) {
-        if index.is_multiple_of(32) {
-            self.owner.emit_profile();
-        }
-    }
-    fn entry(&mut self, selected: &FileSlot, metadata: std::io::Result<MeasuredSize>) {
-        self.owner
-            .measure_file(selected, Some(metadata), self.chain);
-    }
-    fn finish(&mut self) {
-        self.owner.finish_directory(self.chain, self.parent_len);
-    }
-}
-
-impl<P, E> TraversalHandler for ArtifactHandler<'_, P, E>
+impl<P, E> ScanHandler for ArtifactHandler<'_, P, E>
 where
     P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
     E: FnMut(&ScanEvent),
 {
     type State = DirNode;
-    type Pending = PendingMeasure;
+    type Branch = ArtifactBranch;
+    type Selection = Option<u64>;
     type Context = u32;
     type RootReason = String;
     type Message = WorkerMessage;
@@ -1011,7 +932,7 @@ where
     fn response_received(&mut self, outstanding: usize) {
         self.sync_outstanding(outstanding);
     }
-    fn dispatch(&mut self, message: WorkerMessage, tasks: &mut ProductTasks<'_>) {
+    fn response(&mut self, message: WorkerMessage) -> Option<DirectoryResult<usize, u32>> {
         match message {
             WorkerMessage::SetupFailed(error) => {
                 self.warn(
@@ -1020,22 +941,107 @@ where
                     &[],
                 );
                 self.control.fail();
+                None
             }
-            WorkerMessage::Directory(DirectoryResult::Listed {
-                id: node,
-                listing,
-                measuring,
-            }) => self.process_listing(node, listing, measuring, tasks),
-            WorkerMessage::Directory(DirectoryResult::Measured(DirectoryMeasurement {
-                id: node,
-                directory,
-                files,
-            })) => {
-                if let Some(pending) = tasks.take_measurement(node) {
-                    self.finish_measure(pending, Some(directory), files);
+            WorkerMessage::Directory(result) => Some(result),
+        }
+    }
+    fn listing_received(&mut self) {
+        if let Some(profile) = self.profile {
+            profile::bump(&profile.counters.entries, 1);
+            profile::bump(&profile.counters.directories, 1);
+        }
+    }
+    fn measurement_pending(&mut self, outstanding: usize) {
+        self.sync_outstanding(outstanding);
+    }
+    fn prepare_listing(
+        &mut self,
+        state: DirNode,
+        listing: &mut Listing,
+    ) -> ListingAction<ArtifactBranch> {
+        self.prepare_directory(state, listing)
+    }
+    fn select(
+        &mut self,
+        branch: &ArtifactBranch,
+        index: usize,
+        path: &Path,
+        _: fs::FileType,
+    ) -> ChildDecision {
+        if index.is_multiple_of(32) {
+            self.emit_profile();
+        }
+        if self.control.should_stop() {
+            return ChildDecision::Stop;
+        }
+        if let Some(reason) = cloud_skip_reason(path) {
+            self.warn(path, reason, &branch.chain);
+            return ChildDecision::Skip;
+        }
+        ChildDecision::Visit
+    }
+    fn directory(
+        &mut self,
+        branch: &ArtifactBranch,
+        _: usize,
+        request: DirectoryRequest<u32>,
+        tasks: &mut ProductTasks<'_>,
+    ) {
+        for id in &branch.chain {
+            self.progress[Self::index(*id)].add_pending_directory();
+        }
+        let node = DirNode {
+            path: request.path.clone(),
+            parent_markers: Some(request.context),
+            chain: branch.chain.clone(),
+            root_metadata: None,
+        };
+        self.enqueue(node, request, tasks);
+    }
+    fn entry(
+        &mut self,
+        branch: &ArtifactBranch,
+        index: usize,
+        path: PathBuf,
+        file_type: fs::FileType,
+    ) -> Option<FileSlot> {
+        self.visit_file(path, file_type, index, &branch.chain)
+    }
+    fn directory_measured(
+        &mut self,
+        branch: &ArtifactBranch,
+        path: &Path,
+        metadata: std::io::Result<MeasuredSize>,
+    ) {
+        match metadata {
+            Ok(metadata) => {
+                let bytes = metadata.bytes(self.options.apparent_size);
+                if let Some(profile) = self.profile {
+                    profile::bump(&profile.counters.measured_bytes, bytes);
+                }
+                for id in &branch.chain {
+                    self.progress[Self::index(*id)].add_bytes(bytes);
                 }
             }
+            Err(error) => self.io_error(path, error, &branch.chain),
         }
+    }
+    fn measurement_checkpoint(&mut self, index: usize) {
+        if index.is_multiple_of(32) {
+            self.emit_profile();
+        }
+    }
+    fn entry_measured(
+        &mut self,
+        branch: &ArtifactBranch,
+        selected: &FileSlot,
+        metadata: std::io::Result<MeasuredSize>,
+    ) {
+        self.measure_file(selected, Some(metadata), &branch.chain);
+    }
+    fn finish_directory(&mut self, branch: &ArtifactBranch) {
+        self.finish_directory(&branch.chain, branch.parent_len);
     }
     fn finish(&mut self, _exit: hunter_fs_core::CoordinatorExit) {
         for index in (0..self.progress.len()).rev() {
@@ -1138,7 +1144,7 @@ where
         let wake_interval = self.profile.map(|_| profile::PROFILE_INTERVAL);
         let root = self.root;
         let probes = self.probes;
-        TraversalCoordinator::new(self, ProductTasks::new(queue)).run(
+        ScanEngine::new(self, ProductTasks::new(queue)).run(
             probes,
             root,
             cloud_skip_reason,
@@ -1276,21 +1282,11 @@ where
         }
     }
 
-    fn process_listing(
+    fn prepare_directory(
         &mut self,
-        node: usize,
-        mut listing: Listing,
-        measuring: bool,
-        tasks: &mut ProductTasks<'_>,
-    ) {
-        if let Some(profile) = self.profile {
-            profile::bump(&profile.counters.entries, 1);
-            profile::bump(&profile.counters.directories, 1);
-        }
-        let state = tasks.take_listing(node, measuring);
-        if measuring {
-            self.sync_outstanding(tasks.outstanding());
-        }
+        state: DirNode,
+        listing: &mut Listing,
+    ) -> ListingAction<ArtifactBranch> {
         let DirNode {
             path,
             parent_markers,
@@ -1329,80 +1325,29 @@ where
             CandidateAction::Traverse
         };
         if self.control.should_stop() {
-            return;
+            return ListingAction::Abandon;
         }
         if action == CandidateAction::Prune {
-            if measuring {
-                tasks.defer_measurement(node, None);
-            }
-            self.finish_directory(&chain, parent_len);
-            return;
+            return ListingAction::Complete(ArtifactBranch { chain, parent_len });
         }
         if let CandidateAction::Classify(code) = action {
             let id = self.discover(&path, parent_len > 0, code.language, code.kind);
             chain.push(id);
         }
-        for (index, (error_path, error)) in listing.errors.into_iter().enumerate() {
+        for (index, (error_path, error)) in
+            std::mem::take(&mut listing.errors).into_iter().enumerate()
+        {
             if index % 32 == 0 {
                 self.emit_profile();
             }
             self.io_error(&error_path, error, &chain);
         }
-        let routed = ChildTraversal::new(listing.children, listing.context, !chain.is_empty())
-            .route(&mut ArtifactChildren {
-                owner: self,
-                tasks,
-                chain: &chain,
-            });
-        if routed.stopped {
-            return;
-        }
-        // route released the listing/suffix before selected measurement work begins.
-        let pending = PendingMeasure {
-            plan: SelectedMeasurementPlan {
-                path,
-                include_directory: !chain.is_empty(),
-                root_metadata,
-                entries: routed.selected,
-            },
-            chain,
-            parent_len,
-        };
-        if !pending.plan.include_directory && pending.plan.entries.is_empty() {
-            if measuring {
-                tasks.defer_measurement(node, None);
-            }
-            self.finish_directory(&pending.chain, parent_len);
-        } else if measuring {
-            tasks.defer_measurement(node, Some(pending));
-        } else {
-            self.finish_measure(pending, None, Vec::new());
-        }
-    }
-
-    /// Hunter reconciles root/worker/fallback metadata; the host interprets results.
-    fn finish_measure(
-        &mut self,
-        pending: PendingMeasure,
-        directory: Option<std::io::Result<fs::Metadata>>,
-        files: Vec<Option<std::io::Result<MeasuredSize>>>,
-    ) {
-        let PendingMeasure {
-            plan,
-            chain,
-            parent_len,
-        } = pending;
-        let probes = self.probes;
-        plan.resolve(
-            probes,
-            directory,
-            files,
-            &mut ArtifactMeasurements {
-                owner: self,
-                chain: &chain,
-                parent_len,
-            },
-        );
+        ListingAction::Traverse(BranchPlan {
+            path,
+            include_directory: !chain.is_empty(),
+            root_metadata,
+            context: ArtifactBranch { chain, parent_len },
+        })
     }
 
     /// Marks a directory finished in every artifact above it and completes any artifact
@@ -2410,8 +2355,11 @@ mod tests {
                 },
                 &mut tasks,
             );
-            let outcome = TraversalCoordinator::new(&mut scanner, tasks)
-                .drive(&receiver, Some(std::time::Duration::from_millis(1)));
+            let outcome = ScanEngine::new(&mut scanner, tasks).drive(
+                &probes,
+                &receiver,
+                Some(std::time::Duration::from_millis(1)),
+            );
             assert_eq!(outcome.exit, Some(hunter_fs_core::CoordinatorExit::Stopped));
 
             let outstanding = usize::from(!queued_response);

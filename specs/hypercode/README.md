@@ -147,3 +147,6 @@ validation are under hunter-coordinator-20261019; complete engine remains pendin
 Child routing/selected metadata resolution now bind Hunter 2031df50f8324eaaf91856c5dc382d35694b2fd4.
 HunterEntryProcessing owns mechanics; ArtifactChildren/ArtifactMeasurements retain
 policy and aggregation. Latest source/command identities: hunter-processing-20261019.
+
+Current serial composition now uses Hunter ScanEngine with one ArtifactHandler/ScanHandler.
+See hunter-engine-20261019 receipts; prior stage descriptions remain historical.

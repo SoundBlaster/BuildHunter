@@ -774,3 +774,33 @@ specs/validation/hunter-processing-20261019. Full engine facade/host-opaque bran
 state composition, descriptor recursion, default plugin migration, C5 budgets and
 live home/cloud/UI acceptance remain pending. Next boundary: compose the extracted
 coordinator, routing and measurement contracts behind a reusable scan entrypoint.
+
+### Composed serial ScanEngine — 2026-10-19
+
+Hunter 920a51afb85efdb21951d61d1ef3894148017cbc composes the coordinator, child routing
+and selected metadata resolver behind consuming ScanEngine run/drive. ScanHandler
+is the single product host contract. Hunter owns typed result dispatch, listing-state
+acquisition/speculative reservation, child callbacks and empty/immediate/deferred/
+ignored measurement branches. PendingSelection retains the selected plan and opaque
+ArtifactBranch (ancestry/parent length); product adapters and PendingMeasure are removed.
+
+ArtifactHandler retains cloud/access/cancel decisions, marker/classification policy,
+directory scheduling meaning, byte units/aggregation/profiles, warning/status mapping
+and partial completion. prepare_directory returns Abandon, Complete or Traverse.
+Response receipt/stop ordering and listing telemetry are preserved. Empty/pruned work
+still consumes ignored speculative responses; cached errors are never retried. No extra
+stop check, enumeration, metadata I/O or thread is added. Finish callbacks precede
+buffer/branch release; partial finish precedes ledger release. Drained is a loop result,
+not product success: zero outstanding work can win after a host control failure.
+
+Affected current scan_engine/entry_processing/traversal_coordinator/result_execution/
+root_admission/scan_lifetime and target composition claims remain draft. Runtime
+witnesses include eight engine integration cases, borrowed non-Send branch state,
+consuming facade compile-fail, existing host guard/profile/cancel/panic cases and paired
+Release budgets. Fresh receipts: specs/validation/hunter-engine-20261019; upstream
+specs/scan-engine.spec.yaml. Historical extraction records and receipts stay historical.
+Default classification/filter/no-follow, C ABI/FFI, GUI/status and plugin semantics are
+unchanged. This completes the serial composition facade, not descriptor recursion,
+backend algorithms/factories, default plugin migration, C5 budgets or live home/cloud/UI
+acceptance. Next boundary: reduce product startup wiring using the existing guarded
+session and engine without moving product report/status interpretation upstream.
