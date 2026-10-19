@@ -1,0 +1,105 @@
+{
+  "revision": "10268f69c41890bb23ab4cdc33d25f3aac8e46d1",
+  "files": [
+    {
+      "path": "Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b",
+      "matches": true
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1",
+      "matches": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "db24ddb3e659ba9ad7222295ab1f2d7dec2aa2c3f5ce7c34c23037b0afc7f138",
+      "matches": true
+    },
+    {
+      "path": "src/admission.rs",
+      "sha256": "d88e14a775a0980e33162784867891fa2337fb276e21233a67bb5feb6fc43887",
+      "matches": true
+    },
+    {
+      "path": "src/assembly.rs",
+      "sha256": "32f422111a85a491b03cd7456a7041e88873a44495229110d48cc721256ed0d1",
+      "matches": true
+    },
+    {
+      "path": "src/backend.rs",
+      "sha256": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87",
+      "matches": true
+    },
+    {
+      "path": "src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8",
+      "matches": true
+    },
+    {
+      "path": "src/coordinator.rs",
+      "sha256": "2cd2b6419a9fa6d7ad30fb4493083299c508244c2dbf02974c00ae5df2c37fc8",
+      "matches": true
+    },
+    {
+      "path": "src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae",
+      "matches": true
+    },
+    {
+      "path": "src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb",
+      "matches": true
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "da08234baece06ce156aceb4a3e608addcee085e1fe93f787734fb310014c2f3",
+      "matches": true
+    },
+    {
+      "path": "src/lifetime.rs",
+      "sha256": "74f61ce81c9e78b241bb9fae664f69aee79d684dc14ba212d231cda8ab0018e7",
+      "matches": true
+    },
+    {
+      "path": "src/listing.rs",
+      "sha256": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e",
+      "matches": true
+    },
+    {
+      "path": "src/materialization.rs",
+      "sha256": "5d45250d5a7a6c1a7fadb9ad8f49eabd457538a2ec8a6ab3eeff173a029131a2",
+      "matches": true
+    },
+    {
+      "path": "src/measurement.rs",
+      "sha256": "7366e1a3377bd9005c22ddd7f603c52c2d09da4a28ca2045cdd85df3dff90f7d",
+      "matches": true
+    },
+    {
+      "path": "src/session.rs",
+      "sha256": "1f1b3256d3df6f5ad090901aae752fdf53a60bcb643e32f545ea369a47ee71c4",
+      "matches": true
+    },
+    {
+      "path": "src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b",
+      "matches": true
+    },
+    {
+      "path": "src/task.rs",
+      "sha256": "906bce62ddad02953c2b2710491cafbca9849fc68a54e041da52a2e89664cf5a",
+      "matches": true
+    },
+    {
+      "path": "src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160",
+      "matches": true
+    },
+    {
+      "path": "src/worker.rs",
+      "sha256": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1",
+      "matches": true
+    }
+  ]
+}

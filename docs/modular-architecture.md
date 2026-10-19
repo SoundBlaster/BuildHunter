@@ -364,3 +364,8 @@ Host scope placement, cloud paths/error decoration and product status stay local
 see [guarded backend lifetime](hunter-backend-lifetime.md) and `hunter-lifetime-20261018` evidence.
 This supersedes earlier pending guard-lifetime ownership notes for the integrated
 Rust coordinator/workers; full engine/backend algorithm assembly remains pending.
+
+Owned root/task-response coordination now lives in Hunter 10268f69c41890bb23ab4cdc33d25f3aac8e46d1.
+BuildHunter ArtifactHandler implements TraversalHandler and retains domain interpretation,
+without queue/ledger fields. See [coordinator boundary](hunter-traversal-coordinator.md).
+Full generic engine/child-routing assembly remains pending.

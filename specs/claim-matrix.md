@@ -467,3 +467,31 @@ default plugin migration, complete generic scanner, C5 resource budgets and live
 home/cloud/UI acceptance remain outstanding. Next boundary: define the generic
 coordinator adapter for root scheduling and task/result accounting, keeping product
 classification and status/event translation in BuildHunter.
+
+### Owned traversal coordinator — 2026-10-19
+
+Hunter 10268f69c41890bb23ab4cdc33d25f3aac8e46d1 now owns TraversalCoordinator and
+TraversalTasks: original root admission, private ledger, reserve/telemetry/publish,
+receipt accounting and serial result pump. A consuming run/drive returns loop outcome
+and unanswered count, separately from worker join or product status. initialize=false
+skips pump/finish; ordinary pump return calls product finish before releasing ledger.
+The ledger now releases at coordinator return, before the caller drops unread receiver;
+receiver still drops before scoped worker join. Queue lifetime remains ScanSession-owned.
+
+The former private Scanner is ArtifactHandler implementing TraversalHandler. It no
+longer owns queue/ledger. Marker vocabulary, classification, ancestry, child admission,
+selected-subtree membership, artifact progress/report and error/status translation
+remain local. This is an observed intermediate boundary, not the complete proposed
+ScanEngine/measurement-tracker API. Current traversal_coordinator/result_execution/
+root_admission/scoped_session/scan_lifetime claims and target lifecycle binding change;
+classification/filter, bytes/no-follow policy, bridge ABI, GUI and plugin rules do not.
+
+Seven generic witnesses cover dynamic scheduling/measurement retirement, borrowed
+skip reason without observation, original root error, receipt/timeout cancellation,
+disconnection counts, rejected publication and panic payload release. Existing host
+scripted ignored-measurement/profile-cancel and real guard/callback/worker tests stay
+regression gates. Fresh validation: specs/validation/hunter-coordinator-20261019.
+Historical receipts remain historical. C5 budgets, descriptor recursion, default
+plugin migration, live home/cloud/UI acceptance and complete generic engine remain
+outstanding. Next extraction: generic child-routing/measurement mechanics under the
+same host selection contract; keep domain interpretation and accumulated result local.

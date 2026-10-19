@@ -13,6 +13,7 @@ BuildHunterRuntime
         StartupAdmission
         ScopedLaunch
         TerminalPublication
+      ArtifactInterpretation
       Traversal
       Measurement
         NativeMeasurementBackend
@@ -76,6 +77,10 @@ BuildHunterRuntime
     HunterRootAdmission
       HostRootPreflight
       RootAdmissionOutcome
+    HunterTraversalCoordinator
+      CoordinatorRootAdmission
+      OwnedTaskAccounting
+      HostInterpretation
     HunterScanAssembly
       GuardedQueue
       SingleLaunch

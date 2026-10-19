@@ -341,3 +341,30 @@ final publication. Move unread receivers into the coordinator and drop them befo
 return/unwind join. No guard-dependent resources may escape the body. This is a
 bounded session assembly, not a complete recursive scanner, bounded memory guarantee
 or plugin classifier. See upstream `specs/scan-assembly.spec.yaml` (draft).
+
+## Serial traversal coordinator
+
+`TraversalCoordinator` now owns root admission sequencing and per-scan task/result
+accounting. Its `run` performs host preflight and one root observation, then gives
+that outcome to `TraversalHandler::initialize`. A false result skips both the pump
+and finish callback. Otherwise `drive_scan` keeps the existing checkpoint, receive,
+retire, stop, dispatch order and invokes host finish before releasing owned task state.
+`drive` also accepts already initialized tasks without repeating root admission.
+
+`TraversalTasks` owns the ledger and borrows the scoped queue. Enqueue reserves the
+ID/response before a host telemetry callback, then publishes; rejected publication
+retains its reservation and returns the unchanged task. Hosts must stop/interpret
+rejection. Listing and speculative measurement accounting keep the original ledger
+protocol; state, pending payloads, context, root skip reasons and message meaning
+remain opaque. `TraversalOutcome` distinguishes declined initialization from Drained,
+Stopped and Disconnected and retains outstanding counts. It is not a product scan
+status or evidence of worker join.
+
+Host callbacks are serial caller-thread operations and may borrow non-Send state.
+The coordinator consumes itself and releases its ledger after host finish, or on
+unwind without finish. Queue closure/helpers/worker join and unread receiver lifetime
+remain the enclosing ScanSession's host obligations. Call run inside that guarded
+scope to retain root-observation timing. Classification, markers, child-routing
+policy, selected-subtree membership, report events and final status stay in the host.
+This remains partial engine extraction: see specs/traversal-coordinator.spec.yaml
+(draft); full domain-independent recursion and resource budgets are not promised.
