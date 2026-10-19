@@ -889,7 +889,7 @@ where
 {
     type Selected = FileSlot;
     fn select(&mut self, index: usize, path: &Path, _: fs::FileType) -> ChildDecision {
-        if index % 32 == 0 {
+        if index.is_multiple_of(32) {
             self.owner.emit_profile();
         }
         if self.owner.control.should_stop() {
@@ -942,7 +942,7 @@ where
         }
     }
     fn checkpoint(&mut self, index: usize) {
-        if index % 32 == 0 {
+        if index.is_multiple_of(32) {
             self.owner.emit_profile();
         }
     }
