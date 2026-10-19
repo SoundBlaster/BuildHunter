@@ -77,6 +77,10 @@ BuildHunterRuntime
     HunterRootAdmission
       HostRootPreflight
       RootAdmissionOutcome
+    HunterEntryProcessing
+      ChildRouting
+      SelectedMetadata
+      CompletionCallbacks
     HunterTraversalCoordinator
       CoordinatorRootAdmission
       OwnedTaskAccounting

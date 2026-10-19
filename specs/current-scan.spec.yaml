@@ -69,6 +69,9 @@ requires:
   - id: hunter.fs.root_admission
     optional: false
     summary: Opaque host preflight before one root observation; host interprets skip/error and chooses scheduling/finalization.
+  - id: hunter.fs.entry_processing
+    optional: false
+    summary: Serial child routing and selected root/worker/fallback metadata reconciliation around product callbacks.
   - id: hunter.fs.traversal_coordinator
     optional: false
     summary: Owned root admission and task/response ledger around opaque caller-thread product handler.
@@ -211,10 +214,21 @@ constraints:
     TraversalHandler. Hunter coordinator owns TraversalTasks ledger and borrows the
     scoped queue; preserve reserve/telemetry/publish ordering, receipt accounting,
     speculative measurement retirement, root outcome handling and partial completion
-    callback timing. Keep marker/classification/ancestry, child routing, selected-size
+    callback timing. Keep marker/classification/ancestry, child-selection policy, selected-size
     membership, warning/status interpretation and final report/events in product code.
     Handler has no queue/ledger fields. Ledger releases after handler finish and before
     coordinator return; unread receiver still releases before the enclosing scope join.
+- id: entry_processing
+  level: MUST
+  statement: ArtifactChildren supplies checkpoint/access/stop and directory scheduling/
+    file selection to consuming ChildTraversal::route. Preserve original indices,
+    context clone behavior and stop prefix; release listing before selected measurement.
+    PendingMeasure owns Hunter SelectedMeasurementPlan, whose root/worker/fallback
+    directory precedence and original slot lookup retain cached errors without retry.
+    Missing/out-of-range/consumed slots fall back once through guarded Probes. Keep
+    selected-entry checkpoint cadence, byte mode/aggregation, affected ancestry and
+    partial completion in ArtifactMeasurements/ArtifactHandler callbacks. finish runs
+    before selected/cached buffers release; no cancellation check or I/O is added.
 effects:
   sideEffects:
   - id: read_metadata
@@ -344,6 +358,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/coordinator.rs
   supports: [constraints.traversal_coordinator, constraints.result_execution, constraints.root_admission, scope]
+- id: entry_processing_source
+  kind: source
+  path: vendor/hunter-fs-core/src/processing.rs
+  supports: [constraints.entry_processing, constraints.sizes, constraints.scan_lifetime, scope]
 provenance:
   sourceConfidence:
     intent: high
@@ -403,7 +421,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: a8c9c82f39c6591095fbf6f5d06ccf3f2029b6b5
+    revision: 979b6b89c9772005bf764db72ffdc4cb046247f1
   files:
     owned:
     - src/lib.rs
@@ -427,6 +445,7 @@ implementationBindings:
     - vendor/hunter-fs-core/src/worker.rs
     - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/src/measurement.rs
+    - vendor/hunter-fs-core/src/processing.rs
     - vendor/hunter-fs-core/src/coordinator.rs
     - vendor/hunter-fs-core/src/assembly.rs
     - vendor/hunter-fs-core/src/session.rs

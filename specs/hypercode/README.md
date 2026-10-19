@@ -143,3 +143,7 @@ Owned root/task-response coordinator now binds Hunter 10268f69c41890bb23ab4cdc33
 HunterTraversalCoordinator owns admission/pump/accounting; ArtifactHandler remains
 product interpretation without queue/ledger fields. Fresh identities and seven-profile
 validation are under hunter-coordinator-20261019; complete engine remains pending.
+
+Child routing/selected metadata resolution now bind Hunter 2031df50f8324eaaf91856c5dc382d35694b2fd4.
+HunterEntryProcessing owns mechanics; ArtifactChildren/ArtifactMeasurements retain
+policy and aggregation. Latest source/command identities: hunter-processing-20261019.
