@@ -1,8 +1,8 @@
 //! Product scan admission, profile/QoS setup and terminal publication around Hunter scope assembly.
 use crate::{
-    CandidateAction, CandidateFacts, CandidateNodeKind, DirectoryTaskLedger, MAX_SCAN_WORKERS,
-    Probes, ScanControl, ScanEvent, ScanOptions, ScanReport, ScanStatus, ScanWarning, Scanner,
-    materialization, profile, run_worker, thread_qos,
+    ArtifactHandler, CandidateAction, CandidateFacts, CandidateNodeKind, MAX_SCAN_WORKERS, Probes,
+    ScanControl, ScanEvent, ScanOptions, ScanReport, ScanStatus, ScanWarning, materialization,
+    profile, run_worker, thread_qos,
 };
 use hunter_fs_core::{GuardedSetupError, with_scan_session};
 use std::{
@@ -53,7 +53,7 @@ pub(super) fn run(
                 },
                 |queue| {
                     drop(sender);
-                    let mut scanner = Scanner {
+                    let mut scanner = ArtifactHandler {
                         root,
                         options,
                         control,
@@ -61,16 +61,14 @@ pub(super) fn run(
                         legacy_policy,
                         emit: &mut emit,
                         probes,
-                        queue,
                         artifacts: Vec::new(),
                         progress: Vec::new(),
                         warnings: Vec::new(),
                         had_errors: false,
                         changed: false,
-                        tasks: DirectoryTaskLedger::default(),
                         profile,
                     };
-                    scanner.run(&receiver);
+                    scanner.run(queue, &receiver);
                     // Keep the original channel lifetime: release unread responses before scope join.
                     // Moving receiver into this closure also drops it here if a callback unwinds.
                     drop(receiver);

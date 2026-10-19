@@ -2,11 +2,11 @@
 use hunter_fs_core::spawn_workers;
 use hunter_fs_core::{
     ChildDecision, ChildTraversal, DirectoryListing, DirectoryMeasurement,
-    DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask,
-    DirectoryTaskLedger, DirectoryVisit, DirectoryWorker, FilesystemBackend, GuardedSetupError,
-    MeasuredSize, PlannedChild, RootAdmission, RootObservation, ScanCoordinator, StdFilesystem,
-    SubtreeProgress, admit_root, collect_directory, drive_scan, metadata_bytes,
-    run_directory_worker, with_guarded_backend,
+    DirectoryMeasurementPlan, DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit,
+    DirectoryWorker, FilesystemBackend, GuardedSetupError, MeasuredSize, PlannedChild,
+    RootAdmission, RootObservation, StdFilesystem, SubtreeProgress, TraversalCoordinator,
+    TraversalHandler, TraversalTasks, collect_directory, metadata_bytes, run_directory_worker,
+    with_guarded_backend,
 };
 use std::{
     borrow::Cow,
@@ -864,7 +864,9 @@ struct FileSlot {
     artifact: Option<u64>,
 }
 
-struct Scanner<'a, P, E> {
+type ProductTasks<'a> = TraversalTasks<'a, DirNode, PendingMeasure, u32>;
+
+struct ArtifactHandler<'a, P, E> {
     root: &'a Path,
     options: ScanOptions,
     control: &'a ScanControl,
@@ -872,24 +874,60 @@ struct Scanner<'a, P, E> {
     legacy_policy: bool,
     emit: &'a mut E,
     probes: &'a Probes,
-    queue: &'a WorkQueue,
     artifacts: Vec<Artifact>,
     progress: Vec<SubtreeProgress>,
     warnings: Vec<ScanWarning>,
     had_errors: bool,
     changed: bool,
-    tasks: DirectoryTaskLedger<DirNode, PendingMeasure>,
     profile: Option<&'a profile::ProfileState>,
 }
 
-impl<P, E> ScanCoordinator for Scanner<'_, P, E>
+impl<P, E> TraversalHandler for ArtifactHandler<'_, P, E>
 where
     P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
     E: FnMut(&ScanEvent),
 {
+    type State = DirNode;
+    type Pending = PendingMeasure;
+    type Context = u32;
+    type RootReason = String;
     type Message = WorkerMessage;
-    fn outstanding(&self) -> usize {
-        self.tasks.outstanding()
+    fn initialize(
+        &mut self,
+        admission: RootAdmission<String>,
+        tasks: &mut ProductTasks<'_>,
+    ) -> bool {
+        let root = self.root;
+        match admission {
+            RootAdmission::Skipped(reason) => {
+                self.warn(root, reason, &[]);
+                return false;
+            }
+            RootAdmission::Unavailable(error) => self.warn(root, error, &[]),
+            RootAdmission::Observed(RootObservation::Directory(metadata)) => {
+                self.enqueue(
+                    DirNode {
+                        path: root.to_owned(),
+                        parent_markers: None,
+                        chain: Vec::new(),
+                        root_metadata: Some(metadata),
+                    },
+                    DirectoryRequest {
+                        path: root.to_owned(),
+                        context: 0,
+                        measure: false,
+                    },
+                    tasks,
+                );
+            }
+            RootAdmission::Observed(RootObservation::Entry(metadata)) => {
+                let file_type = metadata.file_type();
+                if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
+                    self.measure_file(&slot, Some(Ok(metadata.into())), &[]);
+                }
+            }
+        }
+        true
     }
     fn should_stop(&self) -> bool {
         self.control.should_stop()
@@ -897,11 +935,10 @@ where
     fn checkpoint(&mut self) {
         self.emit_profile();
     }
-    fn response_received(&mut self) {
-        self.tasks.response_received();
-        self.sync_outstanding();
+    fn response_received(&mut self, outstanding: usize) {
+        self.sync_outstanding(outstanding);
     }
-    fn dispatch(&mut self, message: WorkerMessage) {
+    fn dispatch(&mut self, message: WorkerMessage, tasks: &mut ProductTasks<'_>) {
         match message {
             WorkerMessage::SetupFailed(error) => {
                 self.warn(
@@ -915,21 +952,29 @@ where
                 id: node,
                 listing,
                 measuring,
-            }) => self.process_listing(node, listing, measuring),
+            }) => self.process_listing(node, listing, measuring, tasks),
             WorkerMessage::Directory(DirectoryResult::Measured(DirectoryMeasurement {
                 id: node,
                 directory,
                 files,
             })) => {
-                if let Some(pending) = self.tasks.take_measurement(node) {
+                if let Some(pending) = tasks.take_measurement(node) {
                     self.finish_measure(pending, Some(directory), files);
                 }
             }
         }
     }
+    fn finish(&mut self, _exit: hunter_fs_core::CoordinatorExit) {
+        for index in (0..self.progress.len()).rev() {
+            if !self.progress[index].is_completed() {
+                self.progress[index].mark_partial();
+                self.complete(index as u64 + 1);
+            }
+        }
+    }
 }
 
-impl<P, E> Scanner<'_, P, E>
+impl<P, E> ArtifactHandler<'_, P, E>
 where
     P: FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
     E: FnMut(&ScanEvent),
@@ -942,12 +987,12 @@ where
         }
     }
 
-    fn sync_outstanding(&self) {
+    fn sync_outstanding(&self, outstanding: usize) {
         if let Some(profile) = self.profile {
             profile
                 .counters
                 .pending_tasks
-                .store(self.tasks.outstanding() as u64, Ordering::Relaxed);
+                .store(outstanding as u64, Ordering::Relaxed);
         }
     }
 
@@ -1008,57 +1053,39 @@ where
         usize::try_from(id - 1).expect("artifact IDs fit in memory")
     }
 
-    fn run(&mut self, receiver: &std::sync::mpsc::Receiver<WorkerMessage>) {
+    fn run(
+        &mut self,
+        queue: &WorkQueue,
+        receiver: &std::sync::mpsc::Receiver<WorkerMessage>,
+    ) -> hunter_fs_core::TraversalOutcome {
         if let Some(profile) = self.profile {
             profile.record();
         }
         self.emit_profile();
-        let root = self.root;
-        match admit_root(self.probes, root, cloud_skip_reason) {
-            RootAdmission::Skipped(reason) => {
-                self.warn(root, reason, &[]);
-                return;
-            }
-            RootAdmission::Unavailable(error) => self.warn(root, error, &[]),
-            RootAdmission::Observed(RootObservation::Directory(metadata)) => {
-                self.enqueue(
-                    DirNode {
-                        path: root.to_owned(),
-                        parent_markers: None,
-                        chain: Vec::new(),
-                        root_metadata: Some(metadata),
-                    },
-                    DirectoryRequest {
-                        path: root.to_owned(),
-                        context: 0,
-                        measure: false,
-                    },
-                );
-            }
-            RootAdmission::Observed(RootObservation::Entry(metadata)) => {
-                // A selected file or symlink is its own candidate, measured if classified.
-                let file_type = metadata.file_type();
-                if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
-                    self.measure_file(&slot, Some(Ok(metadata.into())), &[]);
-                }
-            }
-        }
         let wake_interval = self.profile.map(|_| profile::PROFILE_INTERVAL);
-        // Hunter drives result waiting/checkpoints; product dispatch and finalization stay here.
-        drive_scan(self, receiver, wake_interval);
-        // Stopping leaves open artifacts; report them innermost first, as partial.
-        for index in (0..self.progress.len()).rev() {
-            if !self.progress[index].is_completed() {
-                self.progress[index].mark_partial();
-                self.complete(index as u64 + 1);
-            }
-        }
+        let root = self.root;
+        let probes = self.probes;
+        TraversalCoordinator::new(self, ProductTasks::new(queue)).run(
+            probes,
+            root,
+            cloud_skip_reason,
+            receiver,
+            wake_interval,
+        )
     }
 
-    fn enqueue(&mut self, node: DirNode, request: DirectoryRequest<u32>) {
-        let task = self.tasks.register(request, node);
-        self.sync_outstanding();
-        if self.queue.push(task).is_err() {
+    fn enqueue(
+        &mut self,
+        node: DirNode,
+        request: DirectoryRequest<u32>,
+        tasks: &mut ProductTasks<'_>,
+    ) {
+        if tasks
+            .enqueue(request, node, |outstanding| {
+                self.sync_outstanding(outstanding)
+            })
+            .is_err()
+        {
             self.control.fail();
         }
     }
@@ -1180,14 +1207,20 @@ where
         }
     }
 
-    fn process_listing(&mut self, node: usize, mut listing: Listing, measuring: bool) {
+    fn process_listing(
+        &mut self,
+        node: usize,
+        mut listing: Listing,
+        measuring: bool,
+        tasks: &mut ProductTasks<'_>,
+    ) {
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.entries, 1);
             profile::bump(&profile.counters.directories, 1);
         }
-        let state = self.tasks.take_listing(node, measuring);
+        let state = tasks.take_listing(node, measuring);
         if measuring {
-            self.sync_outstanding();
+            self.sync_outstanding(tasks.outstanding());
         }
         let DirNode {
             path,
@@ -1231,7 +1264,7 @@ where
         }
         if action == CandidateAction::Prune {
             if measuring {
-                self.tasks.defer_measurement(node, None);
+                tasks.defer_measurement(node, None);
             }
             self.finish_directory(&chain, parent_len);
             return;
@@ -1274,7 +1307,7 @@ where
                         chain: chain.clone(),
                         root_metadata: None,
                     };
-                    self.enqueue(child_node, request);
+                    self.enqueue(child_node, request, tasks);
                 }
                 PlannedChild::Entry {
                     index,
@@ -1301,11 +1334,11 @@ where
         };
         if pending.chain.is_empty() && pending.files.is_empty() {
             if measuring {
-                self.tasks.defer_measurement(node, None);
+                tasks.defer_measurement(node, None);
             }
             self.finish_directory(&pending.chain, parent_len);
         } else if measuring {
-            self.tasks.defer_measurement(node, Some(pending));
+            tasks.defer_measurement(node, Some(pending));
         } else {
             self.finish_measure(pending, None, Vec::new());
         }
@@ -2269,7 +2302,7 @@ mod tests {
         let mut policy =
             |_: &Path, _: &CandidateFacts, _: CandidateNodeKind| CandidateAction::Prune;
         let mut emit = |_: &ScanEvent| {};
-        let mut scanner = Scanner {
+        let mut scanner = ArtifactHandler {
             root: &root,
             options: ScanOptions::default(),
             control: &control,
@@ -2277,17 +2310,15 @@ mod tests {
             legacy_policy: true,
             emit: &mut emit,
             probes: &probes,
-            queue: &queue,
             artifacts: Vec::new(),
             progress: Vec::new(),
             warnings: Vec::new(),
             had_errors: false,
             changed: false,
-            tasks: DirectoryTaskLedger::default(),
             profile: None,
         };
-        scanner.run(&receiver);
-        assert_eq!(scanner.tasks.outstanding(), 0);
+        let outcome = scanner.run(&queue, &receiver);
+        assert_eq!(outcome.outstanding, 0);
         assert!(matches!(
             receiver.try_recv(),
             Err(std::sync::mpsc::TryRecvError::Empty)
@@ -2331,7 +2362,7 @@ mod tests {
                     panic!("cancelled setup error must not be dispatched");
                 }
             };
-            let mut scanner = Scanner {
+            let mut scanner = ArtifactHandler {
                 root: &tree.0,
                 options: ScanOptions::default(),
                 control: &control,
@@ -2339,15 +2370,14 @@ mod tests {
                 legacy_policy: true,
                 emit: &mut emit,
                 probes: &probes,
-                queue: &queue,
                 artifacts: Vec::new(),
                 progress: Vec::new(),
                 warnings: Vec::new(),
                 had_errors: false,
                 changed: false,
-                tasks: DirectoryTaskLedger::default(),
                 profile: Some(&profile),
             };
+            let mut tasks = ProductTasks::new(&queue);
             scanner.enqueue(
                 DirNode {
                     path: tree.0.clone(),
@@ -2360,17 +2390,14 @@ mod tests {
                     context: 0,
                     measure: false,
                 },
+                &mut tasks,
             );
-            assert_eq!(
-                drive_scan(
-                    &mut scanner,
-                    &receiver,
-                    Some(std::time::Duration::from_millis(1))
-                ),
-                hunter_fs_core::CoordinatorExit::Stopped
-            );
+            let outcome = TraversalCoordinator::new(&mut scanner, tasks)
+                .drive(&receiver, Some(std::time::Duration::from_millis(1)));
+            assert_eq!(outcome.exit, Some(hunter_fs_core::CoordinatorExit::Stopped));
+
             let outstanding = usize::from(!queued_response);
-            assert_eq!(scanner.tasks.outstanding(), outstanding);
+            assert_eq!(outcome.outstanding, outstanding);
             assert_eq!(
                 profile.counters.pending_tasks.load(Ordering::Relaxed),
                 outstanding as u64

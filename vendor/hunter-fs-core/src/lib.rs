@@ -332,3 +332,6 @@ pub use materialization::NonMaterializingIoGuard;
 
 mod assembly;
 pub use assembly::{ScanSession, with_scan_session};
+
+mod coordinator;
+pub use coordinator::{TraversalCoordinator, TraversalHandler, TraversalOutcome, TraversalTasks};
