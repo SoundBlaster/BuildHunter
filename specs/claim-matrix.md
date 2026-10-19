@@ -495,3 +495,31 @@ Historical receipts remain historical. C5 budgets, descriptor recursion, default
 plugin migration, live home/cloud/UI acceptance and complete generic engine remain
 outstanding. Next extraction: generic child-routing/measurement mechanics under the
 same host selection contract; keep domain interpretation and accumulated result local.
+
+### Child routing and selected metadata reconciliation — 2026-10-19
+
+Hunter 2031df50f8324eaaf91856c5dc382d35694b2fd4 now owns ChildTraversal::route and
+SelectedMeasurementPlan::resolve. ArtifactChildren retains access/checkpoint/stop,
+classification and directory scheduling; ArtifactMeasurements retains byte aggregation,
+affected ancestry, profile cadence and finish_directory. FileSlot is an alias of
+SelectedEntry<Option<u64>>; the opaque context is the product selection ID. Pending
+state carries the common selected plan and product chain/parent length separately.
+
+The consuming child pass keeps original indices/type observations/context clones,
+collects only selected payloads and releases listing/suffix before measurement.
+Selected resolution preserves root > worker > fallback precedence, original cache
+slot consumption and cached errors without retry. Missing/out-of-range/already-taken
+slots fall back once, with selected-entry ordinal checkpoints before lookup/I/O.
+No extra cancellation check is added. Host finish precedes owned selected/cached
+buffer release; panic skips finish and unwinds. Metadata paths/guard scope and byte
+units/deduplication remain unchanged.
+
+Affected current entry_processing/sizes/scan_lifetime and target traversal/measurement
+bindings remain draft. Marker/filter/catalog, no-follow scope, result/FFI/GUI/status
+contracts are unchanged; historical receipts are not relabeled. Seven new upstream
+witnesses cover routing stop/empty/panic, metadata precedence/errors/fallback, empty
+selection and measurement panic/payload release. Fresh source/maps/command identities:
+specs/validation/hunter-processing-20261019. Full engine facade/host-opaque branch
+state composition, descriptor recursion, default plugin migration, C5 budgets and
+live home/cloud/UI acceptance remain pending. Next boundary: compose the extracted
+coordinator, routing and measurement contracts behind a reusable scan entrypoint.

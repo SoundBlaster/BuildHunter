@@ -369,3 +369,7 @@ Owned root/task-response coordination now lives in Hunter 10268f69c41890bb23ab4c
 BuildHunter ArtifactHandler implements TraversalHandler and retains domain interpretation,
 without queue/ledger fields. See [coordinator boundary](hunter-traversal-coordinator.md).
 Full generic engine/child-routing assembly remains pending.
+
+Child routing and selected metadata reconciliation now live in Hunter 2031df50f8324eaaf91856c5dc382d35694b2fd4.
+Product access/selection/aggregation remain in ArtifactChildren and ArtifactMeasurements.
+See [entry processing](hunter-entry-processing.md); complete engine facade remains pending.
