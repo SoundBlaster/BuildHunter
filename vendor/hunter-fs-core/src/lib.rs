@@ -329,3 +329,6 @@ pub use lifetime::{GuardedSetupError, with_guarded_backend};
 
 mod materialization;
 pub use materialization::NonMaterializingIoGuard;
+
+mod assembly;
+pub use assembly::{ScanSession, with_scan_session};

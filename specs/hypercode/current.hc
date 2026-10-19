@@ -76,6 +76,10 @@ BuildHunterRuntime
     HunterRootAdmission
       HostRootPreflight
       RootAdmissionOutcome
+    HunterScanAssembly
+      GuardedQueue
+      SingleLaunch
+      HostFinalization
     HunterBackendLifetime
       GuardedPreparation
       BackendRelease

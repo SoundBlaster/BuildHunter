@@ -8,7 +8,7 @@ Hunter:
   repository: "Hunter"
   visibility: "public"
   implemented_as_module: true
-  implemented_scope: "Unix scoped metadata + portable enumeration/byte sizing; generic queue/scoped launch/task results/measurement plans/host-selected child requests/task-response ledger/subtree byte-progress/serial result execution/native backend-root observations/directory worker protocol/owned listing acquisition/typed prepared measurement/scoped session assembly/opaque root admission outcomes/guarded backend lifetime/native thread guard; access policy/backend algorithms/full engine assembly pending"
+  implemented_scope: "Unix scoped metadata + portable enumeration/byte sizing; generic queue/scoped launch/task results/measurement plans/host-selected child requests/task-response ledger/subtree byte-progress/serial result execution/native backend-root observations/directory worker protocol/owned listing acquisition/typed prepared measurement/scoped session assembly/opaque root admission outcomes/guarded backend lifetime/native thread guard/owned guarded session queue and single-use worker launch; access policy/backend algorithms/full engine assembly pending"
   filesystem_effects: true
   artifact_vocabulary: false
 Rifle:

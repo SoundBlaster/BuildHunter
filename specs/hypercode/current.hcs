@@ -1,7 +1,7 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
   status: "observed-source"
-  baseline: "specs/validation/hunter-lifetime-20261018/source-identity.json"
+  baseline: "specs/validation/hunter-assembly-20261019/source-identity.json"
   entrypoint: "src/main.rs"
   profile: "cli"
 CommandLine:
@@ -32,10 +32,10 @@ ScanSession:
   source: "src/scan_session.rs"
   folded_into: "buildhunter.current.scan"
 StartupAdmission:
-  implementation: "host guard/backend choice through Hunter lifetime + profile/QoS/channel setup"
+  implementation: "host guard/backend choice through with_scan_session + profile/QoS/channel setup"
   folded_into: "buildhunter.current.scan"
 ScopedLaunch:
-  implementation: "run_scoped_workers with host sampler/worker/coordinator closures"
+  implementation: "consuming Hunter ScanSession::run with host sampler/worker/coordinator closures"
   folded_into: "buildhunter.current.scan"
 TerminalPublication:
   implementation: "final status/profiles and Finished after join; admission failure early path"
@@ -118,7 +118,7 @@ CandidateObservation:
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.portable (upstream draft)"
   distribution: "exact vendored std-only path dependency"
 DirectoryEnumeration:
@@ -130,7 +130,7 @@ MetadataSizing:
 HunterWork:
   source: "vendor/hunter-fs-core/src/work.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.work (upstream draft)"
 TaskScheduling:
   implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
@@ -141,7 +141,7 @@ WorkerLifecycle:
 HunterDirectoryTasks:
   source: "vendor/hunter-fs-core/src/task.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.directory_tasks (upstream draft)"
 TaskContext:
   implementation: "DirectoryTask/ListTask + DirectoryListing; opaque host u32 contexts"
@@ -155,7 +155,7 @@ ResultEnvelope:
 HunterChildTraversal:
   source: "vendor/hunter-fs-core/src/children.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.child_traversal (upstream draft)"
 ChildAdmission:
   implementation: "ChildTraversal::next_child; host checkpoint/stop/cloud decisions"
@@ -166,7 +166,7 @@ RecursiveRequests:
 HunterTaskLedger:
   source: "vendor/hunter-fs-core/src/ledger.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.task_ledger (upstream draft)"
 TaskIdentity:
   implementation: "DirectoryTaskLedger::register + take_listing"
@@ -180,7 +180,7 @@ DeferredState:
 HunterSubtreeProgress:
   source: "vendor/hunter-fs-core/src/subtree.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.subtree_progress (upstream draft)"
 ByteAggregation:
   implementation: "SubtreeProgress::add_bytes/set_bytes; host ancestor routing and size units"
@@ -194,7 +194,7 @@ PartialCompletion:
 HunterScanExecution:
   source: "vendor/hunter-fs-core/src/execution.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.scan_execution (upstream draft)"
 ResultPump:
   implementation: "drive_scan + local Scanner ScanCoordinator; opaque WorkerMessage"
@@ -208,7 +208,7 @@ StopBoundary:
 HunterFilesystemBackend:
   source: "vendor/hunter-fs-core/src/backend.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.backend (upstream draft)"
 NativePathAccess:
   implementation: "StdFilesystem + guarded local Probes trait implementation; marker/bulk exceptions stay local"
@@ -219,7 +219,7 @@ RootInitialization:
 HunterDirectoryWorker:
   source: "vendor/hunter-fs-core/src/worker.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.directory_worker (upstream draft)"
 TaskExecution:
   implementation: "run_directory_worker + local WorkerAdapter; guard retained outside loop"
@@ -233,7 +233,7 @@ PublicationBoundary:
 HunterDirectoryListing:
   source: "vendor/hunter-fs-core/src/listing.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.directory_listing (upstream draft)"
 OrderedCollection:
   implementation: "collect_directory over host-opened entries; ordered owned children/errors"
@@ -247,7 +247,7 @@ AcquisitionOutcome:
 HunterMeasurementBackend:
   source: "vendor/hunter-fs-core/src/measurement.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.measurement_backend (upstream draft)"
 DirectoryPreparation:
   implementation: "measure_with: directory_metadata then prepare_files, including error/pre-cancel"
@@ -261,7 +261,7 @@ SharedSlotExecution:
 HunterScopedSession:
   source: "vendor/hunter-fs-core/src/session.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.scoped_session (upstream draft)"
 HelperStartup:
   implementation: "start host helpers before workers and caller-thread coordinator"
@@ -308,7 +308,7 @@ TargetRouting:
 HunterRootAdmission:
   source: "vendor/hunter-fs-core/src/admission.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.root_admission (upstream draft)"
 HostRootPreflight:
   implementation: "host cloud_skip_reason before backend metadata; guards stay local"
@@ -319,7 +319,7 @@ RootAdmissionOutcome:
 HunterBackendLifetime:
   source: "vendor/hunter-fs-core/src/lifetime.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "3a3db1e270ff54ba757027df3a55b9d378ee0525"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
   boundary_spec: "hunter.fs.backend_lifetime (upstream draft)"
 GuardedPreparation:
   implementation: "enter guard then prepare borrowed Probes or owned WorkerAdapter"
@@ -331,3 +331,14 @@ ThreadMaterializationPolicy:
   source: "vendor/hunter-fs-core/src/materialization.rs"
   implementation: "Hunter NonMaterializingIoGuard, Darwin thread read/set/restore, no-op elsewhere"
   folded_into: "buildhunter.current.scan"
+HunterScanAssembly:
+  source: "vendor/hunter-fs-core/src/assembly.rs"
+  upstream_revision: "9f445cf8468e2f341d8e8e20782854fb391d5979"
+  boundary_spec: "hunter.fs.scan_assembly (upstream draft)"
+GuardedQueue:
+  implementation: "with_scan_session; owned queue and capped parallelism inside backend scope"
+SingleLaunch:
+  implementation: "consuming ScanSession::run; scoped helpers/workers/coordinator join"
+HostFinalization:
+  source: "src/scan_session.rs"
+  implementation: "final Profile/Finished after join, before backend/guard release"
