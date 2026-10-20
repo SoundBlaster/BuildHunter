@@ -429,3 +429,31 @@ release unread receivers before join and provide eventual responses or timed wai
 This is a serial orchestration facade, not an autonomous worker/backend factory,
 descriptor-based traversal, a race-free snapshot or a memory/CPU budget guarantee.
 See specs/scan-engine.spec.yaml and the integration witnesses in engine.rs.
+
+## Launching the engine within a session
+
+ScanChannel owns the same unbounded mpsc response channel the host previously wired
+by hand. Allocate it after guard/backend setup at the original point relative to
+QoS/profile capture. sender() clones a worker producer; the owner retains the original
+sender until coordinator entry. No message interpretation or memory budget is added.
+
+EngineLaunch groups the borrowed backend/raw root, owned channel, root preflight and
+optional idle interval. A closure stored in its preflight field can annotate its path
+argument (`|path: &Path| ...`) for Rust's higher-ranked lifetime inference. The host
+continues to choose policy, worker effects/guard placement and helper setup.
+
+Consuming ScanSession::run_engine(launch, worker, start_helpers, make_host, collect)
+uses the existing run path. Helpers start, workers launch, then on the caller the
+original producer drops, make_host constructs/profiles the host, and ScanEngine runs.
+The unread receiver drops before collect(host,outcome). collect is deliberately before
+helper stop/queue closure/join: extract the report inputs and release host-only progress
+there, rather than accidentally retaining it across join. A non-Send result may return
+after actual join; final profile/status/events remain the outer guarded body’s job.
+
+Factory/engine panic skips collect and releases the receiver before join. A collect
+panic also shuts down and joins before outer backend/guard release. Worker panic can
+surface only at join after collect already ran, so collect must not publish terminal
+status. Existing response protocol, access-guard, cooperative termination and safe Drop
+obligations still apply. Callbacks, root observation and metadata semantics are unchanged;
+this does not interrupt I/O, choose a native/batch backend or promise RAM/CPU limits.
+The lower-level session run and standalone ScanEngine remain available.

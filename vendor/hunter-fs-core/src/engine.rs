@@ -931,4 +931,239 @@ mod tests {
         assert_eq!(out.exit, Some(CoordinatorExit::Drained));
         assert_eq!(out.outstanding, 0);
     }
+
+    #[test]
+    fn launch_collects_host_and_drops_receiver_before_helpers_stop_and_join() {
+        use crate::{EngineLaunch, ScanChannel};
+        use std::sync::{
+            Mutex,
+            atomic::{AtomicBool, Ordering},
+        };
+        let b = backend();
+        let label = String::from("borrowed launch");
+        let mut h = host(&label);
+        h.include = false;
+        let alive = h.branch_drops.clone();
+        let joined = AtomicBool::new(false);
+        let stopped = AtomicBool::new(false);
+        let events = Mutex::new(Vec::new());
+        let owner = std::thread::current().id();
+        struct Stop<'a> {
+            events: &'a Mutex<Vec<&'static str>>,
+            alive: &'a Rc<Cell<usize>>,
+            stopped: &'a AtomicBool,
+        }
+        impl Drop for Stop<'_> {
+            fn drop(&mut self) {
+                assert_eq!(
+                    Rc::strong_count(self.alive),
+                    1,
+                    "host-only state released before helpers stop"
+                );
+                self.events.lock().unwrap().push("stop");
+                self.stopped.store(true, Ordering::SeqCst);
+            }
+        }
+        let result = with_scan_session(
+            || Ok::<_, ()>(()),
+            || Ok::<_, ()>(()),
+            1,
+            |_, session: crate::ScanSession<'_, crate::DirectoryTask<usize, u8>>| {
+                let channel = ScanChannel::new();
+                let sender = channel.sender();
+                let probe = channel.sender();
+                let result = session.run_engine(
+                    EngineLaunch {
+                        backend: &b,
+                        root: Path::new("literal/../root"),
+                        channel,
+                        preflight: |_: &Path| {
+                            events.lock().unwrap().push("preflight");
+                            None
+                        },
+                        wake_interval: None,
+                    },
+                    |q| {
+                        while let Some(task) = q.pop() {
+                            sender.send(listed(task.id, false, vec![])).unwrap();
+                        }
+                        assert!(stopped.load(Ordering::SeqCst));
+                        events.lock().unwrap().push("joined");
+                        joined.store(true, Ordering::SeqCst);
+                    },
+                    |_| Stop {
+                        events: &events,
+                        alive: &alive,
+                        stopped: &stopped,
+                    },
+                    || {
+                        assert_eq!(std::thread::current().id(), owner);
+                        events.lock().unwrap().push("make");
+                        h
+                    },
+                    |host, outcome| {
+                        assert_eq!(std::thread::current().id(), owner);
+                        assert_eq!(outcome.exit, Some(CoordinatorExit::Drained));
+                        assert!(!joined.load(Ordering::SeqCst));
+                        assert!(
+                            probe.send(Message::Control).is_err(),
+                            "receiver released before collect"
+                        );
+                        assert_eq!(host.trace.last().unwrap(), "finish:1:0");
+                        drop(host);
+                        events.lock().unwrap().push("collect");
+                        Rc::new(Cell::new(7))
+                    },
+                );
+                assert!(joined.load(Ordering::SeqCst));
+                events.lock().unwrap().push("finalize");
+                result
+            },
+        )
+        .unwrap();
+        assert_eq!(result.get(), 7);
+        assert_eq!(
+            *events.lock().unwrap(),
+            ["make", "preflight", "collect", "stop", "joined", "finalize"]
+        );
+    }
+    #[test]
+    fn launch_factory_panic_releases_receiver_before_queue_closure_and_join() {
+        use crate::{EngineLaunch, ScanChannel};
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let b = backend();
+        let joined = AtomicBool::new(false);
+        let (ready, started) = mpsc::channel();
+        let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            with_scan_session(
+                || Ok::<_, ()>(()),
+                || Ok::<_, ()>(()),
+                1,
+                |_, session: crate::ScanSession<'_, crate::DirectoryTask<usize, u8>>| {
+                    let channel = ScanChannel::new();
+                    let sender = channel.sender();
+                    session.run_engine(
+                        EngineLaunch {
+                            backend: &b,
+                            root: Path::new("literal/../root"),
+                            channel,
+                            preflight: |_: &Path| None,
+                            wake_interval: None,
+                        },
+                        |q| {
+                            ready.send(()).unwrap();
+                            while q.pop().is_some() {}
+                            assert!(sender.send(Message::Control).is_err());
+                            joined.store(true, Ordering::SeqCst);
+                        },
+                        |_| (),
+                        || -> Host<'_> {
+                            started.recv_timeout(Duration::from_secs(5)).unwrap();
+                            panic!("factory")
+                        },
+                        |_, _| panic!("collect must not run"),
+                    )
+                },
+            )
+        }));
+        assert!(panic.is_err());
+        assert!(joined.load(Ordering::SeqCst));
+        assert!(b.calls.borrow().is_empty());
+    }
+    #[test]
+    fn launch_collect_panic_joins_before_outer_backend_and_guard_drop() {
+        use crate::{EngineLaunch, ScanChannel};
+        use std::sync::{
+            Mutex,
+            atomic::{AtomicBool, Ordering},
+        };
+        let b = backend();
+        let joined = AtomicBool::new(false);
+        let events = Mutex::new(Vec::new());
+        struct DropAfterJoin<'a>(&'a AtomicBool, &'a Mutex<Vec<&'static str>>, &'static str);
+        impl Drop for DropAfterJoin<'_> {
+            fn drop(&mut self) {
+                assert!(self.0.load(Ordering::SeqCst));
+                self.1.lock().unwrap().push(self.2);
+            }
+        }
+        let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            with_scan_session(
+                || Ok::<_, ()>(DropAfterJoin(&joined, &events, "guard")),
+                || Ok::<_, ()>(DropAfterJoin(&joined, &events, "backend")),
+                1,
+                |_, session: crate::ScanSession<'_, crate::DirectoryTask<usize, u8>>| {
+                    let channel = ScanChannel::new();
+                    let sender = channel.sender();
+                    let probe = channel.sender();
+                    session.run_engine(
+                        EngineLaunch {
+                            backend: &b,
+                            root: Path::new("literal/../root"),
+                            channel,
+                            preflight: |_: &Path| Some("skip"),
+                            wake_interval: None,
+                        },
+                        |q| {
+                            while q.pop().is_some() {}
+                            assert!(sender.send(Message::Control).is_err());
+                            joined.store(true, Ordering::SeqCst);
+                        },
+                        |_| (),
+                        || host("host"),
+                        |_, outcome| -> () {
+                            assert_eq!(outcome.exit, None);
+                            assert!(probe.send(Message::Control).is_err());
+                            panic!("collect")
+                        },
+                    )
+                },
+            )
+        }));
+        assert!(panic.is_err());
+        assert_eq!(*events.lock().unwrap(), ["backend", "guard"]);
+        assert!(b.calls.borrow().is_empty());
+    }
+    #[test]
+    fn launch_declined_root_still_collects_and_joins_without_metadata_or_pump() {
+        use crate::{EngineLaunch, ScanChannel};
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let b = backend();
+        let joined = AtomicBool::new(false);
+        let result = with_scan_session(
+            || Ok::<_, ()>(()),
+            || Ok::<_, ()>(()),
+            1,
+            |_, session: crate::ScanSession<'_, crate::DirectoryTask<usize, u8>>| {
+                let channel = ScanChannel::new();
+                let sender = channel.sender();
+                let result = session.run_engine(
+                    EngineLaunch {
+                        backend: &b,
+                        root: Path::new("literal/../root"),
+                        channel,
+                        preflight: |_: &Path| Some("skip"),
+                        wake_interval: None,
+                    },
+                    |q| {
+                        while q.pop().is_some() {}
+                        assert!(sender.send(Message::Control).is_err());
+                        joined.store(true, Ordering::SeqCst);
+                    },
+                    |_| (),
+                    || host("host"),
+                    |host, outcome| {
+                        assert_eq!(host.trace, ["initialize"]);
+                        assert_eq!(outcome.exit, None);
+                        outcome
+                    },
+                );
+                assert!(joined.load(Ordering::SeqCst));
+                result
+            },
+        )
+        .unwrap();
+        assert_eq!(result.outstanding, 0);
+        assert!(b.calls.borrow().is_empty());
+    }
 }
