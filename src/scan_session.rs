@@ -4,7 +4,7 @@ use crate::{
     ScanControl, ScanEvent, ScanOptions, ScanReport, ScanStatus, ScanWarning, materialization,
     profile, run_worker, thread_qos,
 };
-use hunter_fs_core::{GuardedSetupError, with_scan_session};
+use hunter_fs_core::{EngineLaunch, GuardedSetupError, ScanChannel, with_scan_session};
 use std::{
     path::{Path, PathBuf},
     sync::atomic::Ordering,
@@ -25,20 +25,25 @@ pub(super) fn run(
         MAX_SCAN_WORKERS,
         |backend, session| {
             let probes = *backend;
-            let (sender, receiver) = std::sync::mpsc::channel();
+            let channel = ScanChannel::new();
             let worker_qos = thread_qos::capture();
             let profile_state = control
                 .profiling
                 .load(Ordering::Acquire)
                 .then(profile::ProfileState::new);
             let profile = profile_state.as_ref();
-            let (artifacts, warnings, had_errors, changed) = session.run(
-                {
-                    let sender = sender.clone();
-                    move |queue| {
-                        thread_qos::apply(worker_qos);
-                        run_worker(queue, &sender, control, probes, legacy_policy)
-                    }
+            let sender = channel.sender();
+            let (artifacts, warnings, had_errors, changed) = session.run_engine(
+                EngineLaunch {
+                    backend: probes,
+                    root,
+                    channel,
+                    preflight: crate::cloud_skip_reason,
+                    wake_interval: profile.map(|_| profile::PROFILE_INTERVAL),
+                },
+                move |queue| {
+                    thread_qos::apply(worker_qos);
+                    run_worker(queue, &sender, control, probes, legacy_policy)
                 },
                 |scope| {
                     // Stop helpers before the shared queue closes and all threads join.
@@ -51,8 +56,7 @@ pub(super) fn run(
                         stop
                     })
                 },
-                |queue| {
-                    drop(sender);
+                || {
                     let mut scanner = ArtifactHandler {
                         root,
                         options,
@@ -68,10 +72,12 @@ pub(super) fn run(
                         changed: false,
                         profile,
                     };
-                    scanner.run(queue, &receiver);
-                    // Keep the original channel lifetime: release unread responses before scope join.
-                    // Moving receiver into this closure also drops it here if a callback unwinds.
-                    drop(receiver);
+                    scanner.begin_profile();
+                    scanner
+                },
+                |scanner, _outcome| {
+                    // Collect before helper shutdown/join so product progress state
+                    // releases at the same boundary as the original coordinator.
                     (
                         scanner.artifacts,
                         scanner.warnings,

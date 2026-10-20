@@ -804,3 +804,36 @@ unchanged. This completes the serial composition facade, not descriptor recursio
 backend algorithms/factories, default plugin migration, C5 budgets or live home/cloud/UI
 acceptance. Next boundary: reduce product startup wiring using the existing guarded
 session and engine without moving product report/status interpretation upstream.
+
+### Engine launch and pre-join collection — 2026-10-20
+
+Local mains were fast-forwarded to Hunter 4e018c1ad0490342b7e69579916c093a101c50c3
+and BuildHunter 65c5b2ffd38d419aaf3541bfd594882e13a0832d before this slice. Exact
+upstream core snapshot 40c0f5384c70879f529c6069d835dafff316567a extends the existing
+hunter.fs.scan_assembly boundary with ScanChannel, EngineLaunch and consuming
+ScanSession::run_engine; no new package/capability is introduced for this composition.
+
+The host allocates the same unbounded channel before QoS/profile setup and clones the
+worker producer. The launcher starts existing helpers/workers, releases the original
+producer before host construction/profile start, calls ScanEngine, releases unread
+receiver and invokes collect before helper stop/queue closure/join. The product collect
+returns the original report inputs and drops host-only progress before join rather
+than retaining a whole ArtifactHandler across it. Factory/engine panic skips collect;
+collection panic still joins before backend/guard drop. A worker panic may surface at
+join after collection, so collection is not success and cannot publish terminal events.
+
+BuildHunter retains guard placement, backend/worker/helper effects, cloud preflight,
+QoS/profile capture, classification/aggregation and post-join profile/status/report/events.
+The former ArtifactHandler engine-run wrapper is test-only for scripted protocol tests;
+production uses the common launch path. Current session_assembly/scoped_session/scan_lifetime
+and target startup bindings are refreshed. Root/child/measurement/selection policies,
+C ABI/FFI, GUI, status precedence and plugin contracts are unchanged.
+
+Four new launch witnesses cover exact ownership/order, non-Send host/result, factory/
+collection panic and declined admission. Existing helper/worker/engine/profile/guard
+regressions remain. Fresh source/command/performance/map receipts are in
+specs/validation/hunter-engine-launch-20261020; old receipts stay historical. Contracts
+remain draft. Common engine startup composition is implemented; autonomous native/batch
+backend choice, descriptor recursion, default plugin migration, C5 budgets and fresh
+home/cloud/UI acceptance remain outside this slice. Before another extraction, audit
+remaining target obligations to distinguish reusable engine work from product policy.

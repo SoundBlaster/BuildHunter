@@ -1,12 +1,12 @@
-#[cfg(test)]
-use hunter_fs_core::spawn_workers;
 use hunter_fs_core::{
     BranchPlan, ChildDecision, DirectoryListing, DirectoryMeasurement, DirectoryMeasurementPlan,
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, DirectoryWorker,
     FilesystemBackend, GuardedSetupError, ListingAction, MeasuredSize, PendingSelection,
-    RootAdmission, RootObservation, ScanEngine, ScanHandler, SelectedEntry, StdFilesystem,
-    SubtreeProgress, TraversalTasks, collect_directory, run_directory_worker, with_guarded_backend,
+    RootAdmission, RootObservation, ScanHandler, SelectedEntry, StdFilesystem, SubtreeProgress,
+    TraversalTasks, collect_directory, run_directory_worker, with_guarded_backend,
 };
+#[cfg(test)]
+use hunter_fs_core::{ScanEngine, spawn_workers};
 use std::{
     borrow::Cow,
     ffi::{OsStr, c_char, c_void},
@@ -1132,15 +1132,20 @@ where
         usize::try_from(id - 1).expect("artifact IDs fit in memory")
     }
 
+    fn begin_profile(&mut self) {
+        if let Some(profile) = self.profile {
+            profile.record();
+        }
+        self.emit_profile();
+    }
+
+    #[cfg(test)]
     fn run(
         &mut self,
         queue: &WorkQueue,
         receiver: &std::sync::mpsc::Receiver<WorkerMessage>,
     ) -> hunter_fs_core::TraversalOutcome {
-        if let Some(profile) = self.profile {
-            profile.record();
-        }
-        self.emit_profile();
+        self.begin_profile();
         let wake_interval = self.profile.map(|_| profile::PROFILE_INTERVAL);
         let root = self.root;
         let probes = self.probes;

@@ -195,7 +195,7 @@ constraints:
 - id: scoped_session
   level: MUST
   statement: Product scan_session::run selects the guard/backend constructors and owns
-    profile/QoS setup, coordinator construction, final status and event/report publication.
+    profile/QoS setup, host construction, final status and event/report publication.
     Hunter with_scan_session owns guarded backend lifetime, the empty shared queue
     and capped worker-count selection. Its non-cloneable ScanSession token is
     consumed once to launch scoped work; root admission stays inside the guarded caller coordinator. Hunter
@@ -209,8 +209,17 @@ constraints:
 - id: session_assembly
   level: MUST
   statement: Delegate guard/backend scope, queue construction and capped parallelism
-    to with_scan_session and consume ScanSession::run once. Keep profile/QoS,
-    root admission policy, task semantics and final event/report publication local.
+    to with_scan_session and consume ScanSession::run_engine once. Allocate ScanChannel
+    at the existing point before profile/QoS capture and clone the worker producer before
+    launch. EngineLaunch passes guarded Probes, raw root, cloud preflight and idle interval.
+    Hunter drops the original producer before caller-thread ArtifactHandler construction
+    and begin_profile, invokes ScanEngine and releases unread receiver before collect.
+    Product collect extracts report inputs and releases progress before helper stop/queue
+    closure/join, matching the original lifetime. Factory/engine panic skips collect;
+    collection panic still joins before outer backend/guard release. Worker panic may
+    surface after collection at join, so keep final Profile/Finished after actual join.
+    Root admission policy, worker/helper effects/QoS, byte/profile/status mapping and
+    final event/report publication remain local; no extra stop probe, I/O or thread.
 - id: traversal_coordinator
   level: MUST
   statement: Replace private Scanner with ArtifactHandler implementing Hunter
@@ -372,6 +381,10 @@ evidence:
   kind: source
   path: vendor/hunter-fs-core/src/coordinator.rs
   supports: [constraints.traversal_coordinator, constraints.result_execution, constraints.root_admission, scope]
+- id: engine_launch_source
+  kind: source
+  path: vendor/hunter-fs-core/src/launch.rs
+  supports: [constraints.session_assembly, constraints.scoped_session, constraints.scan_lifetime, scope]
 - id: scan_engine_source
   kind: source
   path: vendor/hunter-fs-core/src/engine.rs
@@ -439,7 +452,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 79b589313e95997758bd196dd60d0a8cd3b7eb03
+    revision: e8e670452374c1cf5599bce10431c71516a1f707
   files:
     owned:
     - src/lib.rs
@@ -467,6 +480,7 @@ implementationBindings:
     - vendor/hunter-fs-core/src/engine.rs
     - vendor/hunter-fs-core/src/coordinator.rs
     - vendor/hunter-fs-core/src/assembly.rs
+    - vendor/hunter-fs-core/src/launch.rs
     - vendor/hunter-fs-core/src/session.rs
     - vendor/hunter-fs-core/src/admission.rs
     - vendor/hunter-fs-core/src/lifetime.rs

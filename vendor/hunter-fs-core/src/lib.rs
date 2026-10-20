@@ -343,3 +343,6 @@ pub use processing::{
 
 mod engine;
 pub use engine::{BranchPlan, ListingAction, PendingSelection, ScanEngine, ScanHandler, ScanTasks};
+
+mod launch;
+pub use launch::{EngineLaunch, ScanChannel};
