@@ -147,7 +147,8 @@
         "vendor/hunter-fs-core/src/task.rs": "906bce62ddad02953c2b2710491cafbca9849fc68a54e041da52a2e89664cf5a",
         "vendor/hunter-fs-core/src/work.rs": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160",
         "vendor/hunter-fs-core/src/worker.rs": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1"
-      }
+      },
+      "working_tree_inputs": true
     },
     "Hunter": {
       "head": "860d995374d677d68b39093101da25c3cacfff9b",
@@ -179,7 +180,8 @@
         "crates/hunter-fs-core/src/worker.rs": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1",
         "src/lib.rs": "9970c6684ef089f2abdc515f80b3ab0f6caad2273c07115718c216b2e420262e",
         "src/scoped_metadata.rs": "07a8b5a733024ec838c38290902fc9f2a8cb4f031a41a7117f0aadc64503d0be"
-      }
+      },
+      "working_tree_inputs": false
     },
     "Rifle": {
       "head": "693a284123faaa1ad3192cd88b259ba97a7b5910",
@@ -195,7 +197,8 @@
         "src/json.rs": "d9b5e63c99ad05cffab73d3ff61b612234975a0fe3107d969443389d4f0f6109",
         "src/lib.rs": "75f2c55e7a5b1e1aacfbe3a98f1e6b93e07c9adadb01ed6cccd35266147c3de9",
         "src/validate.rs": "1271f3785ac719ea148bbf86802d2842c9baeb80ea5d52d4e11cee233884d7f7"
-      }
+      },
+      "working_tree_inputs": false
     }
   },
   "maps": {
@@ -211,5 +214,6 @@
     "specpm": "specpm 0.2.0",
     "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
     "git": "git version 2.54.0 (Apple Git-157)"
-  }
+  },
+  "identity_semantics": "Repository head/origin_main are immutable audited source baselines. File and map hashes describe the audit working tree, including documentation changes not present in those baseline commits. Runtime equality is checked separately in scope-check.json."
 }
