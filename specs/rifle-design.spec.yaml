@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: rifle.design.rules
   title: Rifle target boundary
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Validate and evaluate abstract declarative rules over supplied facts, independently of filesystem traversal
@@ -108,4 +108,11 @@ provenance:
   - Claim origin, review state, assembly obligations and unresolved decisions are in specs/claim-matrix.md.
   - 'Plugin contract 1-draft.1 is a proposal. Wire-shape checks are executable; runtime semantics, budgets, JCS
     and migration acceptance remain pending. Current evidence: specs/validation/plugin-contract-20261013/.'
+  - >-
+    Source audit 2026-10-20 at Rifle main 693a284123faaa1ad3192cd88b259ba97a7b5910:
+    pure three-valued evaluator, bounded validation, generic catalog and JCS identity exist.
+    Swift authoring SDK and candidate indexes do not. BuildHunter's separate plugin policy/scanner
+    pilots consume this evaluator; default CLI/GUI do not. Earlier pending notes describe
+    historical proposal stages. See docs/modular-refactor-audit-20261020.md and its source receipt;
+    no target acceptance or new runtime conformance run follows from the audit.
 implementationBindings: []

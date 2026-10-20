@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.design.scan
   title: Hunter target boundary
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Provide reusable filesystem traversal, requested metadata/measurement and scan lifecycle without artifact
@@ -66,7 +66,7 @@ effects:
   sideEffects:
   - id: metadata_reads
     kind: filesystem_read
-    summary: Intended authorized metadata enumeration; actual extraction is pending.
+    summary: Intended authorized metadata enumeration; portable effects are partially extracted, full target scope remains pending.
   - id: scan_events
     kind: event_emit
     summary: Intended owned streaming outcomes.
@@ -151,4 +151,14 @@ provenance:
   - with_guarded_backend and Darwin NonMaterializingIoGuard at 3a3db1e270ff54ba757027df3a55b9d378ee0525 own generic lifetime and native thread-policy RAII.
     BuildHunter chooses scope placement/backends and owns path/error/status/terminal policy.
     Default plugin migration, descriptor recursion, full engine assembly and budgets remain pending.
+  - >-
+    Current reconciliation on 2026-10-20: Hunter main 860d995374d677d68b39093101da25c3cacfff9b
+    contains the integrated core snapshot 40c0f5384c70879f529c6069d835dafff316567a used by
+    BuildHunter main 7ab00f16ae437fe88427c2acbe1b651b30b044f1. Serial ScanEngine and guarded
+    launch/join composition are implemented; older per-slice pending notes above are historical.
+    Darwin batch metadata, requested QoS and OS process resource snapshots remain host-side.
+    Product interpretation intentionally stays in BuildHunter. Descriptor recursion and C5
+    budgets are separate behavior work; a new autonomous factory is not itself a completion gate.
+    See docs/modular-refactor-audit-20261020.md and specs/validation/modular-audit-20261020.
+    These are source observations and recommendations, not acceptance of this draft target.
 implementationBindings: []
