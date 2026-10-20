@@ -387,3 +387,10 @@ BuildHunter реализует один ScanHandler; ArtifactBranch хранит
 больше не нужны. [Граница двигателя](hunter-scan-engine.md) описывает callbacks,
 владение и оставшиеся обязанности приложения. Factory backend/workers, descriptor
 recursion, миграция default plugins и C5 resource budgets ещё не завершены.
+
+### Engine startup — 2026-10-20
+
+Hunter ScanSession::run_engine теперь владеет каналом ответов и общим вызовом ScanEngine.
+Приложение создаёт ArtifactHandler и собирает данные отчёта в callbacks; служебный progress
+освобождается до join, а итоговые события остаются после join. Это расширение существующей
+guarded scan assembly, не новый модуль или policy framework. См. [startup boundary](hunter-engine-launch.md).

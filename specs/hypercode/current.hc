@@ -93,6 +93,10 @@ BuildHunterRuntime
       GuardedQueue
       SingleLaunch
       HostFinalization
+      EngineLaunch
+        ResponseChannel
+        HostConstruction
+        PreJoinCollection
     HunterBackendLifetime
       GuardedPreparation
       BackendRelease

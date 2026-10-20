@@ -150,3 +150,6 @@ policy and aggregation. Latest source/command identities: hunter-processing-2026
 
 Current serial composition now uses Hunter ScanEngine with one ArtifactHandler/ScanHandler.
 See hunter-engine-20261019 receipts; prior stage descriptions remain historical.
+
+Engine launch now composes owned ScanChannel, ArtifactHandler factory and pre-join
+collection under HunterScanAssembly. Fresh receipts: hunter-engine-launch-20261020.
