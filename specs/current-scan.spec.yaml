@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.15
+  version: 0.1.0-draft.16
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -84,6 +84,12 @@ requires:
   - id: hunter.fs.backend_lifetime
     optional: false
     summary: Same-thread guard/backend construction and reverse cleanup; Hunter owns Darwin thread-policy RAII, host owns placement/status.
+  - id: hunter.fs.darwin_bulk_metadata
+    optional: true
+    summary: Opt-in macOS batch acquisition/checked decoder; host holds the worker guard.
+  - id: hunter.fs.prepared_directory_sizes
+    optional: false
+    summary: Pure owned per-name result/error consumption and missing/Unsupported decision.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -164,15 +170,15 @@ constraints:
     roots remain warnings/Incomplete rather than ordinary child churn. Final root
     symlinks are entries and are not followed; intermediate components/read_dir
     remain path-based with existing race limits. Probes preserves error decoration,
-    hooks and counters; marker following and bulk acquisition stay product-owned.
+    hooks and counters; marker following and the decision to request bulk acquisition stay product-owned.
 - id: directory_worker
   level: MUST
   statement: After worker materialization guard setup, execute directory tasks through
     Hunter DirectoryWorker. Publish Listed before measurement and send a returned
     cancelled/partial Measured result. On receiver rejection stop before further
     measurement or another task. Keep marker/prefetch interpretation and opt-in timers
-    in the host adapter, and guarded portable/bulk preparation and fallback/error
-    decoration in the host measurement module. Guard setup failure still sends SetupFailed; panic/queue
+    in the host adapter. Hunter owns requested batch acquisition/lookup; guarded preparation
+    policy, portable fallback effects and error decoration stay in the host measurement module. Guard setup failure still sends SetupFailed; panic/queue
     closure and terminal publication retain their enclosing scope obligations.
 - id: directory_listing
   level: MUST
@@ -188,9 +194,10 @@ constraints:
   statement: WorkerAdapter times measurement::measure_directory; local MetadataBackend
     observes directory metadata then prepares owned file-measurement state through
     Hunter measure_with. Prepare after directory errors/pre-cancellation and preserve
-    original slots and partial outcomes. Keep native/bulk acquisition, injected test
-    errors, per-entry consumption, Unsupported/missing fallback, counters and error
-    decoration in the host measurement module. Retain the outer worker guard through
+    original slots and partial outcomes. Delegate requested Darwin acquisition and
+    prepared consume-once lookup to Hunter. Keep file-slot eligibility, injected test
+    error precedence, Unsupported/missing portable fallback effects, counters and error
+    decoration in the host module at the same boundaries. Retain the outer worker guard through
     prepared state use/drop; queues, receiver, joins and status are unchanged.
 - id: scoped_session
   level: MUST
@@ -282,9 +289,14 @@ evidence:
   - scope
 - id: source_2
   kind: source
-  path: src/bulk_metadata.rs
+  path: vendor/hunter-fs-core/src/darwin_bulk.rs
   supports:
   - scope
+  - constraints.measurement_backend
+- id: prepared_batch_source
+  kind: source
+  path: vendor/hunter-fs-core/src/batch.rs
+  supports: [scope, constraints.measurement_backend]
 - id: source_3
   kind: source
   path: src/thread_qos.rs
@@ -447,19 +459,25 @@ provenance:
   - Guard/backend scopes now delegate to Hunter 3a3db1e270ff54ba757027df3a55b9d378ee0525; the Darwin thread guard is owned upstream.
     Host keeps cloud path/error/status policy; coordinator retains final publication inside the lifetime body.
     Fresh source/map/runtime receipts are in specs/validation/hunter-lifetime-20261018.
+  - >-
+    Darwin batch acquisition and prepared per-name lookup now delegate to Hunter
+    7e8243c738613f985e1568278f1a69df6c5036b7 (Hunter #22/#23). Host eligibility, injected
+    failures, counters, guard scope, fallback effects and dataless decoration retain their
+    boundaries. Four native tests moved upstream and two host adapter regressions were added.
+    Fresh sources/maps/tests/paired feature-mode budgets: specs/validation/hunter-batch-20261021.
+    Earlier ownership notes are historical. Default policy/ABI and C3/C5 limits are unchanged.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: e8e670452374c1cf5599bce10431c71516a1f707
+    revision: 713196e92d02f8e0d44b7a46ce08285e62f2c618
   files:
     owned:
     - src/lib.rs
     - src/scan_session.rs
     - src/measurement.rs
     - src/materialization.rs
-    - src/bulk_metadata.rs
     - src/thread_qos.rs
     - src/profile.rs
     - src/process_resources.rs
@@ -476,6 +494,8 @@ implementationBindings:
     - vendor/hunter-fs-core/src/worker.rs
     - vendor/hunter-fs-core/src/listing.rs
     - vendor/hunter-fs-core/src/measurement.rs
+    - vendor/hunter-fs-core/src/darwin_bulk.rs
+    - vendor/hunter-fs-core/src/batch.rs
     - vendor/hunter-fs-core/src/processing.rs
     - vendor/hunter-fs-core/src/engine.rs
     - vendor/hunter-fs-core/src/coordinator.rs

@@ -1,6 +1,6 @@
 # План доставки plugins и коммерческого каталога
 
-Исходный план: 2026-10-13; сверка статуса: 2026-10-20. Этапы ниже не завершены
+Исходный план: 2026-10-13; сверка статуса: 2026-10-21 (PR branch). Этапы ниже не завершены
 end-to-end; отдельные runtime части уже реализованы. Имена Hunter/Rifle/BuildHunter/Arsenal
 утверждены; [модульные контракты](modular-architecture.md) остаются draft. Согласовано архитектурное
 направление в [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md),
@@ -222,3 +222,12 @@ Host scope placement, cloud paths/error decoration and product status stay local
 see [guarded backend lifetime](hunter-backend-lifetime.md) and `hunter-lifetime-20261018` evidence.
 This supersedes earlier pending guard-lifetime ownership notes for the integrated
 Rust coordinator/workers; full engine/backend algorithm assembly remains pending.
+
+## Darwin batch backend — 2026-10-21
+
+Hunter #22/#23 now own opt-in batch acquisition/decoder and portable prepared size
+lookup. BuildHunter pins the exact top snapshot and removes its duplicate implementation,
+retaining guard/eligibility/fallback effects/counters/error policy. Default feature and
+plugin migration remain unchanged. See [integration](hunter-batch-metadata.md) and
+`specs/validation/hunter-batch-20261021`. Next extraction is QoS/process snapshots;
+resource budgets, descriptor traversal and client/catalog delivery remain separate.

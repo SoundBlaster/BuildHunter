@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.design.scan
   title: Hunter target boundary
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Provide reusable filesystem traversal, requested metadata/measurement and scan lifecycle without artifact
@@ -161,4 +161,12 @@ provenance:
     budgets are separate behavior work; a new autonomous factory is not itself a completion gate.
     See docs/modular-refactor-audit-20261020.md and specs/validation/modular-audit-20261020.
     These are source observations and recommendations, not acceptance of this draft target.
+  - >-
+    Candidate batch integration on 2026-10-21 pins Hunter 7e8243c738613f985e1568278f1a69df6c5036b7
+    from upstream #22/#23. Actual Darwin acquisition/decoder and prepared size lookup are now
+    Hunter-owned; host still owns guard placement, eligibility, profiling/error adaptation and
+    portable fallback effects. QoS/process snapshots remain the next extraction, while descriptor
+    recursion, C5 budgets and default plugin migration stay separate. This supersedes the
+    historical batch-pending audit observation without changing target constraints or acceptance.
+    See docs/hunter-batch-metadata.md and specs/validation/hunter-batch-20261021.
 implementationBindings: []

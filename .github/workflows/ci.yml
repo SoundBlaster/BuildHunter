@@ -37,8 +37,8 @@ jobs:
         run: |
           python scripts/verify_hunter_vendor.py
           python scripts/test_hunter_vendor.py
-          cargo test --locked -p hunter-fs-core
-          cargo test --locked --release -p hunter-fs-core
+          cargo test --locked --all-features -p build-hunter -p hunter-fs-core
+          cargo test --locked --release --all-features -p build-hunter -p hunter-fs-core
           cargo fmt --manifest-path vendor/hunter-fs-core/Cargo.toml --check
       - name: Independent plugin policy checks
         run: |

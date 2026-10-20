@@ -52,10 +52,10 @@ NativeMeasurementBackend:
   implementation: "MetadataBackend directory/prepared-state adapter"
   folded_into: "buildhunter.current.scan"
 BatchPreparation:
-  implementation: "optional local bulk metadata + test injections; preparation before slot cancellation"
+  implementation: "host chooses optional Hunter acquisition, records counters/test hooks; preparation before slot cancellation"
   folded_into: "buildhunter.current.scan"
 MetadataFallback:
-  implementation: "PreparedFiles consumes batch entries, native fallback/error decoration/counters"
+  implementation: "Hunter consumes batch entries; PreparedFiles keeps injected errors, portable fallback/error decoration/counters"
   folded_into: "buildhunter.current.scan"
 CloudGuard:
   source: "src/materialization.rs"
@@ -390,4 +390,20 @@ HostConstruction:
   folded_into: "buildhunter.current.scan"
 PreJoinCollection:
   implementation: "product collect extracts report tuple/releases progress before helper stop/queue close/join"
+  folded_into: "buildhunter.current.scan"
+
+HunterBatchMetadata:
+  source: "vendor/hunter-fs-core/src/darwin_bulk.rs"
+  boundary_spec: "buildhunter.current.scan"
+  upstream_capabilities: "hunter.fs.darwin_bulk_metadata + hunter.fs.prepared_directory_sizes"
+  availability: "macOS acquisition opt-in; prepared lookup portable; default backend unchanged"
+BatchAcquisition:
+  implementation: "read_directory_sizes; same open/buffer/stop/syscall order, feature default-off"
+  folded_into: "buildhunter.current.scan"
+CheckedBatchRecords:
+  implementation: "Hunter decoder preserves native errors and raw apparent/allocated observations"
+  folded_into: "buildhunter.current.scan"
+PreparedSizeLookup:
+  source: "vendor/hunter-fs-core/src/batch.rs"
+  implementation: "PreparedDirectorySizes consume-once lookup; missing/Unsupported asks host fallback"
   folded_into: "buildhunter.current.scan"
