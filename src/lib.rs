@@ -24,8 +24,6 @@ pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
 mod process_resources;
 mod resources;
 pub use resources::{ResourceHistory, ResourceSummary};
-#[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-mod bulk_metadata;
 mod materialization;
 mod measurement;
 mod scan_session;

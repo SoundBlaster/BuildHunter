@@ -1,6 +1,6 @@
 //! Opt-in Darwin batch measurement. Discovery still uses the portable listing.
 //! No persistent index; all names and sizes belong to this one directory pass.
-use crate::{MeasuredSize, ScanControl};
+use crate::MeasuredSize;
 use std::{
     collections::HashMap,
     fs::OpenOptions,
@@ -39,9 +39,18 @@ unsafe extern "C" {
     ) -> i32;
 }
 
-type Sizes = HashMap<Vec<u8>, io::Result<MeasuredSize>>;
+/// One directory pass keyed by lossless Unix basename bytes. Not a persistent cache.
+pub use crate::DirectorySizes;
 
-pub(super) fn read(path: &Path, control: &ScanControl) -> io::Result<Sizes> {
+/// Read apparent/allocated sizes without opening file contents. The caller holds
+/// permissions and the thread's non-materializing I/O guard throughout this call.
+/// Opens the directory before checking stop, then checks once before each batch.
+/// Cancellation returns the accumulated prefix; an in-flight syscall is not interrupted.
+/// The final directory component is opened no-follow; ancestors remain pathname-based.
+pub fn read_directory_sizes(
+    path: &Path,
+    mut should_stop: impl FnMut() -> bool,
+) -> io::Result<DirectorySizes> {
     // Public <sys/fcntl.h>: no symlink following for the opened directory.
     const OPEN_FLAGS: i32 = 0x100 | 0x10_0000 | 0x100_0000;
     let directory = OpenOptions::new()
@@ -60,7 +69,7 @@ pub(super) fn read(path: &Path, control: &ScanControl) -> io::Result<Sizes> {
     // u64 elements provide the alignment Darwin requires for each record.
     let mut buffer = vec![0u64; 32_768];
     let mut result = HashMap::new();
-    while !control.should_stop() {
+    while !should_stop() {
         // SAFETY: fd owns an open directory; attrlist has the documented C layout;
         // the initialized, aligned buffer is writable for the supplied byte count.
         let count = unsafe {
@@ -118,7 +127,7 @@ impl Cursor<'_> {
     }
 }
 
-fn parse_batch(bytes: &[u8], count: usize, result: &mut Sizes) -> io::Result<()> {
+fn parse_batch(bytes: &[u8], count: usize, result: &mut DirectorySizes) -> io::Result<()> {
     let mut offset = 0usize;
     for _ in 0..count {
         let length = u32::from_ne_bytes(
@@ -219,9 +228,77 @@ mod tests {
         os::unix::fs::{MetadataExt, symlink},
     };
 
+    struct Tree(std::path::PathBuf);
+    impl Tree {
+        fn new() -> Self {
+            use std::sync::atomic::{AtomicUsize, Ordering};
+            static NEXT: AtomicUsize = AtomicUsize::new(0);
+            let path = std::env::temp_dir().join(format!(
+                "hunter-bulk-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
+            fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+    }
+    impl Drop for Tree {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+    #[test]
+    fn precancellation_keeps_open_before_checkpoint_and_returns_empty_batch() {
+        let _guard = crate::NonMaterializingIoGuard::enter().unwrap();
+        let tree = Tree::new();
+        fs::write(tree.0.join("data"), b"payload").unwrap();
+        let mut checks = 0;
+        let sizes = read_directory_sizes(&tree.0, || {
+            checks += 1;
+            true
+        })
+        .unwrap();
+        assert!(sizes.is_empty());
+        assert_eq!(checks, 1);
+        let error = read_directory_sizes(&tree.0.join("missing"), || {
+            panic!("failed open must not check stop")
+        })
+        .unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::NotFound);
+    }
+    #[test]
+    fn stop_after_a_batch_returns_owned_observations_without_another_checkpoint() {
+        let _guard = crate::NonMaterializingIoGuard::enter().unwrap();
+        let tree = Tree::new();
+        fs::write(tree.0.join("data"), b"payload").unwrap();
+        let mut checks = 0;
+        let sizes = read_directory_sizes(&tree.0, || {
+            checks += 1;
+            checks == 2
+        })
+        .unwrap();
+        assert_eq!(checks, 2);
+        assert_eq!(sizes[b"data".as_slice()].as_ref().unwrap().apparent, 7);
+    }
+    #[test]
+    fn decoder_keeps_non_utf8_names_and_excludes_directory_and_link_sizes() {
+        let mut bytes = record(0);
+        bytes[56..60].copy_from_slice(b"raw\xff");
+        let mut sizes = HashMap::new();
+        parse_batch(&bytes, 1, &mut sizes).unwrap();
+        assert!(sizes.contains_key(b"raw\xff".as_slice()));
+        for kind in [2u32, 5] {
+            let mut bytes = record(0);
+            bytes[36..40].copy_from_slice(&kind.to_ne_bytes());
+            let mut sizes = HashMap::new();
+            parse_batch(&bytes, 1, &mut sizes).unwrap();
+            assert!(sizes.is_empty());
+        }
+    }
     #[test]
     fn batch_sizes_match_stat_for_files_sparse_files_and_hard_links() {
-        let tree = crate::tests::TempTree::new();
+        let _guard = crate::NonMaterializingIoGuard::enter().unwrap();
+        let tree = Tree::new();
         fs::write(tree.0.join("small"), b"payload").unwrap();
         fs::write(tree.0.join("small/..namedfork/rsrc"), vec![42; 128 * 1024]).unwrap();
         fs::hard_link(tree.0.join("small"), tree.0.join("hard-link")).unwrap();
@@ -231,7 +308,7 @@ mod tests {
             .unwrap();
         fs::create_dir(tree.0.join("directory")).unwrap();
         symlink("small", tree.0.join("link")).unwrap();
-        let mut sizes = read(&tree.0, &ScanControl::new()).unwrap();
+        let mut sizes = read_directory_sizes(&tree.0, || false).unwrap();
         for name in ["small", "hard-link", "sparse"] {
             let actual = sizes.remove(name.as_bytes()).unwrap().unwrap();
             let metadata = fs::symlink_metadata(tree.0.join(name)).unwrap();
@@ -264,10 +341,11 @@ mod tests {
 
     #[test]
     fn does_not_open_a_symlinked_directory() {
-        let tree = crate::tests::TempTree::new();
+        let _guard = crate::NonMaterializingIoGuard::enter().unwrap();
+        let tree = Tree::new();
         fs::create_dir(tree.0.join("real")).unwrap();
         symlink("real", tree.0.join("link")).unwrap();
-        assert!(read(&tree.0.join("link"), &ScanControl::new()).is_err());
+        assert!(read_directory_sizes(&tree.0.join("link"), || false).is_err());
     }
 
     fn record(error: u32) -> Vec<u8> {
