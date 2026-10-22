@@ -1,0 +1,6 @@
+# scenario	Rust ABI status	warnings	artifacts	partial	GUI terminal
+complete	0	0	1	false	completed
+cancel-on-discovery	1	0	1	true	stopped
+vanished-file	4	1	1	true	completed-with-changes
+denied-file	2	1	1	true	failed
+missing-root	2	1	0	none	failed

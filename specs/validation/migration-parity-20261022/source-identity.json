@@ -1,0 +1,31 @@
+{
+  "baseline_main": "1fd905620c0d5c0317c6b08123cfe5b0653253c2",
+  "state": "corpus/CLI layer; working tree inputs identified by SHA256",
+  "files": {
+    "Cargo.toml": "736c602b754751747a4897f69061ee94ffd6d48110d00dfbe4a7cd258c629917",
+    "Cargo.lock": "01d339f2f203e87b358f3ec2b1ed18745999aedc710e2bcb2a12ff00471d3c7c",
+    "src/lib.rs": "685d56da227dc7f5da5686cd9ffc69f42f05a43887cb651f87a27078d2c0908b",
+    "src/migration_parity.rs": "de0e959e3938cdbca4c2641e8ffb582855213ce91f90f5a0690ecc79a7c0e805",
+    "src/main.rs": "e2ad362ff35b67c61545045984be32f36ae514d1c117f8a8ae600f8f3f81e08d",
+    "src/policy_table.rs": "b0a9183dfd0d3e2281b6fe2599e7d8476c87019935e26578fa1b275353ad5cde",
+    "tests/fixtures/migration-parity-v1.json": "ac8dbe188daaa6e951822bd83369ee3467291291068551d621dc35682998cec7",
+    "tests/fixtures/migration-lifecycle-v1.tsv": "7840e86a88cafc7b0a92eea1a81e4bcc75910fedcb5b07e055ddc8ef554302bf",
+    "scripts/test_migration_parity.py": "9968fdd7774cd14c9a9727b2b04dd07d25f8f8000143496e7652ed5843314bed",
+    ".github/workflows/ci.yml": "b3ec54d3add3a81861c8353f64e826a4ade5d98e03a5db033f4696dcbd65df8c",
+    "docs/migration-parity-baseline.md": "06af55a75b37464fd5c676999ba64f17d38e4e117b234b29e714beae8c3c8bde",
+    "docs/modular-refactor-audit-20261022.md": "b4d727a029de974b49b45d5e484c2f6a524af9125a6f526e3af6486279c37d64",
+    "specpm.yaml": "9984cfe264b98eb3f4fa2ae8169b76e22558427002268abe6c21cfb599861677",
+    "specs/current-classification.spec.yaml": "8c23416483f532ebfd4d49c24e55dfa8360215555f90f04459ad8a71a73dffc2",
+    "specs/specification-progress.md": "6c139919be0e38a4935e55e9124aeba47f24fe8d97966b91ac76097572a2bdfd",
+    "specs/hypercode/current.hc": "e723f46c8471c27cfa34d7cc44d928a438096e24d8771c9e5058a7c0b25ed022",
+    "specs/hypercode/current.hcs": "4587e41a1195ee098436a00319ef799e8c0ad433f3d0c3fdf588cb7cc12e1110",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "52652edb8e214a19016b6dfddff0d9a0c70eeb9ae3da1730e9f64ed6b7b9c5b8",
+    "specs/hypercode/ci.hc": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a",
+    "specs/hypercode/ci.hcs": "bd38d5c02574a06da11374dc4150886ce8dae47d349e4b1b9bf0636b0654d9fb",
+    "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift": "f4a6cd7563898a2e5f6232c3e2a978fc131bf12b9bc8db6775a5b36e8d92d36a",
+    "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift": "6ee3737c5b528b890d58ddfea840249614b4fc9445e8d7e5b65369db77485304",
+    "macos/Sources/BuildHunter/Domain/SearchFilters.swift": "af0cac3a972cf5206dd6ff16b3f445da9aa8479a16ba5ab618db65a74fa8291d",
+    "vendor/hunter-fs-core/UPSTREAM.json": "9e0bb7187a3841bdb5d01fc3aecfa98d938f0c344403c0f8c00ee37b0e009a1f"
+  }
+}

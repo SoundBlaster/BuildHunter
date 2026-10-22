@@ -942,3 +942,16 @@ or unexpected core sources. Scoped marker implementation bytes are unchanged.
 assembly boundary, including external-root patch limitations. Other C1–C6 and
 design claims are unchanged; requirements stay draft. Current map pin/property
 and fresh source/test/graph evidence: `validation/plugin-alignment-20261022`.
+
+### Migration baseline fixtures (R2, corpus/CLI layer) — 2026-10-22
+
+Freeze reviewed client rows in `tests/fixtures/migration-parity-v1.json`. The real
+CLI runs all 30 CLI cases in both size modes; 28 GUI cases await the upper-layer
+Swift witness. The lifecycle TSV has deterministic Rust status/partial/Finished
+witnesses; bridge terminal/invalid-byte vectors are expected data at this layer.
+Affected unchanged obligations: classification selection/client_profiles/taxonomy/
+filter_snapshot, scan sizes/terminal/lifetime and bridge invalid_utf8/cancellation.
+No production policy/ABI, owner acceptance or runtime architecture changes. The
+current-map property binds evidence only; test details fold into existing roles.
+C2/C3/C4 baseline/gates: `docs/migration-parity-baseline.md`; fresh source/command
+identities: `validation/migration-parity-20261022`. R3/R4 and owner decisions remain open.

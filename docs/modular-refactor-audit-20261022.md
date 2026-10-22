@@ -121,3 +121,11 @@ implemented for these repository workspace graphs, subject to fresh CI/review;
 no library versions are raised and external consumers own their own Cargo patches.
 See [dependency alignment](plugin-scanner-integration.md#dependency-alignment--2026-10-22)
 and `specs/validation/plugin-alignment-20261022`. R2–R8 are unaffected.
+
+## R2 follow-up — 2026-10-22 (corpus/CLI layer)
+
+Shared golden trees freeze reviewed current CLI/GUI rows and per-target exclusions.
+Real CLI and deterministic core lifecycle witnesses are implemented; GUI bridge
+execution is the upper stack layer. See [migration baseline](migration-parity-baseline.md).
+C2 differences are preserved; C3/C4 baseline behavior and remaining migration
+choices are explicit. No default cutover or link/path ABI policy change is included.

@@ -67,6 +67,7 @@ ResourceProfile:
   folded_into: "buildhunter.current.scan"
 ArtifactClassification:
   source: "src/lib.rs"
+  parity_fixture: "tests/fixtures/migration-parity-v1.json; client-specific expected rows"
   boundary_spec: "buildhunter.current.classification"
 CandidateSelection:
   implementation: "is_policy_candidate + may_classify_directory"

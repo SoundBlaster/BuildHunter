@@ -1,0 +1,12 @@
+{
+  "Cargo.toml": true,
+  "Cargo.lock": true,
+  "src/main.rs": true,
+  "src/policy_table.rs": true,
+  "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift": true,
+  "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift": true,
+  "macos/Sources/BuildHunter/Domain/SearchFilters.swift": true,
+  "vendor/hunter-fs-core/UPSTREAM.json": true,
+  "src/lib.rs excluding new cfg(test) module": true,
+  "primary dirty scheme preserved": true
+}
