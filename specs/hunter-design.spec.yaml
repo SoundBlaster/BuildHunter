@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.design.scan
   title: Hunter target boundary
-  version: 0.1.0-draft.4
+  version: 0.1.0-draft.5
   status: draft
 intent:
   summary: Provide reusable filesystem traversal, requested metadata/measurement and scan lifecycle without artifact
@@ -169,4 +169,10 @@ provenance:
     recursion, C5 budgets and default plugin migration stay separate. This supersedes the
     historical batch-pending audit observation without changing target constraints or acceptance.
     See docs/hunter-batch-metadata.md and specs/validation/hunter-batch-20261021.
+  - >-
+    Requested QoS and process CPU/RSS OS acquisition now live in Hunter process
+    platform modules. BuildHunter chooses capture/apply boundaries and retains
+    baseline/sampling/delta/summary and profile ABI. Fresh evidence is under
+    specs/validation/hunter-process-20261022. Earlier host-owned OS-reader notes
+    are historical; this does not establish C5 budgets or default plugin migration.
 implementationBindings: []

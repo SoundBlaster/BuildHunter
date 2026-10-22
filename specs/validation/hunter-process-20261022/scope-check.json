@@ -1,0 +1,10 @@
+{
+  "upstream_revision": "c5354e973b5d1d90c438c94b78c06898ffe62500",
+  "upstream_equal_files": 27,
+  "unchanged_host_files": [
+    "src/scan_session.rs",
+    "src/profile.rs",
+    "src/resources.rs"
+  ],
+  "primary_scheme_sha256": "e59ed0ed16e05859a2cb1d7d43af461e76d782707c5b0e157386eff289879bbf"
+}

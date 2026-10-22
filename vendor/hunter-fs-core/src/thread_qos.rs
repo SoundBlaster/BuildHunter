@@ -1,4 +1,4 @@
-//! Best-effort propagation of the caller's requested QoS to scanner workers.
+//! Best-effort propagation of a calling thread's requested QoS to another thread.
 
 #[cfg(target_os = "macos")]
 use std::ffi::c_void;
@@ -17,10 +17,11 @@ unsafe extern "C" {
 #[cfg(target_os = "macos")]
 const QOS_CLASS_UNSPECIFIED: u32 = 0x00;
 
-/// QoS requested by the scanner's calling thread, if Darwin reports one.
+/// Opaque requested class and relative priority captured from the current thread.
+/// This is not effective QoS (including overrides), a scheduling guarantee or a guard.
 #[cfg(target_os = "macos")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct RequestedQos(Option<(u32, i32)>);
+pub struct RequestedQos(Option<(u32, i32)>);
 
 #[cfg(target_os = "macos")]
 fn from_requested_values(qos_class: u32, relative_priority: i32) -> RequestedQos {
@@ -34,10 +35,11 @@ fn from_requested_values(qos_class: u32, relative_priority: i32) -> RequestedQos
 /// Portable placeholder: other platforms retain their native thread behavior.
 #[cfg(not(target_os = "macos"))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct RequestedQos;
+pub struct RequestedQos;
 
 #[cfg(target_os = "macos")]
-pub(super) fn capture() -> RequestedQos {
+/// Capture the current thread request; query failure is represented as no request.
+pub fn capture() -> RequestedQos {
     let mut qos_class = QOS_CLASS_UNSPECIFIED;
     let mut relative_priority = 0;
     // SAFETY: pthread_self returns the current thread, and both output pointers
@@ -53,12 +55,14 @@ pub(super) fn capture() -> RequestedQos {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub(super) fn capture() -> RequestedQos {
+/// Capture the current thread request; query failure is represented as no request.
+pub fn capture() -> RequestedQos {
     RequestedQos
 }
 
 #[cfg(target_os = "macos")]
-pub(super) fn apply(requested: RequestedQos) {
+/// Apply to the calling thread only; failure is ignored and no restoration is scheduled.
+pub fn apply(requested: RequestedQos) {
     if let Some((qos_class, relative_priority)) = requested.0 {
         // SAFETY: the values came from pthread_get_qos_class_np on this
         // process. Failure is best-effort and must not fail the scan.
@@ -67,7 +71,8 @@ pub(super) fn apply(requested: RequestedQos) {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub(super) fn apply(_requested: RequestedQos) {}
+/// Apply to the calling thread only; failure is ignored and no restoration is scheduled.
+pub fn apply(_requested: RequestedQos) {}
 
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
@@ -151,5 +156,16 @@ mod tests {
         })
         .join()
         .expect("unspecified QoS test thread panicked");
+    }
+}
+
+#[cfg(all(test, not(target_os = "macos")))]
+mod portable_tests {
+    #[test]
+    fn portable_capture_can_be_applied_on_another_thread() {
+        let requested = super::capture();
+        std::thread::spawn(move || super::apply(requested))
+            .join()
+            .unwrap();
     }
 }

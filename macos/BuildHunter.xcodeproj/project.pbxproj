@@ -487,7 +487,8 @@
 				"$(SRCROOT)/../src/policy_table.rs",
 				"$(SRCROOT)/../src/profile.rs",
 				"$(SRCROOT)/../src/resources.rs",
-				"$(SRCROOT)/../src/process_resources.rs",
+				"$(SRCROOT)/../vendor/hunter-fs-core/src/process_resources.rs",
+				"$(SRCROOT)/../vendor/hunter-fs-core/src/thread_qos.rs",
 			);
 			name = "Build Rust scanner (Apple Silicon)";
 			outputFileListPaths = (

@@ -353,3 +353,9 @@ pub mod darwin_bulk;
 
 mod batch;
 pub use batch::{DirectorySizes, PreparedDirectorySizes};
+
+/// Current-thread requested scheduling QoS; the host chooses capture/apply boundaries.
+pub mod thread_qos;
+
+/// Current-process cumulative CPU and resident memory snapshots.
+pub mod process_resources;

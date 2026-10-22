@@ -1,0 +1,29 @@
+{
+  "baseline": "3b3242899a9459f06fe4a9d7f07541f55f64b4dd",
+  "at_utc": "2026-10-22T19:30:59.455450+00:00",
+  "plutil": {
+    "command": [
+      "plutil",
+      "-lint",
+      "macos/BuildHunter.xcodeproj/project.pbxproj"
+    ],
+    "exit_code": 0,
+    "stdout": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/macos/BuildHunter.xcodeproj/project.pbxproj: OK\n",
+    "stderr": ""
+  },
+  "equal_generator_project_inputs": [
+    "$(SRCROOT)/../Cargo.toml",
+    "$(SRCROOT)/../Cargo.lock",
+    "$(SRCROOT)/../src/lib.rs",
+    "$(SRCROOT)/../src/policy_table.rs",
+    "$(SRCROOT)/../src/profile.rs",
+    "$(SRCROOT)/../src/resources.rs",
+    "$(SRCROOT)/../vendor/hunter-fs-core/src/process_resources.rs",
+    "$(SRCROOT)/../vendor/hunter-fs-core/src/thread_qos.rs"
+  ],
+  "all_declared_inputs_exist": true,
+  "files": {
+    "macos/BuildHunter.xcodeproj/project.pbxproj": "e082774be92fc8af49fe8068c0a32c2c1cfe78f41358d29782b47395f4bdb634",
+    "macos/project.yml": "3b4cdd7101580b367ffa4570ee5dcb65360c4107eea2011994d8ec9b09a61658"
+  }
+}

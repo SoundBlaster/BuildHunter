@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 
-FILES = {"Cargo.toml", "LICENSE", "README.md", "src/lib.rs", "src/work.rs", "src/task.rs", "src/children.rs", "src/ledger.rs", "src/subtree.rs", "src/execution.rs", "src/backend.rs", "src/worker.rs", "src/listing.rs", "src/measurement.rs", "src/session.rs", "src/admission.rs", "src/lifetime.rs", "src/materialization.rs", "src/assembly.rs", "src/coordinator.rs", "src/processing.rs", "src/engine.rs", "src/launch.rs", "src/darwin_bulk.rs", "src/batch.rs"}
+FILES = {"Cargo.toml", "LICENSE", "README.md", "src/lib.rs", "src/work.rs", "src/task.rs", "src/children.rs", "src/ledger.rs", "src/subtree.rs", "src/execution.rs", "src/backend.rs", "src/worker.rs", "src/listing.rs", "src/measurement.rs", "src/session.rs", "src/admission.rs", "src/lifetime.rs", "src/materialization.rs", "src/assembly.rs", "src/coordinator.rs", "src/processing.rs", "src/engine.rs", "src/launch.rs", "src/darwin_bulk.rs", "src/batch.rs", "src/thread_qos.rs", "src/process_resources.rs"}
 
 
 def verify(directory):

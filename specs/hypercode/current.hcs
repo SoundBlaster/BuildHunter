@@ -63,6 +63,7 @@ CloudGuard:
   folded_into: "buildhunter.current.scan"
 ResourceProfile:
   source: "src/profile.rs"
+  implementation: "host cadence/baseline/delta/summary; raw process reads via Hunter"
   folded_into: "buildhunter.current.scan"
 ArtifactClassification:
   source: "src/lib.rs"
@@ -407,3 +408,14 @@ PreparedSizeLookup:
   source: "vendor/hunter-fs-core/src/batch.rs"
   implementation: "PreparedDirectorySizes consume-once lookup; missing/Unsupported asks host fallback"
   folded_into: "buildhunter.current.scan"
+HunterProcessPlatform:
+  source: "vendor/hunter-fs-core/src/lib.rs"
+  boundary_spec: "hunter.platform.process"
+RequestedThreadQos:
+  source: "vendor/hunter-fs-core/src/thread_qos.rs"
+  implementation: "capture/apply requested class and relative priority; scan_session owns placement"
+  folded_into: "hunter.platform.process"
+ProcessResourceSnapshot:
+  source: "vendor/hunter-fs-core/src/process_resources.rs"
+  implementation: "current-process CPU nanoseconds and resident bytes; independent optional counters"
+  folded_into: "hunter.platform.process"

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.16
+  version: 0.1.0-draft.17
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -90,6 +90,12 @@ requires:
   - id: hunter.fs.prepared_directory_sizes
     optional: false
     summary: Pure owned per-name result/error consumption and missing/Unsupported decision.
+  - id: hunter.platform.requested_qos
+    optional: false
+    summary: Explicit best-effort requested QoS capture/apply; host chooses calling thread and worker/helper placement.
+  - id: hunter.platform.process_resources
+    optional: false
+    summary: Independent optional current-process cumulative CPU nanoseconds and resident bytes; host computes deltas/rates.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -105,6 +111,15 @@ interfaces:
         callbacks and existing report codes.
   outbound: []
 constraints:
+- id: process_platform_assembly
+  level: MUST
+  statement: Capture requested QoS at the existing coordinator setup point and apply
+    it on workers and the optional sampler before their bodies. Ignore platform set
+    failures as before. Read current-process CPU baseline during profile construction
+    and CPU/RSS on samples through Hunter. BuildHunter owns interval, deltas,
+    decreasing-counter handling, averages/peaks, profile ABI and presentation. Missing
+    counters remain unavailable independently. No automatic scheduling or sampling
+    is introduced by Hunter, and process totals do not become per-scan attribution.
 - id: scan_lifetime
   level: MUST
   statement: For this existing entrypoint, run workers within the scan call and finish them before returning; policy
@@ -299,9 +314,10 @@ evidence:
   supports: [scope, constraints.measurement_backend]
 - id: source_3
   kind: source
-  path: src/thread_qos.rs
+  path: vendor/hunter-fs-core/src/thread_qos.rs
   supports:
   - scope
+  - constraints.process_platform_assembly
 - id: source_4
   kind: source
   path: src/profile.rs
@@ -309,9 +325,10 @@ evidence:
   - scope
 - id: source_5
   kind: source
-  path: src/process_resources.rs
+  path: vendor/hunter-fs-core/src/process_resources.rs
   supports:
   - scope
+  - constraints.process_platform_assembly
 - id: source_6
   kind: source
   path: src/resources.rs
@@ -466,21 +483,24 @@ provenance:
     boundaries. Four native tests moved upstream and two host adapter regressions were added.
     Fresh sources/maps/tests/paired feature-mode budgets: specs/validation/hunter-batch-20261021.
     Earlier ownership notes are historical. Default policy/ABI and C3/C5 limits are unchanged.
+  - >-
+    Requested QoS and process CPU/RSS acquisition delegate to Hunter c5354e973b5d1d90c438c94b78c06898ffe62500.
+    The same capture/apply and profile call sites retain ordering; BuildHunter owns
+    sampling, rates, summaries and ABI. Fresh evidence is under
+    specs/validation/hunter-process-20261022; earlier OS-reader ownership notes are historical.
 implementationBindings:
 - id: implementation
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 713196e92d02f8e0d44b7a46ce08285e62f2c618
+    revision: 61e091dadba0a58f011017d84cfd21f18fdae3aa
   files:
     owned:
     - src/lib.rs
     - src/scan_session.rs
     - src/measurement.rs
     - src/materialization.rs
-    - src/thread_qos.rs
     - src/profile.rs
-    - src/process_resources.rs
     - src/resources.rs
     border:
     - vendor/hunter-fs-core/src/lib.rs
@@ -496,6 +516,8 @@ implementationBindings:
     - vendor/hunter-fs-core/src/measurement.rs
     - vendor/hunter-fs-core/src/darwin_bulk.rs
     - vendor/hunter-fs-core/src/batch.rs
+    - vendor/hunter-fs-core/src/thread_qos.rs
+    - vendor/hunter-fs-core/src/process_resources.rs
     - vendor/hunter-fs-core/src/processing.rs
     - vendor/hunter-fs-core/src/engine.rs
     - vendor/hunter-fs-core/src/coordinator.rs
