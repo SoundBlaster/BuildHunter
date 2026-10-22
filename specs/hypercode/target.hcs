@@ -1,14 +1,14 @@
 # Approved names; target contracts remain draft, extraction is partial.
 HunterProducts:
   status: "target-design-draft"
-  baseline: "specs/validation/hunter-batch-20261021/source-identity.json"
+  baseline: "specs/validation/hunter-process-20261022/source-identity.json"
   profile: "public"
 Hunter:
   boundary_spec: "hunter.design.scan"
   repository: "Hunter"
   visibility: "public"
   implemented_as_module: true
-  implemented_scope: "Unix scoped markers; portable and opt-in Darwin batch metadata; prepared size lookup; recursive ScanEngine and guarded launch/join. QoS and process snapshots remain host-owned; backend selection and product error/counter policy stay host-owned."
+  implemented_scope: "Unix scoped markers; portable and opt-in Darwin batch metadata; prepared size lookup; recursive ScanEngine and guarded launch/join. Requested QoS and process snapshots are upstream; backend selection and product error/counter policy stay host-owned."
   filesystem_effects: true
   artifact_vocabulary: false
 Rifle:
@@ -41,13 +41,13 @@ MetadataMeasurement:
   status: "portable-and-Darwin-batch-implemented-host-chooses-fallback-effects"
 PlatformGuards:
   folded_into: "hunter.design.scan"
-  status: "guard-and-lifetime-implemented-QoS-host-owned"
+  status: "guard-lifetime-and-requested-QoS-implemented-host-chooses-placement"
 ScanLifecycle:
   folded_into: "hunter.design.scan"
   status: "generic-mechanics-implemented-product-terminal-policy-host-owned"
 Telemetry:
   folded_into: "hunter.design.scan"
-  status: "OS-resource-reader-host-owned-product-profile-kept-in-BuildHunter"
+  status: "OS-resource-reader-in-Hunter-product-profile-kept-in-BuildHunter"
 RuleModel:
   folded_into: "rifle.design.rules"
 CatalogValidation:

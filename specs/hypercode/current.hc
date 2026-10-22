@@ -30,6 +30,9 @@ BuildHunterRuntime
       CatalogValidation
       EffectivePlan
       CandidateClassification
+    HunterProcessPlatform
+      RequestedThreadQos
+      ProcessResourceSnapshot
     HunterPortable
       DirectoryEnumeration
       MetadataSizing

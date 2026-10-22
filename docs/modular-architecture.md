@@ -405,3 +405,18 @@ Hunter ScanSession::run_engine теперь владеет каналом отв
 Приложение создаёт ArtifactHandler и собирает данные отчёта в callbacks; служебный progress
 освобождается до join, а итоговые события остаются после join. Это расширение существующей
 guarded scan assembly, не новый модуль или policy framework. См. [startup boundary](hunter-engine-launch.md).
+
+### Process platform extraction — 2026-10-22
+
+Requested QoS and current-process CPU/RSS acquisition now live in Hunter's core
+(`thread_qos` and `process_resources`). BuildHunter re-exports these modules
+privately to keep existing session/profile call sites and their ordering intact.
+The local implementations are removed, not wrapped in a second OS layer.
+
+The host still captures QoS during coordinator setup, applies it on each worker
+and optional sampler, establishes the CPU baseline and owns sampling cadence,
+resource deltas, whole-process attribution, summaries and profile/FFI/UI semantics.
+Requested QoS is not effective priority; apply is best-effort and has no restore
+behavior. CPU/RSS availability remains independent; no new budget or performance
+claim follows. Historical extraction evidence and outstanding C1–C5 requirements
+are unchanged. Fresh source hashes and checks: `specs/validation/hunter-process-20261022`.
