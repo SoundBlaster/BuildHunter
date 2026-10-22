@@ -1,3 +1,9 @@
+> Updated 2026-10-21 on the batch-integration PR branch: native Darwin acquisition
+> and consume-once batch lookup now live in Hunter. Host keeps eligibility, counters,
+> injected errors, portable fallback effects and error decoration. See
+> [current integration](hunter-batch-metadata.md); the original typed-seam stage below
+> describes its earlier ownership baseline.
+
 # Typed measurement preparation — 2026-10-18
 
 Hunter DirectoryMeasurementBackend observes directory metadata and prepares owned

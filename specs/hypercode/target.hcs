@@ -1,14 +1,14 @@
 # Approved names; target contracts remain draft, extraction is partial.
 HunterProducts:
   status: "target-design-draft"
-  baseline: "specs/validation/modular-audit-20261020/source-identity.json"
+  baseline: "specs/validation/hunter-batch-20261021/source-identity.json"
   profile: "public"
 Hunter:
   boundary_spec: "hunter.design.scan"
   repository: "Hunter"
   visibility: "public"
   implemented_as_module: true
-  implemented_scope: "Unix scoped markers; portable backend/measurement; work and task accounting; recursive ScanEngine; guarded session and channel/worker/helper launch with pre-join collection; Darwin batch backend, QoS and process snapshots pending. Backend auto-selection is not an independent completion criterion."
+  implemented_scope: "Unix scoped markers; portable and opt-in Darwin batch metadata; prepared size lookup; recursive ScanEngine and guarded launch/join. QoS and process snapshots remain host-owned; backend selection and product error/counter policy stay host-owned."
   filesystem_effects: true
   artifact_vocabulary: false
 Rifle:
@@ -38,7 +38,7 @@ Traversal:
   folded_into: "hunter.design.scan"
 MetadataMeasurement:
   folded_into: "hunter.design.scan"
-  status: "portable-implemented-Darwin-batch-host-owned"
+  status: "portable-and-Darwin-batch-implemented-host-chooses-fallback-effects"
 PlatformGuards:
   folded_into: "hunter.design.scan"
   status: "guard-and-lifetime-implemented-QoS-host-owned"

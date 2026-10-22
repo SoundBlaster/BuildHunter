@@ -70,6 +70,10 @@ BuildHunterRuntime
       DirectoryPreparation
       PreparedFileEffects
       SharedSlotExecution
+    HunterBatchMetadata
+      BatchAcquisition
+      CheckedBatchRecords
+      PreparedSizeLookup
     HunterScopedSession
       HelperStartup
       QueueShutdown

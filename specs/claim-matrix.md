@@ -1,5 +1,9 @@
 # Claim origin, consumer sufficiency and assembly review
 
+Latest implementation on PR branch: [Hunter batch integration](../docs/hunter-batch-metadata.md),
+2026-10-21. This extends the earlier main audit; it is not yet a merged-main claim.
+
+
 Latest reconciliation: [2026-10-20 modular audit](../docs/modular-refactor-audit-20261020.md),
 BuildHunter main 7ab00f16ae437fe88427c2acbe1b651b30b044f1, Hunter main
 860d995374d677d68b39093101da25c3cacfff9b, Rifle main
@@ -593,3 +597,23 @@ remain draft. Common engine startup composition is implemented; autonomous nativ
 backend choice, descriptor recursion, default plugin migration, C5 budgets and fresh
 home/cloud/UI acceptance remain outside this slice. Before another extraction, audit
 remaining target obligations to distinguish reusable engine work from product policy.
+
+### Darwin batch metadata and prepared size lookup — 2026-10-21
+
+Candidate integration runtime 713196e92d02f8e0d44b7a46ce08285e62f2c618 pins Hunter
+7e8243c738613f985e1568278f1a69df6c5036b7 (#22 → #23). Hunter owns actual opt-in
+getattrlistbulk acquisition/checked decoder and pure PreparedDirectorySizes lookup.
+The 25-file vendored snapshot is exact. BuildHunter removes its local decoder and
+keeps file-slot eligibility, test hook precedence, counters, portable fallback effects
+and dataless error decoration. Directory preparation/stop/guard and join/status
+boundaries, default feature state, classification, C ABI and plugin semantics remain.
+
+Current scan measurement_backend/directory_worker/root_backend bindings and
+current/target metadata ownership are updated. Target constraints remain unchanged
+and draft; historical audit/launch/extraction receipts keep their original scope.
+Fresh command/source/map identities and paired portable/bulk Release budgets are in
+specs/validation/hunter-batch-20261021. Checks do not establish a general speedup,
+whole-scan RAM bound, live home/cloud/UI or descriptor-bound tree safety.
+Next concrete extraction: requested QoS and OS process CPU/RSS primitives. C1–C5
+default-client migration/security/resource work and SDK/commercial delivery remain
+separate capabilities; the serial engine is not reopened for another wrapper.

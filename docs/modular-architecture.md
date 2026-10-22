@@ -1,17 +1,19 @@
 # Hunter, Rifle, BuildHunter и Arsenal: устройство поиска и плагинов
 
-Исходный проект: 2026-10-13. Текущая сверка: 2026-10-20. Названия и продуктовое
+Исходный проект: 2026-10-13. Текущая интеграция: 2026-10-21 (PR branch). Названия и продуктовое
 направление утверждены; подробные контракты остаются draft. Общая механика
 обхода, ScanEngine, guarded session, запуск workers и join уже находятся в Hunter.
 BuildHunter сохраняет продуктовую классификацию, агрегацию, итоговый статус и UI;
-Darwin batch metadata backend, QoS и process resource reader ещё предстоит выделить.
+Darwin batch metadata backend и prepared lookup теперь вынесены в Hunter; QoS и
+process resource reader ещё предстоит выделить.
 Rifle имеет pure evaluator и generic catalog/JCS identity. Независимый
 `buildhunter-plugin-scanner` соединяет их с обходом и scoped Unix markers
 ([границы пилота](plugin-scanner-integration.md)); default CLI/GUI/FFI пока используют
 прежние правила. Swift SDK, descriptor-bound traversal/measurement, общие resource
 budgets и коммерческая поставка не завершены.
 
-Актуальные ревизии, матрица реализации и конечные критерии extraction находятся в
+Текущая batch-интеграция и точный pin: [перенос backend](hunter-batch-metadata.md).
+Матрица на baseline main от 2026-10-20 и конечные критерии extraction находятся в
 [сверке рефакторинга](modular-refactor-audit-20261020.md). Исходный recovery baseline
 `48badf9e097783505151dd47fbafe290f0af25e2` и последующие датированные записи ниже
 сохранены как история; их прежние «следующие шаги» не заменяют текущую сверку.
@@ -217,7 +219,7 @@ Mac App Store. Собственный сервис загрузки катало
 | Код / роль | Владелец | Текущее состояние / необходимое изменение |
 |---|---|---|
 | Общая механика обхода, workers, metadata primitives и session lifetime | Hunter | Уже выделены в pinned `hunter-fs-core`; BuildHunter реализует product handler |
-| `src/bulk_metadata.rs`, `src/measurement.rs`: batch acquisition/preparation | Hunter + host adapter | Следующая граница: вынести системную реализацию, сохранить product profiling/error adaptation |
+| Batch acquisition/prepared lookup, `src/measurement.rs` adapter | Hunter + host adapter | Вынесено на PR branch; host сохраняет eligibility, profiling/error adaptation и fallback effects |
 | `src/thread_qos.rs`, `src/process_resources.rs` | Hunter | Выделить OS primitives; события, artifact counters и UI оставить BuildHunter |
 | `is_policy_candidate`, `may_classify_directory`, `MARKER_*` | План Rifle и словарь BuildHunter | Совместно заменить отбор кандидатов и получение маркеров на данные каталога |
 | Классификация Rust CLI и Swift GUI | Базовые пакеты BuildHunter и Rifle | Сравнить старые и новые результаты, сохранить согласованные различия клиентов |
