@@ -1,11 +1,19 @@
 # План доставки plugins и коммерческого каталога
 
-Дата: 2026-10-13. Implementation stages ниже **pending**. Имена Hunter/Rifle/BuildHunter/Arsenal
+Исходный план: 2026-10-13; сверка статуса: 2026-10-20. Этапы ниже не завершены
+end-to-end; отдельные runtime части уже реализованы. Имена Hunter/Rifle/BuildHunter/Arsenal
 утверждены; [модульные контракты](modular-architecture.md) остаются draft. Согласовано архитектурное
 направление в [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md),
 Swift Plugin SDK и подключение к default clients ещё не реализованы. Schema,
 чистый Rifle catalog runtime и opt-in scanner integration имеют отдельные
 implementation/validation records; это не завершённая end-to-end доставка plugins.
+
+Текущий статус вместо устаревших промежуточных «next» записей внизу:
+[сверка модулей и backlog](modular-refactor-audit-20261020.md). Общие ScanEngine,
+workers и session launch уже выделены в Hunter; Rifle evaluator/catalog и opt-in
+adapter/scanner существуют. Default clients, Swift authoring, user import и
+коммерческая поставка ещё не подключены. Checkbox этапа остаётся открытым до
+всей его приёмки, даже если часть реализации уже существует.
 
 Этот план уточняет Phases 0–5 из [#25](https://github.com/SoundBlaster/BuildHunter/issues/25).
 Performance hypotheses и их доказательства остаются в

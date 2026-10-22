@@ -1,14 +1,14 @@
 # Approved names; target contracts remain draft, extraction is partial.
 HunterProducts:
   status: "target-design-draft"
-  baseline: "specs/validation/hunter-lifetime-20261018/source-identity.json"
+  baseline: "specs/validation/modular-audit-20261020/source-identity.json"
   profile: "public"
 Hunter:
   boundary_spec: "hunter.design.scan"
   repository: "Hunter"
   visibility: "public"
   implemented_as_module: true
-  implemented_scope: "Unix scoped metadata + portable enumeration/byte sizing; generic queue/scoped launch/task results/measurement plans/host-selected child requests/task-response ledger/subtree byte-progress/serial result execution/native backend-root observations/directory worker protocol/owned listing acquisition/typed prepared measurement/scoped session assembly/opaque root admission outcomes/guarded backend lifetime/native thread guard/owned guarded session queue and single-use worker launch/owned root-task-response coordinator/serial child routing and selected metadata resolution/composed serial ScanEngine with opaque branch state/owned response channel and caller host factory with pre-join collection; access policy/backend algorithms/autonomous backend-worker factory pending"
+  implemented_scope: "Unix scoped markers; portable backend/measurement; work and task accounting; recursive ScanEngine; guarded session and channel/worker/helper launch with pre-join collection; Darwin batch backend, QoS and process snapshots pending. Backend auto-selection is not an independent completion criterion."
   filesystem_effects: true
   artifact_vocabulary: false
 Rifle:
@@ -38,24 +38,31 @@ Traversal:
   folded_into: "hunter.design.scan"
 MetadataMeasurement:
   folded_into: "hunter.design.scan"
+  status: "portable-implemented-Darwin-batch-host-owned"
 PlatformGuards:
   folded_into: "hunter.design.scan"
+  status: "guard-and-lifetime-implemented-QoS-host-owned"
 ScanLifecycle:
   folded_into: "hunter.design.scan"
+  status: "generic-mechanics-implemented-product-terminal-policy-host-owned"
 Telemetry:
   folded_into: "hunter.design.scan"
+  status: "OS-resource-reader-host-owned-product-profile-kept-in-BuildHunter"
 RuleModel:
   folded_into: "rifle.design.rules"
 CatalogValidation:
   folded_into: "rifle.design.rules"
 PlanCompilation:
   folded_into: "rifle.design.rules"
+  status: "validated-immutable-plan-no-candidate-index"
 Evaluation:
   folded_into: "rifle.design.rules"
 SwiftAuthoring:
   folded_into: "rifle.design.rules"
+  status: "not-implemented"
 BasicPlugins:
   folded_into: "buildhunter.design.product"
+  status: "public-examples-and-opt-in-pilot-default-client-migration-pending"
 ArtifactPolicy:
   folded_into: "buildhunter.design.product"
 ScanAssembly:

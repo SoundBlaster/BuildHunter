@@ -1,5 +1,12 @@
 # Claim origin, consumer sufficiency and assembly review
 
+Latest reconciliation: [2026-10-20 modular audit](../docs/modular-refactor-audit-20261020.md),
+BuildHunter main 7ab00f16ae437fe88427c2acbe1b651b30b044f1, Hunter main
+860d995374d677d68b39093101da25c3cacfff9b, Rifle main
+693a284123faaa1ad3192cd88b259ba97a7b5910. Earlier recovery rows and dated extraction
+records below are historical snapshots. Their old next steps and source symbols
+must be read with the later ownership updates, not as a current implementation inventory.
+
 Historical recovery baseline: `48badf9e097783505151dd47fbafe290f0af25e2`.
 Current follow-up baseline: `6bab3c34684e81f14fbacd03445d297038edd9b3`;
 changed inputs and validation are pinned in `validation/plugin-scanner-20261014/`.

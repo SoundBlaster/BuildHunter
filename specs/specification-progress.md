@@ -1,5 +1,11 @@
 # BuildHunter — architecture and specification progress
 
+Latest state: [modular audit, 2026-10-20](../docs/modular-refactor-audit-20261020.md).
+Public source baselines are BuildHunter 7ab00f16ae437fe88427c2acbe1b651b30b044f1,
+Hunter 860d995374d677d68b39093101da25c3cacfff9b and Rifle
+693a284123faaa1ad3192cd88b259ba97a7b5910. The audit matrix supersedes historical
+next-step descriptions below; dated implementation receipts retain their original scope.
+
 ## Goal and current scope
 
 Consumer goal: refine module boundaries for **Hunter / Rifle / BuildHunter /
@@ -9,7 +15,7 @@ parent obligations. The historical recovery pass authorized no runtime changes o
 acceptance. Later implementation passes are separately authorized and evidenced below.
 
 Historical recovery baseline: `48badf9e097783505151dd47fbafe290f0af25e2`.
-Current follow-up baseline: `6bab3c34684e81f14fbacd03445d297038edd9b3`, with
+Historical pilot follow-up baseline: `6bab3c34684e81f14fbacd03445d297038edd9b3`, with
 changed inputs pinned in `validation/plugin-scanner-20261014/source-identity.json`. User's dirty
 Xcode scheme is excluded from claims and preserved; its digest is recorded.
 Design documents are working-tree inputs pinned separately from source revision.
@@ -17,6 +23,9 @@ Current/target map identities are independent of source identity:
 [identity record](evidence/modules-20261013/source-identity.json).
 
 ## Coverage
+
+Initial recovery coverage below is retained for provenance. Current implementation
+ownership, remaining requirements and evidence limits are in the linked audit.
 
 | HC role/path | Consumers / profiles | Contract or folding/exclusion | Source/map baseline | Evidence / review | Unknown / next action |
 |---|---|---|---|---|---|
@@ -837,3 +846,29 @@ remain draft. Common engine startup composition is implemented; autonomous nativ
 backend choice, descriptor recursion, default plugin migration, C5 budgets and fresh
 home/cloud/UI acceptance remain outside this slice. Before another extraction, audit
 remaining target obligations to distinguish reusable engine work from product policy.
+
+### Target reconciliation and extraction closure — 2026-10-20
+
+Compared current public main sources in BuildHunter/Hunter/Rifle with target HC roles,
+the design BoundarySpecs and plugin delivery plan. The source-grounded matrix and
+acceptance backlog are in docs/modular-refactor-audit-20261020.md. Common traversal,
+result coordination and guarded engine launch are integrated. Concrete reusable code
+still hosted in BuildHunter is Darwin batch metadata acquisition/preparation, requested
+QoS and process resource snapshots. Product classification/selection semantics,
+aggregation, warnings/status, profile ABI and GUI intentionally remain local.
+
+Next proposed code boundary is the actual batch metadata backend, followed by OS
+primitives. An autonomous factory is not a separate completion goal. Full descriptor
+recursion, C5 budgets, default plugin migration (C1/C2/C3/C4), Swift SDK, user import
+and commercial delivery are separate unfinished capabilities, not further relocation
+of the serial loop. Extraction closure criteria distinguish these tracks explicitly.
+
+Current composition map and implementation bindings are unchanged: runtime inputs
+remain identical to main 7ab00f16ae437fe88427c2acbe1b651b30b044f1. Target HCS now
+identifies partial backend/telemetry and missing authoring/default-plugin roles, without
+changing the role tree. Hunter/Rifle design provenance is reconciled without changing
+constraints or accepting draft requirements. Overview/pilot summaries are corrected;
+historical records and receipts stay intact. Source identities and fresh structural
+checks are in specs/validation/modular-audit-20261020: HC parse/7 profiles pass, SpecPM
+has zero errors and 35 unresolved-capability warnings, vendor integrity passes.
+No application builds/tests, new performance claim or home/cloud/UI acceptance.

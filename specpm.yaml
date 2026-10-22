@@ -3,9 +3,9 @@ kind: SpecPackage
 metadata:
   id: buildhunter.module_architecture
   name: BuildHunter current boundaries and target module architecture
-  version: 0.1.0-draft.26
+  version: 0.1.0-draft.27
   summary: Reviewable current boundaries and target modular architecture, including
-    partial pinned Hunter metadata extraction; full scanner extraction remains pending.
+    integrated Hunter scan engine/session and remaining backend, OS primitive and plugin delivery work.
   license: MIT
   authors:
   - name: Egor Merkushev
