@@ -24,3 +24,13 @@ separately here (0 errors / 39 existing warnings). Source hashes are current for
 this layer; lower-layer receipts remain historical to their exact inputs.
 This bridge integration suite does not test visible UI, sandbox signing/Store,
 end-user cancellation latency, actual invalid-byte Finder actions or live iCloud.
+
+Final source review corrected the new kind assertion: `ScanArtifact.scannerKind`
+is only an optional raw bytecode/metadata override, not the ordinary GUI kind.
+The witness now compares `artifact.kind` to the literal golden and checks the
+optional override is nil for the folded GUI profile. No golden rows or product
+code changed; the obsolete hosted attempt was cancelled before pushing this fix.
+
+Attempt 4 (`build-for-testing`) compiles and links the final corrected source
+with exit 0 (`TEST BUILD SUCCEEDED`). This compile-only receipt does not replace
+the pending hosted suite execution.

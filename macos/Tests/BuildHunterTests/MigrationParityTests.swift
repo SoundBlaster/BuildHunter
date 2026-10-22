@@ -113,7 +113,15 @@ struct MigrationParityTests {
             #expect(!row.nested, "The GUI baseline contains only outer roots")
             let artifact = try #require(discovered.values.first { $0.relativePath == row.path })
             #expect(artifact.language.lowercased() == row.language)
-            #expect(artifact.scannerKind == row.kind)
+            let kind = switch artifact.kind {
+            case .buildOutput: "build"
+            case .cache: "cache"
+            case .environment: "environment"
+            case .testEnvironment: "test-environment"
+            }
+            #expect(kind == row.kind)
+            // GUI policy emits its folded kind codes, not CLI bytecode/metadata.
+            #expect(artifact.scannerKind == nil)
             let result = try #require(completed[artifact.id])
             #expect(!result.partial)
             let url = selected.appendingPathComponent(row.path).standardizedFileURL

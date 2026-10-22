@@ -21,8 +21,9 @@ selected artifact roots, missing roots and selected files.
   does not yet carry a target ID. That ABI/output change remains R4.
 - `MigrationParityTests` loads the same JSON from its test bundle and uses the
   real `RustScanEventSource`, actual Swift policy/table compilation and Rust FFI.
-  It checks paths, language/scanner kind, descriptor IDs, allocated bytes, warnings,
-  one completion per discovery and Finished last. This is a bridge integration
+  It checks paths, language/GUI kind, descriptor IDs, allocated bytes, warnings,
+  one completion per discovery and Finished last. GUI kinds use the normal kind
+  field; the optional raw scanner kind remains nil for this folded GUI profile. This is a bridge integration
   test, not visual/UI interaction or signed sandbox acceptance.
 - `migration-lifecycle-v1.tsv` freezes five deterministic core fault scenarios:
   completion, cancel at discovery, vanished file, permission failure and missing

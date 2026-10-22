@@ -3,7 +3,7 @@
   "lower_commit": "9a35609fc608cfe14b0ce20b09b291ae214f9754",
   "state": "upper GUI layer; working tree SHA256 inputs",
   "files": {
-    "macos/Tests/BuildHunterTests/MigrationParityTests.swift": "dfd8abaf0a1c915a4b2ee0e9fd8ac9abc983766552075164baa265a0bdfad252",
+    "macos/Tests/BuildHunterTests/MigrationParityTests.swift": "23f670cffb9e715d0247f17f74538bb1f18875bb4e0c466a90d39fe691d31ff8",
     "macos/BuildHunter.xcodeproj/project.pbxproj": "1e68fbd008f4838acea1fcc97f9459786274061072aafad1ed8e485a65d485e8",
     "macos/project.yml": "a87dd1e9067be86be5f65afc53c44157d3124ad53a09144a749b178dff6fcd7f",
     "tests/fixtures/migration-parity-v1.json": "ac8dbe188daaa6e951822bd83369ee3467291291068551d621dc35682998cec7",
@@ -16,7 +16,7 @@
     "specpm.yaml": "7c31cf6616ba4050ee21e821e8e47e5cc4ac4bb6066dede7ce30e59fe154c7d0",
     "specs/current-classification.spec.yaml": "0ac2da4e636d7f08a452ec30d322e868d0bf2a0e30409e9f5701c7bd592ffd21",
     "specs/specification-progress.md": "5c0efb0ea98b2ecbf018539c4843ed2d2eb796d243b112db5de4f20b86555fda",
-    "docs/migration-parity-baseline.md": "a908fa47b4284d81b6ecad636096d6844a0a6648b044dd3408ad66574c6c1619",
+    "docs/migration-parity-baseline.md": "2bb4858931f68e87fb617f88efe1defd7e49aa7cb58cb921025636dea471e7e6",
     "docs/modular-refactor-audit-20261022.md": "ac2093b91e698b3a2167b51058b9b415f91a884c8229bc82211ea7cdf7d29adf",
     "specs/hypercode/current.hc": "e723f46c8471c27cfa34d7cc44d928a438096e24d8771c9e5058a7c0b25ed022",
     "specs/hypercode/current.hcs": "4587e41a1195ee098436a00319ef799e8c0ad433f3d0c3fdf588cb7cc12e1110"
