@@ -943,15 +943,15 @@ assembly boundary, including external-root patch limitations. Other C1–C6 and
 design claims are unchanged; requirements stay draft. Current map pin/property
 and fresh source/test/graph evidence: `validation/plugin-alignment-20261022`.
 
-### Migration baseline fixtures (R2, corpus/CLI layer) — 2026-10-22
+### Migration baseline fixtures (R2) — 2026-10-22
 
-Freeze reviewed client rows in `tests/fixtures/migration-parity-v1.json`. The real
-CLI runs all 30 CLI cases in both size modes; 28 GUI cases await the upper-layer
-Swift witness. The lifecycle TSV has deterministic Rust status/partial/Finished
-witnesses; bridge terminal/invalid-byte vectors are expected data at this layer.
-Affected unchanged obligations: classification selection/client_profiles/taxonomy/
-filter_snapshot, scan sizes/terminal/lifetime and bridge invalid_utf8/cancellation.
-No production policy/ABI, owner acceptance or runtime architecture changes. The
-current-map property binds evidence only; test details fold into existing roles.
-C2/C3/C4 baseline/gates: `docs/migration-parity-baseline.md`; fresh source/command
-identities: `validation/migration-parity-20261022`. R3/R4 and owner decisions remain open.
+Freeze current profiles in `tests/fixtures/migration-parity-v1.json`, consumed by
+real CLI and GUI bridge tests; deterministic lifecycle TSV covers core fault
+status/partial/Finished sequencing. `docs/migration-parity-baseline.md` records
+C2 differences and C3/C4 migration gates without accepting a behavior change.
+Affected claims: current classification selection/client_profiles/taxonomy,
+current scan sizes/terminal/lifetime and bridge invalid_utf8/cancellation.
+Runtime policy/ABI and requirement acceptance stay unchanged; the new current-map
+property binds test evidence only. Fresh source/run identities are recorded under
+`validation/migration-parity-20261022`. Baseline coverage does not close R3/R4 or
+owner decisions on marker links and lossless action paths.

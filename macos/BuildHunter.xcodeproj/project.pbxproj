@@ -57,6 +57,8 @@
 		EE1F38435109EF9F90188973 /* ScanReportExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35762B33C9EBD494437A5FB3 /* ScanReportExportTests.swift */; };
 		F60DE588B31B83267DD5B91A /* ArtifactDiagramWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2708FA3660D43BC1A4C80D0 /* ArtifactDiagramWindow.swift */; };
 		FE6622C82BA5F37332D67F74 /* WindowScanModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381870C01854BBCC52E1BD99 /* WindowScanModelTests.swift */; };
+		F20000000000000000000002 /* MigrationParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* MigrationParityTests.swift */; };
+		F20000000000000000000004 /* migration-parity-v1.json in Resources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003 /* migration-parity-v1.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -136,6 +138,8 @@
 		FAB7BDB77392C9DE45838B85 /* ArtifactSunburst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactSunburst.swift; sourceTree = "<group>"; };
 		FE48AE067D4D4954CF32708A /* SearchSettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsWindow.swift; sourceTree = "<group>"; };
 		FEADF790A7FBE73A1C4DECA5 /* IsScreenshotReady.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsScreenshotReady.swift; sourceTree = "<group>"; };
+		F20000000000000000000001 /* MigrationParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationParityTests.swift; sourceTree = "<group>"; };
+		F20000000000000000000003 /* migration-parity-v1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "../tests/fixtures/migration-parity-v1.json"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -263,6 +267,8 @@
 		A832EA6096FC9CCAEF056894 /* BuildHunterTests */ = {
 			isa = PBXGroup;
 			children = (
+				F20000000000000000000001 /* MigrationParityTests.swift */,
+				F20000000000000000000003 /* migration-parity-v1.json */,
 				CB9B8170CF5287EF2881E029 /* ArtifactDiagramModelTests.swift */,
 				C250C1E255E06F12DD2A57F5 /* ArtifactFolderLocationTests.swift */,
 				1CFA847B313D1E6A3AC6DB3A /* ArtifactPolicyTests.swift */,
@@ -362,6 +368,7 @@
 			buildPhases = (
 				D20D5EB0329CCEBC0D651B66 /* Sources */,
 				B05B0CC7A2D55DECA48ED626 /* Frameworks */,
+				F20000000000000000000005 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -470,6 +477,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F20000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F20000000000000000000004 /* migration-parity-v1.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -527,6 +542,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F20000000000000000000002 /* MigrationParityTests.swift in Sources */,
 				65AC18A80291901B9EE798FD /* ArtifactDiagramModelTests.swift in Sources */,
 				985005FD11493840608E04B4 /* ArtifactFolderLocationTests.swift in Sources */,
 				1C9920F952809D4378379415 /* ArtifactPolicyTests.swift in Sources */,
