@@ -1,6 +1,6 @@
 # План доставки plugins и коммерческого каталога
 
-Исходный план: 2026-10-13; сверка статуса: 2026-10-21 (PR branch). Этапы ниже не завершены
+Исходный план: 2026-10-13; сверка статуса: 2026-10-22 (merged main). Этапы ниже не завершены
 end-to-end; отдельные runtime части уже реализованы. Имена Hunter/Rifle/BuildHunter/Arsenal
 утверждены; [модульные контракты](modular-architecture.md) остаются draft. Согласовано архитектурное
 направление в [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md),
@@ -9,8 +9,9 @@ Swift Plugin SDK и подключение к default clients ещё не реа
 implementation/validation records; это не завершённая end-to-end доставка plugins.
 
 Текущий статус вместо устаревших промежуточных «next» записей внизу:
-[сверка модулей и backlog](modular-refactor-audit-20261020.md). Общие ScanEngine,
-workers и session launch уже выделены в Hunter; Rifle evaluator/catalog и opt-in
+[сверка модулей и backlog](modular-refactor-audit-20261022.md). Общие ScanEngine,
+workers, session launch, batch backend и OS QoS/CPU/RSS уже выделены в Hunter;
+Rifle evaluator/catalog и opt-in
 adapter/scanner существуют. Default clients, Swift authoring, user import и
 коммерческая поставка ещё не подключены. Checkbox этапа остаётся открытым до
 всей его приёмки, даже если часть реализации уже существует.
@@ -121,6 +122,11 @@ semantic/performance gates. Не публикуются private definitions, sec
 UX пользовательских пакетов; правила разрешения конфликтов между пакетами.
 Чтение содержимого файлов и global/known-location caches требуют отдельного
 scope и не включаются автоматически в первую версию.
+
+## Исторические implementation checkpoints
+
+Датированные записи ниже сохраняют контекст исходных slices; текущий backlog —
+R1–R8 в сверке от 22 октября.
 
 Первый implementation slice после review: один открытый и один синтетический
 «private» пакет на одинаковом runtime с parity/performance evidence. Настоящие
