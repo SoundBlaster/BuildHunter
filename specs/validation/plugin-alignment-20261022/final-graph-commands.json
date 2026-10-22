@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "-B",
+      "scripts/test_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK\n"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "-B",
+      "scripts/verify_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"target\": \"aarch64-apple-darwin\",\n  \"graphs\": {\n    \"default\": {\n      \"hunter-fs-core\": {\n        \"id\": \"path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0\",\n        \"source\": null\n      }\n    },\n    \"policy\": {\n      \"rifle-rules\": {\n        \"id\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0\",\n        \"source\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910\"\n      }\n    },\n    \"scanner\": {\n      \"hunter-fs\": {\n        \"id\": \"git+https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#hunter-fs@0.1.0\",\n        \"source\": \"git+https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#c5354e973b5d1d90c438c94b78c06898ffe62500\"\n      },\n      \"rifle-rules\": {\n        \"id\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0\",\n        \"source\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910\"\n      },\n      \"hunter-fs-core\": {\n        \"id\": \"path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0\",\n        \"source\": null\n      }\n    }\n  }\n}\n",
+    "stderr": ""
+  }
+]

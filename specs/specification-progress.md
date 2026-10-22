@@ -930,3 +930,15 @@ constraints already reflect batch/prepared/process primitives; no requirement,
 acceptance state or runtime behavior changes. Remaining tasks are R1–R8 in
 `docs/modular-refactor-audit-20261022.md`; legacy dated notes are historical.
 Fresh structural/source evidence: `validation/modular-audit-20261022`.
+
+### Pilot dependency alignment (R1) — 2026-10-22
+
+Align the independent scanner facade pin with the application's exact Hunter
+snapshot. Workspace-root patch shares its transitive core with the vendored
+application package; policy/default workspaces retain their separate dependency
+sets and Rifle pin. CI verifies locked active host graphs and rejects duplicate
+or unexpected core sources. Scoped marker implementation bytes are unchanged.
+`buildhunter.plugin.scanner/dependency_identity` now describes this repository's
+assembly boundary, including external-root patch limitations. Other C1–C6 and
+design claims are unchanged; requirements stay draft. Current map pin/property
+and fresh source/test/graph evidence: `validation/plugin-alignment-20261022`.
