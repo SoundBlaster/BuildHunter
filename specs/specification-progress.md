@@ -911,3 +911,14 @@ Requested QoS is not effective priority; apply is best-effort and has no restore
 behavior. CPU/RSS availability remains independent; no new budget or performance
 claim follows. Historical extraction evidence and outstanding C1–C5 requirements
 are unchanged. Fresh source hashes and checks: `specs/validation/hunter-process-20261022`.
+
+### Process-platform Xcode build-input review — 2026-10-22
+
+PR #99 review found a stale `src/process_resources.rs` build-phase input.
+Updated both checked-in project and XcodeGen configuration to the vendored path,
+and declared vendored `thread_qos.rs` alongside it. All eight input files exist
+and generator/project declarations match; plist syntax passes. Runtime/map/spec
+contracts (`buildhunter.current.scan/process_platform_assembly`) are unchanged;
+existing Rust execution receipts remain scoped to unchanged runtime sources.
+New input identities/checks: `validation/hunter-process-20261022/review-build-inputs`.
+Hosted macOS checks must rerun on the fix; earlier green CI is not its proof.
