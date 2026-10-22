@@ -1,11 +1,11 @@
 {
   "repository": "https://github.com/SoundBlaster/Hunter",
-  "revision": "7e8243c738613f985e1568278f1a69df6c5036b7",
+  "revision": "c5354e973b5d1d90c438c94b78c06898ffe62500",
   "source_directory": "crates/hunter-fs-core",
   "files": {
     "Cargo.toml": "702db05b06cced8f5bf11172c2af1a5fb0d9073836125a06f3be5911d92f963d",
     "LICENSE": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1",
-    "README.md": "be97f378d1bb1d8a78abf14095eb8316f97218a7aa9bbf2cf5e22dfbca0028cb",
+    "README.md": "ab029688ad77819e9fabcc93ffba53efe1d19c26506dd3a0e2c2a84fba9a7ff0",
     "src/admission.rs": "d88e14a775a0980e33162784867891fa2337fb276e21233a67bb5feb6fc43887",
     "src/assembly.rs": "32f422111a85a491b03cd7456a7041e88873a44495229110d48cc721256ed0d1",
     "src/backend.rs": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87",
@@ -17,15 +17,17 @@
     "src/execution.rs": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae",
     "src/launch.rs": "bcc9e2e8b6dfd1d7945c14ac85ba4b092afdc81303ea4c6608a0564cfa11a805",
     "src/ledger.rs": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb",
-    "src/lib.rs": "40dabafd1b79745ccd91af7357d2defebb3d918f6165b3f55ef0a7435dca0c42",
+    "src/lib.rs": "587829ef2b8d5692fce78c598e970c124b3afa6abc9abbefc7c76666651e7d16",
     "src/lifetime.rs": "74f61ce81c9e78b241bb9fae664f69aee79d684dc14ba212d231cda8ab0018e7",
     "src/listing.rs": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e",
     "src/materialization.rs": "5d45250d5a7a6c1a7fadb9ad8f49eabd457538a2ec8a6ab3eeff173a029131a2",
     "src/measurement.rs": "7366e1a3377bd9005c22ddd7f603c52c2d09da4a28ca2045cdd85df3dff90f7d",
+    "src/process_resources.rs": "4cf577253800ecaade5ac10f7e590336c446ff01a618421f5cd494320a5d8d65",
     "src/processing.rs": "6984b75d2b68c00edc9d6148554a3b5100e4d9809dd31ffc019615949a028f2d",
     "src/session.rs": "1f1b3256d3df6f5ad090901aae752fdf53a60bcb643e32f545ea369a47ee71c4",
     "src/subtree.rs": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b",
     "src/task.rs": "906bce62ddad02953c2b2710491cafbca9849fc68a54e041da52a2e89664cf5a",
+    "src/thread_qos.rs": "0bde6523a2fa41730ceceab6ed5a3cab79b17df77e920929377f2f60d86152e2",
     "src/work.rs": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160",
     "src/worker.rs": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1"
   }

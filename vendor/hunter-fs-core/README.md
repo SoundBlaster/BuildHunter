@@ -483,3 +483,17 @@ supplies original paths from the same directory, holds guards and applies error
 decoration. Keys use the same process/platform OsStr encoding, not a serialized path.
 This portable helper is separate from opt-in Darwin acquisition. See the draft
 `specs/prepared-batch.spec.yaml` and `specs/validation/prepared-batch-20261021`.
+
+## Process platform primitives
+
+`hunter_fs_core::thread_qos::{capture, apply}` explicitly propagates requested
+macOS pthread QoS (class and relative priority), best-effort; other platforms
+are no-ops. This is neither effective QoS nor a restoration guard. The consumer
+chooses which workers/helpers receive the request and when.
+
+`hunter_fs_core::process_resources::read()` reads current-process cumulative
+user/system CPU nanoseconds and current resident bytes (Windows working set).
+Each counter is independently optional; unsupported platforms return no values.
+The host owns timing, deltas, percentages, averages, peaks and scan attribution.
+No child processes, scan-tree payloads or sampling tasks are introduced.
+See the draft [process-platform contract](../../specs/process-platform.spec.yaml).

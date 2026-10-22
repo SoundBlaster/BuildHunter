@@ -3,7 +3,8 @@ use hunter_fs_core::{
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, DirectoryWorker,
     FilesystemBackend, GuardedSetupError, ListingAction, MeasuredSize, PendingSelection,
     RootAdmission, RootObservation, ScanHandler, SelectedEntry, StdFilesystem, SubtreeProgress,
-    TraversalTasks, collect_directory, run_directory_worker, with_guarded_backend,
+    TraversalTasks, collect_directory, process_resources, run_directory_worker, thread_qos,
+    with_guarded_backend,
 };
 #[cfg(test)]
 use hunter_fs_core::{ScanEngine, spawn_workers};
@@ -21,7 +22,6 @@ use std::{
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
-mod process_resources;
 mod resources;
 pub use resources::{ResourceHistory, ResourceSummary};
 mod materialization;
@@ -30,7 +30,6 @@ mod scan_session;
 /// Thread-scoped protection for filesystem preflight before starting a scan.
 /// On macOS this refuses materialization; other platforms use a no-op guard.
 pub use materialization::Guard as NonMaterializingIoGuard;
-mod thread_qos;
 pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
     bh_scan_with_policy_table,

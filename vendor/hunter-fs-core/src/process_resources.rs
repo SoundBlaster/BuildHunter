@@ -1,11 +1,15 @@
 //! OS snapshots for this process only. No child process, external tool or user-tree read.
 #[derive(Clone, Copy, Debug, Default)]
-pub(crate) struct Reading {
+pub struct Reading {
+    /// Cumulative user and system CPU nanoseconds, independently unavailable on failure.
     pub cpu: Option<(u64, u64)>,
+    /// Current resident bytes (Windows working set), not peak RSS or physical footprint.
     pub rss: Option<u64>,
 }
 
-pub(crate) fn read() -> Reading {
+/// Read independent best-effort process counters; missing data stays `None`, never zero.
+/// Unsupported platforms return an empty reading. Samples are not atomic or per-scan.
+pub fn read() -> Reading {
     platform::read()
 }
 
@@ -48,6 +52,29 @@ mod unix_cpu {
         // SAFETY: RUSAGE_SELF=0 and the complete platform 64-bit rusage layout.
         (unsafe { getrusage(0, &mut usage) } == 0).then_some(())?;
         Some((ns(usage.user)?, ns(usage.system)?))
+    }
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        #[test]
+        fn conversion_rejects_invalid_or_overflowing_timevals() {
+            assert_eq!(
+                ns(Timeval {
+                    seconds: 2,
+                    microseconds: 3
+                }),
+                Some(2_000_003_000)
+            );
+            for (seconds, microseconds) in [(-1, 0), (0, -1), (0, 1_000_000), (i64::MAX, 0)] {
+                assert_eq!(
+                    ns(Timeval {
+                        seconds,
+                        microseconds
+                    }),
+                    None
+                );
+            }
+        }
     }
 }
 
@@ -201,6 +228,23 @@ mod platform {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn absent_counters_are_not_fabricated_zeroes() {
+        let reading = super::Reading::default();
+        assert_eq!(reading.cpu, None);
+        assert_eq!(reading.rss, None);
+    }
+    #[cfg(not(any(
+        target_os = "macos",
+        windows,
+        all(target_os = "linux", target_pointer_width = "64")
+    )))]
+    #[test]
+    fn unsupported_platform_has_no_counters() {
+        let reading = super::read();
+        assert_eq!(reading.cpu, None);
+        assert_eq!(reading.rss, None);
+    }
     #[cfg(any(
         target_os = "macos",
         windows,
