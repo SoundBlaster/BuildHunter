@@ -1,20 +1,21 @@
 # Hunter, Rifle, BuildHunter и Arsenal: устройство поиска и плагинов
 
-Исходный проект: 2026-10-13. Текущая интеграция: 2026-10-21 (PR branch). Названия и продуктовое
+Исходный проект: 2026-10-13. Текущая интеграция: 2026-10-22 (merged main). Названия и продуктовое
 направление утверждены; подробные контракты остаются draft. Общая механика
 обхода, ScanEngine, guarded session, запуск workers и join уже находятся в Hunter.
 BuildHunter сохраняет продуктовую классификацию, агрегацию, итоговый статус и UI;
-Darwin batch metadata backend и prepared lookup теперь вынесены в Hunter; QoS и
-process resource reader ещё предстоит выделить.
+Darwin batch metadata backend, prepared lookup, requested QoS и process resource
+reader также вынесены в Hunter.
 Rifle имеет pure evaluator и generic catalog/JCS identity. Независимый
 `buildhunter-plugin-scanner` соединяет их с обходом и scoped Unix markers
 ([границы пилота](plugin-scanner-integration.md)); default CLI/GUI/FFI пока используют
 прежние правила. Swift SDK, descriptor-bound traversal/measurement, общие resource
 budgets и коммерческая поставка не завершены.
 
-Текущая batch-интеграция и точный pin: [перенос backend](hunter-batch-metadata.md).
-Матрица на baseline main от 2026-10-20 и конечные критерии extraction находятся в
-[сверке рефакторинга](modular-refactor-audit-20261020.md). Исходный recovery baseline
+Этап batch-интеграции: [перенос backend](hunter-batch-metadata.md); последующий
+перенос OS primitives и обновление pin: [process platform](hunter-process-platform.md).
+Текущие владельцы, завершение extraction и оставшиеся R1–R8 находятся в
+[сверке рефакторинга от 22 октября](modular-refactor-audit-20261022.md). Исходный recovery baseline
 `48badf9e097783505151dd47fbafe290f0af25e2` и последующие датированные записи ниже
 сохранены как история; их прежние «следующие шаги» не заменяют текущую сверку.
 

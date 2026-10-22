@@ -1,14 +1,13 @@
 # BuildHunter — architecture and specification progress
 
-Latest implementation on PR branch: [Hunter batch integration](../docs/hunter-batch-metadata.md),
-2026-10-21. This extends the earlier main audit; it is not yet a merged-main claim.
-
-
-Latest state: [modular audit, 2026-10-20](../docs/modular-refactor-audit-20261020.md).
-Public source baselines are BuildHunter 7ab00f16ae437fe88427c2acbe1b651b30b044f1,
-Hunter 860d995374d677d68b39093101da25c3cacfff9b and Rifle
-693a284123faaa1ad3192cd88b259ba97a7b5910. The audit matrix supersedes historical
-next-step descriptions below; dated implementation receipts retain their original scope.
+Latest state: [merged-main audit, 2026-10-22](../docs/modular-refactor-audit-20261022.md).
+Public baselines: BuildHunter `6dcf9ba91e67c7d5f3270369d05e03d01da1db5e`,
+Hunter `f1c9f921fed2ea04aa8e67b84075d9fd3a504e2d`, Rifle
+`693a284123faaa1ad3192cd88b259ba97a7b5910`. The planned common-code extraction
+is implemented; R1–R8 distinguish dependency alignment, default plugin migration,
+new safety/resource work and delivery. Draft acceptance is not promoted.
+The current audit supersedes historical next-step descriptions below; dated
+implementation receipts retain their original scope.
 
 ## Goal and current scope
 
@@ -922,3 +921,12 @@ contracts (`buildhunter.current.scan/process_platform_assembly`) are unchanged;
 existing Rust execution receipts remain scoped to unchanged runtime sources.
 New input identities/checks: `validation/hunter-process-20261022/review-build-inputs`.
 Hosted macOS checks must rerun on the fix; earlier green CI is not its proof.
+
+### Extraction closure audit — 2026-10-22
+
+Rechecked source owners and exact public main/pin identities after #99. The
+current HC trees, source bindings and `hunter.design.scan` / `buildhunter.current.scan`
+constraints already reflect batch/prepared/process primitives; no requirement,
+acceptance state or runtime behavior changes. Remaining tasks are R1–R8 in
+`docs/modular-refactor-audit-20261022.md`; legacy dated notes are historical.
+Fresh structural/source evidence: `validation/modular-audit-20261022`.

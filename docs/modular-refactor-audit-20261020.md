@@ -1,5 +1,8 @@
 # Сверка модульного рефакторинга — 2026-10-20
 
+Историческая сверка. Текущий статус и backlog после переноса batch backend и
+OS primitives: [аудит 2026-10-22](modular-refactor-audit-20261022.md).
+
 Сверены актуальные `main`: BuildHunter
 `7ab00f16ae437fe88427c2acbe1b651b30b044f1`, Hunter
 `860d995374d677d68b39093101da25c3cacfff9b`, Rifle
