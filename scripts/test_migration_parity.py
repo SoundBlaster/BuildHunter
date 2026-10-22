@@ -89,15 +89,16 @@ class MigrationParityTests(unittest.TestCase):
                 self.assertEqual(run["expected"], [])
                 return
             report = json.loads(result.stdout)
+            self.assertTrue(os.path.samefile(report["root"], selected))
             accounting = json.loads(profile.read_text())
             self.assertEqual(accounting["status"], run["status"])
             self.assertEqual(len(report["errors"]), run["warnings"])
             expected = [case["rows"][key] for key in run["expected"]]
             actual = []
             for row in report["artifacts"]:
-                # The CLI canonicalizes its input; macOS TMPDIR can start at /var,
-                # an alias of /private/var. Normalize only this comparison base.
-                relative = os.path.relpath(row["path"], selected.resolve()).replace(os.sep, "/")
+                # Both emitted paths share Rust's canonical root, including the
+                # Windows verbatim prefix (Python resolve may omit that prefix).
+                relative = os.path.relpath(row["path"], report["root"]).replace(os.sep, "/")
                 actual.append((relative, row["language"], row["kind"], row["nested"]))
                 self.assertEqual(row["bytes"], measured_bytes(Path(row["path"]), apparent))
                 self.assertFalse(row["partial"])

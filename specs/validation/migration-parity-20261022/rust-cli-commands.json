@@ -138,5 +138,35 @@
     "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.518s\n\nOK\n",
     "at_utc": "2026-10-22T21:10:03.474537+00:00",
     "scratch": "default macOS TMPDIR; tests canonicalize comparison base only"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "-B",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.491s\n\nOK\n",
+    "at_utc": "2026-10-22T21:20:53.967294+00:00",
+    "scratch": "standard macOS TMPDIR"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "-B",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.425s\n\nOK\n",
+    "at_utc": "2026-10-22T21:20:54.439404+00:00",
+    "scratch": "per-checkout TB5 scratch"
   }
 ]

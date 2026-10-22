@@ -39,3 +39,8 @@ C2 differences are preserved and C3/C4 remain explicit migration gates.
 Build outputs and supported caches use verified TB5 routes in `build-routing.json`.
 Temporary test trees are owned and cleaned by their harnesses; no user data is
 modified. Historical receipts remain historical.
+
+Review correction: use the CLI report's canonical root for relative paths,
+including Windows verbatim prefixes (`\\?\`). `samefile` independently checks
+that the report root is the selected fixture. Both normal macOS TMPDIR and scoped
+TB5 scratch pass again; actual Windows execution is left to its CI job.

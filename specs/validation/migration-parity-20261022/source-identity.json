@@ -10,7 +10,7 @@
     "src/policy_table.rs": "b0a9183dfd0d3e2281b6fe2599e7d8476c87019935e26578fa1b275353ad5cde",
     "tests/fixtures/migration-parity-v1.json": "ac8dbe188daaa6e951822bd83369ee3467291291068551d621dc35682998cec7",
     "tests/fixtures/migration-lifecycle-v1.tsv": "7840e86a88cafc7b0a92eea1a81e4bcc75910fedcb5b07e055ddc8ef554302bf",
-    "scripts/test_migration_parity.py": "9968fdd7774cd14c9a9727b2b04dd07d25f8f8000143496e7652ed5843314bed",
+    "scripts/test_migration_parity.py": "79a407ea6ae0c5cbeb3cabf8bd1c278a915ff234ffa565677cd59fbe5ec559d0",
     ".github/workflows/ci.yml": "b3ec54d3add3a81861c8353f64e826a4ade5d98e03a5db033f4696dcbd65df8c",
     "docs/migration-parity-baseline.md": "06af55a75b37464fd5c676999ba64f17d38e4e117b234b29e714beae8c3c8bde",
     "docs/modular-refactor-audit-20261022.md": "b4d727a029de974b49b45d5e484c2f6a524af9125a6f526e3af6486279c37d64",
