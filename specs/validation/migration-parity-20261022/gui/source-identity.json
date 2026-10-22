@@ -1,6 +1,6 @@
 {
   "baseline_main": "1fd905620c0d5c0317c6b08123cfe5b0653253c2",
-  "lower_commit": "9a35609fc608cfe14b0ce20b09b291ae214f9754",
+  "lower_commit": "8d3ced5e9bca9a3a4d1b8098d20bc6453b8250f4",
   "state": "upper GUI layer; working tree SHA256 inputs",
   "files": {
     "macos/Tests/BuildHunterTests/MigrationParityTests.swift": "23f670cffb9e715d0247f17f74538bb1f18875bb4e0c466a90d39fe691d31ff8",
@@ -19,6 +19,7 @@
     "docs/migration-parity-baseline.md": "2bb4858931f68e87fb617f88efe1defd7e49aa7cb58cb921025636dea471e7e6",
     "docs/modular-refactor-audit-20261022.md": "ac2093b91e698b3a2167b51058b9b415f91a884c8229bc82211ea7cdf7d29adf",
     "specs/hypercode/current.hc": "e723f46c8471c27cfa34d7cc44d928a438096e24d8771c9e5058a7c0b25ed022",
-    "specs/hypercode/current.hcs": "4587e41a1195ee098436a00319ef799e8c0ad433f3d0c3fdf588cb7cc12e1110"
+    "specs/hypercode/current.hcs": "4587e41a1195ee098436a00319ef799e8c0ad433f3d0c3fdf588cb7cc12e1110",
+    "scripts/test_migration_parity.py": "79a407ea6ae0c5cbeb3cabf8bd1c278a915ff234ffa565677cd59fbe5ec559d0"
   }
 }
