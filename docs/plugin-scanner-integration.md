@@ -117,3 +117,33 @@ while developer Git remotes continue using SSH.
 Portable entry enumeration/byte sizing are now shared with Hunter through the
 root offline graph; see hunter-portable-extraction.md. Classifier/marker policy
 and the root scanner/FFI public interfaces remain unchanged.
+
+## Dependency alignment — 2026-10-22
+
+The independent scanner now pins `hunter-fs` to
+`c5354e973b5d1d90c438c94b78c06898ffe62500`, exactly the revision recorded by
+`vendor/hunter-fs-core/UPSTREAM.json`. Its workspace-root `[patch]` redirects
+Hunter's Git core dependency to `../../vendor/hunter-fs-core`, which is also
+used by the application. Simply updating the facade pin would otherwise allow
+Git and path copies of the same core version. Scoped marker implementation
+bytes are unchanged from the former `5c8f3c9` pin.
+
+Rifle remains pinned to `693a284123faaa1ad3192cd88b259ba97a7b5910`; the policy-only
+package still has no Hunter dependency. The default CLI does not resolve Rifle
+or the opt-in scanner. No package version/default feature/classification/ABI
+changes are introduced. Only the scanner lockfile needs a Git revision update;
+root and policy lockfiles retain their existing resolution.
+
+`scripts/verify_plugin_dependencies.py` checks all three active host graphs via
+locked/offline Cargo metadata after dependencies have been fetched by normal
+builds. It rejects duplicate or unverified core sources and stale Hunter/Rifle
+pins. CI runs it on Linux/macOS/Windows; Windows correctly excludes the Unix-only
+facade. Fixture tests exercise both host shapes and bad resolution cases. This
+is the graph of these repository workspaces, not a guarantee for arbitrary
+downstream consumers: Cargo patches in a dependency manifest are ignored by an
+external workspace root, which must own its own patch/resolution policy.
+
+The earlier extraction snapshots/checkpoints above remain historical. Fresh
+source/graph/build/test evidence is in `specs/validation/plugin-alignment-20261022`.
+Default client migration, C2/C3/C4 decisions and whole-process resource budgets
+remain separate; dependency alignment does not complete them or establish a speedup.

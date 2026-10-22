@@ -1,0 +1,54 @@
+{
+  "x86_64-unknown-linux-gnu": {
+    "default": {
+      "hunter-fs-core": {
+        "id": "path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0",
+        "source": null
+      }
+    },
+    "policy": {
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910"
+      }
+    },
+    "scanner": {
+      "hunter-fs": {
+        "id": "git+https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#hunter-fs@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#c5354e973b5d1d90c438c94b78c06898ffe62500"
+      },
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910"
+      },
+      "hunter-fs-core": {
+        "id": "path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0",
+        "source": null
+      }
+    }
+  },
+  "x86_64-pc-windows-msvc": {
+    "default": {
+      "hunter-fs-core": {
+        "id": "path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0",
+        "source": null
+      }
+    },
+    "policy": {
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910"
+      }
+    },
+    "scanner": {
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910"
+      },
+      "hunter-fs-core": {
+        "id": "path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0",
+        "source": null
+      }
+    }
+  }
+}

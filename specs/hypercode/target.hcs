@@ -1,7 +1,7 @@
 # Approved names; target contracts remain draft, extraction is partial.
 HunterProducts:
   status: "target-design-draft"
-  baseline: "specs/validation/hunter-process-20261022/source-identity.json"
+  baseline: "specs/validation/plugin-alignment-20261022/source-identity.json"
   profile: "public"
 Hunter:
   boundary_spec: "hunter.design.scan"

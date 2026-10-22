@@ -13,7 +13,12 @@ build-hunter = { path = "../.." }
 buildhunter-plugin-policy = { path = "../buildhunter-plugin-policy" }
 
 [target.'cfg(unix)'.dependencies]
-hunter-fs = { git = "https://github.com/SoundBlaster/Hunter.git", rev = "5c8f3c9a1a018039b5aea9b731f2fb744f625b5a" }
+hunter-fs = { git = "https://github.com/SoundBlaster/Hunter.git", rev = "c5354e973b5d1d90c438c94b78c06898ffe62500" }
 
 [dev-dependencies]
 serde_json = "1"
+
+# Match the application snapshot: a Git facade must not introduce a second core.
+# Patches apply at this independent workspace root, not in dependency manifests.
+[patch."https://github.com/SoundBlaster/Hunter.git"]
+hunter-fs-core = { path = "../../vendor/hunter-fs-core" }

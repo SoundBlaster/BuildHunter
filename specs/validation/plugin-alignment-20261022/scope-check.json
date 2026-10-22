@@ -1,0 +1,17 @@
+{
+  "facade_revision": "c5354e973b5d1d90c438c94b78c06898ffe62500",
+  "prior_facade_revision": "5c8f3c9a1a018039b5aea9b731f2fb744f625b5a",
+  "scoped_metadata_same_sha256": "07a8b5a733024ec838c38290902fc9f2a8cb4f031a41a7117f0aadc64503d0be",
+  "unchanged_application_policy_and_scanner_sources": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/buildhunter-plugin-policy/Cargo.toml",
+    "crates/buildhunter-plugin-policy/Cargo.lock",
+    "src/lib.rs",
+    "src/measurement.rs",
+    "src/scan_session.rs",
+    "crates/buildhunter-plugin-scanner/src/lib.rs",
+    "crates/buildhunter-plugin-scanner/src/scope.rs"
+  ],
+  "package_versions_unchanged": true
+}

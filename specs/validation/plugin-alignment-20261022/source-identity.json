@@ -1,0 +1,28 @@
+{
+  "baseline_main": "6dcf9ba91e67c7d5f3270369d05e03d01da1db5e",
+  "lower_docs_commit": "5abb07df5b250f394dfd9988113325794ba06f6b",
+  "state": "working tree inputs identified by SHA256; runtime sources retain baseline identity",
+  "files": {
+    "Cargo.toml": "736c602b754751747a4897f69061ee94ffd6d48110d00dfbe4a7cd258c629917",
+    "Cargo.lock": "01d339f2f203e87b358f3ec2b1ed18745999aedc710e2bcb2a12ff00471d3c7c",
+    "src/lib.rs": "d31b1a25afb7754db16c2279afc6f30ef3d895dcdd1b1fdc4966cea6d8fe24e4",
+    "src/scan_session.rs": "fcd8652498330b610fc676d66f8e33ca03a72319c1728a2970ff66b46ebb729b",
+    "vendor/hunter-fs-core/UPSTREAM.json": "9e0bb7187a3841bdb5d01fc3aecfa98d938f0c344403c0f8c00ee37b0e009a1f",
+    "vendor/hunter-fs-core/Cargo.toml": "702db05b06cced8f5bf11172c2af1a5fb0d9073836125a06f3be5911d92f963d",
+    "crates/buildhunter-plugin-policy/Cargo.toml": "f0810432b4f08c3d57fc85a24bc0ec5b35fc2051a1da577dd65f3cac521a7ae7",
+    "crates/buildhunter-plugin-policy/Cargo.lock": "acd13939020a66ec8c152962114f032b186b9b634aad96a0d49eac8a222cc096",
+    "crates/buildhunter-plugin-scanner/Cargo.toml": "6d534bb86f986285cbf17d20be9777d67bd3557473221c003c4bd4e8f7b590e8",
+    "crates/buildhunter-plugin-scanner/Cargo.lock": "eafae58b5c05ffae23447cc89b5efc1a69eefb24007257e0071a959b9c7b7d6c",
+    "crates/buildhunter-plugin-scanner/src/lib.rs": "7ccd7ef8394ca2dfac3a4680848863fd0fe0ce8970d8be813e441f580b88f8b1",
+    "crates/buildhunter-plugin-scanner/src/scope.rs": "6c89f605336995bb1b9426aa1604af3cf3fc596bd2bb5be49416a2eb4c02a480",
+    "scripts/verify_plugin_dependencies.py": "56c916eb89c7c48531ba7a2b412ede7611e55f12665638a1e3dc2acbc5153c4b",
+    "scripts/test_plugin_dependencies.py": "48eac736098f5e1ea8cf4a5a952091efeaa86943b5464065e7dbde9fef574026",
+    ".github/workflows/ci.yml": "b40ec3b5489ae0b9f0d7f5c047a8f23786059ef0311f56c51afd45e9e2a13b89",
+    "specpm.yaml": "c74d666c04a2b934c35e98e388e2c53cb757e9c336c23b173c0a274f0a478a3a",
+    "specs/plugin-scanner.spec.yaml": "fc4b871423aa099adc4b319d7a4647d94f61cda637e980f58c99b6e91b5c14be",
+    "specs/hypercode/current.hc": "e723f46c8471c27cfa34d7cc44d928a438096e24d8771c9e5058a7c0b25ed022",
+    "specs/hypercode/current.hcs": "0d96025c8311c01731e14021334a7551074befde9c4355f2ae6767a5ff2e4d6b",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "52652edb8e214a19016b6dfddff0d9a0c70eeb9ae3da1730e9f64ed6b7b9c5b8"
+  }
+}

@@ -1,0 +1,124 @@
+[
+  {
+    "package": "policy",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "fmt",
+      "--check"
+    ],
+    "at_utc": "2026-10-22T20:11:30.363801+00:00",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "package": "policy",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--locked"
+    ],
+    "at_utc": "2026-10-22T20:11:34.757237+00:00",
+    "exit_code": 0,
+    "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest own_marker_on_files_is_false_without_a_probe ... ok\ntest new_ecosystem_rule_is_evaluated_without_fixed_marker_vocabulary ... ok\ntest one_true_and_one_unknown_is_indeterminate_not_a_confirmed_finding ... ok\ntest duplicate_target_ids_across_packages_fail_even_if_excluded ... ok\ntest exclusions_remove_rules_and_marker_requests_and_preserve_unknown_ids ... ok\ntest marker_requests_are_deduplicated_and_symlinks_never_classify ... ok\ntest true_false_unknown_and_invalid_name_follow_policy ... ok\ntest rules_for_one_target_use_or_and_true_suppresses_irrelevant_unknowns ... ok\ntest multiple_true_targets_are_ambiguous_and_exclusions_can_remove_overlap ... ok\ntest partial_exclusion_removes_only_the_disabled_fact_bindings ... ok\ntest current_examples_validate_and_reserve_builtin_ids_by_host_origin ... ok\ntest input_order_does_not_change_catalog_identity_or_classification ... ok\ntest targets_cover_rules_once_with_no_dangling_or_duplicate_ids ... ok\ntest plugin_shape_bindings_and_fact_types_are_strict ... ok\ntest aggregate_target_and_marker_budgets_cannot_be_bypassed_by_exclusions ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling version_check v0.9.5\n   Compiling typenum v1.20.1\n   Compiling serde_core v1.0.229\n   Compiling libc v0.2.190\n   Compiling zmij v1.0.23\n   Compiling serde v1.0.229\n   Compiling serde_json v1.0.154\n   Compiling memchr v2.8.3\n   Compiling itoa v1.0.18\n   Compiling cfg-if v1.0.5\n   Compiling ryu-js v1.0.3\n   Compiling generic-array v0.14.7\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling digest v0.10.7\n   Compiling cpufeatures v0.2.17\n   Compiling sha2 v0.10.9\n   Compiling serde_json_canonicalizer v0.4.1\n   Compiling rifle-rules v0.1.0 (https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a2841)\n   Compiling buildhunter-plugin-policy v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-policy)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.08s\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-policy-7e4d607ad80dd5d2/cargo/debug/deps/buildhunter_plugin_policy-fbb1888340575887)\n     Running tests/plugin_adapter.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-policy-7e4d607ad80dd5d2/cargo/debug/deps/plugin_adapter-788064bc235ec826)\n   Doc-tests buildhunter_plugin_policy\n"
+  },
+  {
+    "package": "policy",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--locked",
+      "--release"
+    ],
+    "at_utc": "2026-10-22T20:11:39.083282+00:00",
+    "exit_code": 0,
+    "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest new_ecosystem_rule_is_evaluated_without_fixed_marker_vocabulary ... ok\ntest duplicate_target_ids_across_packages_fail_even_if_excluded ... ok\ntest multiple_true_targets_are_ambiguous_and_exclusions_can_remove_overlap ... ok\ntest exclusions_remove_rules_and_marker_requests_and_preserve_unknown_ids ... ok\ntest one_true_and_one_unknown_is_indeterminate_not_a_confirmed_finding ... ok\ntest own_marker_on_files_is_false_without_a_probe ... ok\ntest partial_exclusion_removes_only_the_disabled_fact_bindings ... ok\ntest current_examples_validate_and_reserve_builtin_ids_by_host_origin ... ok\ntest marker_requests_are_deduplicated_and_symlinks_never_classify ... ok\ntest true_false_unknown_and_invalid_name_follow_policy ... ok\ntest input_order_does_not_change_catalog_identity_or_classification ... ok\ntest rules_for_one_target_use_or_and_true_suppresses_irrelevant_unknowns ... ok\ntest targets_cover_rules_once_with_no_dangling_or_duplicate_ids ... ok\ntest plugin_shape_bindings_and_fact_types_are_strict ... ok\ntest aggregate_target_and_marker_budgets_cannot_be_bypassed_by_exclusions ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling version_check v0.9.5\n   Compiling typenum v1.20.1\n   Compiling serde_core v1.0.229\n   Compiling zmij v1.0.23\n   Compiling libc v0.2.190\n   Compiling serde v1.0.229\n   Compiling serde_json v1.0.154\n   Compiling itoa v1.0.18\n   Compiling memchr v2.8.3\n   Compiling ryu-js v1.0.3\n   Compiling cfg-if v1.0.5\n   Compiling generic-array v0.14.7\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling digest v0.10.7\n   Compiling cpufeatures v0.2.17\n   Compiling sha2 v0.10.9\n   Compiling serde_json_canonicalizer v0.4.1\n   Compiling rifle-rules v0.1.0 (https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a2841)\n   Compiling buildhunter-plugin-policy v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-policy)\n    Finished `release` profile [optimized] target(s) in 3.40s\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-policy-7e4d607ad80dd5d2/cargo/release/deps/buildhunter_plugin_policy-17ac67abc08cacc5)\n     Running tests/plugin_adapter.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-policy-7e4d607ad80dd5d2/cargo/release/deps/plugin_adapter-7d032cd3aab0e629)\n   Doc-tests buildhunter_plugin_policy\n"
+  },
+  {
+    "package": "policy",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "at_utc": "2026-10-22T20:11:40.423271+00:00",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking typenum v1.20.1\n    Checking itoa v1.0.18\n    Checking memchr v2.8.3\n    Checking cfg-if v1.0.5\n    Checking ryu-js v1.0.3\n    Checking serde_core v1.0.229\n    Checking zmij v1.0.23\n    Checking libc v0.2.190\n    Checking generic-array v0.14.7\n    Checking cpufeatures v0.2.17\n    Checking block-buffer v0.10.4\n    Checking crypto-common v0.1.7\n    Checking digest v0.10.7\n    Checking sha2 v0.10.9\n    Checking serde v1.0.229\n    Checking serde_json v1.0.154\n    Checking serde_json_canonicalizer v0.4.1\n    Checking rifle-rules v0.1.0 (https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a2841)\n    Checking buildhunter-plugin-policy v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-policy)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.25s\n"
+  },
+  {
+    "package": "scanner",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "fmt",
+      "--check"
+    ],
+    "at_utc": "2026-10-22T20:11:40.632943+00:00",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "package": "scanner",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--locked"
+    ],
+    "at_utc": "2026-10-22T20:11:43.533865+00:00",
+    "exit_code": 0,
+    "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest report_pins_catalog_identity_and_unknown_exclusions ... ok\ntest cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok\ntest parent_of_selected_root_is_unknown_and_not_read ... ok\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\ntest git_is_a_host_prune_even_when_children_match_plugins ... ok\ntest symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok\ntest excluding_outer_target_preserves_distinct_enabled_inner_target ... ok\ntest file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok\ntest nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok\ntest ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok\ntest excluded_parent_keeps_traversing_descendants ... ok\ntest diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n   Compiling hunter-fs v0.1.0 (https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#c5354e97)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-scanner)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.39s\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/cargo/debug/deps/buildhunter_plugin_scanner-0c1a50487ff16198)\n     Running tests/scanning.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/cargo/debug/deps/scanning-c37fec98c17b5a55)\n     Running tests/unsupported.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/cargo/debug/deps/unsupported-1d6e0b18cad84258)\n   Doc-tests buildhunter_plugin_scanner\n"
+  },
+  {
+    "package": "scanner",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--locked",
+      "--release"
+    ],
+    "at_utc": "2026-10-22T20:11:47.443371+00:00",
+    "exit_code": 0,
+    "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest parent_of_selected_root_is_unknown_and_not_read ... ok\ntest report_pins_catalog_identity_and_unknown_exclusions ... ok\ntest arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok\ntest cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok\ntest git_is_a_host_prune_even_when_children_match_plugins ... ok\ntest symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok\ntest file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok\ntest excluding_outer_target_preserves_distinct_enabled_inner_target ... ok\ntest ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok\ntest nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok\ntest excluded_parent_keeps_traversing_descendants ... ok\ntest diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n   Compiling hunter-fs v0.1.0 (https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#c5354e97)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-scanner)\n    Finished `release` profile [optimized] target(s) in 2.61s\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/cargo/release/deps/buildhunter_plugin_scanner-d7dad991cdc459f3)\n     Running tests/scanning.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/cargo/release/deps/scanning-d049e4cb0b9f9f24)\n     Running tests/unsupported.rs (/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/cargo/release/deps/unsupported-ccb3ec7ead6ad9d1)\n   Doc-tests buildhunter_plugin_scanner\n"
+  },
+  {
+    "package": "scanner",
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "at_utc": "2026-10-22T20:11:47.981416+00:00",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n    Checking hunter-fs v0.1.0 (https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#c5354e97)\n    Checking build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n    Checking buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-scanner)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.45s\n"
+  }
+]

@@ -277,9 +277,10 @@ JoinBoundary:
 HunterMetadata:
   source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "5c8f3c9a1a018039b5aea9b731f2fb744f625b5a"
+  upstream_revision: "c5354e973b5d1d90c438c94b78c06898ffe62500"
   boundary_spec: "hunter.fs.scoped_metadata (upstream draft)"
-  implemented_scope: "Unix scoped regular-file metadata only; full scanner pending"
+  implemented_scope: "Unix scoped markers; unchanged source bytes at aligned facade pin"
+  dependency_assembly: "scanner workspace patches Hunter Git core to the verified application vendor source; downstream roots own their patches"
 MarkerAcquisition:
   source: "crates/buildhunter-plugin-scanner/src/scope.rs"
   implemented_scope: "product mapping to pinned hunter-fs; traversal races not covered"

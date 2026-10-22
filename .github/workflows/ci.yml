@@ -52,6 +52,10 @@ jobs:
           cargo test --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked
           cargo test --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked --release
           cargo clippy --manifest-path crates/buildhunter-plugin-scanner/Cargo.toml --locked --all-targets -- -D warnings
+      - name: Plugin dependency graph identity
+        run: |
+          python scripts/test_plugin_dependencies.py
+          python scripts/verify_plugin_dependencies.py
       - name: Fresh-cache offline CLI regression
         run: python scripts/test_offline_cli.py
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings

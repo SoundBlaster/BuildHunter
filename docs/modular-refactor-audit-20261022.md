@@ -111,3 +111,13 @@ host adapters. Нового узла ради этой сверки не нуж�
 Подготовка к будущей регенерации из Hypercode не означает, что карты уже являются
 полной исполняемой спецификацией проекта. Изменение подхода к архитектуре не входит
 в эту сверку.
+
+## R1 follow-up — 2026-10-22 (PR branch)
+
+The dependency inventory above records the audit baseline. The next implementation
+aligns the facade to `c5354e9` and uses a workspace-root Git-source patch to share
+one verified vendored core. Rifle remains at the already-current pin. R1 is
+implemented for these repository workspace graphs, subject to fresh CI/review;
+no library versions are raised and external consumers own their own Cargo patches.
+See [dependency alignment](plugin-scanner-integration.md#dependency-alignment--2026-10-22)
+and `specs/validation/plugin-alignment-20261022`. R2–R8 are unaffected.
