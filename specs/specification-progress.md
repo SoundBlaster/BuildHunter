@@ -1030,3 +1030,14 @@ pure policy is now a host dependency, with exact Cargo source replacement retain
 fresh-cache offline delivery. Previous receipts are historical; current source and
 validation identities: `validation/r4-basic-catalog-20261023`. No new acceptance,
 resource bound or end-to-end speedup is inferred from pure dispatch tests.
+
+## 2026-10-23 — R4 layer 2: catalog client scan and ABI
+
+ClientCatalogScan is a significant boundary (`buildhunter.catalog.scan`); client
+admission, dynamic marker acquisition and event transport are folded into it.
+C1 is exercised through every-node catalog decisions and per-candidate requests;
+C2 remains the two R2 profiles. C3 uses the explicit legacy-file-markers/1 migration
+profile, preserving existing marker links/selected-root context without claiming
+R3 descriptor safety. C4 transports raw paths; final GUI action safety belongs to
+the next layer. Source/run identities: `validation/r4-catalog-bridge-20261023`.
+This preparation does not accept new requirements or switch default clients.

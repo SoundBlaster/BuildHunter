@@ -20,6 +20,8 @@ use std::{
 };
 
 pub mod catalog;
+pub mod catalog_bridge;
+pub mod client_scan;
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
@@ -1696,6 +1698,7 @@ pub struct BHCandidateDecision {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy, Default)]
 pub struct BHScanEvent {
     pub event_type: u32,
     pub artifact_id: u64,
@@ -3919,3 +3922,6 @@ mod migration_parity;
 
 #[cfg(test)]
 mod scoped_access_tests;
+
+#[cfg(test)]
+mod client_scan_tests;

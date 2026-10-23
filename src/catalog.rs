@@ -30,11 +30,13 @@ impl CatalogSnapshot {
                 serde_json::json!({
                     "id": target.id, "title": target.title, "ecosystem": target.ecosystem,
                     "kind": target_kind_name(target.kind),
+                    "presentationKind": presentation_kind(profile, target),
                 })
             })
             .collect();
         let metadata = serde_json::json!({
             "format": "buildhunter.catalog/1", "profile": profile.id(),
+            "markerPolicy": "legacy-file-markers/1",
             "digest": catalog.catalog_digest().to_string(),
             "excludedTargetIDs": catalog.exclusions(), "targets": targets,
         })
@@ -61,6 +63,24 @@ impl CatalogSnapshot {
             .binary_search_by(|target| target.id.as_str().cmp(id))
             .ok()
             .map(|i| &targets[i])
+    }
+}
+
+pub fn presentation_kind(profile: ClientProfile, target: &TargetDescriptor) -> &'static str {
+    if profile == ClientProfile::GuiV1 {
+        if matches!(target.id.as_str(), "python.tox" | "python.nox") {
+            return "test-environment";
+        }
+        if matches!(target.kind, TargetKind::Bytecode | TargetKind::Metadata) {
+            return "cache";
+        }
+    }
+    match target.kind {
+        TargetKind::BuildOutput => "build",
+        TargetKind::Cache => "cache",
+        TargetKind::Environment => "environment",
+        TargetKind::Bytecode => "bytecode",
+        TargetKind::Metadata => "metadata",
     }
 }
 

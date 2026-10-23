@@ -26,6 +26,10 @@ BuildHunterRuntime
       MarkerVocabulary
       ClientPolicy
       FilterCatalog
+    ClientCatalogScan
+      ClientAdmission
+      ClientMarkerAcquisition
+      CatalogEventTransport
     ClientCatalog
       BasicProfiles
       CatalogIdentity

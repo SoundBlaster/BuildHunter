@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/r4-basic-catalog-20261023/source-identity.json"
+  current_evidence: "specs/validation/r4-catalog-bridge-20261023/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -461,3 +461,17 @@ CandidateDispatch:
   source: "crates/buildhunter-plugin-policy/src/dispatch.rs"
   implementation: "conservative name index selects target-specific Rifle plans; unknown names retain candidates"
   folded_into: "buildhunter.plugin.policy"
+
+ClientCatalogScan:
+  source: "src/client_scan.rs"
+  boundary_spec: "buildhunter.catalog.scan"
+ClientAdmission:
+  implementation: "versioned CLI environment/nesting and GUI outer-root admission; unavailable names traverse"
+  folded_into: "buildhunter.catalog.scan"
+ClientMarkerAcquisition:
+  implementation: "dynamic candidate-specific bindings under inherited guard; declared legacy-file-markers/1 semantics"
+  folded_into: "buildhunter.catalog.scan"
+CatalogEventTransport:
+  source: "src/catalog_bridge.rs"
+  implementation: "version 1 events: immutable metadata, target ID discoveries and typed diagnostics"
+  folded_into: "buildhunter.catalog.scan"

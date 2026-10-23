@@ -1,0 +1,124 @@
+[
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "BuildHunterRuntime\n  Clients\n    CommandLine\n    MacApplication\n      WindowSession\n      ReportPresentation\n      FolderActions\n      Export\n      Settings\n  SharedRuntime\n    Scanner\n      ScanSession\n        StartupAdmission\n        ScopedLaunch\n        TerminalPublication\n      ArtifactInterpretation\n      Traversal\n      Measurement\n        NativeMeasurementBackend\n        BatchPreparation\n        MetadataFallback\n      CloudGuard\n      ResourceProfile\n    ArtifactClassification\n      CandidateSelection\n      MarkerVocabulary\n      ClientPolicy\n      FilterCatalog\n    ClientCatalogScan\n      ClientAdmission\n      ClientMarkerAcquisition\n      CatalogEventTransport\n    ClientCatalog\n      BasicProfiles\n      CatalogIdentity\n      CatalogHandle\n    PluginPolicy\n      CatalogValidation\n      EffectivePlan\n      CandidateDispatch\n      CandidateClassification\n    HunterProcessPlatform\n      RequestedThreadQos\n      ProcessResourceSnapshot\n    HunterPortable\n      DirectoryEnumeration\n      MetadataSizing\n    HunterWork\n      TaskScheduling\n      WorkerLifecycle\n    HunterDirectoryTasks\n      TaskContext\n      PositionalMeasurement\n      ResultEnvelope\n    HunterChildTraversal\n      ChildAdmission\n      RecursiveRequests\n    HunterTaskLedger\n      TaskIdentity\n      ResponseAccounting\n      DeferredState\n    HunterSubtreeProgress\n      ByteAggregation\n      CompletionReadiness\n      PartialCompletion\n    HunterScanExecution\n      ResultPump\n      IdleCheckpoint\n      StopBoundary\n    HunterFilesystemBackend\n      NativePathAccess\n      ScanScopedAccess\n      RootInitialization\n    HunterDirectoryWorker\n      TaskExecution\n      ListingFirst\n      PublicationBoundary\n    HunterDirectoryListing\n      OrderedCollection\n      ContextObservation\n      AcquisitionOutcome\n    HunterMeasurementBackend\n      DirectoryPreparation\n      PreparedFileEffects\n      SharedSlotExecution\n    HunterBatchMetadata\n      BatchAcquisition\n      CheckedBatchRecords\n      PreparedSizeLookup\n    HunterScopedSession\n      HelperStartup\n      QueueShutdown\n      JoinBoundary\n    HunterRootAdmission\n      HostRootPreflight\n      RootAdmissionOutcome\n    HunterScanEngine\n      ResponseInterpretation\n      BranchPreparation\n      DeferredResolution\n    HunterEntryProcessing\n      ChildRouting\n      SelectedMetadata\n      CompletionCallbacks\n    HunterTraversalCoordinator\n      CoordinatorRootAdmission\n      OwnedTaskAccounting\n      HostInterpretation\n    HunterScanAssembly\n      GuardedQueue\n      SingleLaunch\n      HostFinalization\n      EngineLaunch\n        ResponseChannel\n        HostConstruction\n        PreJoinCollection\n    HunterBackendLifetime\n      GuardedPreparation\n      BackendRelease\n      ThreadMaterializationPolicy\n    HunterMetadata\n    HunterScopedFilesystem\n      SelectedRootAnchor\n      DescriptorListing\n      PreparedMetadataPass\n    PluginScanning\n      CandidateObservation\n      MarkerAcquisition\n      TargetRouting\n    RustSwiftBridge\n      PolicyTable\n      EventChannel\n      AccessLifetime\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "HunterProducts\n  Hunter\n    Traversal\n    MetadataMeasurement\n    PlatformGuards\n    ScanLifecycle\n    Telemetry\n  Rifle\n    RuleModel\n    CatalogValidation\n    PlanCompilation\n    Evaluation\n    SwiftAuthoring\n  BuildHunter\n    BasicPlugins\n    ArtifactPolicy\n    ScanAssembly\n    CommandLine\n    MacApplication\n  Arsenal\n    CommercialPlugins\n    PluginFixtures\n  StoreDistribution\n    PinnedComposition\n    SigningAndRelease\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/ci.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "BuildValidation\n  ChangePlanning\n    NativeStackIdentity\n    CumulativeDiff\n  LightweightChecks\n  MacOSChecks\n  PlanReceipts\n  BatchEvidenceGate\n    CurrentJobs\n    ReviewThreads\n    TrustedStatusPublication\n  MergePreflight\n  RulesetProposal\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/ci.hc",
+      "--hcs",
+      "specs/hypercode/ci.hcs"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  }
+]

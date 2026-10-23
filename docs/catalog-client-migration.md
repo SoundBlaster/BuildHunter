@@ -39,3 +39,24 @@ Cargo still decides whether compilation is needed.
 
 These drafts do not silently accept changed marker/path semantics, claim Windows
 scoped acquisition, close resource budgets (R5), or prove sandbox/Store acceptance.
+
+## Layer 2: client scan and event transport
+
+`scan_client` observes all candidates, acquires markers requested by enabled
+rule bindings, and measures findings with stable descriptors shared through Arc.
+The `legacy-file-markers/1` profile preserves R2 marker file links and selected-root
+parent context; metadata declares this profile explicitly. It is the compatibility
+migration path, with no descriptor-confinement claim. The existing opt-in scoped
+plugin scanner remains a separate stronger acquisition API. A stricter default
+marker policy still needs a deliberate profile/golden-data change.
+
+`bh_scan_catalog_v1` emits metadata before discovery, references targets by ID,
+and surfaces typed ambiguity/unavailability diagnostics. Borrowed pointers last
+only through callback return; handles/context last until scan return after join.
+Diagnostics make completed scans incomplete, while cancellation/failure dominate.
+Direct callback tests copy metadata/IDs and cancel on discovery. All R2 normal
+CLI/GUI fixture runs execute against this new API in allocated/apparent modes,
+including exclusions, byte totals, marker links, environment precedence and
+completion order. CLI preflight remains outside this library API.
+
+Default CLI/GUI entrypoints are still switched only in the final client layer.

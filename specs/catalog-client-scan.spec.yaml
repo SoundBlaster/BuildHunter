@@ -1,0 +1,107 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.catalog.scan
+  title: Catalog client scanning and event ABI
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Route immutable catalog decisions into measured findings and versioned client events without a per-candidate Swift callback.
+scope:
+  boundedContext: client_catalog_scan
+  includes:
+  - Dynamic candidate/marker acquisition, versioned CLI/GUI admission, stable target IDs, diagnostics and synchronous event transport.
+  excludes:
+  - Default client cutover in this preparation layer, new descriptor guarantees, user plugin installation, Store delivery and whole-process budgets.
+provides:
+  capabilities:
+  - id: buildhunter.catalog.scan
+    role: primary
+    summary: Scan through a fixed catalog snapshot with complete target identity and terminal publication.
+requires:
+  capabilities:
+  - id: buildhunter.catalog.snapshot
+    optional: false
+    summary: Immutable validated profile, descriptors, identity and exclusions.
+  - id: buildhunter.current.scan
+    optional: false
+    summary: Every-node observation, measurement, cancellation, joined workers and raw paths.
+interfaces:
+  inbound:
+  - id: client_scan_api
+    kind: library
+    summary: scan_client(root, snapshot, ScanOptions, include_environments, control, observer) -> CatalogScanReport.
+  - id: catalog_event_abi
+    kind: library
+    summary: bh_scan_catalog_v1 with BHCatalogScanEvent version 1; metadata event 6, target IDs on discovery, typed diagnostic event 7.
+  outbound: []
+constraints:
+- id: dynamic_selection
+  level: MUST
+  statement: Observe every candidate without the legacy fixed name gate or speculative root sizing. Derive rule marker requests from enabled catalog bindings and the conservative candidate index. Keep CLI environment admission as an explicit host-profile obligation.
+- id: compatible_profiles
+  level: MUST
+  statement: Preserve R2 CLI nested findings/environment pruning and GUI outer-root/environment precedence. Prune .git only outside an artifact. The legacy-file-markers/1 acquisition profile follows marker file links and observes selected-root parent markers, matching existing clients. This compatibility API does not claim descriptor confinement or change the stricter opt-in plugin scanner contract.
+- id: identity
+  level: MUST
+  statement: Findings retain full target descriptors through shared immutable ownership; reports retain profile, full digest and frozen exclusions. Numeric core labels remain transport placeholders and must not replace plugin identity.
+- id: diagnostics
+  level: MUST
+  statement: Surface ambiguous and unavailable classification as typed diagnostics and continue descendants unless cancelled. Diagnostics make otherwise completed results incomplete; cancellation and failure take precedence. Profile warning counters include diagnostics. Policy errors fail the scan and preserve an explanatory diagnostic.
+- id: event_lifetime
+  level: MUST
+  statement: Emit metadata before scan events; deliver callbacks serially on the caller thread. All event pointers are borrowed only until callback return. Consumers retain control/catalog/context through return, after worker join. Preserve one completion per discovery and Finished last; invalid arguments return 3 before events.
+- id: path_transport
+  level: MUST
+  statement: Preserve raw Rust path bytes in event payloads; presentation strings are not path capabilities. GUI action safety remains a separate consumer obligation and is not established by this ABI.
+effects:
+  sideEffects:
+  - id: read_metadata
+    kind: filesystem_read
+    summary: Read metadata and directory entries under the inherited non-materializing scan guard; no content writes.
+  - id: publish_events
+    kind: event_emit
+    summary: Invoke the serial observer, which can have consumer-defined effects.
+evidence:
+- id: client_source
+  kind: source
+  path: src/client_scan.rs
+  supports:
+  - constraints.dynamic_selection
+  - constraints.compatible_profiles
+  - constraints.identity
+  - constraints.diagnostics
+- id: bridge_source
+  kind: source
+  path: src/catalog_bridge.rs
+  supports:
+  - interfaces
+  - constraints.event_lifetime
+  - constraints.path_transport
+- id: client_tests
+  kind: test
+  path: src/client_scan_tests.rs
+  supports:
+  - constraints.compatible_profiles
+  - constraints.diagnostics
+  - constraints.event_lifetime
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Compatibility is an explicit migration profile, not acceptance of a future unified marker policy or proof of Windows scoped acquisition.
+implementationBindings:
+- id: catalog_scan_sources
+  scope: component
+  files:
+    owned:
+    - src/client_scan.rs
+    - src/catalog_bridge.rs
+    border:
+    - src/catalog.rs
+    - src/lib.rs
+    - src/client_scan_tests.rs
+    - tests/fixtures/migration-parity-v1.json
+    - macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h
