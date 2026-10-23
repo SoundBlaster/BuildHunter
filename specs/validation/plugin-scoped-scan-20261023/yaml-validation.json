@@ -1,0 +1,7 @@
+{
+  "workflow": ".github/workflows/ci.yml",
+  "duplicate_key_check": "passed using yaml.SafeLoader with duplicate rejection",
+  "scoped_step_condition": "runner.os == 'macOS'",
+  "job_change": "no new job; extra step in existing Rust macOS job",
+  "actionlint": "not available locally; not executed"
+}

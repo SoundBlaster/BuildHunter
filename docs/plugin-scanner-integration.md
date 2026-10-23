@@ -26,7 +26,7 @@ is observed before processing descendants, including diagnostic-only scans. `.gi
 host-owned prune boundary. Nested findings are reported; totals count outer roots
 once using the existing allocated/apparent-size and per-path hardlink semantics.
 
-The root API `scan_with_candidate_observer` observes every
+The opt-in API `scan_with_candidate_access` observes every
 visited node, bypassing the legacy candidate-name gate, marker resolution and
 speculative artifact sizing. Its path is an observation identity, not an access
 capability. Callbacks are serial on the calling thread. `ScanControl::is_cancelled`
@@ -57,12 +57,16 @@ failures are unavailable. Checks run under the non-materializing guard; macOS
 SF_DATALESS metadata is cloud_skipped. Scope preflight failures return ScanError
 before scan events; policy errors return ScanError after an explicit Failed event.
 
-Windows fails closed with UnsupportedPlatform; its no-follow backend is pending.
+Windows and other platforms without the macOS/Linux backend fail closed with
+UnsupportedPlatform; their no-follow acquisition remains pending.
 Marker safety is stronger than the legacy symlink-marker behavior and is confined
-to this opt-in path. The shared traversal still uses pathname directory listings
-and measurement: descriptor-bound marker tests do not prove race-free traversal
-or sizing under concurrent directory replacement. That separate Hunter/backend
-migration remains necessary before claiming an end-to-end no-follow capability.
+to this opt-in path. The pilot now selects Hunter ScopedFilesystem for root observation, directory
+listings, worker sizing and coordinator fallback. Markers share that exact root
+anchor rather than independently reopening the selected path. Each prepared
+measurement pass retains its directory, and failed scoped access never retries
+through a normal path or the pathname bulk backend. A file slot changed into a
+link/directory is not counted. Independent passes still observe a live tree: this
+is no-follow acquisition, not stable inode identity between passes or a snapshot.
 Observations are not an atomic filesystem snapshot. Missing markers observed
 before a lookup cannot be distinguished from markers that never existed; no new
 churn warning is fabricated. Current traversal/measurement churn notices remain.
@@ -88,8 +92,8 @@ creates invalid UTF-8 filenames; APFS rejects those filenames, so macOS uses the
 pure policy None-name coverage. Synthetic dataless metadata is a decoder witness,
 not a live iCloud test. No GUI, live provider or performance evidence is implied.
 
-Next: descriptor-bound traversal/measurement in Hunter, then explicit C2/C3/C4
-migration decisions and versioned FFI/Settings catalog routing.
+Next: explicit C2/C3/C4 migration decisions and versioned FFI/Settings catalog
+routing (R4), with resource budgets (R5) kept separate.
 
 ## Hunter extraction — 2026-10-14
 
@@ -147,3 +151,23 @@ The earlier extraction snapshots/checkpoints above remain historical. Fresh
 source/graph/build/test evidence is in `specs/validation/plugin-alignment-20261022`.
 Default client migration, C2/C3/C4 decisions and whole-process resource budgets
 remain separate; dependency alignment does not complete them or establish a speedup.
+
+## R3 descriptor acquisition — 2026-10-23
+
+The current pin is Hunter `bfcd75f8996b5a958c81238bb6d44d9fa1f88047` (PR #26).
+Older pin/stage descriptions above remain historical. Root handle acquisition
+happens under the caller's non-materializing guard even when no markers are
+requested. Only macOS/Linux expose this backend; Windows/other Unix fail closed.
+The default CLI/GUI still use their old policies/backend, as frozen by R2.
+
+Deterministic event-callback fixtures replace the selected root, an intermediate
+parent directory, and a listed file before measurement. They assert that foreign
+bytes are never counted, root replacement stays on the original tree, refusal
+marks partial/incomplete state, and a changed link produces a change notice. A
+file without content-read permission remains measurable via fstatat. These are
+actual plugin scan tests, separate from Hunter's lower-level prepared-pass and
+parallel-offset tests and the application seam's std-backed routing spies.
+
+No snapshot across independent passes, durable Finder/path identity, report-memory
+bound, no-download proof on a live provider or scan-speed gain is claimed. New
+source/run identities are in `specs/validation/plugin-scoped-scan-20261023`.

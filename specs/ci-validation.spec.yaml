@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.delivery.ci
   title: Stack-aware CI planning and batch evidence gate
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Reduce repeated macOS validation while binding merge evidence to current batch sources and base.
@@ -97,6 +97,10 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - R3 adds one macOS Rust-job step exercising plugin acquisition with the root
+    macos-bulk-metadata feature. The existing ready-tip/job/gate scheduling is
+    unchanged; this checks that scoped access never selects pathname bulk sizing.
+    Source/map/validation identities are in plugin-scoped-scan-20261023.
   - Recovered existing workflows at 86c3def; stack CI policy is approved separately in AGENTS.md.
     Local fixtures/read-only probes are not hosted publisher/canary acceptance or measured runner savings.
   - Repository activation observed 2026-10-18 (ruleset 24388855, Actions app 15368,

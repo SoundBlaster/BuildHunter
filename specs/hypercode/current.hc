@@ -110,6 +110,10 @@ BuildHunterRuntime
       BackendRelease
       ThreadMaterializationPolicy
     HunterMetadata
+    HunterScopedFilesystem
+      SelectedRootAnchor
+      DescriptorListing
+      PreparedMetadataPass
     PluginScanning
       CandidateObservation
       MarkerAcquisition

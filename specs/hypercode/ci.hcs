@@ -14,6 +14,7 @@ LightweightChecks:
   source: ".github/workflows/ci.yml"
   implementation: "Linux/Windows Rust/CLI and schema checks on applicable layers"
 MacOSChecks:
+  scoped_plugin_bulk_profile: "Rust macOS job also tests the plugin pilot with build-hunter/macos-bulk-metadata; no extra job or scheduling change"
   source: ".github/workflows/macos.yml"
   implementation: "five jobs across macos/ci/performance workflows; standalone or ready tip"
 PlanReceipts:

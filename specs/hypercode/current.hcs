@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/scoped-error-review-20261023/source-identity.json"
+  current_evidence: "specs/validation/plugin-scoped-scan-20261023/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -117,7 +117,7 @@ PluginScanning:
   connected_to_clients: false
 CandidateObservation:
   source: "src/lib.rs"
-  implementation: "scan_with_candidate_observer"
+  implementation: "scan_with_candidate_access + pinned Hunter ScopedFilesystem"
   folded_into: "buildhunter.plugin.scanner"
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
@@ -277,7 +277,7 @@ JoinBoundary:
   implementation: "coordinator captures/receiver release before join; result after scoped completion"
   folded_into: "buildhunter.current.scan"
 HunterMetadata:
-  source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"
+  source: "specs/evidence/hunter-scoped-access-20261023/upstream.md"
   upstream_repository: "SoundBlaster/Hunter"
   upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.scoped_metadata (upstream draft)"
@@ -285,7 +285,7 @@ HunterMetadata:
   dependency_assembly: "scanner workspace patches Hunter Git core to the verified application vendor source; downstream roots own their patches"
 MarkerAcquisition:
   source: "crates/buildhunter-plugin-scanner/src/scope.rs"
-  implemented_scope: "product mapping to pinned hunter-fs; traversal races not covered"
+  implemented_scope: "product marker mapping; same pinned root anchor as traversal/sizing"
   folded_into: "buildhunter.plugin.scanner"
 TargetRouting:
   source: "crates/buildhunter-plugin-scanner/src/lib.rs"
@@ -428,3 +428,19 @@ ScanScopedAccess:
   host_source: "src/lib.rs"
   implementation: "optional scan_with_candidate_access and ProbedDirectory; standard clients keep pathname access"
   folded_into: "buildhunter.current.scan"
+
+HunterScopedFilesystem:
+  source: "specs/evidence/hunter-scoped-access-20261023/upstream.md"
+  upstream_repository: "SoundBlaster/Hunter"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
+  boundary_spec: "hunter.fs.scoped_filesystem (upstream draft)"
+  availability: "selected by the plugin pilot on macOS/Linux only"
+SelectedRootAnchor:
+  implementation: "ScopedFilesystem::open + marker_scope; root and marker share one object"
+  folded_into: "buildhunter.plugin.scanner"
+DescriptorListing:
+  implementation: "component no-follow opens and independent streams; original report paths"
+  folded_into: "buildhunter.plugin.scanner"
+PreparedMetadataPass:
+  implementation: "worker/coordinator directory handles; no content opens or pathname fallback"
+  folded_into: "buildhunter.plugin.scanner"

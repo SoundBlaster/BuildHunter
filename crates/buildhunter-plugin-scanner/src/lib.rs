@@ -1,15 +1,15 @@
 //! Opt-in filesystem integration. The pure policy crate and default clients stay separate.
-#[cfg(unix)]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 use build_hunter::{ArtifactClassificationCode, CandidateAction, CandidateNodeKind, ScanEvent};
 use build_hunter::{ScanControl, ScanOptions, ScanProfileSample, ScanStatus, ScanWarning};
-#[cfg(unix)]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 use buildhunter_plugin_policy::{CandidateFacts, Decision, MarkerFact, MarkerProbe, NodeKind};
 use buildhunter_plugin_policy::{Classification, PluginCatalog, TargetDescriptor};
 use std::path::{Path, PathBuf};
-#[cfg(unix)]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 use std::{cell::RefCell, collections::BTreeMap};
 
-#[cfg(unix)]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 mod scope;
 
 #[derive(Clone, Debug)]
@@ -75,7 +75,10 @@ impl std::fmt::Display for ScanError {
             Self::Io(e) => write!(f, "scan preflight failed: {e}"),
             Self::Policy(e) => write!(f, "{} at {}: {}", e.code, e.location, e.message),
             Self::UnsupportedPlatform => {
-                write!(f, "no verified no-follow marker backend on this platform")
+                write!(
+                    f,
+                    "no verified no-follow acquisition backend on this platform"
+                )
             }
         }
     }
@@ -95,12 +98,12 @@ pub fn scan(
     control: &ScanControl,
     emit: impl FnMut(&PluginScanEvent),
 ) -> Result<PluginScanReport, ScanError> {
-    #[cfg(not(unix))]
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     {
         let _ = (root, catalog, options, control, emit);
         Err(ScanError::UnsupportedPlatform)
     }
-    #[cfg(unix)]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
         // Both core events and policy diagnostics use the same serial observer.
         let emit = RefCell::new(emit);
@@ -115,7 +118,8 @@ pub fn scan(
             .into_iter()
             .cloned()
             .collect();
-        let scope = scope::Scope::new(&root, !requests.is_empty()).map_err(ScanError::Io)?;
+        let filesystem = hunter_fs::ScopedFilesystem::open(&root).map_err(ScanError::Io)?;
+        let scope = scope::Scope::new(&filesystem, !requests.is_empty()).map_err(ScanError::Io)?;
         struct State {
             selected: Option<TargetDescriptor>,
             targets: BTreeMap<u64, TargetDescriptor>,
@@ -130,10 +134,11 @@ pub fn scan(
             failure: None,
             observations: 0,
         });
-        let report = build_hunter::scan_with_candidate_observer(
+        let report = build_hunter::scan_with_candidate_access(
             &root,
             options,
             control,
+            &filesystem,
             |path, legacy, kind| {
                 let mut state = state.borrow_mut();
                 state.selected = None;

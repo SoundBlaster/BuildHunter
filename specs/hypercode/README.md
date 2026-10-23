@@ -174,3 +174,10 @@ and adds ScanScopedAccess under the existing filesystem boundary. The concrete
 Hunter API now supports macOS/Linux descriptor acquisition; default clients and
 the plugin selection are unchanged in this layer. Current receipts are under
 hunter-scoped-access-20261023; earlier stage descriptions remain historical.
+
+R3 plugin selection (2026-10-23) adds HunterScopedFilesystem as the concrete
+upstream acquisition boundary used by the pilot. Shared-root markers, descriptor
+listings and prepared sizing are implemented on macOS/Linux; current source and
+execution identities are in plugin-scoped-scan-20261023. Older claims of pathname
+traversal for the pilot are historical. Default clients, C3/C4, R4/R5, Windows and
+live provider acceptance remain separate.

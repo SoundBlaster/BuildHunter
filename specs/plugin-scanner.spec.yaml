@@ -3,18 +3,18 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.plugin.scanner
   title: Opt-in catalog-driven scanner integration
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Acquire scoped plugin marker facts and route supplied catalog decisions into measured artifacts with live metadata and diagnostics.
 scope:
   boundedContext: plugin_scanner_integration
   includes:
-  - Independent library using current traversal with all-candidate observation and pinned Hunter Unix metadata acquisition.
+  - Independent library using current traversal with all-candidate observation and pinned Hunter macOS/Linux descriptor acquisition.
   - Immutable catalog/exclusions, arbitrary target metadata, streaming results, cancellation and typed diagnostics.
   excludes:
   - Default CLI/GUI/FFI policy migration, complete baseline plugin parity, Windows marker backend, Store delivery and whole-engine safety/resource acceptance.
-  - Race-free directory traversal/measurement, atomic filesystem snapshots, bounded report memory and throughput claims.
+  - Atomic filesystem snapshots, stable cross-pass entry identity, bounded report memory and throughput claims.
 provides:
   capabilities:
   - id: buildhunter.plugin.scan
@@ -31,6 +31,10 @@ requires:
   - id: hunter.fs.scoped_metadata
     optional: false
     summary: Pinned upstream Unix metadata primitive; host retains materialization policy and maps outcomes to plugin facts.
+  - id: hunter.fs.scoped_filesystem
+    optional: false
+    summary: Shared selected-root anchor, no-follow listings and prepared metadata;
+      host retains per-thread guards and translates partial/error semantics.
 interfaces:
   inbound:
   - id: plugin_scan
@@ -41,6 +45,14 @@ interfaces:
     kind: library
     summary: Serial caller-thread artifact discovery/completion, typed candidate diagnostics, I/O warnings, profiles and terminal status.
 constraints:
+- id: traversal_scope
+  level: MUST
+  statement: On macOS/Linux select one ScopedFilesystem for root admission, listings,
+    worker sizing and coordinator fallback. Marker scopes clone the same root anchor.
+    Refuse intermediate symlinks, inspect final metadata no-follow, retain one opened
+    directory through a prepared pass and never retry scoped failures through paths
+    or pathname bulk metadata. A measured file changed to a link/directory contributes
+    no bytes and produces a change notice. Independent passes remain live observations.
 - id: candidate_gate
   level: MUST
   statement: Observe every visited node independent of built-in names and marker bits; .git remains host-pruned. Preserve exact node kinds and lossless paths; invalid UTF-8 names stay unavailable.
@@ -58,7 +70,9 @@ constraints:
   statement: Retain catalog digest and exclusions in the report; keep immutable catalog/control/access alive until scoped workers finish; preserve inherited size/cancellation/partial events and guard restoration. Cancellation request alone does not prove completion.
 - id: compatibility
   level: MUST
-  statement: Keep this package outside root CLI Cargo resolution and preserve default CLI/GUI/numeric FFI behavior. Unsupported marker backends fail closed before callbacks; no full traversal race guarantee is inferred from marker safety.
+  statement: Keep this package outside root CLI Cargo resolution and preserve default CLI/GUI/numeric FFI behavior. Unsupported acquisition backends fail closed before callbacks. Directory-root replacement
+    stays on the pinned original root; display paths are not durable action handles
+    and no atomic or cross-pass identity guarantee is inferred.
 - id: dependency_identity
   level: MUST
   statement: In this repository's independent scanner workspace, pin the Hunter facade
@@ -71,7 +85,7 @@ effects:
   sideEffects:
   - id: metadata_reads
     kind: filesystem_read
-    summary: Existing directory traversal/sizing and scoped no-follow marker metadata reads; no marker contents or filesystem writes.
+    summary: Descriptor directory traversal/sizing and scoped no-follow marker metadata reads; no marker contents or filesystem writes.
   - id: events
     kind: event_emit
     summary: Invoke caller-supplied synchronous observer; consumer effects remain caller-owned.
@@ -91,11 +105,15 @@ evidence:
 - id: integration_tests
   kind: test
   path: crates/buildhunter-plugin-scanner/tests/scanning.rs
-  supports: [constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.marker_scope]
+  supports: [constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.marker_scope, constraints.traversal_scope]
 - id: unsupported_tests
   kind: test
   path: crates/buildhunter-plugin-scanner/tests/unsupported.rs
   supports: [constraints.compatibility]
+- id: scoped_upstream
+  kind: documentation
+  path: specs/evidence/hunter-scoped-access-20261023/upstream.md
+  supports: [constraints.traversal_scope]
 - id: integration_documentation
   kind: documentation
   path: docs/plugin-scanner-integration.md
@@ -115,6 +133,9 @@ evidence:
 provenance:
   sourceConfidence: {intent: high, boundary: high, behavior: medium}
   notes:
+  - R3 now selects Hunter descriptor acquisition on macOS/Linux; source and tests are
+    pinned in specs/validation/plugin-scoped-scan-20261023. The new shared-root and
+    no-path-fallback constraints stay draft; C2/C3/C4 default migration is unchanged.
   - Owner authorized scanner integration after PR 67. New boundary remains draft; baseline client C2/C3/C4 migration is not accepted by this pilot.
   - Marker race tests are not a full traversal proof. Synthetic cloud metadata is not live provider evidence. Fresh execution receipts and source identities are separate from historical recovery.
   - Hunter partial extraction at 5c8f3c9a1a018039b5aea9b731f2fb744f625b5a; public upstream source/contract snapshots

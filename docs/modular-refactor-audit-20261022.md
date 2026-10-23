@@ -129,3 +129,14 @@ CLI/app bridge and core fault witnesses have separate runners/evidence. See
 [migration baseline](migration-parity-baseline.md). C2 differences are preserved;
 C3/C4 baseline behavior and remaining migration decisions are explicit. No default
 catalog cutover, stricter link policy or path/action ABI change is included.
+
+## R3 follow-up — 2026-10-23 (PR stack)
+
+Hunter #26 adds macOS/Linux descriptor acquisition, shared marker root identity
+and prepared sizing; BuildHunter adds optional engine injection and selects it
+only in the plugin pilot. Root/intermediate/leaf replacement fixtures and the
+permission regression execute through the public plugin API. Platform support is
+explicit; Windows/other Unix acquisition remains pending. R3's Unix acquisition
+portion is implemented for review, not owner-accepted or a snapshot/budget proof.
+R4/R5 and C2/C3/C4 decisions are unchanged. See hunter-scoped-acquisition.md and
+validation/plugin-scoped-scan-20261023 for current source and execution identities.
