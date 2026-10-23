@@ -1,0 +1,60 @@
+{
+  "rustc": {
+    "command": [
+      "rustc",
+      "-vV"
+    ],
+    "exit_code": 0,
+    "stdout": "rustc 1.97.0 (2d8144b78 2026-07-07)\nbinary: rustc\ncommit-hash: 2d8144b7880597b6e6d3dfd63a9a9efae3f533d3\ncommit-date: 2026-07-07\nhost: aarch64-apple-darwin\nrelease: 1.97.0\nLLVM version: 22.1.6\n",
+    "stderr": ""
+  },
+  "cargo": {
+    "command": [
+      "cargo",
+      "-V"
+    ],
+    "exit_code": 0,
+    "stdout": "cargo 1.97.0 (c980f4866 2026-06-30)\n",
+    "stderr": ""
+  },
+  "specpm": {
+    "command": [
+      "specpm",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "specpm 0.2.0\n",
+    "stderr": ""
+  },
+  "xcode": {
+    "command": [
+      "xcodebuild",
+      "-version"
+    ],
+    "exit_code": 0,
+    "stdout": "Xcode 27.1\nBuild version 27A9275\n",
+    "stderr": ""
+  },
+  "swift": {
+    "command": [
+      "swift",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\n",
+    "stderr": "swift-driver version: 1.168.6 "
+  },
+  "python": {
+    "command": [
+      "python3",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "Python 3.9.6\n",
+    "stderr": ""
+  },
+  "hypercode": {
+    "path": "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+    "sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b"
+  }
+}

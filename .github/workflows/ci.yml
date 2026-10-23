@@ -61,7 +61,9 @@ jobs:
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - run: cargo build --locked --release
       - name: CLI integration tests
-        run: python scripts/test_cli.py target/release/build-hunter${{ matrix.suffix }}
+        run: |
+          python scripts/test_cli.py target/release/build-hunter${{ matrix.suffix }}
+          python scripts/test_migration_parity.py target/release/build-hunter${{ matrix.suffix }}
       - name: Performance report tests
         run: |
           python scripts/test_performance_report.py

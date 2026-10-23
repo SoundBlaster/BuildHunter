@@ -3791,3 +3791,6 @@ mod tests {
         assert!(report.total_bytes() >= b"bytecode".len() as u64);
     }
 }
+
+#[cfg(test)]
+mod migration_parity;

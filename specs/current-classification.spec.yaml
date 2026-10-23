@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.classification
   title: Current artifact classification and filters
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
@@ -121,12 +121,23 @@ evidence:
   path: macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift
   supports:
   - scope
+- id: parity_corpus
+  kind: documentation
+  path: tests/fixtures/migration-parity-v1.json
+  supports: [scope, constraints.client_profiles, constraints.taxonomy, constraints.filter_snapshot]
+- id: cli_parity_test
+  kind: test
+  path: scripts/test_migration_parity.py
+  supports: [scope, constraints.client_profiles, constraints.taxonomy, constraints.filter_snapshot]
 provenance:
   sourceConfidence:
     intent: high
     boundary: medium
     behavior: medium
   notes:
+  - R2 freezes reviewed client expectations at main 1fd905620c0d5c0317c6b08123cfe5b0653253c2.
+    CLI and deterministic core witnesses are recorded in validation/migration-parity-20261022;
+    GUI rows are data awaiting the upper-layer Swift witness. No runtime policy or accepted requirement changes.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
@@ -140,7 +151,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: c70724d469d823774450bc387ecb90be1c5e2905
+    revision: 1fd905620c0d5c0317c6b08123cfe5b0653253c2
   files:
     owned:
     - src/lib.rs
@@ -154,3 +165,5 @@ implementationBindings:
     - macos/Tests/BuildHunterTests/ArtifactPolicyTests.swift
     - macos/Tests/BuildHunterTests/SearchFilterSettingsTests.swift
     - macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift
+    - tests/fixtures/migration-parity-v1.json
+    - scripts/test_migration_parity.py

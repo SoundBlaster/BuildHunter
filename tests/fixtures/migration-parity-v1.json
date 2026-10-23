@@ -1,0 +1,1617 @@
+{
+  "schemaVersion": 1,
+  "catalogIDs": [
+    "swift.build",
+    "rust.target",
+    "python.bytecode",
+    "python.pytest-cache",
+    "python.mypy-cache",
+    "python.ruff-cache",
+    "python.pytype-cache",
+    "python.build",
+    "python.dist",
+    "python.egg-info",
+    "python.environment",
+    "python.tox",
+    "python.nox"
+  ],
+  "cases": [
+    {
+      "id": "catalog-targets",
+      "files": {
+        "swift/.build/o": "swift",
+        "rust/Cargo.toml": "manifest",
+        "rust/target/o": "rust",
+        "python/pyproject.toml": "project",
+        "python/build/o": "build",
+        "python/dist/o": "dist",
+        "pkg.egg-info/PKG-INFO": "metadata",
+        ".venv/pyvenv.cfg": "env",
+        ".venv/lib/o": "env-data",
+        "__pycache__/data": "bytecode",
+        ".pytest_cache/data": "pytest",
+        ".mypy_cache/data": "mypy",
+        ".ruff_cache/data": "ruff",
+        ".pytype/data": "pytype",
+        ".tox/data": "tox",
+        ".nox/data": "nox"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".",
+      "rows": {
+        "swift": {
+          "path": "swift/.build",
+          "filterID": "swift.build",
+          "kind": "build",
+          "language": "swift",
+          "nested": false
+        },
+        "rust": {
+          "path": "rust/target",
+          "filterID": "rust.target",
+          "kind": "build",
+          "language": "rust",
+          "nested": false
+        },
+        "bytecode": {
+          "path": "__pycache__",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": false
+        },
+        "pytest": {
+          "path": ".pytest_cache",
+          "filterID": "python.pytest-cache",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "mypy": {
+          "path": ".mypy_cache",
+          "filterID": "python.mypy-cache",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "ruff": {
+          "path": ".ruff_cache",
+          "filterID": "python.ruff-cache",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "pytype": {
+          "path": ".pytype",
+          "filterID": "python.pytype-cache",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "build": {
+          "path": "python/build",
+          "filterID": "python.build",
+          "kind": "build",
+          "language": "python",
+          "nested": false
+        },
+        "dist": {
+          "path": "python/dist",
+          "filterID": "python.dist",
+          "kind": "build",
+          "language": "python",
+          "nested": false
+        },
+        "metadata": {
+          "path": "pkg.egg-info",
+          "filterID": "python.egg-info",
+          "kind": "metadata",
+          "language": "python",
+          "nested": false
+        },
+        "environment": {
+          "path": ".venv",
+          "filterID": "python.environment",
+          "kind": "environment",
+          "language": "python",
+          "nested": false
+        },
+        "tox": {
+          "path": ".tox",
+          "filterID": "python.tox",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "nox": {
+          "path": ".nox",
+          "filterID": "python.nox",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "gui-bytecode": {
+          "path": "__pycache__",
+          "filterID": "python.bytecode",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "gui-metadata": {
+          "path": "pkg.egg-info",
+          "filterID": "python.egg-info",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        },
+        "gui-tox": {
+          "path": ".tox",
+          "filterID": "python.tox",
+          "kind": "test-environment",
+          "language": "python",
+          "nested": false
+        },
+        "gui-nox": {
+          "path": ".nox",
+          "filterID": "python.nox",
+          "kind": "test-environment",
+          "language": "python",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "tox",
+            "nox"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-environments",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-rust-only",
+          "client": "cli",
+          "expected": [
+            "rust"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "rust",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-swift.build",
+          "client": "cli",
+          "expected": [
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "swift.build"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-swift.build",
+          "client": "gui",
+          "expected": [
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "swift.build"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-rust.target",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "rust.target"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-rust.target",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "rust.target"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.bytecode",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.bytecode"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.bytecode",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.bytecode"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.pytest-cache",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.pytest-cache"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.pytest-cache",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.pytest-cache"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.mypy-cache",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.mypy-cache"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.mypy-cache",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.mypy-cache"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.ruff-cache",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.ruff-cache"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.ruff-cache",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.ruff-cache"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.pytype-cache",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.pytype-cache"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.pytype-cache",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.pytype-cache"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.build",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "dist",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.build"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.build",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.build"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.dist",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "metadata",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.dist"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.dist",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.dist"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.egg-info",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.egg-info"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.egg-info",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.egg-info"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.environment",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "tox",
+            "nox"
+          ],
+          "excluded": [
+            "python.environment"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.environment",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.environment"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.tox",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "nox"
+          ],
+          "excluded": [
+            "python.tox"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.tox",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-nox"
+          ],
+          "excluded": [
+            "python.tox"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-python.nox",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "rust",
+            "bytecode",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "metadata",
+            "environment",
+            "tox"
+          ],
+          "excluded": [
+            "python.nox"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-python.nox",
+          "client": "gui",
+          "expected": [
+            "swift",
+            "rust",
+            "pytest",
+            "mypy",
+            "ruff",
+            "pytype",
+            "build",
+            "dist",
+            "environment",
+            "gui-bytecode",
+            "gui-metadata",
+            "gui-tox"
+          ],
+          "excluded": [
+            "python.nox"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-disable-all",
+          "client": "cli",
+          "expected": [],
+          "excluded": [
+            "swift.build",
+            "rust.target",
+            "python.bytecode",
+            "python.pytest-cache",
+            "python.mypy-cache",
+            "python.ruff-cache",
+            "python.pytype-cache",
+            "python.build",
+            "python.dist",
+            "python.egg-info",
+            "python.environment",
+            "python.tox",
+            "python.nox"
+          ],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-disable-all",
+          "client": "gui",
+          "expected": [],
+          "excluded": [
+            "swift.build",
+            "rust.target",
+            "python.bytecode",
+            "python.pytest-cache",
+            "python.mypy-cache",
+            "python.ruff-cache",
+            "python.pytype-cache",
+            "python.build",
+            "python.dist",
+            "python.egg-info",
+            "python.environment",
+            "python.tox",
+            "python.nox"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "nested-and-excluded-roots",
+      "files": {
+        ".build/o": "outer",
+        ".build/Nested/__pycache__/module.pyc": "inner",
+        ".build/.git/data": "measured",
+        ".git/.build/ignored": "hidden"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".",
+      "rows": {
+        "outer": {
+          "path": ".build",
+          "filterID": "swift.build",
+          "kind": "build",
+          "language": "swift",
+          "nested": false
+        },
+        "nested-cache": {
+          "path": ".build/Nested/__pycache__",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": true
+        },
+        "nested-file": {
+          "path": ".build/Nested/__pycache__/module.pyc",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": true
+        },
+        "cache-root": {
+          "path": ".build/Nested/__pycache__",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": false
+        },
+        "gui-cache": {
+          "path": ".build/Nested/__pycache__",
+          "filterID": "python.bytecode",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [
+            "outer",
+            "nested-cache",
+            "nested-file"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "outer"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-outer",
+          "client": "cli",
+          "expected": [
+            "cache-root",
+            "nested-file"
+          ],
+          "excluded": [
+            "swift.build"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-outer",
+          "client": "gui",
+          "expected": [
+            "gui-cache"
+          ],
+          "excluded": [
+            "swift.build"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-exclude-bytecode",
+          "client": "cli",
+          "expected": [
+            "outer"
+          ],
+          "excluded": [
+            "python.bytecode"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-bytecode",
+          "client": "gui",
+          "expected": [
+            "outer"
+          ],
+          "excluded": [
+            "python.bytecode"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "arbitrary-environment-name",
+      "files": {
+        "custom-environment/pyvenv.cfg": "env",
+        "custom-environment/module.pyc": "bytecode"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".",
+      "rows": {
+        "env": {
+          "path": "custom-environment",
+          "filterID": "python.environment",
+          "kind": "environment",
+          "language": "python",
+          "nested": false
+        },
+        "bytecode-cli": {
+          "path": "custom-environment/module.pyc",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": false
+        },
+        "bytecode-gui": {
+          "path": "custom-environment/module.pyc",
+          "filterID": "python.bytecode",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-environments",
+          "client": "cli",
+          "expected": [
+            "bytecode-cli"
+          ],
+          "excluded": [],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "env"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-environment",
+          "client": "gui",
+          "expected": [
+            "bytecode-gui"
+          ],
+          "excluded": [
+            "python.environment"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "environment-precedence",
+      "files": {
+        ".build/pyvenv.cfg": "env",
+        ".build/.pytest_cache/data": "cache"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".",
+      "rows": {
+        "swift": {
+          "path": ".build",
+          "filterID": "swift.build",
+          "kind": "build",
+          "language": "swift",
+          "nested": false
+        },
+        "nested-cache": {
+          "path": ".build/.pytest_cache",
+          "filterID": "python.pytest-cache",
+          "kind": "cache",
+          "language": "python",
+          "nested": true
+        },
+        "env": {
+          "path": ".build",
+          "filterID": "python.environment",
+          "kind": "environment",
+          "language": "python",
+          "nested": false
+        },
+        "cache": {
+          "path": ".build/.pytest_cache",
+          "filterID": "python.pytest-cache",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "cli-environments",
+          "client": "cli",
+          "expected": [
+            "swift",
+            "nested-cache"
+          ],
+          "excluded": [],
+          "includeEnvironments": true,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "env"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-exclude-env",
+          "client": "gui",
+          "expected": [
+            "cache"
+          ],
+          "excluded": [
+            "python.environment"
+          ],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "negative-and-file-edges",
+      "files": {
+        "unmarked/target/o": "no",
+        "unmarked/build/o": "no",
+        "unmarked/dist/o": "no",
+        "venv/o": "no",
+        "Module.PYC": "no",
+        "module.egg-info": "file",
+        "é/module.pyc": "yes"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".",
+      "rows": {
+        "file-metadata": {
+          "path": "module.egg-info",
+          "filterID": "python.egg-info",
+          "kind": "metadata",
+          "language": "python",
+          "nested": false
+        },
+        "bytecode-cli": {
+          "path": "é/module.pyc",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": false
+        },
+        "bytecode-gui": {
+          "path": "é/module.pyc",
+          "filterID": "python.bytecode",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [
+            "file-metadata",
+            "bytecode-cli"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "bytecode-gui"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "marker-links-vs-artifact-links",
+      "files": {
+        "manifest.txt": "manifest",
+        "rust/target/o": "data",
+        "real/o": "not-an-artifact"
+      },
+      "directories": [],
+      "symlinks": {
+        "rust/Cargo.toml": "../manifest.txt",
+        "linked/.build": "../real"
+      },
+      "scanRoot": ".",
+      "rows": {
+        "rust": {
+          "path": "rust/target",
+          "filterID": "rust.target",
+          "kind": "build",
+          "language": "rust",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [
+            "rust"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "rust"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ],
+      "unixOnly": true
+    },
+    {
+      "id": "selected-artifact-root",
+      "files": {
+        ".build/o": "data",
+        ".build/__pycache__/module.pyc": "bytecode"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".build",
+      "rows": {
+        "root": {
+          "path": ".",
+          "filterID": "swift.build",
+          "kind": "build",
+          "language": "swift",
+          "nested": false
+        },
+        "nested": {
+          "path": "__pycache__",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": true
+        },
+        "file": {
+          "path": "__pycache__/module.pyc",
+          "filterID": "python.bytecode",
+          "kind": "bytecode",
+          "language": "python",
+          "nested": true
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [
+            "root",
+            "nested",
+            "file"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [
+            "root"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "missing-selected-root",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": "missing",
+      "rows": {},
+      "runs": [
+        {
+          "id": "cli-error",
+          "client": "cli",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "invalid-input",
+          "warnings": 0,
+          "exitCode": 2
+        },
+        {
+          "id": "gui-error",
+          "client": "gui",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "failed",
+          "warnings": 1,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": ".",
+      "rows": {},
+      "runs": [
+        {
+          "id": "cli-default",
+          "client": "cli",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        },
+        {
+          "id": "gui-default",
+          "client": "gui",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "selected-bytecode-file",
+      "files": {
+        "module.pyc": "bytecode"
+      },
+      "directories": [],
+      "symlinks": {},
+      "scanRoot": "module.pyc",
+      "rows": {
+        "file": {
+          "path": ".",
+          "filterID": "python.bytecode",
+          "kind": "cache",
+          "language": "python",
+          "nested": false
+        }
+      },
+      "runs": [
+        {
+          "id": "cli-file-rejected",
+          "client": "cli",
+          "expected": [],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "invalid-input",
+          "warnings": 0,
+          "exitCode": 2
+        },
+        {
+          "id": "gui-file-root",
+          "client": "gui",
+          "expected": [
+            "file"
+          ],
+          "excluded": [],
+          "includeEnvironments": false,
+          "language": "all",
+          "status": "completed",
+          "warnings": 0,
+          "exitCode": 0
+        }
+      ]
+    }
+  ],
+  "terminalMappings": [
+    {
+      "rustStatus": 0,
+      "gui": "completed"
+    },
+    {
+      "rustStatus": 1,
+      "gui": "stopped"
+    },
+    {
+      "rustStatus": 2,
+      "gui": "failed"
+    },
+    {
+      "rustStatus": 3,
+      "gui": "failed"
+    },
+    {
+      "rustStatus": 4,
+      "gui": "completed-with-changes"
+    }
+  ],
+  "invalidPathBytes": [
+    255
+  ]
+}
