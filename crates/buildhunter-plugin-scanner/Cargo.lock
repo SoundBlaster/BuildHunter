@@ -84,7 +84,7 @@ dependencies = [
 [[package]]
 name = "hunter-fs"
 version = "0.1.0"
-source = "git+https://github.com/SoundBlaster/Hunter.git?rev=c5354e973b5d1d90c438c94b78c06898ffe62500#c5354e973b5d1d90c438c94b78c06898ffe62500"
+source = "git+https://github.com/SoundBlaster/Hunter.git?rev=bfcd75f8996b5a958c81238bb6d44d9fa1f88047#bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
 dependencies = [
  "hunter-fs-core",
  "libc",

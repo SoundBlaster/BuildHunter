@@ -84,7 +84,10 @@ mod tests {
             DirectoryListing {
                 children: vec![(
                     PathBuf::from("Cargo.toml"),
-                    fs::symlink_metadata("Cargo.toml").unwrap().file_type(),
+                    fs::symlink_metadata("Cargo.toml")
+                        .unwrap()
+                        .file_type()
+                        .into(),
                 )],
                 errors: vec![],
                 context: task.context.clone(),

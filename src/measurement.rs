@@ -17,6 +17,7 @@ pub(super) fn measure_directory<Id>(
     plan.measure_with(
         &mut MetadataBackend {
             probes,
+            directory: None,
             #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
             control,
         },
@@ -25,7 +26,8 @@ pub(super) fn measure_directory<Id>(
 }
 
 struct MetadataBackend<'a> {
-    probes: &'a Probes,
+    probes: &'a Probes<'a>,
+    directory: Option<io::Result<Box<dyn hunter_fs_core::DirectoryAccess + 'a>>>,
     #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
     control: &'a ScanControl,
 }
@@ -33,7 +35,8 @@ struct MetadataBackend<'a> {
 use hunter_fs_core::{PreparedDirectorySizes, darwin_bulk::read_directory_sizes};
 
 struct PreparedFiles<'a> {
-    probes: &'a Probes,
+    probes: &'a Probes<'a>,
+    directory: Option<io::Result<Box<dyn hunter_fs_core::DirectoryAccess + 'a>>>,
     #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
     control: &'a ScanControl,
     #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
@@ -45,6 +48,14 @@ impl<'a> DirectoryMeasurementBackend for MetadataBackend<'a> {
     type Prepared = PreparedFiles<'a>;
     fn directory_metadata(&mut self, path: &Path) -> io::Result<fs::Metadata> {
         use hunter_fs_core::FilesystemBackend;
+        if let Some(directory) = self.probes.prepare_directory(path) {
+            let metadata = match &directory {
+                Ok(directory) => directory.metadata(),
+                Err(error) => Err(copy_error(error)),
+            };
+            self.directory = Some(directory);
+            return metadata.map_err(|error| crate::materialization::describe_error(path, error));
+        }
         self.probes.symlink_metadata(path)
     }
     fn prepare_files(&mut self, path: &Path, files: &[Option<PathBuf>]) -> Self::Prepared {
@@ -58,7 +69,7 @@ impl<'a> DirectoryMeasurementBackend for MetadataBackend<'a> {
             }
         }
         #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-        let bulk = if files.iter().any(Option::is_some) {
+        let bulk = if self.probes.access.is_none() && files.iter().any(Option::is_some) {
             use std::sync::atomic::Ordering;
             if self.control.profiling.load(Ordering::Relaxed) {
                 self.control
@@ -76,6 +87,7 @@ impl<'a> DirectoryMeasurementBackend for MetadataBackend<'a> {
         };
         PreparedFiles {
             probes: self.probes,
+            directory: self.directory.take(),
             #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
             control: self.control,
             #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
@@ -88,6 +100,16 @@ impl<'a> DirectoryMeasurementBackend for MetadataBackend<'a> {
 impl FileMeasurementBackend for PreparedFiles<'_> {
     fn measure(&mut self, file: &Path) -> io::Result<MeasuredSize> {
         use hunter_fs_core::FilesystemBackend;
+        if let Some(directory) = &self.directory {
+            let metadata = match directory {
+                Ok(directory) => directory.entry_metadata(file.file_name().ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidInput, "Missing child name")
+                })?),
+                Err(error) => Err(copy_error(error)),
+            }
+            .map_err(|error| crate::materialization::describe_error(file, error))?;
+            return Ok(metadata.size);
+        }
         #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
         if let Some(batch) = &mut self.bulk {
             #[cfg(test)]
@@ -107,6 +129,13 @@ impl FileMeasurementBackend for PreparedFiles<'_> {
     }
 }
 
+fn copy_error(error: &io::Error) -> io::Error {
+    error.raw_os_error().map_or_else(
+        || io::Error::new(error.kind(), error.to_string()),
+        io::Error::from_raw_os_error,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -120,7 +149,7 @@ mod tests {
         fs::write(&file, b"data").unwrap();
         let entries = vec![(
             file.clone(),
-            fs::symlink_metadata(&file).unwrap().file_type(),
+            fs::symlink_metadata(&file).unwrap().file_type().into(),
         )];
         fs::remove_file(file).unwrap();
         fs::remove_dir(&path).unwrap();
@@ -171,6 +200,7 @@ mod tests {
         };
         let mut prepared = PreparedFiles {
             probes: &probes,
+            directory: None,
             control: &control,
             bulk: Some(PreparedDirectorySizes::new(Ok(HashMap::from([(
                 b"data".to_vec(),
@@ -229,7 +259,7 @@ mod tests {
             vec![],
             vec![(
                 child.clone(),
-                fs::symlink_metadata(&child).unwrap().file_type(),
+                fs::symlink_metadata(&child).unwrap().file_type().into(),
             )],
         ] {
             let result = measure_directory(
@@ -258,6 +288,7 @@ mod tests {
         let _guard = crate::materialization::Guard::enter().unwrap();
         let mut prepared = PreparedFiles {
             probes: &probes,
+            directory: None,
             control: &control,
             bulk: Some(PreparedDirectorySizes::new(Ok(HashMap::from([(
                 b"data".to_vec(),

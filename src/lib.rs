@@ -556,6 +556,30 @@ pub fn scan_with_candidate_observer(
     )
 }
 
+/// Experimental equivalent of `scan_with_candidate_observer` with scan-scoped
+/// filesystem acquisition. The backend serves root metadata, listings and all
+/// measurement passes; failed acquisition never falls back to standard path I/O.
+/// Caller retains the backend until worker join and installs any backend-specific
+/// access policy before constructing it. Built-in CLI/GUI entrypoints are unchanged.
+pub fn scan_with_candidate_access(
+    root: &Path,
+    options: ScanOptions,
+    control: &ScanControl,
+    access: &dyn hunter_fs_core::ScanAccess,
+    policy: impl FnMut(&Path, &CandidateFacts, CandidateNodeKind) -> CandidateAction,
+    emit: impl FnMut(&ScanEvent),
+) -> ScanReport {
+    #[allow(
+        clippy::needless_update,
+        reason = "Test builds carry additional probe fields"
+    )]
+    let probes = Probes {
+        access: Some(access),
+        ..Probes::default()
+    };
+    scan_session::run(root, options, control, policy, emit, &probes, false)
+}
+
 fn scan_with_probes(
     root: &Path,
     options: ScanOptions,
@@ -740,7 +764,7 @@ fn run_worker_with_guard<G>(
 struct WorkerAdapter<'a> {
     results: &'a std::sync::mpsc::Sender<WorkerMessage>,
     control: &'a ScanControl,
-    probes: &'a Probes,
+    probes: &'a Probes<'a>,
     legacy_policy: bool,
 }
 impl DirectoryWorker for WorkerAdapter<'_> {
@@ -796,15 +820,41 @@ fn list_directory(
     probes: &Probes,
     legacy_policy: bool,
 ) -> Listing {
-    let (listing, outcome) = collect_directory(
-        path,
-        probes.read_dir(path),
-        0,
-        || control.should_stop(),
-        |child, file_type, markers| {
-            observe_legacy_marker(child, file_type, markers, probes, legacy_policy)
-        },
-    );
+    let observe = |child: &Path, file_type, markers: &mut u32| {
+        observe_legacy_marker(child, file_type, markers, probes, legacy_policy)
+    };
+    let (listing, outcome) = if let Some(access) = probes.access {
+        hunter_fs_core::collect_directory_events(
+            0,
+            |emit| {
+                if let Err(error) = probes.record_directory(path) {
+                    emit(hunter_fs_core::DirectoryEvent::Error {
+                        path: path.to_owned(),
+                        error,
+                    });
+                    return DirectoryVisit::OpenFailed;
+                }
+                access.visit_directory(path, &mut || control.should_stop(), &mut |event| {
+                    emit(match event {
+                        hunter_fs_core::DirectoryEvent::Error { path, error } => {
+                            let error = materialization::describe_error(&path, error);
+                            hunter_fs_core::DirectoryEvent::Error { path, error }
+                        }
+                        event => event,
+                    });
+                })
+            },
+            observe,
+        )
+    } else {
+        collect_directory(
+            path,
+            probes.read_dir(path),
+            0,
+            || control.should_stop(),
+            observe,
+        )
+    };
     if outcome == DirectoryVisit::OpenFailed {
         return listing;
     }
@@ -820,7 +870,7 @@ fn list_directory(
 /// Context interpretation and intentional marker-link following stay product-owned.
 fn observe_legacy_marker(
     child: &Path,
-    file_type: fs::FileType,
+    file_type: hunter_fs_core::EntryType,
     markers: &mut u32,
     probes: &Probes,
     legacy_policy: bool,
@@ -863,7 +913,7 @@ struct ArtifactHandler<'a, P, E> {
     policy: &'a mut P,
     legacy_policy: bool,
     emit: &'a mut E,
-    probes: &'a Probes,
+    probes: &'a Probes<'a>,
     artifacts: Vec<Artifact>,
     progress: Vec<SubtreeProgress>,
     warnings: Vec<ScanWarning>,
@@ -912,7 +962,7 @@ where
                 );
             }
             RootAdmission::Observed(RootObservation::Entry(metadata)) => {
-                let file_type = metadata.file_type();
+                let file_type = metadata.file_type().into();
                 if let Some(slot) = self.visit_file(root.to_owned(), file_type, 0, &[]) {
                     self.measure_file(&slot, Some(Ok(metadata.into())), &[]);
                 }
@@ -964,7 +1014,7 @@ where
         branch: &ArtifactBranch,
         index: usize,
         path: &Path,
-        _: fs::FileType,
+        _: hunter_fs_core::EntryType,
     ) -> ChildDecision {
         if index.is_multiple_of(32) {
             self.emit_profile();
@@ -1001,7 +1051,7 @@ where
         branch: &ArtifactBranch,
         index: usize,
         path: PathBuf,
-        file_type: fs::FileType,
+        file_type: hunter_fs_core::EntryType,
     ) -> Option<FileSlot> {
         self.visit_file(path, file_type, index, &branch.chain)
     }
@@ -1207,7 +1257,7 @@ where
     fn visit_file(
         &mut self,
         path: PathBuf,
-        file_type: fs::FileType,
+        file_type: hunter_fs_core::EntryType,
         index: usize,
         chain: &[u64],
     ) -> Option<FileSlot> {
@@ -1383,7 +1433,8 @@ fn marker_flag(name: &OsStr) -> u32 {
 
 /// Filesystem probes. Tests read per-scan counts, which also cover worker threads.
 #[derive(Default)]
-struct Probes {
+struct Probes<'a> {
+    access: Option<&'a dyn hunter_fs_core::ScanAccess>,
     #[cfg(test)]
     hook: Option<Box<ProbeHook>>,
     #[cfg(all(test, target_os = "macos"))]
@@ -1396,38 +1447,96 @@ struct Probes {
     listing_threads: std::sync::Mutex<Vec<std::thread::ThreadId>>,
 }
 
-impl FilesystemBackend for Probes {
+impl FilesystemBackend for Probes<'_> {
     type Entries = fs::ReadDir;
     fn symlink_metadata(&self, path: &Path) -> std::io::Result<fs::Metadata> {
-        #[cfg(test)]
-        {
-            self.record_policy();
-            self.metadata.fetch_add(1, Ordering::Relaxed);
-            self.hook(ProbePoint::Metadata, path)?;
-        }
-        StdFilesystem
-            .symlink_metadata(path)
+        self.record_metadata(path)?;
+        self.access
+            .map_or_else(
+                || StdFilesystem.symlink_metadata(path),
+                |access| access.root_metadata(path),
+            )
             .map_err(|error| materialization::describe_error(path, error))
     }
 
     fn read_dir(&self, path: &Path) -> std::io::Result<fs::ReadDir> {
+        self.record_directory(path)?;
+        StdFilesystem
+            .read_dir(path)
+            .map_err(|error| materialization::describe_error(path, error))
+    }
+
+    fn prepare_directory(
+        &self,
+        path: &Path,
+    ) -> Option<std::io::Result<Box<dyn hunter_fs_core::DirectoryAccess + '_>>> {
+        self.access.map(|access| {
+            access.prepare_directory(path).map(|directory| {
+                Box::new(ProbedDirectory {
+                    directory,
+                    probes: self,
+                    path: path.to_owned(),
+                }) as Box<dyn hunter_fs_core::DirectoryAccess>
+            })
+        })
+    }
+}
+
+struct ProbedDirectory<'a> {
+    directory: Box<dyn hunter_fs_core::DirectoryAccess + 'a>,
+    probes: &'a Probes<'a>,
+    path: PathBuf,
+}
+impl hunter_fs_core::DirectoryAccess for ProbedDirectory<'_> {
+    fn metadata(&self) -> std::io::Result<fs::Metadata> {
+        self.probes.record_metadata(&self.path)?;
+        self.directory
+            .metadata()
+            .map_err(|error| materialization::describe_error(&self.path, error))
+    }
+    fn entry_metadata(&self, name: &OsStr) -> std::io::Result<hunter_fs_core::EntryMetadata> {
+        let path = self.path.join(name);
+        self.probes.record_metadata(&path)?;
+        let metadata = self
+            .directory
+            .entry_metadata(name)
+            .map_err(|error| materialization::describe_error(&path, error))?;
+        if metadata.file_type.is_dir() || metadata.file_type.is_symlink() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "Entry changed type during scan",
+            ));
+        }
+        Ok(metadata)
+    }
+}
+
+impl Probes<'_> {
+    fn record_metadata(&self, _path: &Path) -> std::io::Result<()> {
         #[cfg(test)]
         {
             self.record_policy();
-            self.hook(ProbePoint::ReadDir, path)?;
+            self.metadata.fetch_add(1, Ordering::Relaxed);
+            self.hook(ProbePoint::Metadata, _path)?;
+        }
+        Ok(())
+    }
+    fn record_directory(&self, _path: &Path) -> std::io::Result<()> {
+        #[cfg(test)]
+        {
+            self.record_policy();
+            self.hook(ProbePoint::ReadDir, _path)?;
             let thread = std::thread::current().id();
             let mut threads = self.listing_threads.lock().unwrap();
             if !threads.contains(&thread) {
                 threads.push(thread);
             }
         }
-        StdFilesystem
-            .read_dir(path)
-            .map_err(|error| materialization::describe_error(path, error))
+        Ok(())
     }
 }
 
-impl Probes {
+impl Probes<'_> {
     #[cfg(test)]
     fn hook(&self, point: ProbePoint, path: &Path) -> std::io::Result<()> {
         self.hook.as_ref().map_or(Ok(()), |hook| hook(point, path))
@@ -3794,3 +3903,6 @@ mod tests {
 
 #[cfg(test)]
 mod migration_parity;
+
+#[cfg(test)]
+mod scoped_access_tests;

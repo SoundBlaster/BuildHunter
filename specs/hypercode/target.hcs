@@ -8,7 +8,7 @@ Hunter:
   repository: "Hunter"
   visibility: "public"
   implemented_as_module: true
-  implemented_scope: "Unix scoped markers; portable and opt-in Darwin batch metadata; prepared size lookup; recursive ScanEngine and guarded launch/join. Requested QoS and process snapshots are upstream; backend selection and product error/counter policy stay host-owned."
+  implemented_scope: "Unix scoped markers; macOS/Linux descriptor acquisition API; portable and opt-in Darwin batch metadata; prepared size lookup; recursive ScanEngine and guarded launch/join. Requested QoS and process snapshots are upstream; backend selection and product error/counter policy stay host-owned."
   filesystem_effects: true
   artifact_vocabulary: false
 Rifle:

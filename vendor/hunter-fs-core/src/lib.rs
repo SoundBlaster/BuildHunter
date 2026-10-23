@@ -7,17 +7,45 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Portable node category shared by native metadata and descriptor observations.
+/// Special platform types remain Other; product interpretation belongs to the host.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EntryType {
+    Directory,
+    RegularFile,
+    Symlink,
+    Other,
+}
+impl EntryType {
+    pub fn is_dir(self) -> bool {
+        self == Self::Directory
+    }
+    pub fn is_file(self) -> bool {
+        self == Self::RegularFile
+    }
+    pub fn is_symlink(self) -> bool {
+        self == Self::Symlink
+    }
+}
+impl From<fs::FileType> for EntryType {
+    fn from(kind: fs::FileType) -> Self {
+        if kind.is_dir() {
+            Self::Directory
+        } else if kind.is_file() {
+            Self::RegularFile
+        } else if kind.is_symlink() {
+            Self::Symlink
+        } else {
+            Self::Other
+        }
+    }
+}
+
 /// An owned filesystem observation. Entry types are obtained without following links.
 #[derive(Debug)]
 pub enum DirectoryEvent {
-    Entry {
-        path: PathBuf,
-        file_type: fs::FileType,
-    },
-    Error {
-        path: PathBuf,
-        error: io::Error,
-    },
+    Entry { path: PathBuf, file_type: EntryType },
+    Error { path: PathBuf, error: io::Error },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -70,7 +98,7 @@ where
         match entry.file_type() {
             Ok(file_type) => emit(DirectoryEvent::Entry {
                 path: child,
-                file_type,
+                file_type: file_type.into(),
             }),
             Err(error) => emit(DirectoryEvent::Error { path: child, error }),
         }
@@ -309,11 +337,14 @@ pub use execution::{CoordinatorExit, ScanCoordinator, drive_scan};
 mod backend;
 pub use backend::{FilesystemBackend, RootObservation, StdFilesystem, observe_root};
 
+mod scan_access;
+pub use scan_access::{DirectoryAccess, EntryMetadata, ScanAccess};
+
 mod worker;
 pub use worker::{DirectoryWorker, run_directory_worker};
 
 mod listing;
-pub use listing::collect_directory;
+pub use listing::{collect_directory, collect_directory_events};
 
 mod measurement;
 pub use measurement::{DirectoryMeasurementBackend, FileMeasurementBackend};

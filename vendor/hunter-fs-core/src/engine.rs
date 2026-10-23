@@ -87,7 +87,7 @@ pub trait ScanHandler: Sized {
         branch: &Self::Branch,
         index: usize,
         path: &Path,
-        kind: fs::FileType,
+        kind: crate::EntryType,
     ) -> ChildDecision;
     fn directory(
         &mut self,
@@ -101,7 +101,7 @@ pub trait ScanHandler: Sized {
         branch: &Self::Branch,
         index: usize,
         path: PathBuf,
-        kind: fs::FileType,
+        kind: crate::EntryType,
     ) -> Option<SelectedEntry<Self::Selection>>;
     fn directory_measured(
         &mut self,
@@ -302,13 +302,18 @@ struct Children<'a, 'queue, H: ScanHandler> {
 }
 impl<H: ScanHandler> ChildHandler<H::Context> for Children<'_, '_, H> {
     type Selected = SelectedEntry<H::Selection>;
-    fn select(&mut self, index: usize, path: &Path, kind: fs::FileType) -> ChildDecision {
+    fn select(&mut self, index: usize, path: &Path, kind: crate::EntryType) -> ChildDecision {
         self.host.select(self.branch, index, path, kind)
     }
     fn directory(&mut self, index: usize, request: DirectoryRequest<H::Context>) {
         self.host.directory(self.branch, index, request, self.tasks);
     }
-    fn entry(&mut self, index: usize, path: PathBuf, kind: fs::FileType) -> Option<Self::Selected> {
+    fn entry(
+        &mut self,
+        index: usize,
+        path: PathBuf,
+        kind: crate::EntryType,
+    ) -> Option<Self::Selected> {
         self.host.entry(self.branch, index, path, kind)
     }
 }
@@ -527,7 +532,7 @@ mod tests {
             branch: &Self::Branch,
             index: usize,
             _: &Path,
-            _: fs::FileType,
+            _: crate::EntryType,
         ) -> ChildDecision {
             assert_eq!(branch.label, self.label);
             self.trace.push(format!("select:{index}"));
@@ -567,7 +572,7 @@ mod tests {
             _: &Self::Branch,
             index: usize,
             path: PathBuf,
-            _: fs::FileType,
+            _: crate::EntryType,
         ) -> Option<SelectedEntry<Value>> {
             self.trace.push(format!("entry:{index}"));
             Some(SelectedEntry {
@@ -614,7 +619,7 @@ mod tests {
             ));
         }
     }
-    fn kind(directory: bool) -> fs::FileType {
+    fn kind(directory: bool) -> crate::EntryType {
         let p = Path::new(env!("CARGO_MANIFEST_DIR"));
         fs::symlink_metadata(if directory {
             p.to_owned()
@@ -623,8 +628,9 @@ mod tests {
         })
         .unwrap()
         .file_type()
+        .into()
     }
-    fn listed(id: usize, measuring: bool, children: Vec<(PathBuf, fs::FileType)>) -> Message {
+    fn listed(id: usize, measuring: bool, children: Vec<(PathBuf, crate::EntryType)>) -> Message {
         Message::Directory(DirectoryResult::Listed {
             id,
             measuring,
