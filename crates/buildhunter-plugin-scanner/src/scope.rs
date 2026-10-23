@@ -1,13 +1,13 @@
 //! Product-owned mapping from Hunter metadata to plugin marker facts.
 use buildhunter_plugin_policy::{MarkerFact, MarkerProbe, Scope as MarkerScope};
-use hunter_fs::{FileFact, Location, ScopedMetadata, Unavailable};
+use hunter_fs::{FileFact, Location, ScopedFilesystem, ScopedMetadata, Unavailable};
 use std::{ffi::OsStr, io, path::Path};
 
 pub(super) struct Scope(Option<ScopedMetadata>);
 impl Scope {
-    pub(super) fn new(root: &Path, needs_markers: bool) -> io::Result<Self> {
+    pub(super) fn new(filesystem: &ScopedFilesystem, needs_markers: bool) -> io::Result<Self> {
         Ok(Self(if needs_markers {
-            Some(ScopedMetadata::open(root)?)
+            Some(filesystem.marker_scope()?)
         } else {
             None
         }))

@@ -1,8 +1,7 @@
 # R3 scan-scoped acquisition
 
 `scan_with_candidate_access` uses the existing product engine with an explicit
-Hunter `ScanAccess`. This layer supplies the injection boundary; the following
-plugin layer selects `ScopedFilesystem`. Default CLI/GUI and the existing
+Hunter `ScanAccess`. The plugin pilot now selects `ScopedFilesystem` through this boundary. Default CLI/GUI and the existing
 `scan_with_candidate_observer` retain their standard pathname backend.
 
 The same backend serves root admission, worker directory listings and measurement,
@@ -42,3 +41,7 @@ decoration. A synthetic diagnostic-lookup regression verifies that scoped errors
 never invoke that lookup or inherit unrelated SF_DATALESS flags. Current source
 and execution identities are in `scoped-error-review-20261023`; earlier receipts
 remain historical.
+
+The plugin layer is now integrated on macOS/Linux. End-to-end replacement and
+permission fixtures are recorded in `plugin-scoped-scan-20261023`; this supersedes
+the earlier pending integration note without accepting R4/R5 or Windows support.

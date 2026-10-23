@@ -1,0 +1,17 @@
+{
+  "change": "remove one trailing blank line; runtime and declared HC properties unchanged",
+  "before_sha256": "087e9f56e19268512ec0beda3f128e987c7624d7ba2d93a79b060a439724a4fe",
+  "after_sha256": "d87059efdbb8fa1e0d28640cb7dc298a05ecd5b0dcac3c8da0da74508d31a5a1",
+  "command": [
+    "rtk",
+    "proxy",
+    "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+    "validate",
+    "specs/hypercode/ci.hc",
+    "--hcs",
+    "specs/hypercode/ci.hcs"
+  ],
+  "exit_code": 0,
+  "stdout": "ok: no issues found\n",
+  "stderr": ""
+}

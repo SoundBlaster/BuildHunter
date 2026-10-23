@@ -1,4 +1,4 @@
-#![cfg(unix)]
+#![cfg(any(target_os = "macos", target_os = "linux"))]
 use build_hunter::{ScanControl, ScanOptions, ScanStatus};
 use buildhunter_plugin_policy::{Origin, PluginCatalog, PluginInput};
 use buildhunter_plugin_scanner::{PluginScanEvent, scan};
@@ -41,6 +41,163 @@ fn catalog(excluded: &[&str]) -> PluginCatalog {
         excluded,
     )
     .unwrap()
+}
+
+#[test]
+fn replacing_selected_root_during_discovery_keeps_original_tree_and_bytes() {
+    use std::os::unix::fs::symlink;
+    let tree = Tree::new();
+    let outside = Tree::new();
+    tree.file("selected/forge.project", b"original marker");
+    tree.file("selected/forge-out/object", b"original");
+    outside.file("forge.project", b"foreign marker");
+    outside.file("forge-out/foreign", &[7; 32_768]);
+    let selected = tree.0.join("selected");
+    let expected = fs::symlink_metadata(selected.join("forge-out"))
+        .unwrap()
+        .len()
+        + 8;
+    let mut replaced = false;
+    let mut finished = 0;
+    let report = scan(
+        &selected,
+        &catalog(&[]),
+        ScanOptions {
+            apparent_size: true,
+        },
+        &ScanControl::new(),
+        |event| {
+            if let PluginScanEvent::ArtifactDiscovered(_) = event {
+                assert!(!replaced);
+                fs::rename(&selected, tree.0.join("original-selected")).unwrap();
+                symlink(&outside.0, &selected).unwrap();
+                replaced = true;
+            }
+            if matches!(event, PluginScanEvent::Finished(_)) {
+                finished += 1;
+            }
+        },
+    )
+    .unwrap();
+    assert!(replaced);
+    assert_eq!(finished, 1);
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(report.artifacts[0].bytes, expected);
+    assert!(!report.artifacts[0].partial);
+}
+
+#[test]
+fn replaced_intermediate_directory_cannot_redirect_later_measurement() {
+    use std::os::unix::fs::symlink;
+    let tree = Tree::new();
+    let outside = Tree::new();
+    tree.file("project/forge.project", b"marker");
+    tree.file("project/forge-out/object", b"original");
+    outside.file("forge.project", b"foreign marker");
+    outside.file("forge-out/foreign", &[7; 32_768]);
+    let mut replaced = false;
+    let report = scan(
+        &tree.0,
+        &catalog(&[]),
+        ScanOptions {
+            apparent_size: true,
+        },
+        &ScanControl::new(),
+        |event| {
+            if matches!(event, PluginScanEvent::ArtifactDiscovered(_)) {
+                fs::rename(tree.0.join("project"), tree.0.join("original-project")).unwrap();
+                symlink(&outside.0, tree.0.join("project")).unwrap();
+                replaced = true;
+            }
+        },
+    )
+    .unwrap();
+    assert!(replaced);
+    assert_eq!(report.status, ScanStatus::Incomplete);
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(report.artifacts[0].bytes, 0);
+    assert!(report.artifacts[0].partial);
+    assert!(!report.warnings.is_empty());
+}
+
+#[test]
+fn file_replaced_by_link_after_listing_counts_neither_link_nor_target_bytes() {
+    use std::os::unix::fs::symlink;
+    let tree = Tree::new();
+    let outside = Tree::new();
+    tree.file("forge.project", b"marker");
+    tree.file("forge-out/object", b"original");
+    outside.file("foreign", &[7; 32_768]);
+    let mut expected = None;
+    let report = scan(
+        &tree.0,
+        &catalog(&[]),
+        ScanOptions {
+            apparent_size: true,
+        },
+        &ScanControl::new(),
+        |event| {
+            if matches!(event, PluginScanEvent::ArtifactDiscovered(_)) {
+                fs::remove_file(tree.0.join("forge-out/object")).unwrap();
+                symlink(outside.0.join("foreign"), tree.0.join("forge-out/object")).unwrap();
+                expected = Some(
+                    fs::symlink_metadata(tree.0.join("forge-out"))
+                        .unwrap()
+                        .len(),
+                );
+            }
+        },
+    )
+    .unwrap();
+    assert_eq!(report.status, ScanStatus::CompletedWithChanges);
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(report.artifacts[0].bytes, expected.unwrap());
+    assert!(report.artifacts[0].partial);
+    assert!(!report.warnings.is_empty());
+}
+
+#[test]
+fn unreadable_file_contents_do_not_prevent_metadata_sizing() {
+    use std::os::unix::fs::PermissionsExt;
+    let tree = Tree::new();
+    tree.file("forge.project", b"marker");
+    tree.file("forge-out/object", b"original");
+    tree.file("forge-out/sub/other", b"child");
+    fs::set_permissions(
+        tree.0.join("forge-out/object"),
+        fs::Permissions::from_mode(0o0),
+    )
+    .unwrap();
+    let expected = fs::symlink_metadata(tree.0.join("forge-out"))
+        .unwrap()
+        .len()
+        + fs::symlink_metadata(tree.0.join("forge-out/sub"))
+            .unwrap()
+            .len()
+        + 8
+        + 5;
+    let control = ScanControl::new();
+    control.set_profiling(true);
+    let report = scan(
+        &tree.0,
+        &catalog(&[]),
+        ScanOptions {
+            apparent_size: true,
+        },
+        &control,
+        |_| {},
+    )
+    .unwrap();
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert_eq!(report.artifacts[0].bytes, expected);
+    assert!(report.warnings.is_empty());
+    assert_eq!(
+        control.work_timings().bulk_directories,
+        0,
+        "scoped workers must not open pathname bulk metadata"
+    );
+    assert_eq!(control.work_timings().bulk_fallbacks, 0);
 }
 #[test]
 fn arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata() {

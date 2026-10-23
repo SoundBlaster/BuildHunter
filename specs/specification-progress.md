@@ -985,3 +985,36 @@ dataless decoration. The regression simulates unrelated dataless metadata and
 checks no lookup and unchanged OS errors. Source/contract/map/run identities:
 `validation/scoped-error-review-20261023`. CloudGuard/Measurement are existing
 roles; no new ownership node or accepted requirement is introduced.
+
+### R3 descriptor plugin integration — 2026-10-23
+
+The plugin pilot now selects Hunter ScopedFilesystem for listings and every
+measurement path; markers share its root handle. Supported platforms are macOS/
+Linux; other platforms fail closed before events. Root replacement retains the
+original directory, intermediate links are refused, and changed leaf links are
+not counted. Prepared-pass and independent-pass semantics stay distinct: later
+regular entries can change, so no filesystem snapshot or inode ledger is claimed.
+
+HunterScopedFilesystem is a significant external boundary, now represented with
+three acquisition roles and pinned upstream excerpts/full-file identities. The
+consumer contract adds traversal_scope; code and tests are in the independent
+plugin package. No default CLI/GUI/catalog/FFI behavior or target requirements
+changed. Existing R2 profile differences and C3/C4 owner gates remain open.
+
+Fresh local results/identities: `validation/plugin-scoped-scan-20261023`.
+Four integration regressions cover root/intermediate/leaf replacement and a
+file with unreadable contents. These supplement upstream and routing tests; they
+do not establish live cloud behavior, C5 budgets, GUI acceptance or speedup.
+R3 macOS/Linux integration is implemented; unsupported platform acquisition remains
+explicitly pending. R4 default-client cutover and R5 budgets are separate tracks.
+
+The existing macOS Rust CI job also runs the plugin Release suite with the bulk
+feature enabled. Its nested worker fixture asserts zero pathname bulk passes and
+fallbacks. This is folded into MacOSChecks; job names, topology and ready-tip
+scheduling/merge gates are unchanged. CI maps/contracts are refreshed accordingly.
+
+The plugin layer was rebased onto the scoped-error review correction. Runtime
+selection/fixtures are unchanged, but error-path evidence must use the corrected
+engine. Current top-level hashes and repeated plugin Debug/Release/bulk checks:
+`validation/plugin-scoped-review-20261023`. Prior pre-review receipts remain
+historical and do not prove the fixed diagnostic boundary.
