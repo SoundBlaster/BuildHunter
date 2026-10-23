@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.catalog.scan
   title: Catalog client scanning and event ABI
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Route immutable catalog decisions into measured findings and versioned client events without a per-candidate Swift callback.
@@ -12,7 +12,7 @@ scope:
   includes:
   - Dynamic candidate/marker acquisition, versioned CLI/GUI admission, stable target IDs, diagnostics and synchronous event transport.
   excludes:
-  - Default client cutover in this preparation layer, new descriptor guarantees, user plugin installation, Store delivery and whole-process budgets.
+  - New descriptor guarantees, user plugin installation, Store delivery and whole-process budgets.
 provides:
   capabilities:
   - id: buildhunter.catalog.scan

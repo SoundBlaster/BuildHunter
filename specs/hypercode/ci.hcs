@@ -12,7 +12,7 @@ CumulativeDiff:
   implementation: "trunk cumulative compare; conservative unknown/truncation/rename paths"
 LightweightChecks:
   source: ".github/workflows/ci.yml"
-  implementation: "Linux/Windows Rust/CLI and schema checks on applicable layers"
+  implementation: "Linux/Windows Rust/CLI/schema plus catalog 200-target end-to-end Release gate in existing jobs"
 MacOSChecks:
   scoped_plugin_bulk_profile: "Rust macOS job also tests the plugin pilot with build-hunter/macos-bulk-metadata; no extra job or scheduling change"
   source: ".github/workflows/macos.yml"

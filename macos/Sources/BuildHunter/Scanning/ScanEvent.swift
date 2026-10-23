@@ -8,6 +8,10 @@ struct ScanArtifact: Identifiable, Equatable, Sendable {
     /// The scanner's kind name where `kind` merges several (Python `bytecode` and
     /// `metadata` show as Cache); exports keep it so they match `build-hunter --json`.
     var scannerKind: String? = nil
+    var targetID: String? = nil
+    var catalogDigest: String? = nil
+    /// First lossy component in display coordinates; disables actions on it and its descendants.
+    var unsafePathPrefix: String? = nil
 }
 
 enum SizeState: Equatable, Sendable {
@@ -32,6 +36,8 @@ enum ScanTerminalResult: Equatable, Sendable {
 }
 
 enum ScanEvent: Sendable {
+    case catalog(generation: UInt64, metadata: ScanCatalogMetadata, rootPathIsExact: Bool)
+    case diagnostic(generation: UInt64, diagnostic: ScanDiagnostic)
     case discovered(generation: UInt64, artifact: ScanArtifact)
     case completed(generation: UInt64, artifactID: UUID, bytes: Int64, partial: Bool = false)
     case profile(generation: UInt64, sample: ScanProfileSnapshot)
@@ -40,7 +46,8 @@ enum ScanEvent: Sendable {
 
     var generation: UInt64 {
         switch self {
-        case .discovered(let generation, _), .completed(let generation, _, _, _),
+        case .catalog(let generation, _, _), .diagnostic(let generation, _),
+             .discovered(let generation, _), .completed(let generation, _, _, _),
              .warning(let generation, _), .profile(let generation, _), .finished(let generation, _): generation
         }
     }
@@ -54,6 +61,10 @@ struct ScanRow: Identifiable, Equatable, Sendable {
     var size: SizeState
     /// See `ScanArtifact.scannerKind`.
     var scannerKind: String? = nil
+    var targetID: String? = nil
+    var catalogDigest: String? = nil
+    /// First lossy component in display coordinates; disables actions on it and its descendants.
+    var unsafePathPrefix: String? = nil
 }
 
 /// Table sorting is a projection: the scanner retains its append-only row indices.

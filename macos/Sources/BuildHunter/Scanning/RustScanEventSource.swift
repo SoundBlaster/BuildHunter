@@ -31,37 +31,31 @@ final class RustScanEventSource: ScanEventSource {
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
         let filters = settings.snapshot
-        let policy = BuildHunterScanPolicy(filters: filters)
-        let context = RustScanBridgeContext(generation: generation, channel: channel, policy: policy)
+        let rootBytes = target.withUnsafeFileSystemRepresentation { pointer -> Data in
+            guard let pointer else { return Data() }
+            var count = 0
+            while pointer[count] != 0 { count += 1 }
+            return Data(bytes: pointer, count: count)
+        }
+        let excludedBytes = (try? JSONEncoder().encode(filters.excludedFilterIDs.sorted())) ?? Data()
+        let context = RustScanBridgeContext(generation: generation, channel: channel,
+            rootPathIsExact: String(data: rootBytes, encoding: .utf8) != nil)
         let retainedContext = Unmanaged.passRetained(context).toOpaque()
-        let rootBytes = Data(target.path.utf8)
         let startedSecurityScope = target.startAccessingSecurityScopedResource()
         let stream = channel.makeStream(onClose: { job.cancel() })
 
         Task.detached(priority: .userInitiated) {
-            // Compiling all vocabulary cells is bounded but nontrivial; keep it off the UI actor.
-            let table = RustCompiledPolicyTable.compile(using: context.policy)
-            let result = rootBytes.withUnsafeBytes { rawBuffer -> Int32 in
-                guard let baseAddress = rawBuffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            let result: Int32 = excludedBytes.withUnsafeBytes { exclusions in
+                guard bh_catalog_abi_version() == 1,
+                      let catalog = bh_catalog_create(2, exclusions.baseAddress?.assumingMemoryBound(to: UInt8.self), exclusions.count) else {
+                    context.yield(.warning(generation: generation, message: "Could not load the scan catalog or exclusion settings."))
                     return 3
                 }
-                if let table {
-                    return table.withUnsafeEntries { entries, count in
-                        bh_scan_with_policy_table(
-                            control,
-                            baseAddress,
-                            rawBuffer.count,
-                            0,
-                            table.version,
-                            entries,
-                            count,
-                            buildHunterEventCallback,
-                            retainedContext
-                        )
-                    }
+                defer { bh_catalog_destroy(catalog) }
+                return rootBytes.withUnsafeBytes { root in
+                    bh_scan_catalog_v1(control, catalog, root.baseAddress?.assumingMemoryBound(to: UInt8.self), root.count,
+                        0, 0, buildHunterCatalogEventCallback, retainedContext)
                 }
-                return bh_scan(control, baseAddress, rawBuffer.count, 0,
-                               buildHunterPolicyCallback, buildHunterEventCallback, retainedContext)
             }
             job.finish()
             if startedSecurityScope {
@@ -235,20 +229,24 @@ private final class ScanEventStreamLifetime: Sendable {
     }
 }
 
-// Rust calls both callbacks serially on its scan thread. Policies are immutable and the
-// completion flag is locked; the channel is safe to use from that thread.
+// Rust calls callbacks serially on its scan thread. Only that thread mutates the
+// catalog cache/warning counter; the completion flag is locked and the channel is thread-safe.
 final class RustScanBridgeContext: @unchecked Sendable {
     let generation: UInt64
     let channel: ScanEventChannel
-    let policy: BuildHunterScanPolicy
+    let policy: BuildHunterScanPolicy?
+    private let rootPathIsExact: Bool
+    private var catalogMetadata: ScanCatalogMetadata?
+    private var catalogTargets: [String: ScanCatalogMetadata.Target] = [:]
     private let lock = NSLock()
     private var didFinish = false
     private var bridgeGeneratedWarnings: UInt64 = 0
 
-    init(generation: UInt64, channel: ScanEventChannel, policy: BuildHunterScanPolicy) {
+    init(generation: UInt64, channel: ScanEventChannel, policy: BuildHunterScanPolicy? = nil, rootPathIsExact: Bool = true) {
         self.generation = generation
         self.channel = channel
         self.policy = policy
+        self.rootPathIsExact = rootPathIsExact
     }
 
     func yield(_ event: ScanEvent) {
@@ -286,7 +284,8 @@ final class RustScanBridgeContext: @unchecked Sendable {
                     relativePath: path,
                     language: language,
                     kind: kind,
-                    scannerKind: scannerKindName(value.kind)
+                    scannerKind: scannerKindName(value.kind),
+                    unsafePathPrefix: firstUnsafePathPrefix(value.path, length: value.path_len)
                 )
             ))
         case 2:
@@ -321,6 +320,48 @@ final class RustScanBridgeContext: @unchecked Sendable {
             }
         default:
             warnAboutBridge("Rust scanner emitted an unknown event.")
+        }
+    }
+
+    /// Called serially by ABI 1. Copy all borrowed data before returning to Rust.
+    func handleCatalog(_ pointer: UnsafePointer<BHCatalogScanEvent>) {
+        let value = pointer.pointee
+        guard value.version == 1 else { warnAboutBridge("Unsupported catalog event ABI."); return }
+        switch value.base.event_type {
+        case 6:
+            guard let bytes = value.metadata, (1...4_194_304).contains(value.metadata_len),
+                  let metadata = try? JSONDecoder().decode(ScanCatalogMetadata.self,
+                    from: Data(bytes: bytes, count: value.metadata_len)), metadata.isSupported,
+                  catalogMetadata == nil else { warnAboutBridge("Invalid or repeated scan catalog metadata."); return }
+            catalogMetadata = metadata
+            catalogTargets = Dictionary(uniqueKeysWithValues: metadata.targets.map { ($0.id, $0) })
+            yield(.catalog(generation: generation, metadata: metadata, rootPathIsExact: rootPathIsExact))
+            if !rootPathIsExact { warnAboutBridge("The selected path is not valid UTF-8; path actions are disabled.") }
+        case 1:
+            guard let catalogMetadata, let id = decodeUTF8(value.target_id, length: value.target_id_len),
+                  let target = catalogTargets[id], let kind = target.artifactKind else {
+                warnAboutBridge("A discovery refers to an unknown catalog target."); return
+            }
+            let path = decode(value.base.path, length: value.base.path_len)
+            let firstInvalid = firstUnsafePathPrefix(value.base.path, length: value.base.path_len)
+            let unsafePrefix = rootPathIsExact ? firstInvalid : ""
+            if firstInvalid != nil { warnAboutBridge("A detected path is not valid UTF-8; path actions are disabled for its lossy components.") }
+            yield(.discovered(generation: generation, artifact: ScanArtifact(
+                id: stableID(value.base.artifact_id), relativePath: path, language: target.language,
+                kind: kind, targetID: target.id, catalogDigest: catalogMetadata.digest, unsafePathPrefix: unsafePrefix)))
+        case 7:
+            guard let bytes = value.metadata, (1...4_194_304).contains(value.metadata_len),
+                  let classification = try? JSONDecoder().decode(ScanDiagnostic.Classification.self,
+                    from: Data(bytes: bytes, count: value.metadata_len)),
+                  ["ambiguous", "indeterminate"].contains(classification.kind) else {
+                warnAboutBridge("Invalid plugin diagnostic."); return
+            }
+            let path = decode(value.base.path, length: value.base.path_len)
+            let message = decode(value.base.message, length: value.base.message_len)
+            yield(.diagnostic(generation: generation, diagnostic: ScanDiagnostic(relativePath: path,
+                classification: classification, message: path.isEmpty ? message : "\(path): \(message)")))
+        default:
+            withUnsafePointer(to: value.base) { handle($0) }
         }
     }
 
@@ -467,7 +508,8 @@ private func buildHunterPolicyCallback(
 ) -> Int32 {
     guard let rawContext, let rawFacts, let rawDecision else { return 0 }
     let bridge = Unmanaged<RustScanBridgeContext>.fromOpaque(rawContext).takeUnretainedValue()
-    rawDecision.pointee = bridge.policy.decision(for: rawFacts.pointee)
+    guard let policy = bridge.policy else { return 0 }
+    rawDecision.pointee = policy.decision(for: rawFacts.pointee)
     return 1
 }
 
@@ -480,13 +522,33 @@ private func buildHunterEventCallback(
     Unmanaged<RustScanBridgeContext>.fromOpaque(rawContext).takeUnretainedValue().handle(rawEvent)
 }
 
+@_cdecl("build_hunter_catalog_event_callback")
+private func buildHunterCatalogEventCallback(_ rawContext: UnsafeMutableRawPointer?, _ rawEvent: UnsafePointer<BHCatalogScanEvent>?) {
+    guard let rawContext, let rawEvent else { return }
+    Unmanaged<RustScanBridgeContext>.fromOpaque(rawContext).takeUnretainedValue().handleCatalog(rawEvent)
+}
+
+/// Keeps safe ancestors usable while rejecting any displayed path containing the
+/// first undecodable component. Does not manufacture an action URL from replacement text.
+func firstUnsafePathPrefix(_ bytes: UnsafePointer<UInt8>?, length: Int) -> String? {
+    guard let bytes, length > 0 else { return nil }
+    let data = Data(bytes: bytes, count: length)
+    if String(data: data, encoding: .utf8) != nil { return nil }
+    var components: [String] = []
+    for part in data.split(separator: 47, omittingEmptySubsequences: false) {
+        components.append(String(decoding: part, as: UTF8.self))
+        if String(bytes: part, encoding: .utf8) == nil { return components.joined(separator: "/") }
+    }
+    return nil
+}
+
 private func decode(_ bytes: UnsafePointer<UInt8>?, length: Int) -> String {
     guard let bytes, length > 0 else { return "" }
     return String(decoding: UnsafeBufferPointer(start: bytes, count: length), as: UTF8.self)
 }
 
 private func decodeUTF8(_ bytes: UnsafePointer<UInt8>?, length: Int) -> String? {
-    guard let bytes else { return nil }
+    guard let bytes, length >= 0 else { return nil }
     return String(bytes: UnsafeBufferPointer(start: bytes, count: length), encoding: .utf8)
 }
 

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.bridge
   title: Rust/Swift scan session bridge
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
@@ -11,7 +11,8 @@ intent:
 scope:
   boundedContext: module_recovery_and_design
   includes:
-  - bh_scan / finite policy table, RustScanEventSource, ScanEventChannel, RustScanJob and callback context ownership.
+  - bh_scan_catalog_v1, catalog metadata/target IDs/diagnostics, RustScanEventSource, ScanEventChannel and job/context ownership.
+  - Retained numeric bh_scan / finite policy table for compatibility, not default GUI decisions.
   excludes:
   - Lossless GUI identity for arbitrary non-UTF-8 paths.
   - A stable future Hunter or Rifle C ABI.
@@ -24,12 +25,15 @@ provides:
       and target access.
 requires:
   capabilities:
+  - id: buildhunter.catalog.scan
+    optional: false
+    summary: Versioned catalog events and the owned immutable snapshot.
   - id: buildhunter.current.scan
     optional: false
     summary: Rust call remains alive until workers/callbacks have completed.
   - id: buildhunter.current.classification
     optional: false
-    summary: The finite vocabulary or fallback policy supplies decisions.
+    summary: Versioned GUI profile supplies catalog decisions and immutable preferences.
 interfaces:
   inbound:
   - id: consumer_interface
@@ -61,12 +65,11 @@ constraints:
     the Rust call returns, not immediately when cancellation is requested.
 - id: policy_table
   level: MUST
-  statement: Use copied finite decisions only when vocabulary version/count and descriptors are representable; otherwise
-    use legacy callbacks. Settings are immutable per scan.
+  statement: Default GUI loads one validated GUI catalog handle from copied exclusion IDs and retains it through scan return. Metadata event precedes findings; discovery resolves only known target IDs and copies catalog identity. Typed diagnostics survive transport. No per-candidate Swift callback or finite table is used by default; legacy APIs remain available.
 - id: invalid_utf8
   level: MUST
   statement: Rust retains raw path bytes; Swift decodes displayed paths lossily and emits bridge warnings that make
-    a completed result incomplete. Exact Finder/Copy identity for these paths is not established.
+    a completed result incomplete. Disable Finder/Copy actions for the first lossy component and descendants; safe ancestors remain usable. A lossy selected root disables every path action. Raw root bytes are copied from filesystem representation before scanning; display Strings never authorize reconstruction of lossy paths.
 effects:
   sideEffects:
   - id: session_access
@@ -117,6 +120,7 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - R4 cutover source/run identities are in validation/r4-client-cutover-20261023. Local compilation and test-host execution are separate evidence; no snapshot/inode action capability or Store acceptance is claimed.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
@@ -131,6 +135,9 @@ implementationBindings:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
     - src/policy_table.rs
+    - src/catalog_bridge.rs
+    - src/catalog.rs
+    - macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift
     - macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h
     - src/lib.rs
     border:

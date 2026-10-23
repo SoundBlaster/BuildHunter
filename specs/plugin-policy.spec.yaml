@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.plugin.policy
   title: Pure plugin policy adapter and basic client profiles
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Validate BuildHunter plugin semantics and classify supplied facts with exclusions and explicit conflict/unknown
@@ -68,7 +68,7 @@ constraints:
     unique declared scope/name markers. No whole-process RSS or throughput guarantee.
 - id: opt_in
   level: MUST
-  statement: Keep the pure policy separately testable and free of filesystem acquisition. The host now depends on this runtime, with vendored source replacement preserving fresh-cache offline builds; default CLI/GUI scan classification remains unchanged in the preparation layer. Versioned catalog metadata is additive to the legacy scan ABI.
+  statement: Keep the pure policy separately testable and free of filesystem acquisition. The host now depends on this runtime, with vendored source replacement preserving fresh-cache offline builds; default CLI/GUI decisions use it through scan_client. Versioned catalog event ABI is separate from the retained numeric scan APIs.
 effects:
   sideEffects: []
 evidence:

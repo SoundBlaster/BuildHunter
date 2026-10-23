@@ -1,5 +1,11 @@
 mod profile_report;
-use build_hunter::{ScanControl, ScanOptions, rust_cli_policy, scan_with_policy};
+use build_hunter::{
+    ScanControl, ScanOptions,
+    catalog::{CatalogSnapshot, ClientProfile, presentation_kind},
+    client_scan::{CatalogScanEvent, scan_client},
+};
+#[cfg(test)]
+use build_hunter::{rust_cli_policy, scan_with_policy};
 use std::{collections::BTreeSet, env, fs, path::PathBuf, process, time::Instant};
 
 fn human(bytes: u64) -> String {
@@ -29,57 +35,93 @@ fn quoted(value: &str) -> String {
     out
 }
 
-fn parse_exclusion(value: &str, excluded: &mut BTreeSet<&'static str>) -> Result<(), String> {
+fn parse_exclusion(
+    value: &str,
+    excluded: &mut BTreeSet<String>,
+    catalog: &CatalogSnapshot,
+) -> Result<(), String> {
     if value.is_empty() {
-        return Err("--exclude requires a non-empty filter ID or language alias".to_owned());
+        return Err("--exclude requires a non-empty filter ID or language alias".into());
     }
     for id in value.split(',') {
         if id.is_empty() {
-            return Err("--exclude contains an empty filter ID".to_owned());
+            return Err("--exclude contains an empty filter ID".into());
         }
-        match id {
-            "swift" | "rust" | "python" => {
-                let group = match id {
-                    "swift" => "Swift",
-                    "rust" => "Rust",
-                    _ => "Python",
-                };
-                excluded.extend(
-                    build_hunter::SEARCH_FILTER_CATALOG
-                        .iter()
-                        .filter(|descriptor| descriptor.group == group)
-                        .map(|descriptor| descriptor.id),
-                );
-            }
-            _ => {
-                if let Some(descriptor) = build_hunter::SEARCH_FILTER_CATALOG
-                    .iter()
-                    .find(|descriptor| descriptor.id == id)
-                {
-                    excluded.insert(descriptor.id);
-                } else {
-                    return Err(format!("Unknown exclusion filter: {id}"));
-                }
-            }
+        if catalog.target(id).is_some() {
+            excluded.insert(id.to_owned());
+            continue;
         }
+        let aliases = catalog
+            .catalog()
+            .targets()
+            .iter()
+            .filter(|target| target.ecosystem == id)
+            .map(|target| target.id.clone())
+            .collect::<Vec<_>>();
+        if aliases.is_empty() {
+            return Err(format!("Unknown exclusion filter: {id}"));
+        }
+        excluded.extend(aliases);
     }
     Ok(())
 }
 
-fn print_filter_catalog(json: bool) {
-    if json {
-        println!("{}", build_hunter::search_filter_catalog_json());
-        return;
+fn print_filter_catalog(json: bool, catalog: &CatalogSnapshot) {
+    // Retain legacy descriptor hints for older callers, but catalog identity,
+    // membership, titles and selection all come from the validated plugins.
+    let hints: Vec<serde_json::Value> =
+        serde_json::from_str(build_hunter::search_filter_catalog_json()).unwrap_or_default();
+    let mut descriptors = Vec::new();
+    let mut targets = catalog.catalog().targets().iter().collect::<Vec<_>>();
+    targets.sort_by(|a, b| {
+        hints
+            .iter()
+            .position(|hint| hint["id"] == a.id)
+            .unwrap_or(usize::MAX)
+            .cmp(
+                &hints
+                    .iter()
+                    .position(|hint| hint["id"] == b.id)
+                    .unwrap_or(usize::MAX),
+            )
+            .then(a.id.cmp(&b.id))
+    });
+    for target in targets {
+        let group = match target.ecosystem.as_str() {
+            "swift" => "Swift",
+            "rust" => "Rust",
+            "python" => "Python",
+            other => other,
+        };
+        if !json {
+            println!("{}\t{}\t{}", target.id, group, target.title);
+            continue;
+        }
+        let mut descriptor = hints
+            .iter()
+            .find(|hint| hint["id"] == target.id)
+            .cloned()
+            .unwrap_or_else(
+                || serde_json::json!({"nodeNames":[],"suffixes":[],"requiresVenvMarker":false}),
+            );
+        descriptor["id"] = serde_json::json!(target.id);
+        descriptor["title"] = serde_json::json!(target.title);
+        descriptor["group"] = serde_json::json!(group);
+        descriptor["ecosystem"] = serde_json::json!(target.ecosystem);
+        descriptor["catalogDigest"] =
+            serde_json::json!(catalog.catalog().catalog_digest().to_string());
+        descriptors.push(descriptor);
     }
-    for descriptor in build_hunter::SEARCH_FILTER_CATALOG {
-        println!(
-            "{}\t{}\t{}",
-            descriptor.id, descriptor.group, descriptor.title
-        );
+    if json {
+        println!("{}", serde_json::Value::Array(descriptors));
     }
 }
 
 fn main() {
+    let available = CatalogSnapshot::basic(ClientProfile::CliV1, &[]).unwrap_or_else(|error| {
+        eprintln!("Invalid bundled catalog: {error}");
+        process::exit(1);
+    });
     let mut language = "all".to_owned();
     let mut environments = false;
     let mut apparent = false;
@@ -108,14 +150,14 @@ fn main() {
                     eprintln!("--exclude requires a non-empty filter ID or language alias");
                     process::exit(2);
                 }
-                if let Err(error) = parse_exclusion(&value, &mut exclusions) {
+                if let Err(error) = parse_exclusion(&value, &mut exclusions, &available) {
                     eprintln!("{error}");
                     process::exit(2);
                 }
             }
             Some(value) if value.starts_with("--exclude=") => {
                 let value = &value["--exclude=".len()..];
-                if let Err(error) = parse_exclusion(value, &mut exclusions) {
+                if let Err(error) = parse_exclusion(value, &mut exclusions, &available) {
                     eprintln!("{error}");
                     process::exit(2);
                 }
@@ -146,12 +188,29 @@ fn main() {
             _ => root = Some(PathBuf::from(arg)),
         }
     }
-    if !["all", "swift", "rust", "python"].contains(&language.as_str()) {
-        eprintln!("Invalid --language; use all, swift, rust or python");
+    if language != "all"
+        && !available
+            .catalog()
+            .targets()
+            .iter()
+            .any(|target| target.ecosystem == language)
+    {
+        eprintln!(
+            "Invalid --language; use all or a catalog ecosystem: {}",
+            available
+                .catalog()
+                .targets()
+                .iter()
+                .map(|target| target.ecosystem.as_str())
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
         process::exit(2);
     }
     if list_filters {
-        print_filter_catalog(json);
+        print_filter_catalog(json, &available);
         return;
     }
     // Root canonicalization and profile preflight can encounter evicted objects
@@ -182,34 +241,32 @@ fn main() {
     let start = Instant::now();
     let control = ScanControl::new();
     control.set_profiling(profile_path.is_some());
-    let report = scan_with_policy(
+    if language != "all" {
+        exclusions.extend(
+            available
+                .catalog()
+                .targets()
+                .iter()
+                .filter(|target| target.ecosystem != language)
+                .map(|target| target.id.clone()),
+        );
+    }
+    let excluded = exclusions.iter().map(String::as_str).collect::<Vec<_>>();
+    let snapshot =
+        CatalogSnapshot::basic(ClientProfile::CliV1, &excluded).unwrap_or_else(|error| {
+            eprintln!("Invalid scan catalog: {error}");
+            process::exit(2);
+        });
+    let report = scan_client(
         &root,
+        &snapshot,
         ScanOptions {
             apparent_size: apparent,
         },
+        environments,
         &control,
-        |facts| {
-            let action = rust_cli_policy(facts, environments);
-            match action {
-                build_hunter::CandidateAction::Classify(classification)
-                    if (language != "all"
-                        && classification.language
-                            != match language.as_str() {
-                                "swift" => 1,
-                                "rust" => 2,
-                                "python" => 3,
-                                _ => 0,
-                            })
-                        || build_hunter::filter_id_for_candidate(facts, environments)
-                            .is_some_and(|id| exclusions.contains(id)) =>
-                {
-                    build_hunter::CandidateAction::Traverse
-                }
-                other => other,
-            }
-        },
         |event| {
-            if let build_hunter::ScanEvent::Profile(sample) = event {
+            if let CatalogScanEvent::Profile(sample) = event {
                 profile.record(*sample);
             }
         },
@@ -258,24 +315,24 @@ fn main() {
     let total: u64 = rows.iter().filter(|r| !r.nested).map(|r| r.bytes).sum();
     if json {
         println!(
-            "{{\"root\":{},\"total_bytes\":{total},\"elapsed_seconds\":{:.3},\"artifacts\":[",
+            "{{\"schema_version\":2,\"catalog\":{},\"root\":{},\"total_bytes\":{total},\"elapsed_seconds\":{:.3},\"artifacts\":[",
+            snapshot.metadata_json(),
             quoted(&root.to_string_lossy()),
             start.elapsed().as_secs_f64()
         );
         for (i, row) in rows.iter().enumerate() {
             println!(
-                "{}{{\"path\":{},\"language\":{},\"kind\":{},\"bytes\":{},\"nested\":{},\"partial\":{}}}",
+                "{}{}",
                 if i == 0 { "" } else { "," },
-                quoted(&root.join(&row.relative_path).to_string_lossy()),
-                quoted(row.language),
-                quoted(row.kind),
-                row.bytes,
-                row.nested,
-                row.partial
+                serde_json::json!({
+                    "path":root.join(&row.relative_path).to_string_lossy(),"relative_path":row.relative_path.to_string_lossy(),
+                    "language":row.target.ecosystem,"kind":presentation_kind(ClientProfile::CliV1,&row.target),
+                    "target_id":row.target.id,"bytes":row.bytes,"nested":row.nested,"partial":row.partial,
+                })
             );
         }
         println!(
-            "],\"errors\":[{}]}}",
+            "],\"errors\":[{}],\"diagnostics\":[{}]}}",
             report
                 .warnings
                 .iter()
@@ -286,8 +343,10 @@ fn main() {
                         warning.message
                     ))
                 })
+                .chain(report.diagnostics.iter().map(|diagnostic| quoted(&format!("{}: {}",root.join(&diagnostic.relative_path).display(),build_hunter::catalog_bridge::diagnostic_json(diagnostic)))))
                 .collect::<Vec<_>>()
-                .join(",")
+                .join(","),
+            report.diagnostics.iter().map(|diagnostic|serde_json::json!({"relative_path":diagnostic.relative_path.to_string_lossy(),"classification":build_hunter::catalog_bridge::diagnostic_json(diagnostic)}).to_string()).collect::<Vec<_>>().join(",")
         );
     } else {
         println!(
@@ -301,8 +360,8 @@ fn main() {
             println!(
                 "{:>14}  {:<7}  {:<11}  {}{}{}",
                 human(row.bytes),
-                row.language,
-                row.kind,
+                row.target.ecosystem,
+                presentation_kind(ClientProfile::CliV1, &row.target),
                 row.relative_path.display(),
                 if row.nested { " [nested]" } else { "" },
                 if row.partial {
@@ -323,6 +382,15 @@ fn main() {
                 "Warning: {}: {}",
                 root.join(&warning.relative_path).display(),
                 warning.message
+            );
+        }
+    }
+    if !json {
+        for diagnostic in &report.diagnostics {
+            eprintln!(
+                "Warning: {}: {}",
+                root.join(&diagnostic.relative_path).display(),
+                build_hunter::catalog_bridge::diagnostic_json(diagnostic)
             );
         }
     }

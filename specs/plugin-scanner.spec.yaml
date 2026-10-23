@@ -70,7 +70,7 @@ constraints:
   statement: Retain catalog digest and exclusions in the report; keep immutable catalog/control/access alive until scoped workers finish; preserve inherited size/cancellation/partial events and guard restoration. Cancellation request alone does not prove completion.
 - id: compatibility
   level: MUST
-  statement: Keep this package outside root CLI Cargo resolution and preserve default CLI/GUI/numeric FFI behavior. Unsupported acquisition backends fail closed before callbacks. Directory-root replacement
+  statement: Keep this package outside root CLI Cargo resolution and retain its strict acquisition API separately from the default clients compatibility profile and legacy numeric FFI. Unsupported acquisition backends fail closed before callbacks. Directory-root replacement
     stays on the pinned original root; display paths are not durable action handles
     and no atomic or cross-pass identity guarantee is inferred.
 - id: dependency_identity

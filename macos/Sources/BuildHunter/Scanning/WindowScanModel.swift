@@ -9,6 +9,9 @@ final class WindowScanModel {
     private(set) var targetURL: URL?
     private(set) var rows: [ScanRow] = []
     private(set) var warnings: [String] = []
+    private(set) var catalogMetadata: ScanCatalogMetadata?
+    private(set) var diagnostics: [ScanDiagnostic] = []
+    private(set) var unsafePathPrefixes: Set<String> = []
     private(set) var profile = ScanProfileHistory()
     private(set) var generation: UInt64 = 0
     private(set) var phase: ScanPhase = .idle
@@ -102,12 +105,22 @@ final class WindowScanModel {
     func apply(_ event: ScanEvent) {
         guard event.generation == generation, phase == .scanning else { return }
         switch event {
+        case .catalog(_, let metadata, let rootPathIsExact):
+            catalogMetadata = metadata
+            excludedFilterIDs = Set(metadata.excludedTargetIDs)
+            if !rootPathIsExact { unsafePathPrefixes.insert("") }
+            reportRevision &+= 1
+        case .diagnostic(_, let diagnostic):
+            diagnostics.append(diagnostic)
+            appendWarning(diagnostic.message)
         case .discovered(_, let artifact):
             guard rowIndices[artifact.id] == nil else { return }
+            if let prefix = artifact.unsafePathPrefix { unsafePathPrefixes.insert(prefix) }
             rowIndices[artifact.id] = rows.count
             rows.append(ScanRow(id: artifact.id, relativePath: artifact.relativePath,
                                 language: artifact.language, kind: artifact.kind, size: .measuring,
-                                scannerKind: artifact.scannerKind))
+                                scannerKind: artifact.scannerKind, targetID: artifact.targetID,
+                                catalogDigest: artifact.catalogDigest, unsafePathPrefix: artifact.unsafePathPrefix))
             reportRevision &+= 1
         case .completed(_, let artifactID, let bytes, let partial):
             guard let index = rowIndices[artifactID] else { return }
@@ -140,6 +153,10 @@ final class WindowScanModel {
         }
     }
 
+    func actionURL(for relativePath: String) -> URL? {
+        ArtifactFolderLocation.actionURL(root: targetURL, relativePath: relativePath, unsafePrefixes: unsafePathPrefixes)
+    }
+
     func waitForCurrentScan() async {
         await scanTask?.value
     }
@@ -150,6 +167,9 @@ final class WindowScanModel {
         profile = ScanProfileHistory()
         rowIndices = [:]
         warnings = []
+        catalogMetadata = nil
+        diagnostics = []
+        unsafePathPrefixes = []
         warningSet = []
         reportRevision &+= 1
     }

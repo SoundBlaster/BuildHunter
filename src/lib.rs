@@ -1,3 +1,7 @@
+// Shared end-to-end fixtures also compile as an external benchmark consumer.
+#[cfg(test)]
+extern crate self as build_hunter;
+
 use hunter_fs_core::{
     BranchPlan, ChildDecision, DirectoryListing, DirectoryMeasurement, DirectoryMeasurementPlan,
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, DirectoryWorker,
@@ -58,7 +62,7 @@ pub struct SearchFilterDescriptor {
     pub requires_venv_marker: bool,
 }
 
-/// Canonical catalog used by Rust callers, the CLI, and the C bridge.
+/// Compatibility hints for the retained numeric policy ABI. Default clients use CatalogSnapshot.
 pub const SEARCH_FILTER_CATALOG: &[SearchFilterDescriptor] = &[
     SearchFilterDescriptor {
         id: "swift.build",

@@ -13,6 +13,26 @@ BINARY = Path(sys.argv.pop(1)).resolve()
 
 
 class CLIIntegrationTests(unittest.TestCase):
+    def test_report_and_filters_share_catalog_identity_and_target_ids(self):
+        self.write(".build/object.o")
+        report = self.scan("--exclude", "python.pytest-cache")
+        self.assertEqual(report["schema_version"], 2)
+        metadata = report["catalog"]
+        self.assertEqual(metadata["format"], "buildhunter.catalog/1")
+        self.assertEqual(metadata["profile"], "buildhunter.cli/1")
+        self.assertEqual(metadata["markerPolicy"], "legacy-file-markers/1")
+        self.assertRegex(metadata["digest"], r"^[0-9a-f]{64}$")
+        self.assertEqual(metadata["excludedTargetIDs"], ["python.pytest-cache"])
+        self.assertEqual(report["diagnostics"], [])
+        self.assertEqual(report["artifacts"][0]["target_id"], "swift.build")
+        self.assertEqual(report["artifacts"][0]["relative_path"], ".build")
+        descriptors = json.loads(subprocess.check_output(
+            [str(BINARY), "--list-filters", "--json"], encoding="utf-8"))
+        self.assertEqual({item["id"] for item in descriptors}, {item["id"] for item in metadata["targets"]})
+        self.assertEqual({item["catalogDigest"] for item in descriptors}, {metadata["digest"]})
+        # Exclusions describe a scan, not different catalog contents.
+        self.assertEqual(self.scan()["catalog"]["digest"], metadata["digest"])
+
     def test_profile_is_opt_in_and_counts_nested_bytes_once(self):
         self.write(".build/__pycache__/module.pyc", b"bytecode")
         normal = self.scan("--apparent")

@@ -1,0 +1,171 @@
+[
+  {
+    "name": "debug",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-debug-3.log",
+    "sha256": "03229af2c5942df30823fffaf867cc46ef7e95bae72c8bc29dc3957c1825f89d"
+  },
+  {
+    "name": "release",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--release",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-release-tests.log",
+    "sha256": "9edd8e4126861536a81bf06f94d3297ceee15d65c82bbd553ec4affa1c7fcd9b"
+  },
+  {
+    "name": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-clippy-4.log",
+    "sha256": "25cce4708829d4e6ea524da03fad63f2a2706a3f0b4660a532a9aabba26c6509"
+  },
+  {
+    "name": "cli-build",
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-build-4.log",
+    "sha256": "6549d3e260cdfce8404476606c38a1adb5250ef7808acb15c1dce13be0387f50"
+  },
+  {
+    "name": "cli",
+    "command": [
+      "python3",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-cli-final.log",
+    "sha256": "c5fe8ae0a669ec7f49798011f816f74caf7b1cd2005a88b34a8c31847835bc16"
+  },
+  {
+    "name": "golden",
+    "command": [
+      "python3",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-golden-4.log",
+    "sha256": "03ebe586969d0c313493c684396484301c0f73da846ff5b2fc5127235d5b1ec8"
+  },
+  {
+    "name": "benchmark",
+    "command": [
+      "cargo",
+      "bench",
+      "--locked",
+      "--bench",
+      "catalog_scan"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-benchmark-4.log",
+    "sha256": "75ad24a7345c1a0b7da0b2378ad1d5528026790f86506d41d2c08c034594f8d3"
+  },
+  {
+    "name": "dependency-tests",
+    "command": [
+      "python3",
+      "scripts/test_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-dependency-final.log",
+    "sha256": "9be9ec006e4bd98323e488c002b83c12e0a9e1de8ea2b9bb545db13c0e293693"
+  },
+  {
+    "name": "scoped-scanner",
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "crates/buildhunter-plugin-scanner/Cargo.toml",
+      "--locked",
+      "--release",
+      "--features",
+      "build-hunter/macos-bulk-metadata"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-scoped-scanner.log",
+    "sha256": "39bff146ee76e28ac7e54daf6f3b9d20163d37f72a15493f2ba6568d743bffad"
+  },
+  {
+    "name": "xcode-build",
+    "command": [
+      "xcodebuild",
+      "build-for-testing",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "CODE_SIGNING_ALLOWED=NO",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-build-for-testing-final.log",
+    "sha256": "f5065286dcdcce69e980f2c727eca19427696ea6372511633ada3b38dc00fe56"
+  },
+  {
+    "name": "xcode-execution",
+    "command": [
+      "xcodebuild",
+      "test-without-building",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-only-testing:BuildHunterTests",
+      "-parallel-testing-enabled",
+      "NO",
+      "-resultBundlePath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-unit.xcresult",
+      "CODE_SIGNING_ALLOWED=NO",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex"
+    ],
+    "exit_code": -15,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-client-unit.log",
+    "sha256": "81e0bd52d0003c1671774f1eccc401c28f3096950f430cc1e70bf599bd4998c1"
+  }
+]

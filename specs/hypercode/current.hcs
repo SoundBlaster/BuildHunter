@@ -67,28 +67,30 @@ ResourceProfile:
   implementation: "host cadence/baseline/delta/summary; raw process reads via Hunter"
   folded_into: "buildhunter.current.scan"
 ArtifactClassification:
-  source: "src/lib.rs"
+  source: "src/client_scan.rs"
   parity_fixture: "tests/fixtures/migration-parity-v1.json; client-specific expected rows"
   boundary_spec: "buildhunter.current.classification"
 CandidateSelection:
-  implementation: "is_policy_candidate + may_classify_directory"
+  implementation: "scan_client every-node observer + conservative catalog dispatch; legacy gate bypassed"
   folded_into: "buildhunter.current.classification"
 MarkerVocabulary:
-  implementation: "MARKER_* + marker_flag + observe_legacy_marker; marker I/O owned by scan boundary"
+  implementation: "enabled plugin bindings -> per-candidate marker requests; legacy-file-markers/1 compatibility acquisition"
   folded_into: "buildhunter.current.classification"
 ClientPolicy:
-  source: "src/lib.rs"
-  implementation: "rust_cli_policy"
+  source: "src/client_scan.rs"
+  implementation: "CLI profile admission + CatalogSnapshot CliV1/Rifle classification"
   environments_default: false
   folded_into: "buildhunter.current.classification"
 FilterCatalog:
-  implementation: "SEARCH_FILTER_CATALOG + bh_search_filter_catalog_json"
+  implementation: "validated plugin target descriptors; legacy JSON supplies ordering/matching hints only"
   folded_into: "buildhunter.current.classification"
 RustSwiftBridge:
+  implementation: "catalog handle through scan return; copied metadata/target IDs/diagnostics; lossy path action guard"
   source: "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift"
   boundary_spec: "buildhunter.current.bridge"
 PolicyTable:
   source: "src/policy_table.rs"
+  implementation: "retained compatibility API; not used by default GUI"
   folded_into: "buildhunter.current.bridge"
 EventChannel:
   implementation: "ScanEventChannel"
@@ -295,8 +297,8 @@ TargetRouting:
     entrypoint: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"
     profile: "gui"
   ClientPolicy:
-    source: "macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift"
-    implementation: "BuildHunterScanPolicy + SpecificationCore"
+    source: "src/client_scan.rs"
+    implementation: "GUI profile admission + CatalogSnapshot GuiV1/Rifle classification"
     environments_default: true
 @contract:
   BuildHunterRuntime:
@@ -475,3 +477,7 @@ CatalogEventTransport:
   source: "src/catalog_bridge.rs"
   implementation: "version 1 events: immutable metadata, target ID discoveries and typed diagnostics"
   folded_into: "buildhunter.catalog.scan"
+
+LegacyPolicyCompatibility:
+  implementation: "rust_cli_policy, BuildHunterScanPolicy and finite numeric policy table retained for existing consumers/tests"
+  folded_into: "buildhunter.current.classification"

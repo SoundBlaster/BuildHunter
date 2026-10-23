@@ -30,7 +30,7 @@ pins, with one verified `hunter-fs-core`; no library version is raised.
 Xcode invokes Cargo on every build so Cargo can track nested Rust/plugin inputs.
 Cargo still decides whether compilation is needed.
 
-## Remaining layers
+## Layers following preparation (now implemented below)
 
 - Shared catalog-driven scanning, client admission and a versioned event ABI that
   carries target/catalog identity and typed diagnostics.
@@ -60,3 +60,38 @@ including exclusions, byte totals, marker links, environment precedence and
 completion order. CLI preflight remains outside this library API.
 
 Default CLI/GUI entrypoints are still switched only in the final client layer.
+
+## Layer 3: default CLI, GUI and Settings
+
+Default CLI calls `scan_client` with the CLI catalog; GUI owns a GUI catalog handle
+through `bh_scan_catalog_v1` return. Swift no longer classifies every candidate or
+builds a finite decision table for production scans. The numeric APIs and legacy
+classification tests remain available; the old descriptor JSON supplies ordering
+and compatibility hints only. Settings and `--list-filters` enumerate validated
+plugin target IDs, with the existing preference key and unknown valid exclusions
+preserved. New reports use JSON schema 2 and export the frozen catalog/profile/
+marker policy, target IDs and diagnostics; legacy/mock exports keep schema 1.
+
+C3 deliberately preserves the R2 `legacy-file-markers/1` behavior. Tightening
+marker links/selected-root parent context is a separate explicit profile change,
+not an unstated consequence of adopting plugins. C4 copies raw selected-root bytes
+and disables Finder/Copy actions for lossy components and descendants; safe
+ancestors remain usable. This is action rejection, not a new inode capability.
+
+The full scanner regression creates 200 actual new target names with individual
+marker bindings, 1,024 unrelated folders and an exclusion; it verifies independent
+allocated bytes, one completion per finding and exactly 200/199 relevant marker
+observations. `cargo bench --locked --bench catalog_scan` additionally compares
+13 vs 200 targets on the same representative filesystem tree in seven interleaved
+Release rounds, checking all rows/sizes each time. It records first finding, total
+time, CPU and sampled process RSS. The provisional broad timing guard is
+`expanded median <= 2 * baseline median + 20 ms + 3 * baseline MAD`; correctness
+and marker counts are exact independent gates. It runs inside existing Rust/CLI
+CI jobs, with no new macOS runner job.
+
+Local measurements and command/source identities are in
+`specs/validation/r4-client-cutover-20261023`. Xcode build-for-testing succeeds;
+local XCTest-host startup stalled in dyld/open before test execution and is not a
+passing test result. CI must execute the new GUI tests. Warm synthetic timings do
+not establish home-directory performance, memory-budget acceptance (R5), live
+cloud behavior, sandbox acceptance or plugin installation (R7).

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.catalog.snapshot
   title: Versioned client catalog snapshot
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Give CLI and the application one immutable catalog identity, target metadata and exclusion snapshot.
@@ -76,7 +76,7 @@ provenance:
     boundary: high
     behavior: medium
   notes:
-  - R4 preparation; this descriptive draft does not accept C3/C4 decisions or prove default client migration.
+  - R4 clients now use this metadata and target identity. The explicit legacy-file-markers/1 profile preserves C3 compatibility; lossy GUI path actions are disabled (C4). This descriptive draft does not accept future marker harmonization or prove whole-process budgets.
 implementationBindings:
 - id: catalog_sources
   scope: component

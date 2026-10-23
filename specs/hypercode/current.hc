@@ -26,6 +26,7 @@ BuildHunterRuntime
       MarkerVocabulary
       ClientPolicy
       FilterCatalog
+      LegacyPolicyCompatibility
     ClientCatalogScan
       ClientAdmission
       ClientMarkerAcquisition

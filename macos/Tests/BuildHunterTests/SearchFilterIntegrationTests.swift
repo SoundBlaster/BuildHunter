@@ -12,6 +12,7 @@ struct SearchFilterIntegrationTests {
         let suite = "BuildHunter.FilterIntegration.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(["future.framework"], forKey: SearchFilterSettings.persistenceKey)
         let settings = SearchFilterSettings(userDefaults: defaults)
         let source = RustScanEventSource(settings: settings)
         let first = source.events(for: 1, target: fixture)
@@ -27,6 +28,103 @@ struct SearchFilterIntegrationTests {
         }
         let emptyPaths = await discoveredPaths(source.events(for: 3, target: fixture))
         #expect(emptyPaths.isEmpty, "Disabling all supported filters yields an empty report")
+        #expect(settings.excludedFilterIDs.contains("future.framework"))
+        #expect(defaults.stringArray(forKey: SearchFilterSettings.persistenceKey)?.contains("future.framework") == true)
+    }
+
+    @Test("Catalog callback copies target identity and marks lossy path actions unsafe")
+    func catalogIdentityAndLossyPaths() async throws {
+        let metadata = try #require(ScanCatalogMetadata.basic())
+        let channel = ScanEventChannel(capacity: 32)
+        let stream = channel.makeStream(onClose: {})
+        let context = RustScanBridgeContext(generation: 92, channel: channel)
+        sendMetadata(try JSONEncoder().encode(metadata), context: context)
+        let path = Array("safe/".utf8) + [0xFF] + Array("/cache".utf8)
+        let target = Array("swift.build".utf8)
+        path.withUnsafeBufferPointer { pathBytes in
+            target.withUnsafeBufferPointer { targetBytes in
+                var event = BHCatalogScanEvent()
+                event.version = 1
+                event.base.event_type = 1
+                event.base.artifact_id = 7
+                event.base.path = pathBytes.baseAddress
+                event.base.path_len = pathBytes.count
+                event.target_id = targetBytes.baseAddress
+                event.target_id_len = targetBytes.count
+                withUnsafePointer(to: &event, context.handleCatalog)
+            }
+        }
+        context.finish(status: 0)
+        var artifacts: [ScanArtifact] = []
+        var catalog: ScanCatalogMetadata?
+        var result: ScanTerminalResult?
+        for await event in stream {
+            switch event {
+            case .catalog(_, let value, _): catalog = value
+            case .discovered(_, let value): artifacts.append(value)
+            case .finished(_, let value): result = value
+            default: break
+            }
+        }
+        #expect(catalog == metadata)
+        let artifact = try #require(artifacts.first)
+        #expect(artifact.targetID == "swift.build" && artifact.catalogDigest == metadata.digest)
+        #expect(artifact.unsafePathPrefix == "safe/�")
+        #expect(artifact.relativePath == "safe/�/cache")
+        if case .failed = result {} else { Issue.record("Lossy bridge paths must make a completed scan incomplete") }
+        let root = URL(filePath: "/tmp/catalog-fixture", directoryHint: .isDirectory)
+        let prefixes: Set<String> = [try #require(artifact.unsafePathPrefix)]
+        #expect(ArtifactFolderLocation.actionURL(root: root, relativePath: "safe", unsafePrefixes: prefixes) != nil)
+        for unsafe in ["safe/�", "safe/�/cache", "safe/�/cache/child", "../escape", "/absolute"] {
+            #expect(ArtifactFolderLocation.actionURL(root: root, relativePath: unsafe, unsafePrefixes: prefixes) == nil)
+        }
+        #expect(ArtifactFolderLocation.actionURL(root: root, relativePath: "safe/�other", unsafePrefixes: prefixes) != nil)
+        #expect(ArtifactFolderLocation.actionURL(root: root, relativePath: "safe", unsafePrefixes: [""]) == nil)
+        #expect(ArtifactFolderLocation.actionURL(root: root, relativePath: ".", unsafePrefixes: []) == root)
+    }
+
+    @Test("Malformed catalog metadata fails closed without accepting discoveries")
+    func malformedCatalogs() async throws {
+        let metadata = try #require(ScanCatalogMetadata.basic())
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(metadata)) as? [String: Any])
+        var targets = try #require(object["targets"] as? [[String: Any]])
+        targets.append(try #require(targets.first))
+        object["targets"] = targets
+        let channel = ScanEventChannel(capacity: 16)
+        let stream = channel.makeStream(onClose: {})
+        let context = RustScanBridgeContext(generation: 93, channel: channel)
+        sendMetadata(try JSONSerialization.data(withJSONObject: object), context: context)
+        // Invalid lengths must not enter Data(bytes:count:) or turn into an allocation.
+        var byte: UInt8 = 0
+        withUnsafePointer(to: &byte) { pointer in
+            var event = BHCatalogScanEvent()
+            event.version = 1
+            event.base.event_type = 6
+            event.metadata = pointer
+            event.metadata_len = -1
+            withUnsafePointer(to: &event, context.handleCatalog)
+        }
+        context.finish(status: 0)
+        var warned = 0
+        for await event in stream {
+            switch event {
+            case .catalog, .discovered: Issue.record("Malformed metadata must not be accepted")
+            case .warning: warned += 1
+            default: break
+            }
+        }
+        #expect(warned == 2)
+    }
+
+    private func sendMetadata(_ bytes: Data, context: RustScanBridgeContext) {
+        bytes.withUnsafeBytes { buffer in
+            var event = BHCatalogScanEvent()
+            event.version = 1
+            event.base.event_type = 6
+            event.metadata = buffer.bindMemory(to: UInt8.self).baseAddress
+            event.metadata_len = buffer.count
+            withUnsafePointer(to: &event, context.handleCatalog)
+        }
     }
 
     @Test("Profile warning count includes invalid UTF-8 paths reported by the Swift bridge")

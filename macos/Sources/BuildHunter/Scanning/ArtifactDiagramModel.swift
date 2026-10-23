@@ -12,6 +12,7 @@ final class ArtifactDiagramModel {
     private(set) var previewID: String?
     private(set) var targetURL: URL?
     private(set) var targetName: String?
+    private(set) var unsafePathPrefixes: Set<String> = []
     private(set) var filteredChildren: [ArtifactSunburstNode] = []
     var query = "" { didSet { updateChildren() } }
     @ObservationIgnored private var retainedOrder: [String: [String]] = [:]
@@ -38,10 +39,15 @@ final class ArtifactDiagramModel {
     var displayedFolder: ArtifactSunburstNode { previewID.flatMap { snapshot.nodes[$0] } ?? focus }
     var canNavigateUp: Bool { !focusID.isEmpty }
     var displayedURL: URL? {
-        targetURL.map { displayedFolder.id.isEmpty ? $0 : $0.appendingPathComponent(displayedFolder.id) }
+        actionURL(for: displayedFolder.id)
     }
     var displayedPath: String {
-        displayedURL?.path ?? (displayedFolder.id.isEmpty ? targetName ?? "All artifacts" : displayedFolder.id)
+        targetURL.map { displayedFolder.id.isEmpty ? $0.path : $0.appendingPathComponent(displayedFolder.id).path }
+            ?? (displayedFolder.id.isEmpty ? targetName ?? "All artifacts" : displayedFolder.id)
+    }
+
+    func actionURL(for path: String) -> URL? {
+        ArtifactFolderLocation.actionURL(root: targetURL, relativePath: path, unsafePrefixes: unsafePathPrefixes)
     }
 
     /// Coalesces streaming events while this window exists. Work occurs off the main actor
@@ -88,6 +94,7 @@ final class ArtifactDiagramModel {
         }
         targetURL = scan.targetURL
         targetName = scan.targetName
+        unsafePathPrefixes = scan.unsafePathPrefixes
         sourceID = scan.id
         reportID = scan.reportID
         lastRevision = revision

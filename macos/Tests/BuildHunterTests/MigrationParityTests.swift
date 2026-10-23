@@ -88,10 +88,19 @@ struct MigrationParityTests {
         var completed: [UUID: (bytes: Int64, partial: Bool)] = [:]
         var warnings: [String] = []
         var terminal: [String] = []
+        var catalog: ScanCatalogMetadata?
         for await event in source.events(for: 1, target: selected) {
             #expect(terminal.isEmpty, "No event after Finished: \(tree.id)/\(run.id)")
             switch event {
+            case .catalog(_, let metadata, let rootPathIsExact):
+                #expect(catalog == nil && discovered.isEmpty)
+                #expect(rootPathIsExact && metadata.isSupported)
+                #expect(Set(metadata.excludedTargetIDs) == Set(run.excluded))
+                catalog = metadata
+            case .diagnostic(_, let diagnostic):
+                Issue.record("Unexpected classification diagnostic: \(diagnostic)")
             case .discovered(_, let artifact):
+                #expect(catalog != nil)
                 #expect(discovered[artifact.id] == nil)
                 discovered[artifact.id] = artifact
             case .completed(_, let id, let bytes, let partial):
@@ -104,6 +113,7 @@ struct MigrationParityTests {
             }
         }
         let expected = try run.expected.map { try #require(tree.rows[$0]) }
+        let metadata = try #require(catalog)
         #expect(terminal == [run.status], "\(tree.id)/\(run.id)")
         #expect(warnings.count == run.warnings, "\(tree.id)/\(run.id): \(warnings)")
         #expect(discovered.values.map(\.relativePath).sorted() == expected.map(\.path).sorted(),
@@ -113,6 +123,8 @@ struct MigrationParityTests {
             #expect(!row.nested, "The GUI baseline contains only outer roots")
             let artifact = try #require(discovered.values.first { $0.relativePath == row.path })
             #expect(artifact.language.lowercased() == row.language)
+            #expect(artifact.targetID == row.filterID)
+            #expect(artifact.catalogDigest == metadata.digest)
             let kind = switch artifact.kind {
             case .buildOutput: "build"
             case .cache: "cache"

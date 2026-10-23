@@ -97,6 +97,7 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - R4 adds cargo bench --locked --bench catalog_scan inside the existing Rust/CLI jobs. No additional macOS jobs or ready-tip scheduling changes. The broad timing guard is independent from exact finding/size/marker-count assertions; measurements do not accept C5 budgets.
   - R3 adds one macOS Rust-job step exercising plugin acquisition with the root
     macos-bulk-metadata feature. The existing ready-tip/job/gate scheduling is
     unchanged; this checks that scoped access never selects pathname bulk sizing.

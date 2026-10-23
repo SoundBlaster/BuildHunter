@@ -57,10 +57,13 @@ struct ScanReportExport: Sendable {
     let elapsedSeconds: Double?
     let generatedAt: Date
     let appVersion: String
+    let catalogMetadata: ScanCatalogMetadata?
+    let diagnostics: [ScanDiagnostic]
 
     init(rootName: String, rootURL: URL?, status: Status, rows: [ScanRow], order: Order,
          tableOrder: [ScanRowComparator], warnings: [String], excludedFilterIDs: Set<String>,
-         elapsedSeconds: Double?, generatedAt: Date = Date(), appVersion: String) {
+         elapsedSeconds: Double?, generatedAt: Date = Date(), appVersion: String,
+         catalogMetadata: ScanCatalogMetadata? = nil, diagnostics: [ScanDiagnostic] = []) {
         self.rootName = rootName
         self.rootURL = rootURL
         self.status = status
@@ -70,6 +73,8 @@ struct ScanReportExport: Sendable {
         self.elapsedSeconds = elapsedSeconds
         self.generatedAt = generatedAt
         self.appVersion = appVersion
+        self.catalogMetadata = catalogMetadata
+        self.diagnostics = diagnostics
     }
 
     static func ordered(_ rows: [ScanRow], order: Order, tableOrder: [ScanRowComparator]) -> [ScanRow] {
@@ -105,10 +110,12 @@ struct ScanReportExport: Sendable {
     /// both read non-ASCII paths correctly. The file holds only the table; the folder and
     /// date are in its name.
     func csv() -> String {
-        var lines = [Self.csvHeader.map(Self.csvField).joined(separator: ",")]
+        let identityColumns = catalogMetadata != nil
+        let header = Self.csvHeader + (identityColumns ? ["Target ID", "Catalog Digest", "Path Is Exact"] : [])
+        var lines = [header.map(Self.csvField).joined(separator: ",")]
         for row in rows {
             let bytes = Self.bytes(of: row.size)
-            lines.append([
+            var fields = [
                 row.relativePath,
                 absolutePath(of: row) ?? "",
                 row.language,
@@ -116,7 +123,9 @@ struct ScanReportExport: Sendable {
                 bytes.map(String.init) ?? "",
                 bytes.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary) } ?? "",
                 Self.sizeState(row.size),
-            ].map(Self.csvField).joined(separator: ","))
+            ]
+            if identityColumns { fields += [row.targetID ?? "", row.catalogDigest ?? "", row.unsafePathPrefix == nil ? "true" : "false"] }
+            lines.append(fields.map(Self.csvField).joined(separator: ","))
         }
         return "\u{FEFF}" + lines.joined(separator: "\r\n") + "\r\n"
     }
@@ -147,12 +156,12 @@ struct ScanReportExport: Sendable {
         enum CodingKeys: String, CodingKey {
             case schemaVersion = "schema_version", generatedAt = "generated_at", appVersion = "app_version"
             case root, status, totalBytes = "total_bytes", elapsedSeconds = "elapsed_seconds"
-            case excludedFilters = "excluded_filters", artifacts, errors
+            case excludedFilters = "excluded_filters", artifacts, errors, catalog, diagnostics
         }
 
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(ScanReportExport.schemaVersion, forKey: .schemaVersion)
+            try container.encode(report.catalogMetadata == nil ? ScanReportExport.schemaVersion : 2, forKey: .schemaVersion)
             try container.encode(report.generatedAt, forKey: .generatedAt)
             try container.encode(report.appVersion, forKey: .appVersion)
             try container.encode(report.rootURL?.path ?? report.rootName, forKey: .root)
@@ -164,6 +173,8 @@ struct ScanReportExport: Sendable {
             try container.encode(report.excludedFilterIDs, forKey: .excludedFilters)
             try container.encode(report.rows.map { JSONArtifact(row: $0, report: report) }, forKey: .artifacts)
             try container.encode(report.warnings, forKey: .errors)
+            try container.encodeIfPresent(report.catalogMetadata, forKey: .catalog)
+            if report.catalogMetadata != nil { try container.encode(report.diagnostics, forKey: .diagnostics) }
         }
     }
 
@@ -173,6 +184,7 @@ struct ScanReportExport: Sendable {
 
         enum CodingKeys: String, CodingKey {
             case path, relativePath = "relative_path", language, kind, bytes, sizeState = "size_state", nested
+            case targetID = "target_id", catalogDigest = "catalog_digest", pathIsExact = "path_is_exact"
         }
 
         func encode(to encoder: Encoder) throws {
@@ -185,6 +197,11 @@ struct ScanReportExport: Sendable {
             try container.encode(ScanReportExport.sizeState(row.size), forKey: .sizeState)
             // The app reports only outermost artifact roots, never nested ones.
             try container.encode(false, forKey: .nested)
+            try container.encodeIfPresent(row.targetID, forKey: .targetID)
+            try container.encodeIfPresent(row.catalogDigest, forKey: .catalogDigest)
+            if report.catalogMetadata != nil || row.unsafePathPrefix != nil {
+                try container.encode(row.unsafePathPrefix == nil, forKey: .pathIsExact)
+            }
         }
     }
 
@@ -194,7 +211,7 @@ struct ScanReportExport: Sendable {
     var totalBytes: Int64 { rows.reduce(0) { $0 + (Self.bytes(of: $1.size) ?? 0) } }
 
     func absolutePath(of row: ScanRow) -> String? {
-        rootURL?.appendingPathComponent(row.relativePath, isDirectory: true).path
+        rootURL.map { row.relativePath == "." ? $0.path : $0.appendingPathComponent(row.relativePath, isDirectory: true).path }
     }
 
     static func bytes(of size: SizeState) -> Int64? {
