@@ -168,3 +168,9 @@ Requested QoS is not effective priority; apply is best-effort and has no restore
 behavior. CPU/RSS availability remains independent; no new budget or performance
 claim follows. Historical extraction evidence and outstanding C1–C5 requirements
 are unchanged. Fresh source hashes and checks: `specs/validation/hunter-process-20261022`.
+
+R3 backend injection (2026-10-23) aligns the current upstream source identities
+and adds ScanScopedAccess under the existing filesystem boundary. The concrete
+Hunter API now supports macOS/Linux descriptor acquisition; default clients and
+the plugin selection are unchanged in this layer. Current receipts are under
+hunter-scoped-access-20261023; earlier stage descriptions remain historical.

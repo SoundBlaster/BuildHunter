@@ -1,0 +1,360 @@
+[
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.178,
+    "stdout": "",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/0.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--all-features",
+      "--locked",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "seconds": 4.413,
+    "stdout": "\nrunning 70 tests\n......................................................................\ntest result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.02s\n\n\nrunning 4 tests\n....\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/1.log",
+    "log_sha256": "91d08296ac3af464cb37a86b52cf1230f63836ab245bbeff8994de66e25fe4f3"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--all-features",
+      "--locked",
+      "--release",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "seconds": 7.957,
+    "stdout": "\nrunning 70 tests\n......................................................................\ntest result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.02s\n\n\nrunning 4 tests\n....\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/2.log",
+    "log_sha256": "91d08296ac3af464cb37a86b52cf1230f63836ab245bbeff8994de66e25fe4f3"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "clippy",
+      "--all-features",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "seconds": 0.607,
+    "stdout": "",
+    "stderr": "    Checking build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.50s\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/3.log",
+    "log_sha256": "b86686b3c27e139a1e28b7171363183a3e8209d050b85fdead0b7456a622f173"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/verify_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.054,
+    "stdout": "Hunter vendored snapshot verified: eafb6ff38e27745b23be53ce8df7b4dada51f2c2\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/4.log",
+    "log_sha256": "43e93f9387fa0e7a521215b45edf6717006d1b793216961ce17bbfb9afeeb7cf"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.148,
+    "stdout": "",
+    "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.062s\n\nOK\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/5.log",
+    "log_sha256": "a10efbea5a2da673780ddea94385d1bfa907df20dc3df2d9d51280d2194cf796"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/verify_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.285,
+    "stdout": "{\n  \"target\": \"aarch64-apple-darwin\",\n  \"graphs\": {\n    \"default\": {\n      \"hunter-fs-core\": {\n        \"id\": \"path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0\",\n        \"source\": null\n      }\n    },\n    \"policy\": {\n      \"rifle-rules\": {\n        \"id\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0\",\n        \"source\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910\"\n      }\n    },\n    \"scanner\": {\n      \"hunter-fs\": {\n        \"id\": \"git+https://github.com/SoundBlaster/Hunter.git?rev=eafb6ff38e27745b23be53ce8df7b4dada51f2c2#hunter-fs@0.1.0\",\n        \"source\": \"git+https://github.com/SoundBlaster/Hunter.git?rev=eafb6ff38e27745b23be53ce8df7b4dada51f2c2#eafb6ff38e27745b23be53ce8df7b4dada51f2c2\"\n      },\n      \"rifle-rules\": {\n        \"id\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#rifle-rules@0.1.0\",\n        \"source\": \"git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910\"\n      },\n      \"hunter-fs-core\": {\n        \"id\": \"path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0\",\n        \"source\": null\n      }\n    }\n  }\n}\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/6.log",
+    "log_sha256": "25be024720812b5f307cfc177b65c570604b56d09069bdd7c8b9ddbadd261d43"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.053,
+    "stdout": "",
+    "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/7.log",
+    "log_sha256": "698d16d7b93c4bd9707d3cfacda6fb1e0fea99ed0cda6e69bedc42772940540a"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_offline_cli.py"
+    ],
+    "exit_code": 0,
+    "seconds": 2.072,
+    "stdout": "Fresh Cargo home: offline CLI check, install and launch passed\n",
+    "stderr": "    Checking hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n    Checking build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.37s\n  Installing build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n    Finished `release` profile [optimized] target(s) in 1.32s\n  Installing /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/temporary/buildhunter-offline-0be6y8je/install/bin/build-hunter\n   Installed package `build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)` (executable `build-hunter`)\nwarning: be sure to add `/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/temporary/buildhunter-offline-0be6y8je/install/bin` to your PATH to be able to run the installed binaries\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/8.log",
+    "log_sha256": "369ee1e92b48766abed88a8e37de73cbff203a684312736e7bd33ebd9207e88a"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "seconds": 0.223,
+    "stdout": "",
+    "stderr": ".............\n----------------------------------------------------------------------\nRan 13 tests in 0.160s\n\nOK\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/9.log",
+    "log_sha256": "9ff68b759b1dc20f832f97de75a96a6e2dc33d463f5205b59c656464355c1b70",
+    "evidence_status": "superseded: binary source not explicitly pinned before this initial invocation"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "seconds": 0.506,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.452s\n\nOK\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/10.log",
+    "log_sha256": "c6d7b2b11c0787c7b1d7a365f93ef920faa13560bc216afd2787974decc113c7",
+    "evidence_status": "superseded: binary source not explicitly pinned before this initial invocation"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "seconds": 0.014,
+    "stdout": "BuildHunterRuntime\n  Clients\n    CommandLine\n    MacApplication\n      WindowSession\n      ReportPresentation\n      FolderActions\n      Export\n      Settings\n  SharedRuntime\n    Scanner\n      ScanSession\n        StartupAdmission\n        ScopedLaunch\n        TerminalPublication\n      ArtifactInterpretation\n      Traversal\n      Measurement\n        NativeMeasurementBackend\n        BatchPreparation\n        MetadataFallback\n      CloudGuard\n      ResourceProfile\n    ArtifactClassification\n      CandidateSelection\n      MarkerVocabulary\n      ClientPolicy\n      FilterCatalog\n    PluginPolicy\n      CatalogValidation\n      EffectivePlan\n      CandidateClassification\n    HunterProcessPlatform\n      RequestedThreadQos\n      ProcessResourceSnapshot\n    HunterPortable\n      DirectoryEnumeration\n      MetadataSizing\n    HunterWork\n      TaskScheduling\n      WorkerLifecycle\n    HunterDirectoryTasks\n      TaskContext\n      PositionalMeasurement\n      ResultEnvelope\n    HunterChildTraversal\n      ChildAdmission\n      RecursiveRequests\n    HunterTaskLedger\n      TaskIdentity\n      ResponseAccounting\n      DeferredState\n    HunterSubtreeProgress\n      ByteAggregation\n      CompletionReadiness\n      PartialCompletion\n    HunterScanExecution\n      ResultPump\n      IdleCheckpoint\n      StopBoundary\n    HunterFilesystemBackend\n      NativePathAccess\n      ScanScopedAccess\n      RootInitialization\n    HunterDirectoryWorker\n      TaskExecution\n      ListingFirst\n      PublicationBoundary\n    HunterDirectoryListing\n      OrderedCollection\n      ContextObservation\n      AcquisitionOutcome\n    HunterMeasurementBackend\n      DirectoryPreparation\n      PreparedFileEffects\n      SharedSlotExecution\n    HunterBatchMetadata\n      BatchAcquisition\n      CheckedBatchRecords\n      PreparedSizeLookup\n    HunterScopedSession\n      HelperStartup\n      QueueShutdown\n      JoinBoundary\n    HunterRootAdmission\n      HostRootPreflight\n      RootAdmissionOutcome\n    HunterScanEngine\n      ResponseInterpretation\n      BranchPreparation\n      DeferredResolution\n    HunterEntryProcessing\n      ChildRouting\n      SelectedMetadata\n      CompletionCallbacks\n    HunterTraversalCoordinator\n      CoordinatorRootAdmission\n      OwnedTaskAccounting\n      HostInterpretation\n    HunterScanAssembly\n      GuardedQueue\n      SingleLaunch\n      HostFinalization\n      EngineLaunch\n        ResponseChannel\n        HostConstruction\n        PreJoinCollection\n    HunterBackendLifetime\n      GuardedPreparation\n      BackendRelease\n      ThreadMaterializationPolicy\n    HunterMetadata\n    PluginScanning\n      CandidateObservation\n      MarkerAcquisition\n      TargetRouting\n    RustSwiftBridge\n      PolicyTable\n      EventChannel\n      AccessLifetime\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/11.log",
+    "log_sha256": "315cc6a58182869c6968d30678d92e90c0eabb80d55a5262f534c2cf0a011f3a"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "seconds": 0.015,
+    "stdout": "ok: no issues found\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/12.log",
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "seconds": 0.015,
+    "stdout": "ok: no issues found\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/13.log",
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "seconds": 0.016,
+    "stdout": "ok: no issues found\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/14.log",
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "seconds": 0.018,
+    "stdout": "HunterProducts\n  Hunter\n    Traversal\n    MetadataMeasurement\n    PlatformGuards\n    ScanLifecycle\n    Telemetry\n  Rifle\n    RuleModel\n    CatalogValidation\n    PlanCompilation\n    Evaluation\n    SwiftAuthoring\n  BuildHunter\n    BasicPlugins\n    ArtifactPolicy\n    ScanAssembly\n    CommandLine\n    MacApplication\n  Arsenal\n    CommercialPlugins\n    PluginFixtures\n  StoreDistribution\n    PinnedComposition\n    SigningAndRelease\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/15.log",
+    "log_sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "seconds": 0.016,
+    "stdout": "ok: no issues found\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/16.log",
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "seconds": 0.015,
+    "stdout": "ok: no issues found\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/17.log",
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.3,
+    "stdout": "{\n  \"capabilities\": [\n    \"arsenal.design.catalog\",\n    \"buildhunter.current.application\",\n    \"buildhunter.current.bridge\",\n    \"buildhunter.current.classification\",\n    \"buildhunter.current.scan\",\n    \"buildhunter.delivery.ci\",\n    \"buildhunter.design.product\",\n    \"buildhunter.plugin.policy\",\n    \"buildhunter.plugin.scan\",\n    \"hunter.design.scan\",\n    \"rifle.design.rules\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/arsenal-design.spec.yaml\",\n    \"specs/buildhunter-design.spec.yaml\",\n    \"specs/ci-validation.spec.yaml\",\n    \"specs/current-application.spec.yaml\",\n    \"specs/current-bridge.spec.yaml\",\n    \"specs/current-classification.spec.yaml\",\n    \"specs/current-scan.spec.yaml\",\n    \"specs/hunter-design.spec.yaml\",\n    \"specs/plugin-policy.spec.yaml\",\n    \"specs/plugin-scanner.spec.yaml\",\n    \"specs/rifle-design.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"BuildHunter current boundaries and target module architecture\",\n    \"package_id\": \"buildhunter.module_architecture\",\n    \"version\": \"0.1.0-draft.33\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 39,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/ci-validation.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.github.actions\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.portable\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.work\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.child_traversal\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.task_ledger\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.subtree_progress\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scan_execution\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.backend\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_worker\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_listing\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.measurement_backend\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scoped_session\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.root_admission\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scan_engine\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.entry_processing\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.traversal_coordinator\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scan_assembly\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.backend_lifetime\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.darwin_bulk_metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.prepared_directory_sizes\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.platform.requested_qos\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-scan.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.platform.process_resources\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-bridge.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.bridge\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/current-application.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.classification\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/hunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.design.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/buildhunter-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: arsenal.design.catalog\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/arsenal-design.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.design.rules\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.catalog.validate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-policy.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.program.evaluate\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.current.scan\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: buildhunter.plugin.policy\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/plugin-scanner.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.scoped_metadata\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/18.log",
+    "log_sha256": "f4c7b69dd6ba80656bc1506490696e78121959872ce009dc7eec8d395b513113"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "build",
+      "--release",
+      "--locked"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)\n   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)\n    Finished `release` profile [optimized] target(s) in 2.07s\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/19.log",
+    "log_sha256": "f4c1d96e3bcd02831f5624a6cabda29f5d2d97022487a43201b89761fa025c53",
+    "binary_sha256": "1db3fdde00ebfcd9dcf3f99ab2e0a28d6268f26a909b2c6396ec1dafde2d8fc0"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ".............\n----------------------------------------------------------------------\nRan 13 tests in 0.356s\n\nOK\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/20.log",
+    "log_sha256": "d2e9743c94e4ac69e9c471be771281e97d6fb7952c9dde43e3461b769dae4008",
+    "binary_sha256": "1db3fdde00ebfcd9dcf3f99ab2e0a28d6268f26a909b2c6396ec1dafde2d8fc0"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.525s\n\nOK\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/scoped-access-20261023/21.log",
+    "log_sha256": "95f7e10e2e542dbf90440a42564b454777a3fb34be9656dda220f0dcd8a8a0e7",
+    "binary_sha256": "1db3fdde00ebfcd9dcf3f99ab2e0a28d6268f26a909b2c6396ec1dafde2d8fc0"
+  }
+]

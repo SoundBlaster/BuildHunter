@@ -10,6 +10,16 @@ pub trait FilesystemBackend {
     type Entries: IntoIterator<Item = io::Result<fs::DirEntry>>;
     fn symlink_metadata(&self, path: &Path) -> io::Result<fs::Metadata>;
     fn read_dir(&self, path: &Path) -> io::Result<Self::Entries>;
+    /// Optional scan-scoped fallback for coordinator measurement. None preserves
+    /// the original one-path-at-a-time backend. Some(Err) is authoritative and
+    /// must never cause pathname fallback. The handle is acquired lazily, at the
+    /// first missing directory/file result, and retained for that selected pass.
+    fn prepare_directory(
+        &self,
+        _path: &Path,
+    ) -> Option<io::Result<Box<dyn crate::DirectoryAccess + '_>>> {
+        None
+    }
 }
 
 /// Standard filesystem operations with no policy, caching or extra observations.

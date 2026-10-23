@@ -955,3 +955,33 @@ Runtime policy/ABI and requirement acceptance stay unchanged; the new current-ma
 property binds test evidence only. Fresh source/run identities are recorded under
 `validation/migration-parity-20261022`. Baseline coverage does not close R3/R4 or
 owner decisions on marker links and lossless action paths.
+
+### R3 scan-scoped acquisition seam — 2026-10-23
+
+Hunter facade/core are aligned to `bfcd75f8996b5a958c81238bb6d44d9fa1f88047`.
+`scan_with_candidate_access` routes admission, listings, worker preparation and
+coordinator fallback through one borrowed backend until join. Failed acquisition
+is authoritative; prepared handles release before terminal publication. Ordinary
+CLI/GUI acquisition/selection and the numeric FFI remain unchanged. EntryType
+replaces opaque native file types in generic routing, preserving its four decisions.
+
+Affected roles: Scanner/Measurement and HunterFilesystemBackend/ScanScopedAccess,
+HunterDirectoryListing, HunterEntryProcessing and existing route/task envelopes.
+The optional interface is folded into `buildhunter.current.scan`; the concrete
+macOS/Linux ownership boundary belongs to Hunter's new scoped-filesystem spec.
+The plugin package pin is aligned but does not select that backend in this layer.
+Current maps/bindings are refreshed; target requirements stay draft and unchanged.
+Receipts: `validation/hunter-scoped-access-20261023`. Std-backed spy tests prove
+routing/lifetime and fail-closed fallback, not descriptor safety. R3 integration,
+Windows support, C3/C4 owner decisions, R4 and R5 remain separate.
+
+### R3 scoped diagnostic boundary review — 2026-10-23
+
+Review of #106 found that legacy error decoration performed a new pathname stat
+after a scoped failure. Probes now passes an explicit ErrorScope through every
+root/listing/prepared/fallback error decoration path. Scoped errors preserve their
+original payload without metadata reads; only standard scans retain native
+dataless decoration. The regression simulates unrelated dataless metadata and
+checks no lookup and unchanged OS errors. Source/contract/map/run identities:
+`validation/scoped-error-review-20261023`. CloudGuard/Measurement are existing
+roles; no new ownership node or accepted requirement is introduced.

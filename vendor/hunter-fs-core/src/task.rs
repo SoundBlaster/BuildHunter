@@ -14,7 +14,7 @@ pub struct DirectoryTask<Id, Context = ()> {
 }
 #[derive(Debug, Default)]
 pub struct DirectoryListing<Context = ()> {
-    pub children: Vec<(PathBuf, fs::FileType)>,
+    pub children: Vec<(PathBuf, crate::EntryType)>,
     pub errors: Vec<(PathBuf, io::Error)>,
     pub context: Context,
 }
@@ -48,7 +48,7 @@ impl<Id: Clone, Context> DirectoryTask<Id, Context> {
     /// Neither the context nor filesystem is inspected to decide whether to measure.
     pub fn measurement_plan(
         &self,
-        children: &[(PathBuf, fs::FileType)],
+        children: &[(PathBuf, crate::EntryType)],
         prefetch: bool,
     ) -> Option<DirectoryMeasurementPlan<'_, Id>> {
         (self.measure || prefetch).then(|| DirectoryMeasurementPlan {
@@ -146,7 +146,7 @@ mod tests {
                 context: 17,
             }
         }
-        fn entries(&self) -> Vec<(PathBuf, fs::FileType)> {
+        fn entries(&self) -> Vec<(PathBuf, crate::EntryType)> {
             fs::create_dir(self.0.join("dir")).unwrap();
             fs::write(self.0.join("a"), b"a").unwrap();
             fs::write(self.0.join("b"), b"b").unwrap();
@@ -154,7 +154,7 @@ mod tests {
                 .into_iter()
                 .map(|name| {
                     let p = self.0.join(name);
-                    let kind = fs::symlink_metadata(&p).unwrap().file_type();
+                    let kind = fs::symlink_metadata(&p).unwrap().file_type().into();
                     (p, kind)
                 })
                 .collect()
@@ -285,7 +285,10 @@ mod tests {
         let mut entries = t.entries();
         std::os::unix::fs::symlink("a", t.0.join("link")).unwrap();
         let p = t.0.join("link");
-        entries.push((p.clone(), fs::symlink_metadata(p).unwrap().file_type()));
+        entries.push((
+            p.clone(),
+            fs::symlink_metadata(p).unwrap().file_type().into(),
+        ));
         let task = t.task(true);
         let calls = Cell::new(0);
         let measured = task.measurement_plan(&entries, false).unwrap().measure(

@@ -11,13 +11,13 @@ use std::{
 /// All callbacks are serial on the caller; no Send or static bound is imposed.
 pub trait ChildHandler<Context> {
     type Selected;
-    fn select(&mut self, index: usize, path: &Path, file_type: fs::FileType) -> ChildDecision;
+    fn select(&mut self, index: usize, path: &Path, file_type: crate::EntryType) -> ChildDecision;
     fn directory(&mut self, index: usize, request: DirectoryRequest<Context>);
     fn entry(
         &mut self,
         index: usize,
         path: PathBuf,
-        file_type: fs::FileType,
+        file_type: crate::EntryType,
     ) -> Option<Self::Selected>;
 }
 /// Selected prefix in input order. On stop the host decides whether to keep it.
@@ -70,7 +70,10 @@ impl<Context> SelectedEntry<Context> {
         backend: &B,
         supplied: Option<io::Result<MeasuredSize>>,
     ) -> io::Result<MeasuredSize> {
-        supplied.unwrap_or_else(|| backend.symlink_metadata(&self.path).map(MeasuredSize::from))
+        supplied.unwrap_or_else(|| {
+            FallbackDirectory::new(backend, self.path.parent().unwrap_or(Path::new("")))
+                .entry(&self.path)
+        })
     }
 }
 
@@ -107,20 +110,229 @@ impl<Context> SelectedMeasurementPlan<Context> {
         mut files: Vec<Option<io::Result<MeasuredSize>>>,
         host: &mut H,
     ) {
+        let mut fallback = FallbackDirectory::new(backend, &self.path);
         if self.include_directory {
             let metadata = match self.root_metadata {
-                Some(metadata) => Ok(metadata),
-                None => directory.unwrap_or_else(|| backend.symlink_metadata(&self.path)),
+                Some(metadata) => Ok(MeasuredSize::from(metadata)),
+                None => directory.map_or_else(
+                    || fallback.directory(),
+                    |metadata| metadata.map(MeasuredSize::from),
+                ),
             };
-            host.directory(&self.path, metadata.map(MeasuredSize::from));
+            host.directory(&self.path, metadata);
         }
         for (index, entry) in self.entries.iter().enumerate() {
             host.checkpoint(index);
             let supplied = files.get_mut(entry.index).and_then(Option::take);
-            let metadata = entry.resolve_metadata(backend, supplied);
+            let metadata = supplied.unwrap_or_else(|| fallback.entry(&entry.path));
             host.entry(entry, metadata);
         }
         host.finish();
+    }
+}
+
+struct FallbackDirectory<'a, B: ?Sized> {
+    backend: &'a B,
+    path: &'a Path,
+    prepared: Option<PreparedFallback<'a>>,
+}
+type PreparedFallback<'a> = Option<io::Result<Box<dyn crate::DirectoryAccess + 'a>>>;
+impl<'a, B: FilesystemBackend + ?Sized> FallbackDirectory<'a, B> {
+    fn new(backend: &'a B, path: &'a Path) -> Self {
+        Self {
+            backend,
+            path,
+            prepared: None,
+        }
+    }
+    fn prepared(&mut self) -> Option<io::Result<&dyn crate::DirectoryAccess>> {
+        self.prepared
+            .get_or_insert_with(|| self.backend.prepare_directory(self.path))
+            .as_ref()
+            .map(|result| {
+                result
+                    .as_ref()
+                    .map(|directory| directory.as_ref())
+                    .map_err(copy_error)
+            })
+    }
+    fn directory(&mut self) -> io::Result<MeasuredSize> {
+        match self.prepared() {
+            Some(directory) => directory?.metadata().map(MeasuredSize::from),
+            None => self
+                .backend
+                .symlink_metadata(self.path)
+                .map(MeasuredSize::from),
+        }
+    }
+    fn entry(&mut self, path: &Path) -> io::Result<MeasuredSize> {
+        match self.prepared() {
+            Some(directory) => directory?
+                .entry_metadata(path.file_name().ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidInput, "Missing child name")
+                })?)
+                .map(|metadata| metadata.size),
+            None => self.backend.symlink_metadata(path).map(MeasuredSize::from),
+        }
+    }
+}
+fn copy_error(error: &io::Error) -> io::Error {
+    error.raw_os_error().map_or_else(
+        || io::Error::new(error.kind(), error.to_string()),
+        io::Error::from_raw_os_error,
+    )
+}
+
+#[cfg(test)]
+mod scoped_fallback_tests {
+    use super::*;
+    use crate::{DirectoryAccess, EntryMetadata, EntryType};
+    use std::cell::Cell;
+
+    struct Backend {
+        prepares: Cell<usize>,
+        fail: bool,
+    }
+    impl FilesystemBackend for Backend {
+        type Entries = fs::ReadDir;
+        fn symlink_metadata(&self, _: &Path) -> io::Result<fs::Metadata> {
+            panic!("no pathname fallback")
+        }
+        fn read_dir(&self, _: &Path) -> io::Result<Self::Entries> {
+            panic!("no extra listing")
+        }
+        fn prepare_directory(&self, _: &Path) -> Option<io::Result<Box<dyn DirectoryAccess + '_>>> {
+            self.prepares.set(self.prepares.get() + 1);
+            Some(if self.fail {
+                Err(io::Error::from_raw_os_error(13))
+            } else {
+                Ok(Box::new(Directory))
+            })
+        }
+    }
+    struct Directory;
+    impl DirectoryAccess for Directory {
+        fn metadata(&self) -> io::Result<fs::Metadata> {
+            fs::metadata(env!("CARGO_MANIFEST_DIR"))
+        }
+        fn entry_metadata(&self, name: &std::ffi::OsStr) -> io::Result<EntryMetadata> {
+            assert_eq!(name, "leaf");
+            Ok(EntryMetadata {
+                file_type: EntryType::RegularFile,
+                size: MeasuredSize {
+                    apparent: 123,
+                    allocated: 512,
+                },
+            })
+        }
+    }
+    #[derive(Default)]
+    struct Host {
+        directory: Option<io::Result<MeasuredSize>>,
+        entries: Vec<io::Result<MeasuredSize>>,
+        finished: bool,
+    }
+    impl MeasurementHandler<()> for Host {
+        fn directory(&mut self, _: &Path, metadata: io::Result<MeasuredSize>) {
+            self.directory = Some(metadata);
+        }
+        fn checkpoint(&mut self, _: usize) {}
+        fn entry(&mut self, _: &SelectedEntry<()>, metadata: io::Result<MeasuredSize>) {
+            self.entries.push(metadata);
+        }
+        fn finish(&mut self) {
+            self.finished = true;
+        }
+    }
+    fn plan() -> SelectedMeasurementPlan<()> {
+        SelectedMeasurementPlan {
+            path: "selected".into(),
+            include_directory: true,
+            root_metadata: None,
+            entries: (0..3)
+                .map(|index| SelectedEntry {
+                    index,
+                    path: Path::new("selected").join("leaf"),
+                    context: (),
+                })
+                .collect(),
+        }
+    }
+    #[test]
+    fn one_scoped_directory_serves_all_missing_slots_without_retrying_cached_error() {
+        let backend = Backend {
+            prepares: Cell::new(0),
+            fail: false,
+        };
+        let mut host = Host::default();
+        let cached = MeasuredSize {
+            apparent: 7,
+            allocated: 8,
+        };
+        plan().resolve(
+            &backend,
+            None,
+            vec![
+                Some(Ok(cached)),
+                None,
+                Some(Err(io::Error::from_raw_os_error(5))),
+            ],
+            &mut host,
+        );
+        assert_eq!(backend.prepares.get(), 1);
+        assert!(host.directory.unwrap().is_ok());
+        assert_eq!(host.entries[0].as_ref().unwrap(), &cached);
+        assert_eq!(host.entries[1].as_ref().unwrap().apparent, 123);
+        assert_eq!(
+            host.entries[2].as_ref().unwrap_err().raw_os_error(),
+            Some(5)
+        );
+        assert!(host.finished);
+    }
+    #[test]
+    fn failed_scoped_preparation_never_uses_path_fallback_and_is_not_retried() {
+        let backend = Backend {
+            prepares: Cell::new(0),
+            fail: true,
+        };
+        let mut host = Host::default();
+        plan().resolve(&backend, None, vec![], &mut host);
+        assert_eq!(backend.prepares.get(), 1);
+        assert_eq!(
+            host.directory.unwrap().unwrap_err().raw_os_error(),
+            Some(13)
+        );
+        assert!(
+            host.entries
+                .iter()
+                .all(|result| result.as_ref().unwrap_err().raw_os_error() == Some(13))
+        );
+        assert!(host.finished);
+    }
+    #[test]
+    fn fully_cached_measurements_do_not_open_a_fallback_directory() {
+        let backend = Backend {
+            prepares: Cell::new(0),
+            fail: true,
+        };
+        let mut host = Host::default();
+        let mut plan = plan();
+        plan.root_metadata = Some(fs::metadata(env!("CARGO_MANIFEST_DIR")).unwrap());
+        plan.resolve(
+            &backend,
+            None,
+            (0..3)
+                .map(|_| {
+                    Some(Ok(MeasuredSize {
+                        apparent: 7,
+                        allocated: 8,
+                    }))
+                })
+                .collect(),
+            &mut host,
+        );
+        assert_eq!(backend.prepares.get(), 0);
+        assert!(host.finished);
     }
 }
 
@@ -164,7 +376,7 @@ mod tests {
     }
     impl ChildHandler<Context> for Router {
         type Selected = Slot;
-        fn select(&mut self, index: usize, _: &Path, _: fs::FileType) -> ChildDecision {
+        fn select(&mut self, index: usize, _: &Path, _: crate::EntryType) -> ChildDecision {
             self.calls.push(format!("select:{index}"));
             if self.skip == Some(index) {
                 ChildDecision::Skip
@@ -178,7 +390,7 @@ mod tests {
             self.calls.push(format!("directory:{index}"));
             assert!(request.measure);
         }
-        fn entry(&mut self, index: usize, _: PathBuf, _: fs::FileType) -> Option<Slot> {
+        fn entry(&mut self, index: usize, _: PathBuf, _: crate::EntryType) -> Option<Slot> {
             self.calls.push(format!("entry:{index}"));
             assert_ne!(self.panic_entry, Some(index), "entry callback");
             Some(Slot(self.selected_drops.clone()))
@@ -193,7 +405,7 @@ mod tests {
             selected_drops: Rc::new(Cell::new(0)),
         }
     }
-    fn kind(directory: bool) -> fs::FileType {
+    fn kind(directory: bool) -> crate::EntryType {
         let p = Path::new(env!("CARGO_MANIFEST_DIR"));
         fs::symlink_metadata(if directory {
             p.to_path_buf()
@@ -202,6 +414,7 @@ mod tests {
         })
         .unwrap()
         .file_type()
+        .into()
     }
     fn context() -> Context {
         Context {

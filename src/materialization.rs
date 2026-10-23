@@ -87,21 +87,79 @@ mod tests {
     }
 }
 
-/// Keep errno/kind intact except when we can identify a dataless object explicitly.
-pub(crate) fn describe_error(path: &std::path::Path, error: std::io::Error) -> std::io::Error {
-    #[cfg(target_os = "macos")]
-    {
-        use std::os::macos::fs::MetadataExt;
-        const SF_DATALESS: u32 = 0x4000_0000;
-        if std::fs::symlink_metadata(path)
-            .is_ok_and(|metadata| metadata.st_flags() & SF_DATALESS != 0)
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ErrorScope {
+    Native,
+    Scoped,
+}
+
+/// A scoped backend owns all diagnostic metadata too. Its errors are never
+/// decorated using a pathname probe, even when the displayed path still exists.
+pub(crate) fn describe_error(
+    path: &std::path::Path,
+    error: std::io::Error,
+    scope: ErrorScope,
+) -> std::io::Error {
+    describe_error_with(path, error, scope, |path| {
+        #[cfg(target_os = "macos")]
         {
-            return dataless_error(error);
+            use std::os::macos::fs::MetadataExt;
+            const SF_DATALESS: u32 = 0x4000_0000;
+            std::fs::symlink_metadata(path)
+                .is_ok_and(|metadata| metadata.st_flags() & SF_DATALESS != 0)
         }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = path;
+            false
+        }
+    })
+}
+
+fn describe_error_with(
+    path: &std::path::Path,
+    error: std::io::Error,
+    scope: ErrorScope,
+    native_is_dataless: impl FnOnce(&std::path::Path) -> bool,
+) -> std::io::Error {
+    if scope == ErrorScope::Scoped {
+        return error;
+    }
+    #[cfg(target_os = "macos")]
+    if native_is_dataless(path) {
+        return dataless_error(error);
     }
     #[cfg(not(target_os = "macos"))]
-    let _ = path;
+    let _ = (path, native_is_dataless);
     error
+}
+
+#[cfg(all(test, target_os = "macos"))]
+#[test]
+fn scoped_errors_never_probe_or_relabel_a_replaced_native_path() {
+    use std::{cell::Cell, io, path::Path};
+    let attempts = Cell::new(0);
+    for code in [2, 13, 35] {
+        let original = io::Error::from_raw_os_error(code);
+        let message = original.to_string();
+        let result = describe_error_with(
+            Path::new("selected/replaced/foreign"),
+            original,
+            ErrorScope::Scoped,
+            |_| {
+                attempts.set(attempts.get() + 1);
+                true // Simulate unrelated native metadata claiming SF_DATALESS.
+            },
+        );
+        assert_eq!(result.raw_os_error(), Some(code));
+        assert_eq!(result.to_string(), message);
+        assert!(!is_dataless_error(&result));
+    }
+    assert_eq!(
+        attempts.get(),
+        0,
+        "scoped errors must perform no native diagnostic lookup"
+    );
 }
 
 #[cfg(target_os = "macos")]

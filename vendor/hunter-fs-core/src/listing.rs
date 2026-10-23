@@ -17,17 +17,32 @@ pub fn collect_directory<I, Context>(
     entries: io::Result<I>,
     context: Context,
     should_stop: impl FnMut() -> bool,
-    mut observe: impl FnMut(&Path, fs::FileType, &mut Context) -> io::Result<()>,
+    observe: impl FnMut(&Path, crate::EntryType, &mut Context) -> io::Result<()>,
 ) -> (DirectoryListing<Context>, DirectoryVisit)
 where
     I: IntoIterator<Item = io::Result<fs::DirEntry>>,
 {
+    collect_directory_events(
+        context,
+        |emit| visit_directory(path, entries, should_stop, emit),
+        observe,
+    )
+}
+
+/// Collect the same owned listing from an alternative acquisition backend. The
+/// visitor owns opening, stop checks and error ordering; the observer and retained
+/// context follow exactly the same rules as `collect_directory`.
+pub fn collect_directory_events<Context>(
+    context: Context,
+    visit: impl FnOnce(&mut dyn FnMut(DirectoryEvent)) -> DirectoryVisit,
+    mut observe: impl FnMut(&Path, crate::EntryType, &mut Context) -> io::Result<()>,
+) -> (DirectoryListing<Context>, DirectoryVisit) {
     let mut listing = DirectoryListing {
         children: Vec::new(),
         errors: Vec::new(),
         context,
     };
-    let outcome = visit_directory(path, entries, should_stop, |event| match event {
+    let outcome = visit(&mut |event| match event {
         DirectoryEvent::Error { path, error } => listing.errors.push((path, error)),
         DirectoryEvent::Entry { path, file_type } => {
             if let Err(error) = observe(&path, file_type, &mut listing.context) {

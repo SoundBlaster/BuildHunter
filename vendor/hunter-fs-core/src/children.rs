@@ -1,7 +1,6 @@
 //! Streaming child selection for host-coordinated recursive traversal.
 use crate::DirectoryTask;
 use std::{
-    fs,
     iter::Enumerate,
     path::{Path, PathBuf},
     vec::IntoIter,
@@ -43,7 +42,7 @@ pub enum PlannedChild<Context = ()> {
     Entry {
         index: usize,
         path: PathBuf,
-        file_type: fs::FileType,
+        file_type: crate::EntryType,
     },
 }
 
@@ -54,13 +53,17 @@ pub enum PlannedChild<Context = ()> {
 /// Drop the plan to release the listing buffer and any unconsumed suffix after Stop.
 #[derive(Debug)]
 pub struct ChildTraversal<Context = ()> {
-    children: Enumerate<IntoIter<(PathBuf, fs::FileType)>>,
+    children: Enumerate<IntoIter<(PathBuf, crate::EntryType)>>,
     context: Context,
     measure: bool,
     stopped: bool,
 }
 impl<Context: Clone> ChildTraversal<Context> {
-    pub fn new(children: Vec<(PathBuf, fs::FileType)>, context: Context, measure: bool) -> Self {
+    pub fn new(
+        children: Vec<(PathBuf, crate::EntryType)>,
+        context: Context,
+        measure: bool,
+    ) -> Self {
         Self {
             children: children.into_iter().enumerate(),
             context,
@@ -75,7 +78,7 @@ impl<Context: Clone> ChildTraversal<Context> {
     /// Directory symlinks remain Entry values when supplied as symlink observations.
     pub fn next_child(
         &mut self,
-        mut select: impl FnMut(usize, &Path, fs::FileType) -> ChildDecision,
+        mut select: impl FnMut(usize, &Path, crate::EntryType) -> ChildDecision,
     ) -> Option<PlannedChild<Context>> {
         if self.stopped {
             return None;
@@ -118,9 +121,9 @@ impl<Context: Clone> ChildTraversal<Context> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
     use std::{
         cell::Cell,
-        fs,
         path::PathBuf,
         rc::Rc,
         sync::atomic::{AtomicU64, Ordering},
@@ -139,12 +142,12 @@ mod tests {
             fs::write(p.join("file"), b"x").unwrap();
             Self(p)
         }
-        fn entries(&self, names: &[&str]) -> Vec<(PathBuf, fs::FileType)> {
+        fn entries(&self, names: &[&str]) -> Vec<(PathBuf, crate::EntryType)> {
             names
                 .iter()
                 .map(|n| {
                     let p = self.0.join(n);
-                    let kind = fs::symlink_metadata(&p).unwrap().file_type();
+                    let kind = fs::symlink_metadata(&p).unwrap().file_type().into();
                     (p, kind)
                 })
                 .collect()

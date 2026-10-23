@@ -55,12 +55,12 @@ mod tests {
                 context: (),
             }
         }
-        fn entries(&self) -> Vec<(PathBuf, fs::FileType)> {
+        fn entries(&self) -> Vec<(PathBuf, crate::EntryType)> {
             ["dir", "a", "b"]
                 .into_iter()
                 .map(|name| {
                     let p = self.0.join(name);
-                    let k = fs::symlink_metadata(&p).unwrap().file_type();
+                    let k = fs::symlink_metadata(&p).unwrap().file_type().into();
                     (p, k)
                 })
                 .collect()

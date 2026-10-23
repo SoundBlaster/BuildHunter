@@ -497,3 +497,13 @@ Each counter is independently optional; unsupported platforms return no values.
 The host owns timing, deltas, percentages, averages, peaks and scan attribution.
 No child processes, scan-tree payloads or sampling tasks are introduced.
 See the draft [process-platform contract](../../specs/process-platform.spec.yaml).
+
+Optional `ScanAccess` and `DirectoryAccess` connect a scan-scoped native backend
+without imposing it on std-only clients. `EntryType` categorizes directory, regular
+file, symlink and other observations; it does not expose std metadata layout.
+`FilesystemBackend::prepare_directory` defaults to None. Selected fallback lazily
+retains a supplied prepared directory for the pass and treats its errors as
+authoritative; fully cached passes acquire nothing. `collect_directory_events`
+shares listing/context collection with the default std visitor. These seams alone
+do not promise an anchored tree; the facade's ScopedFilesystem supplies the
+macOS/Linux implementation and the host retains its guards.

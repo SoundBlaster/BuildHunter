@@ -1,5 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
+  current_evidence: "specs/validation/scoped-error-review-20261023/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -59,7 +60,7 @@ MetadataFallback:
   folded_into: "buildhunter.current.scan"
 CloudGuard:
   source: "src/materialization.rs"
-  implementation: "compatibility alias and product dataless error decoration; native guard lives in Hunter"
+  implementation: "compatibility alias; native-only dataless error decoration, scoped errors unchanged; native guard lives in Hunter"
   folded_into: "buildhunter.current.scan"
 ResourceProfile:
   source: "src/profile.rs"
@@ -121,7 +122,7 @@ CandidateObservation:
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.portable (upstream draft)"
   distribution: "exact vendored std-only path dependency"
 DirectoryEnumeration:
@@ -133,7 +134,7 @@ MetadataSizing:
 HunterWork:
   source: "vendor/hunter-fs-core/src/work.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.work (upstream draft)"
 TaskScheduling:
   implementation: "WorkQueue<ListTask>, host owns task/recursion decisions"
@@ -144,7 +145,7 @@ WorkerLifecycle:
 HunterDirectoryTasks:
   source: "vendor/hunter-fs-core/src/task.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.directory_tasks (upstream draft)"
 TaskContext:
   implementation: "DirectoryTask/ListTask + DirectoryListing; opaque host u32 contexts"
@@ -158,7 +159,7 @@ ResultEnvelope:
 HunterChildTraversal:
   source: "vendor/hunter-fs-core/src/children.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.child_traversal (upstream draft)"
 ChildAdmission:
   implementation: "ChildTraversal::next_child; host checkpoint/stop/cloud decisions"
@@ -169,7 +170,7 @@ RecursiveRequests:
 HunterTaskLedger:
   source: "vendor/hunter-fs-core/src/ledger.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.task_ledger (upstream draft)"
 TaskIdentity:
   implementation: "DirectoryTaskLedger::register + take_listing"
@@ -183,7 +184,7 @@ DeferredState:
 HunterSubtreeProgress:
   source: "vendor/hunter-fs-core/src/subtree.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.subtree_progress (upstream draft)"
 ByteAggregation:
   implementation: "SubtreeProgress::add_bytes/set_bytes; host ancestor routing and size units"
@@ -197,7 +198,7 @@ PartialCompletion:
 HunterScanExecution:
   source: "vendor/hunter-fs-core/src/execution.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.scan_execution (upstream draft)"
 ResultPump:
   implementation: "drive_scan + Hunter coordinator/engine Adapter; host-decoded WorkerMessage"
@@ -211,7 +212,7 @@ StopBoundary:
 HunterFilesystemBackend:
   source: "vendor/hunter-fs-core/src/backend.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.backend (upstream draft)"
 NativePathAccess:
   implementation: "StdFilesystem + guarded local Probes trait implementation; marker/bulk exceptions stay local"
@@ -222,7 +223,7 @@ RootInitialization:
 HunterDirectoryWorker:
   source: "vendor/hunter-fs-core/src/worker.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.directory_worker (upstream draft)"
 TaskExecution:
   implementation: "run_directory_worker + local WorkerAdapter; guard retained outside loop"
@@ -236,7 +237,7 @@ PublicationBoundary:
 HunterDirectoryListing:
   source: "vendor/hunter-fs-core/src/listing.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.directory_listing (upstream draft)"
 OrderedCollection:
   implementation: "collect_directory over host-opened entries; ordered owned children/errors"
@@ -250,13 +251,13 @@ AcquisitionOutcome:
 HunterMeasurementBackend:
   source: "vendor/hunter-fs-core/src/measurement.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.measurement_backend (upstream draft)"
 DirectoryPreparation:
   implementation: "measure_with: directory_metadata then prepare_files, including error/pre-cancel"
   folded_into: "buildhunter.current.scan"
 PreparedFileEffects:
-  implementation: "owned FileMeasurementBackend state; host native/bulk policy and guards"
+  implementation: "owned prepared state; native/bulk or authoritative scan-scoped directory, guard held"
   folded_into: "buildhunter.current.scan"
 SharedSlotExecution:
   implementation: "typed and closure task APIs share measure_prepared; original slots and partial prefix"
@@ -264,7 +265,7 @@ SharedSlotExecution:
 HunterScopedSession:
   source: "vendor/hunter-fs-core/src/session.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.scoped_session (upstream draft)"
 HelperStartup:
   implementation: "start host helpers before workers and caller-thread coordinator"
@@ -278,9 +279,9 @@ JoinBoundary:
 HunterMetadata:
   source: "specs/evidence/hunter-parent-review-20261014/upstream/scoped_metadata.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "c5354e973b5d1d90c438c94b78c06898ffe62500"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.scoped_metadata (upstream draft)"
-  implemented_scope: "Unix scoped markers; unchanged source bytes at aligned facade pin"
+  implemented_scope: "Unix scoped markers plus unselected macOS/Linux acquisition API at aligned facade pin"
   dependency_assembly: "scanner workspace patches Hunter Git core to the verified application vendor source; downstream roots own their patches"
 MarkerAcquisition:
   source: "crates/buildhunter-plugin-scanner/src/scope.rs"
@@ -312,7 +313,7 @@ TargetRouting:
 HunterRootAdmission:
   source: "vendor/hunter-fs-core/src/admission.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.root_admission (upstream draft)"
 HostRootPreflight:
   implementation: "host cloud_skip_reason before backend metadata; guards stay local"
@@ -323,7 +324,7 @@ RootAdmissionOutcome:
 HunterBackendLifetime:
   source: "vendor/hunter-fs-core/src/lifetime.rs"
   upstream_repository: "SoundBlaster/Hunter"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.backend_lifetime (upstream draft)"
 GuardedPreparation:
   implementation: "enter guard then prepare borrowed Probes or owned WorkerAdapter"
@@ -338,7 +339,7 @@ ThreadMaterializationPolicy:
 HunterScanAssembly:
   source: "vendor/hunter-fs-core/src/assembly.rs"
   launch_source: "vendor/hunter-fs-core/src/launch.rs"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.scan_assembly (upstream draft)"
 GuardedQueue:
   implementation: "with_scan_session; owned queue and capped parallelism inside backend scope"
@@ -353,7 +354,7 @@ ArtifactInterpretation:
   folded_into: "buildhunter.current.scan"
 HunterTraversalCoordinator:
   source: "vendor/hunter-fs-core/src/coordinator.rs"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.traversal_coordinator (upstream draft)"
 CoordinatorRootAdmission:
   implementation: "original preflight/observation then ArtifactHandler initialize"
@@ -363,7 +364,7 @@ HostInterpretation:
   implementation: "caller-thread opaque host callbacks and partial finalization; not product status or join"
 HunterEntryProcessing:
   source: "vendor/hunter-fs-core/src/processing.rs"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.entry_processing (upstream draft)"
 ChildRouting:
   implementation: "ChildTraversal::route + ChildHandler; original indices and selected prefix"
@@ -373,7 +374,7 @@ CompletionCallbacks:
   implementation: "MeasurementHandler finish before selected/cached buffers drop"
 HunterScanEngine:
   source: "vendor/hunter-fs-core/src/engine.rs"
-  upstream_revision: "40c0f5384c70879f529c6069d835dafff316567a"
+  upstream_revision: "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
   boundary_spec: "hunter.fs.scan_engine (upstream draft)"
 ResponseInterpretation:
   implementation: "ArtifactHandler response decodes SetupFailed or DirectoryResult after receipt/stop handling"
@@ -421,3 +422,9 @@ ProcessResourceSnapshot:
   source: "vendor/hunter-fs-core/src/process_resources.rs"
   implementation: "current-process CPU nanoseconds and resident bytes; independent optional counters"
   folded_into: "hunter.platform.process"
+
+ScanScopedAccess:
+  source: "vendor/hunter-fs-core/src/scan_access.rs"
+  host_source: "src/lib.rs"
+  implementation: "optional scan_with_candidate_access and ProbedDirectory; standard clients keep pathname access"
+  folded_into: "buildhunter.current.scan"

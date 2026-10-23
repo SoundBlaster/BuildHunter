@@ -60,6 +60,7 @@ BuildHunterRuntime
       StopBoundary
     HunterFilesystemBackend
       NativePathAccess
+      ScanScopedAccess
       RootInitialization
     HunterDirectoryWorker
       TaskExecution
