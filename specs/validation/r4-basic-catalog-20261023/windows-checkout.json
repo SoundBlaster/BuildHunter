@@ -1,0 +1,16 @@
+{
+  "failed_head": "8b7f347f2549dc0af3ee2ecd4e1c624f43350475",
+  "expected_sha256": "3668791382a9825ddf5140cbace1bef9fc193166e5bede0c12924346279e3249",
+  "crlf_sha256": "a43ba53f718f8cc8e62d4f5b8ebe2c8510450b5f3503976ecd19c69d3e9d2009",
+  "regression": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "scripts",
+    "-p",
+    "test_plugin_dependencies.py"
+  ],
+  "local_result": "10 tests passed; upstream bytes preserved with core.autocrlf=true; fresh Windows CI pending"
+}

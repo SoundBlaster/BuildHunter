@@ -23,7 +23,7 @@
     "plugins/basic/gui-v1/python.json": "2077c909286c41763f5b73c78f5befc20f5f63be0e7213aa5d19625630298735",
     "plugins/basic/gui-v1/rust.json": "84acc87d140786bf4fd58dc3816eb5a4dde2e31e9e51d1b24924cd76c3d64984",
     "plugins/basic/gui-v1/swift.json": "a995972a4230af1c00b40632d2c42a0e572c5fbff95ea3ea2cd376c3c5ecce28",
-    "scripts/test_plugin_dependencies.py": "106852534c6d57ed150a2db94932827a4c7cc4a028dc2890de69613aaf110d76",
+    "scripts/test_plugin_dependencies.py": "fafe31a4090d859441100e86c2c0f0bbfcaa831d2802ecbdd7f9d7c1096f651b",
     "scripts/verify_plugin_dependencies.py": "9345a9deb32f236517e08c048dbf2a9b9e8024c27b5e7b875863a9502a108859",
     "specpm.yaml": "1a0cce6309efdbb777c4aacc4a5350568cba688b69ee618bdf1493daa2ada9c2",
     "specs/arsenal-design.spec.yaml": "806a92d54c99b53153cad89433fa8ee9fe4d58f6c1bec8cfdc8ab95477c5c485",
@@ -58,7 +58,7 @@
     "src/resources.rs": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f",
     "src/scan_session.rs": "fcd8652498330b610fc676d66f8e33ca03a72319c1728a2970ff66b46ebb729b",
     "src/scoped_access_tests.rs": "da60641feb5382de9b2693f1619ed2db598876d468f223c1d4801820931f5383",
-    ".gitattributes": "e4244815a435c253038e48352e4d922ff5b9c47637b595c28d8de7c538014ac9"
+    ".gitattributes": "0b171d85e35c63e1b4f6e855191256939620f422afb53606cfe8eede35c2ba5e"
   },
   "vendor_files": 1526,
   "vendor_tree_sha256": "7de85e6eb148143ab07eb442143d2aee651d691d2fbe550b972b3d5b38f1aa51"

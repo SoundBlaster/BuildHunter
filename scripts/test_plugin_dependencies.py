@@ -1,5 +1,6 @@
 """Regression coverage for duplicate-core and stale-pin dependency graphs."""
 import copy
+import subprocess
 from pathlib import Path
 import unittest
 
@@ -79,6 +80,17 @@ class GraphTests(unittest.TestCase):
         value["resolve"]["nodes"][0]["deps"].append({"pkg": "core"})
         with self.assertRaisesRegex(ValueError, "expected 0 active hunter-fs-core"):
             self.verify(value, "policy")
+
+    def test_vendored_sources_keep_exact_bytes_under_windows_checkout(self):
+        root = Path(__file__).resolve().parents[1]
+        for path in ["vendor/dependencies/rifle-rules-0.1.0/specs/hypercode/architecture.hc",
+                     "vendor/dependencies/hunter-fs-0.1.0/README.md",
+                     "vendor/dependencies/libc-0.2.190/Cargo.toml"]:
+            raw = subprocess.check_output(["git", "show", "HEAD:" + path], cwd=root)
+            checkout = subprocess.check_output(["git", "-c", "core.autocrlf=true", "cat-file",
+                                                "--filters", "--path=" + path, "HEAD:" + path], cwd=root)
+            with self.subTest(path=path):
+                self.assertEqual(raw, checkout, "Git checkout must preserve Cargo checksum bytes")
 
     def test_missing_resolved_package_is_rejected(self):
         value = graph()
