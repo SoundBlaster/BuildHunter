@@ -10,7 +10,7 @@ and coordinator missing-result fallback. It is borrowed through worker join.
 Workers retain the per-thread non-materializing guard. The caller must install
 the guard before constructing a backend that performs I/O during setup.
 
-`ProbedDirectory` preserves product counters/error decoration and rejects a file
+`ProbedDirectory` preserves product counters and backend errors and rejects a file
 slot that has become a directory or symlink, without counting the link or target.
 Prepared worker passes hold one directory. Coordinator fallback acquires one
 directory lazily per selected pass; supplied results/errors keep their precedence,
@@ -34,3 +34,11 @@ This does not complete default catalog migration (R4), marker-link/action-path
 owner decisions (C3/C4), whole-process budgets (R5), Windows acquisition or live
 iCloud acceptance. Contracts remain draft. Current receipts:
 `specs/validation/hunter-scoped-access-20261023`; older receipts remain historical.
+
+Scoped-error review correction: all scoped root/listing/directory/file errors
+retain their original payload and never use native pathname metadata to diagnose
+dataless objects. Only the standard backend retains the legacy pathname error
+decoration. A synthetic diagnostic-lookup regression verifies that scoped errors
+never invoke that lookup or inherit unrelated SF_DATALESS flags. Current source
+and execution identities are in `scoped-error-review-20261023`; earlier receipts
+remain historical.

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.18
+  version: 0.1.0-draft.19
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -116,6 +116,8 @@ constraints:
   statement: Experimental scan_with_candidate_access uses one explicit ScanAccess
     for admission, worker listings/measurements and coordinator fallback through join.
     Scoped failures never retry through native paths or pathname bulk metadata;
+    scoped error decoration never probes a native pathname and preserves backend
+    errno/kind/message rather than diagnosing a replacement object;
     cached result/error precedence stays unchanged. File slots changed to links or
     directories produce a change notice instead of counting target/link bytes.
     Default CLI/GUI entrypoints retain standard acquisition and policy.
@@ -436,6 +438,10 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - R3 scoped-error review removes native diagnostic metadata probes from all
+    scoped root/listing/directory/file error paths. Original backend errors stay
+    authoritative. Validation and hashes are in scoped-error-review-20261023;
+    standard backend decoration and draft requirement acceptance are unchanged.
   - R3 injection pass binds portable EntryType and optional ScanAccess/DirectoryAccess;
     no-follow behavior belongs to the selected backend. Native spy tests establish
     routing/lifetime only. Updated sources/maps/execution are in

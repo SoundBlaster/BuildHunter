@@ -1,0 +1,16 @@
+{
+  "baseline": "adc4124093f3627b4e98f0ff6cf2915f09631937",
+  "state": "scoped diagnostic review fix; exact worktree inputs",
+  "files": {
+    "src/lib.rs": "1005c09aab7bdead7ae995653a4372b5660e2cf26d1173970e7baed20ff42114",
+    "src/measurement.rs": "e33ee60319ee5e54db1ed306172e4d8fdbfb9c6c3e69afc22a7e190f382b3628",
+    "src/materialization.rs": "3714004ba4564c2c1e6627c896e53952034742e56899c37d4d5a36cf124213cd",
+    "src/scoped_access_tests.rs": "da60641feb5382de9b2693f1619ed2db598876d468f223c1d4801820931f5383",
+    "docs/hunter-scoped-acquisition.md": "514f6ef80d09f3297ef470f63606b5eca8c8485e7128333c828a943e542dfa41",
+    "specs/current-scan.spec.yaml": "1ea723506e24b32d91a80ce079188f6003ce26c2092458f73b660f8205de9b84",
+    "specs/hypercode/current.hc": "315cc6a58182869c6968d30678d92e90c0eabb80d55a5262f534c2cf0a011f3a",
+    "specs/hypercode/current.hcs": "1f5039c352f4376d4059c5d90e1419977d60ed1af27bc65a0540a178e643eda0",
+    "specs/specification-progress.md": "58366b3398a3dcb346a03a682938dca307a36f285a5851b88059e13e91c64a40",
+    "specpm.yaml": "95a8b7017f3a0b07b8fdd959f991f7e433e79bca8d9bc57485a6b43e6635cfc1"
+  }
+}

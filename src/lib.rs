@@ -837,7 +837,7 @@ fn list_directory(
                 access.visit_directory(path, &mut || control.should_stop(), &mut |event| {
                     emit(match event {
                         hunter_fs_core::DirectoryEvent::Error { path, error } => {
-                            let error = materialization::describe_error(&path, error);
+                            let error = probes.describe_error(&path, error);
                             hunter_fs_core::DirectoryEvent::Error { path, error }
                         }
                         event => event,
@@ -1456,14 +1456,14 @@ impl FilesystemBackend for Probes<'_> {
                 || StdFilesystem.symlink_metadata(path),
                 |access| access.root_metadata(path),
             )
-            .map_err(|error| materialization::describe_error(path, error))
+            .map_err(|error| self.describe_error(path, error))
     }
 
     fn read_dir(&self, path: &Path) -> std::io::Result<fs::ReadDir> {
         self.record_directory(path)?;
         StdFilesystem
             .read_dir(path)
-            .map_err(|error| materialization::describe_error(path, error))
+            .map_err(|error| self.describe_error(path, error))
     }
 
     fn prepare_directory(
@@ -1492,7 +1492,7 @@ impl hunter_fs_core::DirectoryAccess for ProbedDirectory<'_> {
         self.probes.record_metadata(&self.path)?;
         self.directory
             .metadata()
-            .map_err(|error| materialization::describe_error(&self.path, error))
+            .map_err(|error| self.probes.describe_error(&self.path, error))
     }
     fn entry_metadata(&self, name: &OsStr) -> std::io::Result<hunter_fs_core::EntryMetadata> {
         let path = self.path.join(name);
@@ -1500,7 +1500,7 @@ impl hunter_fs_core::DirectoryAccess for ProbedDirectory<'_> {
         let metadata = self
             .directory
             .entry_metadata(name)
-            .map_err(|error| materialization::describe_error(&path, error))?;
+            .map_err(|error| self.probes.describe_error(&path, error))?;
         if metadata.file_type.is_dir() || metadata.file_type.is_symlink() {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
@@ -1512,6 +1512,14 @@ impl hunter_fs_core::DirectoryAccess for ProbedDirectory<'_> {
 }
 
 impl Probes<'_> {
+    fn describe_error(&self, path: &Path, error: std::io::Error) -> std::io::Error {
+        let scope = if self.access.is_some() {
+            materialization::ErrorScope::Scoped
+        } else {
+            materialization::ErrorScope::Native
+        };
+        materialization::describe_error(path, error, scope)
+    }
     fn record_metadata(&self, _path: &Path) -> std::io::Result<()> {
         #[cfg(test)]
         {
@@ -1558,7 +1566,7 @@ impl Probes<'_> {
         }
         fs::metadata(path)
             .map(|metadata| metadata.is_file())
-            .map_err(|error| materialization::describe_error(path, error))
+            .map_err(|error| self.describe_error(path, error))
     }
 
     #[cfg(test)]

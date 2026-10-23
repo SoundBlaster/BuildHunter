@@ -974,3 +974,14 @@ Current maps/bindings are refreshed; target requirements stay draft and unchange
 Receipts: `validation/hunter-scoped-access-20261023`. Std-backed spy tests prove
 routing/lifetime and fail-closed fallback, not descriptor safety. R3 integration,
 Windows support, C3/C4 owner decisions, R4 and R5 remain separate.
+
+### R3 scoped diagnostic boundary review — 2026-10-23
+
+Review of #106 found that legacy error decoration performed a new pathname stat
+after a scoped failure. Probes now passes an explicit ErrorScope through every
+root/listing/prepared/fallback error decoration path. Scoped errors preserve their
+original payload without metadata reads; only standard scans retain native
+dataless decoration. The regression simulates unrelated dataless metadata and
+checks no lookup and unchanged OS errors. Source/contract/map/run identities:
+`validation/scoped-error-review-20261023`. CloudGuard/Measurement are existing
+roles; no new ownership node or accepted requirement is introduced.

@@ -54,7 +54,7 @@ impl<'a> DirectoryMeasurementBackend for MetadataBackend<'a> {
                 Err(error) => Err(copy_error(error)),
             };
             self.directory = Some(directory);
-            return metadata.map_err(|error| crate::materialization::describe_error(path, error));
+            return metadata.map_err(|error| self.probes.describe_error(path, error));
         }
         self.probes.symlink_metadata(path)
     }
@@ -107,7 +107,7 @@ impl FileMeasurementBackend for PreparedFiles<'_> {
                 })?),
                 Err(error) => Err(copy_error(error)),
             }
-            .map_err(|error| crate::materialization::describe_error(file, error))?;
+            .map_err(|error| self.probes.describe_error(file, error))?;
             return Ok(metadata.size);
         }
         #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
@@ -117,7 +117,7 @@ impl FileMeasurementBackend for PreparedFiles<'_> {
                 return Err(error);
             }
             if let Some(result) = batch.take_file(file) {
-                return result.map_err(|error| crate::materialization::describe_error(file, error));
+                return result.map_err(|error| self.probes.describe_error(file, error));
             }
             use std::sync::atomic::Ordering;
             if self.control.profiling.load(Ordering::Relaxed) {
