@@ -52,4 +52,3 @@ Sort by top of stack, same collapsed (when >= 5):
         __open  (in dyld)        1599
 
 Binary images description not available
-
