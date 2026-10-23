@@ -19,13 +19,16 @@ selected artifact roots, missing roots and selected files.
   status; report fields and totals are compared with the golden rows. Catalog IDs
   and per-ID exclusion fixtures cover target identity; CLI artifact JSON itself
   does not yet carry a target ID. That ABI/output change remains R4.
-- The corpus also freezes 28 GUI runs as reviewed expected data. The upper
-  stack layer adds the Swift runner; this lower layer does not claim their
-  execution or GUI bridge parity.
+- `MigrationParityTests` loads the same JSON from its test bundle and uses the
+  real `RustScanEventSource`, actual Swift policy/table compilation and Rust FFI.
+  It checks paths, language/GUI kind, descriptor IDs, allocated bytes, warnings,
+  one completion per discovery and Finished last. GUI kinds use the normal kind
+  field; the optional raw scanner kind remains nil for this folded GUI profile. This is a bridge integration
+  test, not visual/UI interaction or signed sandbox acceptance.
 - `migration-lifecycle-v1.tsv` freezes five deterministic core fault scenarios:
   completion, cancel at discovery, vanished file, permission failure and missing
   root. The Rust witness checks the real status-code mapping, partial flag,
-  completion payload and final event ordering. JSON terminal vectors reserve
+  completion payload and final event ordering. JSON terminal vectors exercise
   the Swift bridge mapping; the Python test enforces agreement between both files.
   Fault injection is not a live provider or end-user Stop latency measurement.
 
@@ -65,8 +68,7 @@ not establish safety of the full pathname traversal.
 
 **C4 baseline:** Rust paths remain raw bytes. The Swift bridge replaces invalid
 UTF-8 for presentation, emits a warning and prevents a successful terminal result;
-the synthetic byte vector records that baseline; its Swift witness belongs to
-the upper layer. Existing Finder/copy URL creation
+the synthetic byte vector locks that behavior. Existing Finder/copy URL creation
 is not proven to preserve invalid-byte identity. Before a new path/action ABI or
 plugin cutover, choose a lossless raw-path/handle contract or disable affected
 actions. This remains an owner decision; these tests do not silently accept lossy

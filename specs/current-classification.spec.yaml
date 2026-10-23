@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.classification
   title: Current artifact classification and filters
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
@@ -129,6 +129,10 @@ evidence:
   kind: test
   path: scripts/test_migration_parity.py
   supports: [scope, constraints.client_profiles, constraints.taxonomy, constraints.filter_snapshot]
+- id: gui_parity_test
+  kind: test
+  path: macos/Tests/BuildHunterTests/MigrationParityTests.swift
+  supports: [scope, constraints.client_profiles, constraints.taxonomy, constraints.filter_snapshot]
 provenance:
   sourceConfidence:
     intent: high
@@ -137,7 +141,9 @@ provenance:
   notes:
   - R2 freezes reviewed client expectations at main 1fd905620c0d5c0317c6b08123cfe5b0653253c2.
     CLI and deterministic core witnesses are recorded in validation/migration-parity-20261022;
-    GUI rows are data awaiting the upper-layer Swift witness. No runtime policy or accepted requirement changes.
+    Swift witnesses use the same corpus through the real GUI event source. Local compilation passed;
+    local test-host launch hung before connection (upper-layer receipt), so execution awaits CI.
+    No runtime policy or accepted requirement changes.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
@@ -167,3 +173,4 @@ implementationBindings:
     - macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift
     - tests/fixtures/migration-parity-v1.json
     - scripts/test_migration_parity.py
+    - macos/Tests/BuildHunterTests/MigrationParityTests.swift

@@ -1,0 +1,34 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "xcrun",
+    "xcresulttool",
+    "get",
+    "test-results",
+    "summary",
+    "--path",
+    "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/migration-parity-3.xcresult",
+    "--compact"
+  ],
+  "exit_code": 0,
+  "note": "Selected summary fields; no hardware identifiers. The sole reported failure is test-host launch, not a suite test.",
+  "summary": {
+    "result": "Failed",
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "totalTestCount": 1,
+    "testFailures": [
+      {
+        "failureText": "The test runner hung before establishing connection.",
+        "targetName": "BuildHunterTests",
+        "testIdentifier": 1,
+        "testIdentifierString": "BuildHunter (81426) encountered an error",
+        "testName": "BuildHunter (81426) encountered an error"
+      }
+    ],
+    "startTime": 1792703136.432,
+    "finishTime": 1792703484.267
+  }
+}
