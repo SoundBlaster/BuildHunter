@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.plugin.scanner
   title: Opt-in catalog-driven scanner integration
-  version: 0.1.0-draft.4
+  version: 0.1.0-draft.5
   status: draft
 intent:
   summary: Acquire scoped plugin marker facts and route supplied catalog decisions into measured artifacts with live metadata and diagnostics.
@@ -133,6 +133,9 @@ evidence:
 provenance:
   sourceConfidence: {intent: high, boundary: high, behavior: medium}
   notes:
+  - The rebased R3 stack includes the reviewed scoped-error diagnostic boundary;
+    fresh post-rebase plugin checks and hashes are in plugin-scoped-review-20261023.
+    Prior plugin-scoped-scan receipts remain historical for the pre-review inputs.
   - R3 now selects Hunter descriptor acquisition on macOS/Linux; source and tests are
     pinned in specs/validation/plugin-scoped-scan-20261023. The new shared-root and
     no-path-fallback constraints stay draft; C2/C3/C4 default migration is unchanged.

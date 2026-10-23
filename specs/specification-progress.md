@@ -1012,3 +1012,9 @@ The existing macOS Rust CI job also runs the plugin Release suite with the bulk
 feature enabled. Its nested worker fixture asserts zero pathname bulk passes and
 fallbacks. This is folded into MacOSChecks; job names, topology and ready-tip
 scheduling/merge gates are unchanged. CI maps/contracts are refreshed accordingly.
+
+The plugin layer was rebased onto the scoped-error review correction. Runtime
+selection/fixtures are unchanged, but error-path evidence must use the corrected
+engine. Current top-level hashes and repeated plugin Debug/Release/bulk checks:
+`validation/plugin-scoped-review-20261023`. Prior pre-review receipts remain
+historical and do not prove the fixed diagnostic boundary.

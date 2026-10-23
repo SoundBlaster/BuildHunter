@@ -171,3 +171,8 @@ parallel-offset tests and the application seam's std-backed routing spies.
 No snapshot across independent passes, durable Finder/path identity, report-memory
 bound, no-download proof on a live provider or scan-speed gain is claimed. New
 source/run identities are in `specs/validation/plugin-scoped-scan-20261023`.
+
+The scoped-error review additionally removes native pathname diagnostics after
+backend errors. Original errno/kind/message are retained; an outside replacement
+object cannot relabel a failure. Post-rebase plugin execution identities are in
+`plugin-scoped-review-20261023`; the earlier plugin receipts are historical.
