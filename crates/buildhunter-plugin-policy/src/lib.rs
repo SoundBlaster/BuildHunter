@@ -1,7 +1,9 @@
 //! Opt-in pure BuildHunter plugin policy. This does not acquire filesystem facts.
+pub mod builtin;
+mod dispatch;
 mod validation;
 
-use rifle_rules::{Catalog, Error, FactValue, Plan, Sha256Digest, Truth};
+use rifle_rules::{Catalog, Error, Plan, Sha256Digest};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -121,7 +123,7 @@ impl Classification {
 pub struct PluginCatalog {
     digest: Sha256Digest,
     exclusions: BTreeSet<String>,
-    plugins: Vec<ActivePlugin>,
+    dispatch: dispatch::Dispatch,
     targets: Vec<TargetDescriptor>,
     markers: BTreeSet<MarkerProbe>,
 }
@@ -143,7 +145,7 @@ impl PluginCatalog {
                 .map_err(|e| error("invalid_shape", "", e.to_string()))?;
             source.insert(doc["id"].as_str().unwrap().to_owned(), (doc, input.origin));
         }
-        let mut plugins = Vec::new();
+        let mut dispatch = dispatch::Dispatch::default();
         let mut targets = Vec::new();
         let mut target_ids = BTreeSet::new();
         let mut declared_markers = BTreeSet::new();
@@ -171,13 +173,13 @@ impl PluginCatalog {
                     markers.insert(probe.clone());
                 }
             }
-            plugins.push(plugin);
+            dispatch.add(doc, &plugin)?;
         }
         targets.sort_by(|a, b| a.id.cmp(&b.id));
         Ok(Self {
             digest: *catalog.digest(),
             exclusions,
-            plugins,
+            dispatch,
             targets,
             markers,
         })
@@ -201,91 +203,18 @@ impl PluginCatalog {
             .filter(|m| kind == NodeKind::Directory || m.scope != Scope::Own)
             .collect()
     }
-    /// Pure classification only: never measures or prunes a node. A caller must
-    /// keep traversing descendants independently of this result.
+    /// Relevant probes for one candidate, derived conservatively from enabled rules.
+    /// Unavailable names retain all possible targets instead of becoming NoMatch.
+    pub fn candidate_marker_requests(
+        &self,
+        name: Option<&str>,
+        kind: NodeKind,
+    ) -> Vec<&MarkerProbe> {
+        self.dispatch.markers(name, kind)
+    }
+    /// Pure classification; an index may exclude only targets proven unable to match.
     pub fn classify(&self, facts: CandidateFacts<'_>) -> Result<Classification, Error> {
-        if facts.kind == NodeKind::Symlink {
-            return Ok(Classification::empty());
-        }
-        let mut result = Classification::empty();
-        let mut notices = BTreeSet::new();
-        for plugin in &self.plugins {
-            let Some(plan) = &plugin.plan else { continue };
-            let mut values = Vec::new();
-            for (index, binding) in plugin.bindings.iter().enumerate() {
-                let value = match binding {
-                    Binding::Name => facts
-                        .name
-                        .map(FactValue::String)
-                        .unwrap_or(FactValue::Unavailable("invalid_name")),
-                    Binding::Kind => FactValue::String(facts.kind.label()),
-                    Binding::Marker(probe)
-                        if probe.scope == Scope::Own && facts.kind != NodeKind::Directory =>
-                    {
-                        FactValue::Boolean(false)
-                    }
-                    Binding::Marker(probe) => match facts.markers.get(probe) {
-                        Some(MarkerFact::Known(v)) => FactValue::Boolean(*v),
-                        Some(MarkerFact::Unavailable(reason)) => FactValue::Unavailable(reason),
-                        None => {
-                            return Err(error(
-                                "missing_fact",
-                                &format!(
-                                    "/packages/{}/bindings/{}",
-                                    plugin.id,
-                                    plan.facts()[index].id
-                                ),
-                                "marker observation missing",
-                            ));
-                        }
-                    },
-                };
-                values.push(value);
-            }
-            let outcomes = plan.evaluate(&values)?;
-            let by_rule: BTreeMap<_, _> =
-                outcomes.iter().map(|o| (o.rule_id.as_str(), o)).collect();
-            for target in &plugin.targets {
-                let mut truth = Truth::False;
-                let mut unknowns = BTreeSet::new();
-                for rule in &target.rules {
-                    let outcome = by_rule[rule.as_str()];
-                    if outcome.truth == Truth::True {
-                        truth = Truth::True;
-                        unknowns.clear();
-                        break;
-                    }
-                    if outcome.truth == Truth::Unknown {
-                        truth = Truth::Unknown;
-                        for f in &outcome.unavailable {
-                            unknowns.insert(FactNotice {
-                                package_id: plugin.id.clone(),
-                                fact_id: f.fact_id.clone(),
-                                reason: f.reason.clone(),
-                            });
-                        }
-                    }
-                }
-                match truth {
-                    Truth::True => result.matched.push(target.descriptor.id.clone()),
-                    Truth::Unknown => {
-                        result.unknown.push(target.descriptor.id.clone());
-                        notices.extend(unknowns);
-                    }
-                    Truth::False => {}
-                }
-            }
-        }
-        result.matched.sort();
-        result.unknown.sort();
-        result.unavailable = notices.into_iter().collect();
-        result.decision = match (result.matched.len(), result.unknown.is_empty()) {
-            (0, true) => Decision::NoMatch,
-            (1, true) => Decision::Found(result.matched[0].clone()),
-            (0 | 1, false) => Decision::Indeterminate,
-            _ => Decision::Ambiguous,
-        };
-        Ok(result)
+        self.dispatch.classify(facts)
     }
 }
 

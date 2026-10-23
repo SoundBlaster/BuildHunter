@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "rustc",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "rustc 1.97.0 (2d8144b78 2026-07-07)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cargo",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "cargo 1.97.0 (c980f4866 2026-06-30)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "specpm",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "specpm 0.2.0\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "--version"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "error: cannot read --version\n"
+  }
+]

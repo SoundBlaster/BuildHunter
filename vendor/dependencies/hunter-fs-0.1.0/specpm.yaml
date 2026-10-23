@@ -1,0 +1,72 @@
+apiVersion: specpm.dev/v0.1
+kind: SpecPackage
+metadata:
+  id: hunter.filesystem
+  name: Hunter filesystem primitives
+  version: 0.1.0-draft.25
+  summary: Scoped metadata, portable enumeration/sizing and generic scoped task coordination;
+    full product-independent filesystem recursion pending.
+  license: MIT
+  authors:
+  - name: Egor Merkushev
+specs:
+- path: specs/scoped-metadata.spec.yaml
+- path: specs/scoped-filesystem.spec.yaml
+- path: specs/portable.spec.yaml
+- path: specs/work.spec.yaml
+- path: specs/directory-tasks.spec.yaml
+- path: specs/child-traversal.spec.yaml
+- path: specs/task-ledger.spec.yaml
+- path: specs/subtree-progress.spec.yaml
+- path: specs/scan-execution.spec.yaml
+- path: specs/filesystem-backend.spec.yaml
+- path: specs/directory-worker.spec.yaml
+- path: specs/directory-listing.spec.yaml
+- path: specs/measurement-backend.spec.yaml
+- path: specs/scoped-session.spec.yaml
+- path: specs/root-admission.spec.yaml
+- path: specs/backend-lifetime.spec.yaml
+- path: specs/scan-assembly.spec.yaml
+- path: specs/traversal-coordinator.spec.yaml
+- path: specs/entry-processing.spec.yaml
+- path: specs/scan-engine.spec.yaml
+- path: specs/darwin-bulk.spec.yaml
+- path: specs/prepared-batch.spec.yaml
+- path: specs/process-platform.spec.yaml
+index:
+  provides:
+    capabilities:
+    - hunter.fs.scoped_metadata
+    - hunter.fs.scoped_filesystem
+    - hunter.fs.portable
+    - hunter.fs.work
+    - hunter.fs.directory_tasks
+    - hunter.fs.child_traversal
+    - hunter.fs.task_ledger
+    - hunter.fs.subtree_progress
+    - hunter.fs.scan_execution
+    - hunter.fs.backend
+    - hunter.fs.directory_worker
+    - hunter.fs.directory_listing
+    - hunter.fs.measurement_backend
+    - hunter.fs.scoped_session
+    - hunter.fs.root_admission
+    - hunter.fs.backend_lifetime
+    - hunter.fs.scan_assembly
+    - hunter.fs.traversal_coordinator
+    - hunter.fs.entry_processing
+    - hunter.fs.scan_engine
+    - hunter.fs.darwin_bulk_metadata
+    - hunter.fs.prepared_directory_sizes
+    - hunter.platform.requested_qos
+    - hunter.platform.process_resources
+  requires:
+    capabilities:
+    - platform.filesystem.metadata
+foreignArtifacts:
+- format: hypercode
+  path: specs/hypercode/current.hc
+  role: documentation
+- format: hypercode-stylesheet
+  path: specs/hypercode/current.hcs
+  role: documentation

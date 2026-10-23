@@ -1,0 +1,140 @@
+{
+  "recorded_at_utc": "2026-10-13T22:24:56.928791+00:00",
+  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+  "cargo": "cargo 1.97.0 (c980f4866 2026-06-30)",
+  "hypercode_sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b",
+  "specpm_version": "specpm 0.2.0",
+  "commands": [
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "test",
+        "--locked",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest input_errors_are_not_rule_false_and_plan_is_reusable ... ok\ntest negation_never_matches_unavailable_fact ... ok\ntest parser_rejects_invalid_unicode_trailing_data_and_nested_duplicates ... ok\ntest known_and_unknown_are_distinct ... ok\ntest published_program_examples_need_no_artifact_vocabulary_in_engine ... ok\ntest concurrent_read_only_evaluation ... ok\ntest duplicate_json_keys_and_ids_are_rejected_before_information_is_lost ... ok\ntest unknown_diagnostics_are_sorted_deduplicated_and_relevant ... ok\ntest malformed_conditions_and_literals_are_rejected ... ok\ntest reject_version_fields_references_and_types ... ok\ntest string_operations_are_exact_and_typed ... ok\ntest identifiers_lengths_types_and_subobjects_are_closed ... ok\ntest complete_three_valued_truth_tables_and_permutations ... ok\ntest limit_boundaries_are_enforced ... ok\ntest accepted_count_and_node_boundaries_are_not_off_by_one ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.81s\n     Running unittests src/lib.rs (target/debug/deps/rifle_rules-f120474ab6748a27)\n     Running tests/contract.rs (target/debug/deps/contract-827627e9c43b4160)\n     Running unittests examples/evaluate.rs (target/debug/examples/evaluate-b9517fbb8771604f)\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest known_and_unknown_are_distinct ... ok\ntest identifiers_lengths_types_and_subobjects_are_closed ... ok\ntest malformed_conditions_and_literals_are_rejected ... ok\ntest negation_never_matches_unavailable_fact ... ok\ntest duplicate_json_keys_and_ids_are_rejected_before_information_is_lost ... ok\ntest parser_rejects_invalid_unicode_trailing_data_and_nested_duplicates ... ok\ntest published_program_examples_need_no_artifact_vocabulary_in_engine ... ok\ntest input_errors_are_not_rule_false_and_plan_is_reusable ... ok\ntest concurrent_read_only_evaluation ... ok\ntest unknown_diagnostics_are_sorted_deduplicated_and_relevant ... ok\ntest reject_version_fields_references_and_types ... ok\ntest string_operations_are_exact_and_typed ... ok\ntest complete_three_valued_truth_tables_and_permutations ... ok\ntest limit_boundaries_are_enforced ... ok\ntest accepted_count_and_node_boundaries_are_not_off_by_one ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `release` profile [optimized] target(s) in 0.72s\n     Running unittests src/lib.rs (target/release/deps/rifle_rules-b36926cd92591ab8)\n     Running tests/contract.rs (target/release/deps/contract-1c77c6901cda6e1c)\n     Running unittests examples/evaluate.rs (target/release/examples/evaluate-3302d68dd1fbb8b0)\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "    Checking rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "run",
+        "--locked",
+        "--example",
+        "evaluate"
+      ],
+      "exit_code": 0,
+      "stdout": "Outcome { rule_id: \"output\", truth: Unknown, unavailable: [UnavailableFact { fact_id: \"project\", reason: \"access_denied\" }] }\n",
+      "stderr": "   Compiling rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s\n     Running `target/debug/examples/evaluate`\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/architecture.hc"
+      ],
+      "exit_code": 0,
+      "stdout": "Rifle\n  ProgramLoading\n    StrictJson\n    SemanticValidation\n  ValidatedPlan\n  Evaluation\n  ContractTests\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/architecture.hc",
+        "--hcs",
+        "specs/hypercode/architecture.hcs"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: no issues found\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "specpm",
+        "validate",
+        ".",
+        "--json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"capabilities\": [\n    \"rifle.program.evaluate\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/program.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"Rifle rule engine\",\n    \"package_id\": \"rifle\",\n    \"version\": \"0.1.0-draft.1\"\n  },\n  \"status\": \"valid\",\n  \"warning_count\": 0,\n  \"warnings\": []\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/opt/homebrew/opt/python@3.10/bin/python3.10",
+        "-B",
+        "scripts/test_ci_changes.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.267s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/opt/homebrew/opt/python@3.10/bin/python3.10",
+        "scripts/test_schema.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Schema validated: rust-program.json\nSchema validated: synthetic-program.json\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -18,7 +18,7 @@ def graph(kind="scanner", unix=True):
         {"id": "facade", "name": "hunter-fs", "source": f"git+{HUNTER}?rev={H}#{H}"},
         {"id": "rifle", "name": "rifle-rules", "source": f"git+{RIFLE}?rev={R}#{R}"},
     ]
-    deps = {"default": ["core"], "policy": ["rifle"],
+    deps = {"default": ["core", "rifle"] + (["facade"] if unix else []), "policy": ["rifle"],
             "scanner": ["core", "rifle"] + (["facade"] if unix else [])}[kind]
     nodes = [{"id": "root", "deps": [{"pkg": p} for p in deps]}]
     nodes += [{"id": p, "deps": ([{"pkg": "core"}] if p == "facade" else [])}
@@ -39,6 +39,11 @@ class GraphTests(unittest.TestCase):
         result = self.verify(graph(unix=False), unix=False)
         self.assertNotIn("hunter-fs", result)
         self.assertIn("hunter-fs-core", result)
+
+    def test_windows_default_keeps_catalog_without_a_unix_facade(self):
+        result = self.verify(graph("default", unix=False), "default", unix=False)
+        self.assertIn("rifle-rules", result)
+        self.assertNotIn("hunter-fs", result)
 
     def test_rejects_second_reachable_core(self):
         value = graph()

@@ -1,0 +1,67 @@
+{
+  "recorded_at_utc": "2026-10-15T22:00:50.430728+00:00",
+  "baseline": "2bb0dc5bf7bc4bf1e2941c8b8c8a7fc4217681a3",
+  "buildhunter_baseline": "7ef5bd98e1b4deca3c5b5f212ff5f89f41b9eba9",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "60005b773b8e7ce071ad3fd71fc39b95e7c63254c5a6ce920e34af288b9ece93"
+    },
+    {
+      "path": "crates/hunter-fs-core/Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b"
+    },
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "03e97f64e59d5ffebb335419d42c00882e4abc2f9176803bb9007351259ef51f"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/backend.rs",
+      "sha256": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/lib.rs",
+      "sha256": "920ef5ce8a4357780343f0232aef9d77a64523d24bfb11fe8c37f1e96de7ea5d"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "27a60acfa7447367e158c4f443c8d49d64991da585e5318a1407b3ad78fb06d3"
+    },
+    {
+      "path": "specs/filesystem-backend.spec.yaml",
+      "sha256": "8201a2e3fdb25d0305ca9c4916331010b62130b5cdf9e0e15a752e8faf410807"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "a408168a5166cecaacbc1631a8e012be2e00fbb535e43f9a684bd96511813750"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "a43465b0192f2464db8ab9b23139ba888b53e868a2f516fb03d72bce62f830d0"
+    }
+  ]
+}

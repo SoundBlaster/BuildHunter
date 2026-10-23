@@ -39,8 +39,8 @@ def verify(metadata, root, kind, unix, hunter_revision, rifle_revision):
     packages = active_packages(metadata)
     expected = {
         "hunter-fs-core": int(kind != "policy"),
-        "hunter-fs": int(kind == "scanner" and unix),
-        "rifle-rules": int(kind != "default"),
+        "hunter-fs": int(kind != "policy" and unix),
+        "rifle-rules": 1,
     }
     for name, count in expected.items():
         matches = [p for p in packages if p["name"] == name]
@@ -66,6 +66,8 @@ def main():
     policy = ROOT / "crates/buildhunter-plugin-policy/Cargo.toml"
     if dependency_revision(scanner, "hunter-fs", HUNTER) != pin:
         raise ValueError("Hunter facade and vendored core must pin the same upstream revision")
+    if dependency_revision(ROOT / "Cargo.toml", "hunter-fs", HUNTER) != pin:
+        raise ValueError("Default host must use the same Hunter revision")
     rifle = dependency_revision(policy, "rifle-rules", RIFLE)
     host = next(line.removeprefix("host: ") for line in
                 subprocess.check_output(["rustc", "-vV"], text=True).splitlines()

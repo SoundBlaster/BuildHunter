@@ -1,0 +1,75 @@
+{
+  "recorded_at_utc": "2026-10-18T05:50:44.785452+00:00",
+  "baseline": "26c6696d66c726f413e6e61a65e8c4bc7d285ea1",
+  "buildhunter_baseline": "f3c66858360aa475690aae9d9445d21b4ca0b72f",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "2ff21f1bdc1468db8927e8a6a5c78bd29f66d815fa9e41ba5cb4848c57d48313"
+    },
+    {
+      "path": "crates/hunter-fs-core/Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b"
+    },
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "bafc73956d923bdb841c3484d98923d29a8a105da2bef1b8cc99b25ce730547c"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/backend.rs",
+      "sha256": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/lib.rs",
+      "sha256": "47bc702f07662bf3e375515eb7a6ab91a4950cf6723938a50a5915147f95fc56"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/listing.rs",
+      "sha256": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/worker.rs",
+      "sha256": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "f207e3a054046f34e450f28f5b4b13c5015158be031a3c59c8c1bd1498a5642d"
+    },
+    {
+      "path": "specs/directory-listing.spec.yaml",
+      "sha256": "08ddcd8bb1bd5e5bbc88c2cf583692ca0850190f9147a531a20e9f4515ff36d0"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "ed3346d9772997397e467127614b1dcc03a52e488c9265d7d67c06ccd062abd0"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4e871a194d0f3bd8175ef788e889cc0951f7c326b7bcd28e046d2bae3d4d5f17"
+    }
+  ]
+}

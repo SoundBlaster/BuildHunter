@@ -1,0 +1,276 @@
+HunterPrimitives:
+  status: "observed-source, partial filesystem engine extraction"
+  current_evidence: "specs/validation/scoped-relative-root-20261023/source-identity.json"
+ScopedFilesystem:
+  source: "src/scoped_filesystem.rs"
+  boundary_spec: "hunter.fs.scoped_filesystem"
+  availability: "macOS/Linux; no snapshot or stable cross-pass inode promise"
+SelectedRootAnchor:
+  implementation: "selected directory handle shared with marker_scope; selected files retain initial metadata only"
+  folded_into: "hunter.fs.scoped_filesystem"
+DescriptorEnumeration:
+  implementation: "component openat/O_NOFOLLOW, independent fdopendir/readdir streams, fstatat no-follow"
+  folded_into: "hunter.fs.scoped_filesystem"
+PreparedDirectoryMetadata:
+  implementation: "DirectoryAccess owns one directory; worker and lazy coordinator passes never fall back to paths"
+  folded_into: "hunter.fs.scoped_filesystem"
+ScopedAcquisitionInterface:
+  source: "crates/hunter-fs-core/src/scan_access.rs"
+  implementation: "ScanAccess + DirectoryAccess + EntryMetadata; backend-neutral EntryType in lib.rs"
+  folded_into: "hunter.fs.scoped_filesystem"
+ScopedMetadata:
+  source: "src/scoped_metadata.rs"
+  boundary_spec: "hunter.fs.scoped_metadata"
+DescriptorLifetime:
+  implementation: "ScopedMetadata::open + owned File descriptors"
+RegularFileObservation:
+  implementation: "inspect_regular_file + openat/fstatat no-follow"
+LocalMetadataGuard:
+  implementation: "check_local + dataless; host owns thread materialization policy"
+PortableDirectory:
+  source: "crates/hunter-fs-core/src/lib.rs"
+  implementation: "visit_directory over host-opened entries"
+  boundary_spec: "hunter.fs.portable"
+MetadataSizing:
+  source: "crates/hunter-fs-core/src/lib.rs"
+  implementation: "metadata_bytes + MeasuredSize"
+  folded_into: "hunter.fs.portable"
+ScopedWork:
+  source: "crates/hunter-fs-core/src/work.rs"
+  boundary_spec: "hunter.fs.work"
+TaskQueue:
+  implementation: "WorkQueue<T>, LIFO, unbounded"
+  folded_into: "hunter.fs.work"
+WorkerLaunch:
+  implementation: "spawn_workers + worker_count; caller-owned thread Scope"
+  folded_into: "hunter.fs.work"
+Shutdown:
+  implementation: "close_on_drop + panic close; outer Scope joins"
+  folded_into: "hunter.fs.work"
+DirectoryTasks:
+  source: "crates/hunter-fs-core/src/task.rs"
+  boundary_spec: "hunter.fs.directory_tasks"
+MeasurementPlanning:
+  implementation: "DirectoryTask::measurement_plan + DirectoryMeasurementPlan::measure"
+  folded_into: "hunter.fs.directory_tasks"
+ResultEnvelope:
+  implementation: "DirectoryListing + DirectoryMeasurement + DirectoryResult"
+  folded_into: "hunter.fs.directory_tasks"
+ChildTraversal:
+  source: "crates/hunter-fs-core/src/children.rs"
+  boundary_spec: "hunter.fs.child_traversal"
+HostSelection:
+  implementation: "ChildTraversal::next_child + ChildDecision"
+  folded_into: "hunter.fs.child_traversal"
+RecursiveRequests:
+  implementation: "PlannedChild + DirectoryRequest::into_task"
+  folded_into: "hunter.fs.child_traversal"
+TaskLedger:
+  source: "crates/hunter-fs-core/src/ledger.rs"
+  boundary_spec: "hunter.fs.task_ledger"
+TaskIdentity:
+  implementation: "DirectoryTaskLedger::register + take_listing"
+  folded_into: "hunter.fs.task_ledger"
+ResponseAccounting:
+  implementation: "response_received + outstanding; host protocol ordering"
+  folded_into: "hunter.fs.task_ledger"
+DeferredState:
+  implementation: "defer_measurement + take_measurement; owned opaque state"
+  folded_into: "hunter.fs.task_ledger"
+SubtreeProgress:
+  source: "crates/hunter-fs-core/src/subtree.rs"
+  boundary_spec: "hunter.fs.subtree_progress"
+ByteAggregation:
+  implementation: "add_bytes saturating u64 + set_bytes"
+  folded_into: "hunter.fs.subtree_progress"
+CompletionReadiness:
+  implementation: "pending directory/root flags + is_ready/is_completed"
+  folded_into: "hunter.fs.subtree_progress"
+PartialCompletion:
+  implementation: "mark_partial + complete(force_partial); one owned result"
+  folded_into: "hunter.fs.subtree_progress"
+ScanExecution:
+  source: "crates/hunter-fs-core/src/execution.rs"
+  boundary_spec: "hunter.fs.scan_execution"
+ResultPump:
+  implementation: "drive_scan + ScanCoordinator, serial receiver and opaque messages"
+  folded_into: "hunter.fs.scan_execution"
+IdleCheckpoint:
+  implementation: "positive optional timeout repeats host checkpoint without receipt"
+  folded_into: "hunter.fs.scan_execution"
+StopBoundary:
+  implementation: "receipt accounting before stop check; stopped message is not dispatched"
+  folded_into: "hunter.fs.scan_execution"
+FilesystemBackend:
+  source: "crates/hunter-fs-core/src/backend.rs"
+  boundary_spec: "hunter.fs.backend"
+NativePathAccess:
+  implementation: "StdFilesystem + FilesystemBackend symlink_metadata/read_dir"
+  folded_into: "hunter.fs.backend"
+RootObservation:
+  implementation: "observe_root; one metadata call, owned Directory/Entry facts"
+  folded_into: "hunter.fs.backend"
+DirectoryWorker:
+  source: "crates/hunter-fs-core/src/worker.rs"
+  boundary_spec: "hunter.fs.directory_worker"
+TaskExecution:
+  implementation: "run_directory_worker + synchronous DirectoryWorker adapter"
+  folded_into: "hunter.fs.directory_worker"
+ListingFirst:
+  implementation: "publish Listed before measure, then publish returned Measured"
+  folded_into: "hunter.fs.directory_worker"
+PublicationBoundary:
+  implementation: "false publication returns before next effect/task; host owns queue closure"
+  folded_into: "hunter.fs.directory_worker"
+DirectoryAcquisition:
+  source: "crates/hunter-fs-core/src/listing.rs"
+  boundary_spec: "hunter.fs.directory_listing"
+OrderedCollection:
+  implementation: "collect_directory + visit_directory; one owned children/errors listing"
+  folded_into: "hunter.fs.directory_listing"
+ContextObservation:
+  implementation: "synchronous entry/context observer; errors retain child and context"
+  folded_into: "hunter.fs.directory_listing"
+AcquisitionOutcome:
+  implementation: "preserved Completed/Cancelled/OpenFailed and partial listing"
+  folded_into: "hunter.fs.directory_listing"
+MeasurementBackend:
+  source: "crates/hunter-fs-core/src/measurement.rs"
+  boundary_spec: "hunter.fs.measurement_backend"
+DirectoryPreparation:
+  implementation: "directory_metadata then prepare_files before cancellation"
+  folded_into: "hunter.fs.measurement_backend"
+PreparedFileEffects:
+  implementation: "owned FileMeasurementBackend; host effects/fallbacks/guards"
+  folded_into: "hunter.fs.measurement_backend"
+SharedSlotExecution:
+  implementation: "task.rs measure/measure_with share measure_prepared loop"
+  folded_into: "hunter.fs.measurement_backend"
+ScopedSession:
+  source: "crates/hunter-fs-core/src/session.rs"
+  boundary_spec: "hunter.fs.scoped_session"
+HelperStartup:
+  implementation: "host scoped helpers then spawn_workers then caller coordinator"
+  folded_into: "hunter.fs.scoped_session"
+QueueShutdown:
+  implementation: "helper-stop guard drops before close_on_drop and scope join"
+  folded_into: "hunter.fs.scoped_session"
+JoinBoundary:
+  implementation: "owned scope captures release on unwind; result after actual join"
+  folded_into: "hunter.fs.scoped_session"
+RootAdmission:
+  source: "crates/hunter-fs-core/src/admission.rs"
+  boundary_spec: "hunter.fs.root_admission"
+HostPreflight:
+  implementation: "FnOnce on original path before backend access; opaque reason"
+  folded_into: "hunter.fs.root_admission"
+AdmissionOutcome:
+  implementation: "Skipped, Observed or Unavailable; no status interpretation"
+  folded_into: "hunter.fs.root_admission"
+BackendLifetime:
+  source: "crates/hunter-fs-core/src/lifetime.rs"
+  boundary_spec: "hunter.fs.backend_lifetime"
+GuardedPreparation:
+  implementation: "enter guard, prepare backend, run borrowed body on caller thread"
+  folded_into: "hunter.fs.backend_lifetime"
+BackendRelease:
+  implementation: "owned backend drops before guard on return/unwind"
+  folded_into: "hunter.fs.backend_lifetime"
+ThreadMaterializationPolicy:
+  source: "crates/hunter-fs-core/src/materialization.rs"
+  implementation: "NonMaterializingIoGuard; Darwin thread policy restore, no-op elsewhere"
+  folded_into: "hunter.fs.backend_lifetime"
+ScanAssembly:
+  source: "crates/hunter-fs-core/src/assembly.rs"
+  launch_source: "crates/hunter-fs-core/src/launch.rs"
+  boundary_spec: "hunter.fs.scan_assembly"
+GuardedQueue:
+  implementation: "with_scan_session; queue and capped parallelism after backend preparation"
+  folded_into: "hunter.fs.scan_assembly"
+SingleLaunch:
+  implementation: "consuming ScanSession::run; no Clone; scoped join before return"
+  folded_into: "hunter.fs.scan_assembly"
+HostFinalization:
+  implementation: "host body continues after join, inside backend/guard scope"
+  folded_into: "hunter.fs.scan_assembly"
+TraversalCoordinator:
+  source: "crates/hunter-fs-core/src/coordinator.rs"
+  boundary_spec: "hunter.fs.traversal_coordinator"
+RootInitialization:
+  implementation: "run calls admit_root then host initialize; false skips pump/finish"
+  folded_into: "hunter.fs.traversal_coordinator"
+OwnedTaskAccounting:
+  implementation: "TraversalTasks owns ledger; reservation/telemetry before queue publication"
+  folded_into: "hunter.fs.traversal_coordinator"
+HostInterpretation:
+  implementation: "TraversalHandler; caller-thread callbacks; host retains message/report meaning"
+  folded_into: "hunter.fs.traversal_coordinator"
+EntryProcessing:
+  source: "crates/hunter-fs-core/src/processing.rs"
+  boundary_spec: "hunter.fs.entry_processing"
+ChildRouting:
+  implementation: "ChildTraversal::route + ChildHandler; original indices and stop prefix"
+  folded_into: "hunter.fs.entry_processing"
+SelectedMetadata:
+  implementation: "SelectedEntry + SelectedMeasurementPlan; root/worker/fallback precedence"
+  folded_into: "hunter.fs.entry_processing"
+CompletionCallbacks:
+  implementation: "MeasurementHandler finish before selected/cached buffers release"
+  folded_into: "hunter.fs.entry_processing"
+ScanEngine:
+  source: "crates/hunter-fs-core/src/engine.rs"
+  boundary_spec: "hunter.fs.scan_engine"
+ResponseInterpretation:
+  implementation: "ScanEngine Adapter delegates coordinator protocol; host decodes controls/results"
+  folded_into: "hunter.fs.scan_engine"
+BranchPreparation:
+  implementation: "ScanHandler prepare returns Abandon/Complete/Traverse; common routing with opaque branch"
+  folded_into: "hunter.fs.scan_engine"
+DeferredResolution:
+  implementation: "engine-owned PendingSelection; original-slot selected measurement and host completion"
+  folded_into: "hunter.fs.scan_engine"
+EngineLaunch:
+  source: "crates/hunter-fs-core/src/launch.rs"
+  implementation: "ScanSession::run_engine composes existing session + ScanEngine"
+  folded_into: "hunter.fs.scan_assembly"
+ResponseChannel:
+  implementation: "ScanChannel; original sender drops before factory; receiver drops before collect/join"
+  folded_into: "hunter.fs.scan_assembly"
+HostConstruction:
+  implementation: "caller-thread make_host after worker startup and before root observation"
+  folded_into: "hunter.fs.scan_assembly"
+PreJoinCollection:
+  implementation: "collect host/outcome before helper stop/queue close/join; post-join publication stays host-owned"
+  folded_into: "hunter.fs.scan_assembly"
+DarwinBatchMetadata:
+  source: "crates/hunter-fs-core/src/darwin_bulk.rs"
+  boundary_spec: "hunter.fs.darwin_bulk_metadata"
+  availability: "macos and feature=macos-bulk-metadata; default off"
+NoFollowOpen:
+  implementation: "read_directory_sizes; final-component no-follow, host holds thread guard"
+  folded_into: "hunter.fs.darwin_bulk_metadata"
+CheckedRecords:
+  implementation: "getattrlistbulk decoder; lossless basename, apparent/allocated bytes and native errors"
+  folded_into: "hunter.fs.darwin_bulk_metadata"
+BatchCheckpoint:
+  implementation: "FnMut stop before each batch, after open; accumulated prefix on stop"
+  folded_into: "hunter.fs.darwin_bulk_metadata"
+PreparedDirectorySizes:
+  source: "crates/hunter-fs-core/src/batch.rs"
+  boundary_spec: "hunter.fs.prepared_directory_sizes"
+  availability: "portable; no filesystem effects"
+ConsumeOnceLookup:
+  implementation: "take_file removes raw platform basename observations including errors"
+  folded_into: "hunter.fs.prepared_directory_sizes"
+BatchErrorFallback:
+  implementation: "None for missing/consumed/Unsupported; other batch errors reconstructed without retry"
+  folded_into: "hunter.fs.prepared_directory_sizes"
+ProcessPlatform:
+  boundary_spec: "hunter.platform.process"
+  implementation: "Explicit synchronous OS primitives; no automatic scheduling/sampling"
+RequestedThreadQos:
+  source: "crates/hunter-fs-core/src/thread_qos.rs"
+  folded_into: "hunter.platform.process"
+ProcessResourceSnapshot:
+  source: "crates/hunter-fs-core/src/process_resources.rs"
+  folded_into: "hunter.platform.process"

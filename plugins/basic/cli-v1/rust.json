@@ -1,0 +1,72 @@
+{
+  "format": "buildhunter.plugin/1-draft.1",
+  "id": "org.buildhunter.rust",
+  "version": "1.0.0",
+  "title": "Rust basic checks",
+  "description": "Bundled public basic catalog. Client profile: cli-v1.",
+  "program": {
+    "format": "rifle.program/1-draft.1",
+    "facts": [
+      {
+        "id": "cargo",
+        "type": "boolean"
+      },
+      {
+        "id": "kind",
+        "type": "string"
+      },
+      {
+        "id": "name",
+        "type": "string"
+      }
+    ],
+    "rules": [
+      {
+        "id": "rust-target",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": "target"
+            },
+            {
+              "fact": "cargo",
+              "op": "eq",
+              "value": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": {
+    "cargo": {
+      "source": "marker",
+      "scope": "parent",
+      "name": "Cargo.toml"
+    },
+    "kind": {
+      "source": "node.kind"
+    },
+    "name": {
+      "source": "node.name"
+    }
+  },
+  "targets": [
+    {
+      "id": "rust.target",
+      "title": "Rust target directory",
+      "ecosystem": "rust",
+      "kind": "build_output",
+      "ruleIds": [
+        "rust-target"
+      ]
+    }
+  ]
+}

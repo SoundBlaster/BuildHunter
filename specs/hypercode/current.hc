@@ -26,9 +26,14 @@ BuildHunterRuntime
       MarkerVocabulary
       ClientPolicy
       FilterCatalog
+    ClientCatalog
+      BasicProfiles
+      CatalogIdentity
+      CatalogHandle
     PluginPolicy
       CatalogValidation
       EffectivePlan
+      CandidateDispatch
       CandidateClassification
     HunterProcessPlatform
       RequestedThreadQos

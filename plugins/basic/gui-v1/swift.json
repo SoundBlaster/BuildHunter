@@ -1,0 +1,78 @@
+{
+  "format": "buildhunter.plugin/1-draft.1",
+  "id": "org.buildhunter.swift",
+  "version": "1.0.0",
+  "title": "Swift basic checks",
+  "description": "Bundled public basic catalog. Client profile: gui-v1.",
+  "program": {
+    "format": "rifle.program/1-draft.1",
+    "facts": [
+      {
+        "id": "kind",
+        "type": "string"
+      },
+      {
+        "id": "name",
+        "type": "string"
+      },
+      {
+        "id": "venv",
+        "type": "boolean"
+      }
+    ],
+    "rules": [
+      {
+        "id": "swift-build",
+        "when": {
+          "all": [
+            {
+              "not": {
+                "fact": "venv",
+                "op": "eq",
+                "value": true
+              }
+            },
+            {
+              "all": [
+                {
+                  "fact": "kind",
+                  "op": "eq",
+                  "value": "directory"
+                },
+                {
+                  "fact": "name",
+                  "op": "eq",
+                  "value": ".build"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": {
+    "kind": {
+      "source": "node.kind"
+    },
+    "name": {
+      "source": "node.name"
+    },
+    "venv": {
+      "source": "marker",
+      "scope": "own",
+      "name": "pyvenv.cfg"
+    }
+  },
+  "targets": [
+    {
+      "id": "swift.build",
+      "title": "Swift build output",
+      "ecosystem": "swift",
+      "kind": "build_output",
+      "ruleIds": [
+        "swift-build"
+      ]
+    }
+  ]
+}

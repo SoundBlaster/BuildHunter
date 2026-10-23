@@ -1,3 +1,5 @@
 
 # Preserve exact upstream bytes for the Hunter source snapshot on every platform.
 vendor/hunter-fs-core/** -text
+# Preserve upstream dependency bytes and keep generated vendor data out of review focus.
+/vendor/dependencies/** linguist-vendored -whitespace

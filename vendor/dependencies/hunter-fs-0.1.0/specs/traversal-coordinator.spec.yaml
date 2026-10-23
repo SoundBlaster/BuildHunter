@@ -1,0 +1,96 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.traversal_coordinator
+  title: Owned root and task-response coordinator
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Own admission and task bookkeeping around a serial opaque host interpreter.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - TraversalCoordinator, TraversalTasks, TraversalHandler and TraversalOutcome.
+  excludes:
+  - Classification, child selection, context meaning, subtree membership, reporting,
+    guard placement, worker/channel ownership, shutdown/join and resource budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.traversal_coordinator
+    role: primary
+    summary: Admit original root and drive scoped task responses with owned accounting.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: coordinator
+    kind: library
+    summary: Construct coordinator from borrowed handler and owned TraversalTasks.
+      Consuming run observes root then initializes and drives; consuming drive uses
+      already initialized tasks without root observation.
+  - id: handler
+    kind: library
+    summary: Host initialize decides whether to drive. should_stop, checkpoint,
+      response_received, dispatch and finish interpret opaque state/messages on caller.
+  - id: task_access
+    kind: library
+    summary: enqueue reserves ID/state/response before host telemetry then queue
+      publication. take_listing, defer_measurement and take_measurement retain ledger protocol.
+  outbound: []
+constraints:
+- id: admission
+  level: MUST
+  statement: Run host preflight once on the original root before one backend observation.
+    Initialize with unchanged Skipped/Observed/Unavailable. False initialization skips
+    pump and finish; no additional stop check, retry, normalization or enumeration occurs.
+    Host chooses placement inside its guarded scoped-worker body to preserve launch timing.
+- id: scheduling
+  level: MUST
+  statement: Coordinator owns ledger and borrows queue; task payloads/context remain
+    opaque. Enqueue reserves ID/state/response, invokes host before_publish with count,
+    then pushes. Callback panic occurs before publication. Rejection returns original
+    task and leaves reservation visible; host must interpret rejection and stop.
+    Listing receipt may reserve measurement; ignored speculative responses still retire.
+    Preserve original nonreused IDs and payload transfer behavior. No bound follows.
+- id: execution
+  level: MUST
+  statement: Preserve drive_scan empty-before-stop, checkpoint/receive/retire/stop/dispatch
+    order and timeout behavior. Notify host with outstanding count after each receipt
+    before post-receipt stop check. Disconnection retains unanswered count. After normal
+    pump return invoke finish exactly once before dropping owned ledger. Panics skip
+    finish and unwind owned state; callbacks/errors/reasons may borrow non-Send data.
+- id: lifecycle
+  level: MUST
+  statement: A consumed coordinator cannot drive again. Outcome distinguishes skipped
+    initialization from Drained/Stopped/Disconnected and preserves outstanding count;
+    it is not a product scan status or join fence. Host must keep guards/scoped workers,
+    close queue/stop helpers and release unread receivers before actual scope join.
+    Callback/backend I/O must terminate; abort/double panic and broken drops have no
+    cleanup guarantee. Externally borrowed state stays externally owned.
+effects:
+  sideEffects:
+  - id: root_callbacks
+    kind: event_emit
+    summary: Root metadata observation and synchronous opaque host callbacks/queue operations.
+evidence:
+- id: coordinator_source
+  kind: source
+  path: crates/hunter-fs-core/src/coordinator.rs
+  supports: [intent.summary, scope, interfaces, constraints, effects]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter Scanner and ScanCoordinator assembly at
+    aee3c7691045322b81474cda4df950972131deb7. Seven upstream integration witnesses
+    complement existing protocol/guard tests. Draft is not owner acceptance.
+implementationBindings:
+- id: coordinator
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/coordinator.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/admission.rs,
+      crates/hunter-fs-core/src/ledger.rs, crates/hunter-fs-core/src/execution.rs]

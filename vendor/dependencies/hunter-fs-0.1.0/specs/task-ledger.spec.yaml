@@ -1,0 +1,90 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.task_ledger
+  title: Serial directory task and response bookkeeping
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Assign non-reused task IDs, retain opaque listing/deferred state and count
+    expected responses for a caller-owned serial coordinator.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Task registration, one-shot listing state, optional measurement state keyed by ID,
+    response counters and owned payload release.
+  excludes:
+  - Queues/channels, worker execution/join, filesystem I/O, host policy interpretation,
+    recursive accounting, wire validation, timeouts, terminal status and memory budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.task_ledger
+    role: primary
+    summary: Maintain opaque task/result registry and expected-message count with explicit
+      host protocol obligations.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: registry
+    kind: library
+    summary: DirectoryTaskLedger::register(request,state) -> DirectoryTask<usize,Context>;
+      response_received, take_listing(id,measuring), defer_measurement(id,Option<Pending>),
+      take_measurement(id), outstanding.
+  outbound: []
+constraints:
+- id: identities
+  level: MUST
+  statement: Allocate zero-based IDs monotonically from retained listing slots; do not
+    reuse consumed IDs. Move request values into the returned task and keep opaque
+    state until the first valid take_listing or ledger drop. Unknown/repeated listing
+    IDs panic as host protocol violations.
+- id: responses
+  level: MUST
+  statement: Register reserves one response. Host calls response_received once per
+    received message before cancellation/result dispatch; it subtracts one and panics
+    at zero. take_listing adds one response when measuring is true. Ignored measurement
+    work still needs a response; setup failure may retire a response before host stops.
+- id: correlation
+  level: MUST
+  statement: Host defers state at most once after a measuring listing and before consuming
+    its measurement response. Some retains a payload; None ignores speculative work.
+    take_measurement removes/moves payload once; ignored/unknown/repeated IDs return None.
+    Deferral/lookup do not change response count. These calls do not validate wire order,
+    request-state correspondence or measurement identity; host must supply a valid protocol.
+- id: ownership
+  level: MUST
+  statement: Payloads move without cloning or interpretation. Ledger drop releases
+    unclaimed listing/deferred state but does not cancel or join workers. Vector and
+    map capacities are retained until drop; no bounded whole-scan memory guarantee.
+effects:
+  sideEffects:
+  - id: host_payload_drop
+    kind: event_emit
+    summary: Rust ownership moves/drops opaque caller payloads; destructor effects and
+      panic behavior remain host responsibilities. No callbacks or I/O are initiated.
+evidence:
+- id: ledger_source
+  kind: source
+  path: crates/hunter-fs-core/src/ledger.rs
+  supports: [intent.summary, scope, interfaces, constraints.identities, constraints.responses, constraints.correlation, constraints.ownership]
+- id: ledger_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [constraints.responses, constraints.correlation, constraints.ownership]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Extracted from BuildHunter Scanner nodes/awaiting/outstanding at 7f8c72f.
+    Descriptive contract remains draft; structural validation and execution receipts
+    are separate from requirement acceptance.
+implementationBindings:
+- id: ledger_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/ledger.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/children.rs]

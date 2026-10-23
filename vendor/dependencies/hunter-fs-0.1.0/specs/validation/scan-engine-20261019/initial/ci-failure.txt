@@ -1,0 +1,53 @@
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	﻿2026-10-19T08:27:12.7883956Z ##[group]Run cargo clippy --workspace --locked --all-targets -- -D warnings
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7884576Z ^[[36;1mcargo clippy --workspace --locked --all-targets -- -D warnings^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7947697Z shell: /usr/bin/bash -e {0}
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7947953Z env:
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7948149Z   CARGO_HOME: /home/runner/.cargo
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7948416Z   CARGO_INCREMENTAL: 0
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7948651Z   CARGO_TERM_COLOR: always
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.7948881Z ##[endgroup]
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.8609690Z ^[[1m^[[92m    Checking^[[0m libc v0.2.190
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:12.8610757Z ^[[1m^[[92m    Checking^[[0m hunter-fs-core v0.1.0 (/home/runner/work/Hunter/Hunter/crates/hunter-fs-core)
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0094590Z ^[[1m^[[91merror^[[0m^[[1m: large size difference between variants^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0124389Z   ^[[1m^[[94m--> ^[[0mcrates/hunter-fs-core/src/engine.rs:24:1
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0125440Z    ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0127557Z ^[[1m^[[94m24^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m/^[[0m pub enum ListingAction<Branch> {
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0153970Z ^[[1m^[[94m25^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m     Abandon,
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0184185Z    ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m     ^[[1m^[[94m-------^[[0m ^[[1m^[[94mthe second-largest variant carries no data at all^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0214110Z ^[[1m^[[94m26^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m     Complete(Branch),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0215296Z ^[[1m^[[94m27^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m     Traverse(BranchPlan<Branch>),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0231181Z    ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m     ^[[1m^[[94m----------------------------^[[0m ^[[1m^[[94mthe largest variant contains at least 201 bytes^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0253960Z ^[[1m^[[94m28^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m }
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0279947Z    ^[[1m^[[94m|^[[0m ^[[1m^[[91m|_^^[[0m ^[[1m^[[91mthe entire enum is at least 201 bytes^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0283952Z    ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0285446Z    ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#large_enum_variant
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0287945Z    ^[[1m^[[94m= ^[[0m^[[1mnote^[[0m: `-D clippy::large-enum-variant` implied by `-D warnings`
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0289501Z    ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0291122Z ^[[1m^[[96mhelp^[[0m: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0292280Z    ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0293297Z ^[[1m^[[94m27^[[0m ^[[91m- ^[[0m    Traverse(^[[91mBranchPlan<Branch>^[[0m),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0294268Z ^[[1m^[[94m27^[[0m ^[[92m+ ^[[0m    Traverse(^[[92mBox<BranchPlan<Branch>>^[[0m),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0295185Z    ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0295450Z
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0296007Z ^[[1m^[[91merror^[[0m: could not compile `hunter-fs-core` (lib) due to 1 previous error
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.0297028Z ^[[1m^[[33mwarning^[[0m: build failed, waiting for other jobs to finish...
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3874641Z ^[[1m^[[91merror^[[0m^[[1m: large size difference between variants^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3875641Z    ^[[1m^[[94m--> ^[[0mcrates/hunter-fs-core/src/engine.rs:386:5
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3876272Z     ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3876851Z ^[[1m^[[94m386^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m/^[[0m     enum Message {
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3878047Z ^[[1m^[[94m387^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m         Directory(DirectoryResult<usize, u8>),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3879585Z     ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m         ^[[1m^[[94m-------------------------------------^[[0m ^[[1m^[[94mthe largest variant contains at least 208 bytes^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3880913Z ^[[1m^[[94m388^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m         Control,
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3882139Z     ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m         ^[[1m^[[94m-------^[[0m ^[[1m^[[94mthe second-largest variant carries no data at all^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3883505Z ^[[1m^[[94m389^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[91m|^[[0m     }
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3884532Z     ^[[1m^[[94m|^[[0m ^[[1m^[[91m|_____^^[[0m ^[[1m^[[91mthe entire enum is at least 208 bytes^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3885807Z     ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3887135Z     ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#large_enum_variant
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3889205Z ^[[1m^[[96mhelp^[[0m: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3890472Z     ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3891264Z ^[[1m^[[94m387^[[0m ^[[91m- ^[[0m        Directory(^[[91mDirectoryResult<usize, u8>^[[0m),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3892442Z ^[[1m^[[94m387^[[0m ^[[92m+ ^[[0m        Directory(^[[92mBox<DirectoryResult<usize, u8>>^[[0m),
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3893612Z     ^[[1m^[[94m|^[[0m
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.3893960Z
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.4128022Z ^[[1m^[[91merror^[[0m: could not compile `hunter-fs-core` (lib test) due to 2 previous errors
+primitives (ubuntu-latest)	Run cargo clippy --workspace --locked --all-targets -- -D warnings	2026-10-19T08:27:13.5016703Z ##[error]Process completed with exit code 101.

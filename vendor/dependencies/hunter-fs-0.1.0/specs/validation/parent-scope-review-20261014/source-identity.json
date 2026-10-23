@@ -1,0 +1,38 @@
+{
+  "baseline": "71f71fc9166da3ce948fce372101c5a46dfd0f36",
+  "recorded_at_utc": "2026-10-14T13:33:11.776532+00:00",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "0e16d32dc7a1d8f8b96afef32d48b98cef70ac111f1c6ff90251fa6e150d08e6"
+    },
+    {
+      "path": "README.md",
+      "sha256": "2dae8951afaaf628304bbb695a43cea0a57c3e63aae4f112c69c0a9895d067b2"
+    },
+    {
+      "path": "src/scoped_metadata.rs",
+      "sha256": "07a8b5a733024ec838c38290902fc9f2a8cb4f031a41a7117f0aadc64503d0be"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "877fc619e975e920b89a80d0848e4dbc8ae2a828a79657bcb5402f8a26d7a5ef"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "bdce4f5d6014eefd90f8d32a148fff47cec067041559620e6c6c062abd495185"
+    },
+    {
+      "path": "specs/scoped-metadata.spec.yaml",
+      "sha256": "957f149ef30baad4d7948926e6345f04524697d5e048dcb668466f9613ffc1af"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "73d7cb393e320cd5f26b8367947d3313758270d4933a31c57850745e2fd27ebc"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "b32bba0f88dbc8d549e5b26bbf370a55afde2bd743f5976672e7fef26bbeda7a"
+    }
+  ]
+}

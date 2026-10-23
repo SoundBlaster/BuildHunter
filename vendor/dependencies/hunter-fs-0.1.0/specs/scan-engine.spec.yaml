@@ -1,0 +1,110 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.scan_engine
+  title: Composed serial scan engine
+  version: 0.1.0-draft.2
+  status: draft
+intent:
+  summary: Compose root/task coordination, child routing and selected metadata resolution around one opaque host.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Consuming ScanEngine run/drive, ScanHandler, ScanTasks, BranchPlan,
+    ListingAction and opaque PendingSelection.
+  excludes:
+  - Worker/backend factories, access/classification policy, branch meaning,
+    byte aggregation, report/status mapping, descriptor recursion and resource budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.scan_engine
+    role: primary
+    summary: Centralize serial response dispatch, routing and deferred/immediate selected measurement.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: run
+    kind: library
+    summary: Consume host/tasks facade with backend, raw root, preflight, borrowed
+      receiver and optional idle interval, yielding TraversalOutcome.
+  - id: handler
+    kind: library
+    summary: Synchronous host callbacks with opaque State/Branch/Selection/Context/
+      RootReason/Message. Host decodes controls or typed directory responses and
+      chooses Abandon, Complete or Traverse during preparation.
+constraints:
+- id: composition
+  level: MUST
+  statement: Delegate root admission, initialization and receipt/stop/checkpoint loop
+    to TraversalCoordinator without an extra stop check, queue, thread or enumeration.
+    Initialization false skips pump/finish. drive does not observe the root again.
+    Drained/Stopped/Disconnected are loop outcomes, not product statuses or joins;
+    zero outstanding work wins at the next loop boundary even after a control failure.
+- id: listing
+  level: MUST
+  statement: After host response decoding, call listing_received before taking state,
+    reserve promised measurement then notify measurement_pending before preparation.
+    Abandon does not repair deferral or complete; host chooses cancellation meaning.
+    Complete records ignored speculative work if promised, then calls finish_directory.
+    Traverse releases interpreted errors, routes original children through host hooks,
+    and preserves stop prefix cleanup with no directory completion on stop.
+- id: measurement
+  level: MUST
+  statement: Empty unselected work records an ignored promised measurement and
+    completes immediately. Otherwise defer selected plan/opaque branch if promised,
+    or resolve immediately using the selected metadata contract. Measured consumes
+    deferred selection once; absent/ignored payload performs no interpretation/I/O.
+    Preserve root/worker/fallback precedence, original slots, cached errors without
+    retry and selected ordinal checkpoint timing. finish_directory runs before
+    selected/cached buffers and branch state release.
+- id: lifetime
+  level: MUST
+  statement: Callbacks run serially on the caller and may borrow non-Send context.
+    Host partial finish occurs before ledger drop on ordinary pump return. Callback
+    or backend panic propagates with no synthesized finish and owned payload cleanup.
+    Consuming run/drive cannot relaunch that facade. Host owns worker scope/guards,
+    unread receiver release before join and final publication after actual join.
+    Destructors must be well behaved; no abort/double-panic cleanup guarantee is made.
+- id: protocol
+  level: MUST
+  statement: Host must provide valid reserved IDs and response order, interpret listing
+    errors during prepare, preserve effective access guards, and stop after enqueue
+    rejection. Controls retire a reservation as any other message. Invalid listing
+    IDs can panic; unknown/ignored/repeated measured IDs are dropped. No wire identity
+    validation, filesystem snapshot, preemptive I/O cancellation or resource cap is added.
+effects:
+  sideEffects:
+  - id: orchestration
+    kind: event_emit
+    summary: Serial host callbacks, task publication and missing-metadata backend effects through composed primitives.
+evidence:
+- id: engine_source
+  kind: source
+  path: crates/hunter-fs-core/src/engine.rs
+  supports: [intent.summary, scope, interfaces, constraints, effects]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - R3 acquisition update (2026-10-23); portable EntryType now represents directory,
+    regular file, symlink and other categories instead of opaque std FileType.
+    Default path backend behavior is preserved; optional scoped acquisition and
+    current source/run identities are recorded in scoped-filesystem-20261023.
+  - Recovered from BuildHunter ArtifactHandler and its child/measurement adapters at
+    1f92df7fdad00787e02f2eb029fa09f6007c66ca. Eight integration witnesses and a
+    compile-fail consumption witness supplement lower-level/product guards.
+    Draft is not owner acceptance or live provider evidence.
+implementationBindings:
+- id: engine
+  scope: component
+  language: rust
+  source:
+    repository: https://github.com/SoundBlaster/Hunter
+    revision: 920a51afb85efdb21951d61d1ef3894148017cbc
+  files:
+    owned: [crates/hunter-fs-core/src/engine.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/coordinator.rs,
+      crates/hunter-fs-core/src/processing.rs, crates/hunter-fs-core/src/assembly.rs]

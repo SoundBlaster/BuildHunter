@@ -1,0 +1,26 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `crate::FilesystemBackend`, `crate::RootObservation`, `crate::StdFilesystem`, `crate::observe_root`
+ --> crates/hunter-fs-core/src/backend.rs:3:17
+  |
+3 |     use crate::{FilesystemBackend, RootObservation, StdFilesystem, observe_root};
+  |                 ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^ no `observe_root` in the root
+  |                 |                  |                |
+  |                 |                  |                no `StdFilesystem` in the root
+  |                 |                  no `RootObservation` in the root
+  |                 no `FilesystemBackend` in the root
+
+error[E0223]: ambiguous associated type
+  --> crates/hunter-fs-core/src/backend.rs:26:48
+   |
+26 |         fn read_dir(&self,_:&Path)->io::Result<Self::Entries> { panic!("root observation must not enumerate") }
+   |                                                ^^^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `Entries` implemented for `backend::tests::Borrowed<'_>`, you could use the fully-qualified path
+   |
+26 -         fn read_dir(&self,_:&Path)->io::Result<Self::Entries> { panic!("root observation must not enumerate") }
+26 +         fn read_dir(&self,_:&Path)->io::Result<<backend::tests::Borrowed<'_> as Example>::Entries> { panic!("root observation must not enumerate") }
+   |
+
+Some errors have detailed explanations: E0223, E0432.
+For more information about an error, try `rustc --explain E0223`.
+error: could not compile `hunter-fs-core` (lib test) due to 2 previous errors

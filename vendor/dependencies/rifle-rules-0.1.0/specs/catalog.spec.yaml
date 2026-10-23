@@ -1,0 +1,111 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: rifle.catalog
+  title: Generic program catalog and content identity
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Provide canonical content identity and atomic bounded catalogs of named, validated pure programs.
+scope:
+  boundedContext: program_catalog
+  includes:
+  - Bounded strict JSON identity, JCS/SHA256, generic package headers, compiled programs, aggregate limits and immutable
+    sorted snapshots.
+  excludes:
+  - BuildHunter plugin validation, artifact target conflicts, marker acquisition, loading from disk/network, authenticity,
+    SDK, settings identity and performance claims.
+provides:
+  capabilities:
+  - id: rifle.json.identity
+    role: primary
+    summary: Canonicalize admitted JSON and compute SHA256 content identity.
+  - id: rifle.catalog.validate
+    role: primary
+    summary: Validate and snapshot bounded generic program packages.
+requires:
+  capabilities:
+  - id: rifle.program.evaluate
+    optional: false
+    summary: Each package compiles its pure program using the existing local evaluator boundary.
+interfaces:
+  inbound:
+  - id: catalog_api
+    kind: library
+    summary: JsonIdentity::from_json, ProgramPackage::from_json and Catalog::from_json_documents return owned immutable
+      identity/catalog or explicit Error.
+  outbound: []
+constraints:
+- id: strict_identity
+  level: MUST
+  statement: Admit bounded strict JSON before RFC8785 canonicalization. Reject duplicate keys, invalid Unicode/non-finite
+    numbers and integer tokens outside the documented safe profile; hash canonical bytes with SHA-256.
+- id: whole_document
+  level: MUST
+  statement: Package identity covers the entire supplied document, including opaque host fields. Identity establishes
+    content equality, not trust or host-schema acceptance.
+- id: catalog_snapshot
+  level: MUST
+  statement: Validate id/version/program packages atomically; reject duplicate package IDs even across versions;
+    enforce byte/package/rule/node budgets and own an immutable sorted snapshot.
+- id: catalog_identity
+  level: MUST
+  statement: Catalog digest hashes JCS of ASCII-ID-sorted id/version/digest records. Loading order does not change
+    identity; arrays and strings inside documents remain significant.
+- id: host_boundary
+  level: MUST
+  statement: Rifle validates abstract program packages only. Host-specific format/bindings/targets, reserved IDs,
+    exclusions, semantic conflicts, required bundles and filesystem scope remain host obligations.
+effects:
+  sideEffects: []
+evidence:
+- id: identity_source
+  kind: source
+  path: src/identity.rs
+  supports:
+  - constraints.strict_identity
+  - constraints.whole_document
+- id: catalog_source
+  kind: source
+  path: src/catalog.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.catalog_snapshot
+  - constraints.catalog_identity
+  - constraints.host_boundary
+- id: catalog_contract_tests
+  kind: test
+  path: tests/identity_catalog.rs
+  supports:
+  - constraints.strict_identity
+  - constraints.whole_document
+  - constraints.catalog_snapshot
+  - constraints.catalog_identity
+  - constraints.host_boundary
+- id: catalog_contract_doc
+  kind: documentation
+  path: docs/catalog-identity.md
+  supports:
+  - scope
+  - constraints.host_boundary
+  - constraints.strict_identity
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Generic catalog API is a new reviewable draft implementing the accepted identity direction. It is not a full
+    BuildHunter plugin/catalog validator. Fresh local execution evidence recorded separately from CI.
+implementationBindings:
+- id: catalog_implementation
+  scope: component
+  files:
+    owned:
+    - src/catalog.rs
+    - src/identity.rs
+    border:
+    - src/json.rs
+    - src/validate.rs
+    - tests/identity_catalog.rs

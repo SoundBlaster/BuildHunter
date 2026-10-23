@@ -1,0 +1,82 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.prepared_directory_sizes
+  title: Owned prepared directory size lookup
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Consume already acquired per-name size/error observations and expose the
+    original missing/unsupported fallback decision without filesystem effects.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - DirectorySizes and PreparedDirectorySizes with new and take_file on all platforms;
+    Darwin acquisition re-exports the same DirectorySizes type.
+  excludes:
+  - Acquisition, stat fallback execution, guards, stop probes, counters, error decoration,
+    path membership validation, product policy and whole-scan budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.prepared_directory_sizes
+    role: primary
+    summary: Own a directory batch and consume one basename result or request host fallback.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: prepared_sizes
+    kind: library
+    summary: PreparedDirectorySizes::new(Result<DirectorySizes>) owns the input;
+      take_file(Path) returns Option<Result<MeasuredSize>> without I/O.
+  outbound: []
+constraints:
+- id: consume_once
+  level: MUST
+  statement: A successful map lookup removes the basename entry, including cached errors.
+    Missing or already-consumed names return None. A cached error is never retried by
+    this helper. The host must interpret None and perform any authorized fallback.
+- id: batch_errors
+  level: MUST
+  statement: A directory-wide Unsupported error returns None on every request. Other
+    directory-wide errors return Some(Err) repeatedly without reacquisition; reconstruct
+    native errno when present, otherwise preserve kind and display message. Do not claim
+    original custom-error identity for reconstructed directory-wide errors.
+- id: identity
+  level: MUST
+  statement: Lookup only the path basename using OsStr::as_encoded_bytes without lossy
+    decoding, normalization, case folding or allocation of a replacement name. Keys must
+    use the same platform representation and stay in the current process/platform.
+    The host supplies original slots from the acquired directory; this is not a path
+    authorization or parent-membership check. Darwin keys remain raw Unix bytes.
+- id: ownership
+  level: MUST
+  statement: Own all prepared map/error state; cached values/errors move to the caller,
+    remaining entries release with the prepared state. No callback, I/O, stop checkpoint,
+    Send/Sync bound or resource budget is introduced. Host holds guards and applies
+    profiling/error translation at their original boundaries.
+effects:
+  sideEffects: []
+evidence:
+- id: lookup_source
+  kind: source
+  path: crates/hunter-fs-core/src/batch.rs
+  supports: [intent.summary, scope, interfaces, constraints.consume_once, constraints.batch_errors, constraints.identity, constraints.ownership]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Extracted from BuildHunter src/measurement.rs PreparedFiles::measure at
+    7ab00f16ae437fe88427c2acbe1b651b30b044f1 (MIT). Host-only injected failures,
+    profiling increments, fallback effects and error decoration are not transferred.
+  - The portable lookup helper does not enable Darwin acquisition by default or change
+    DirectoryMeasurementPlan ordering. Fresh evidence is in specs/validation/prepared-batch-20261021.
+implementationBindings:
+- id: prepared_sizes_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/batch.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/darwin_bulk.rs]

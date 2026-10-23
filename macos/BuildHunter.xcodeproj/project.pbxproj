@@ -490,6 +490,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		6C047EC0E96D9CB13061B180 /* Build Rust scanner (Apple Silicon) */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -499,6 +500,7 @@
 				"$(SRCROOT)/../Cargo.toml",
 				"$(SRCROOT)/../Cargo.lock",
 				"$(SRCROOT)/../src/lib.rs",
+				"$(SRCROOT)/../src/catalog.rs",
 				"$(SRCROOT)/../src/policy_table.rs",
 				"$(SRCROOT)/../src/profile.rs",
 				"$(SRCROOT)/../src/resources.rs",

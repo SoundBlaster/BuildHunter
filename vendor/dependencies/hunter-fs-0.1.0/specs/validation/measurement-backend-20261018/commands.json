@@ -1,0 +1,173 @@
+[
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--workspace",
+      "--locked",
+      "--offline"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "\nrunning 9 tests\ntest scoped_metadata::tests::dataless_metadata_is_classified_as_cloud_unavailable ... ok\ntest scoped_metadata::tests::invalid_names_are_rejected_without_metadata_access ... ok\ntest scoped_metadata::tests::paths_outside_root_are_rejected_before_io ... ok\ntest scoped_metadata::tests::inaccessible_directory_is_unknown_not_missing_marker ... ok\ntest scoped_metadata::tests::parent_of_root_is_unavailable_but_child_parent_is_inside_scope ... ok\ntest scoped_metadata::tests::parent_selection_cannot_hide_out_of_scope_components ... ok\ntest scoped_metadata::tests::regular_directory_and_link_entries_keep_distinct_results ... ok\ntest scoped_metadata::tests::selected_root_descriptor_stays_anchored_after_path_replacement ... ok\ntest scoped_metadata::tests::replacing_intermediate_directory_with_link_cannot_redirect_marker_observation ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 73 tests\ntest backend::tests::root_error_and_literal_path_are_preserved_without_retry ... ok\ntest execution::tests::checkpoint_stop_keeps_the_existing_receive_then_retire_boundary ... ok\ntest execution::tests::dispatch_can_schedule_more_work_before_the_next_termination_check ... ok\ntest execution::tests::disconnection_preserves_unanswered_count_in_both_wait_modes ... ok\ntest backend::tests::root_observation_borrows_backend_and_never_enumerates_or_normalizes ... ok\ntest execution::tests::host_and_messages_can_borrow_non_send_state ... ok\ntest execution::tests::empty_work_does_not_checkpoint_receive_or_check_stop ... ok\ntest execution::tests::precancelled_work_preserves_the_queued_response ... ok\ntest execution::tests::stop_after_receipt_retires_but_does_not_dispatch_the_message ... ok\ntest execution::tests::zero_interval_is_rejected_instead_of_busy_polling - should panic ... ok\ntest execution::tests::callback_panic_propagates_to_the_host_scope ... ok\ntest backend::tests::directory_and_file_roots_keep_their_observed_metadata ... ok\ntest ledger::tests::dropping_stopped_ledger_releases_unclaimed_listing_and_pending_payloads_once ... ok\ntest ledger::tests::ignored_measurement_still_needs_a_response_but_has_no_payload ... ok\ntest ledger::tests::listed_and_measured_messages_keep_separate_response_counts ... ok\ntest ledger::tests::duplicate_listing_is_a_host_protocol_error - should panic ... ok\ntest ledger::tests::registration_assigns_nonreused_ids_and_retains_request_values ... ok\ntest ledger::tests::response_without_outstanding_work_is_a_host_protocol_error - should panic ... ok\ntest children::tests::stop_is_terminal_and_keeps_already_returned_prefix ... ok\ntest ledger::tests::setup_failure_receipt_leaves_unclaimed_state_for_drop ... ok\ntest listing::tests::empty_precancelled_listing_is_completed_without_callbacks ... ok\ntest listing::tests::open_failure_precedes_stop_and_preserves_context_path_and_error ... ok\ntest children::tests::empty_or_all_skipped_listing_completes_without_stop ... ok\ntest backend::tests::standard_directory_backend_returns_original_entries_and_open_error ... ok\ntest children::tests::routing_uses_supplied_observation_without_new_io ... ok\ntest children::tests::selection_preserves_order_indices_and_clones_context_only_for_directories ... ok\ntest children::tests::directory_symlink_is_a_leaf_and_raw_path_is_preserved ... ok\ntest execution::tests::timeout_repeats_checkpoint_without_retiring_a_response ... ok\ntest listing::tests::consumes_supplied_iterator_without_opening_or_rewriting_its_paths ... ok\ntest backend::tests::final_symlinks_are_entries_including_directory_and_dangling_targets ... ok\ntest listing::tests::ordered_entries_and_observer_errors_retain_children_and_borrowed_context ... ok\ntest subtree::tests::byte_addition_saturates_instead_of_wrapping ... ok\ntest subtree::tests::empty_root_becomes_ready_and_completes_once ... ok\ntest subtree::tests::finished_root_waits_for_every_announced_directory ... ok\ntest subtree::tests::host_can_force_a_partial_prefix_while_directories_are_pending ... ok\ntest subtree::tests::known_leaf_size_replaces_the_total ... ok\ntest listing::tests::observer_cancellation_keeps_current_entry_and_stops_before_next_observer ... ok\ntest subtree::tests::unannounced_directory_completion_is_a_host_protocol_error - should panic ... ok\ntest listing::tests::observer_panic_propagates_before_visiting_later_entries ... ok\ntest subtree::tests::nested_states_follow_host_accounting_and_wait_for_their_own_root ... ok\ntest subtree::tests::partial_marker_and_host_force_combine_without_losing_bytes ... ok\ntest measurement::tests::empty_and_omitted_slots_still_prepare_without_file_calls ... ok\ntest measurement::tests::file_callback_panic_propagates_and_releases_prepared_state ... ok\ntest measurement::tests::precancelled_directory_error_still_prepares_before_stopping ... ok\ntest tests::failed_open_preserves_path_and_os_error_even_if_cancelled ... ok\ntest measurement::tests::cancellation_keeps_original_position_prefix_and_drops_prepared_state ... ok\ntest tests::empty_directory_completes_without_observations ... ok\ntest listing::tests::observed_links_remain_links_without_resolving_targets ... ok\ntest measurement::tests::typed_backend_preserves_order_slots_identity_and_file_errors ... ok\ntest task::tests::intent_and_host_prefetch_select_plan_without_context_policy ... ok\ntest work::tests::close_releases_queued_payloads_without_dropping_in_flight_payload ... ok\ntest task::tests::cancellation_keeps_original_slot_prefix ... ok\ntest tests::sparse_file_sizes_match_platform_metadata ... ok\ntest work::tests::lifo_and_closed_queue_returns_task_ownership ... ok\ntest work::tests::worker_cap_is_positive_and_respected ... ok\ntest task::tests::cancelled_plan_still_prepares_after_directory_error_but_does_not_measure_slots ... ok\ntest tests::iteration_errors_do_not_discard_later_entries ... ok\ntest work::tests::closing_releases_all_idle_workers ... ok\ntest worker::tests::closed_queue_does_not_invoke_host ... ok\ntest worker::tests::cancellation_after_listing_still_publishes_partial_measurement ... ok\ntest work::tests::coordinator_unwind_closes_queue_before_scope_join ... ok\ntest task::tests::symbolic_link_and_directory_slots_do_not_invoke_backend ... ok\ntest work::tests::worker_panic_closes_peers_before_coordinator_exits ... ok\ntest tests::hard_links_remain_individually_measured ... ok\ntest work::tests::workers_can_expand_recursive_tasks_and_finish_before_return ... ok\ntest worker::tests::host_intent_and_prefetch_publish_listing_before_measurement ... ok\ntest tests::cancellation_retains_only_the_emitted_prefix ... ok\ntest worker::tests::listing_only_does_not_measure ... ok\ntest worker::tests::host_panic_propagates_through_shutdown_guard ... ok\ntest worker::tests::rejected_publication_stops_without_popping_another_task ... ok\ntest task::tests::slot_alignment_and_directory_prepare_file_order_are_preserved ... ok\ntest worker::tests::successful_publications_continue_in_queue_order ... ok\ntest tests::enumerates_directory_file_and_link_without_following_link_target ... ok\n\ntest result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo/debug/deps/hunter_fs-bd7d5eefc9924479)\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo/debug/deps/hunter_fs_core-f1eb00ec198ebe4c)\n   Doc-tests hunter_fs\n   Doc-tests hunter_fs_core\n"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--workspace",
+      "--locked",
+      "--release",
+      "--offline"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "\nrunning 9 tests\ntest scoped_metadata::tests::dataless_metadata_is_classified_as_cloud_unavailable ... ok\ntest scoped_metadata::tests::invalid_names_are_rejected_without_metadata_access ... ok\ntest scoped_metadata::tests::inaccessible_directory_is_unknown_not_missing_marker ... ok\ntest scoped_metadata::tests::paths_outside_root_are_rejected_before_io ... ok\ntest scoped_metadata::tests::parent_selection_cannot_hide_out_of_scope_components ... ok\ntest scoped_metadata::tests::parent_of_root_is_unavailable_but_child_parent_is_inside_scope ... ok\ntest scoped_metadata::tests::regular_directory_and_link_entries_keep_distinct_results ... ok\ntest scoped_metadata::tests::selected_root_descriptor_stays_anchored_after_path_replacement ... ok\ntest scoped_metadata::tests::replacing_intermediate_directory_with_link_cannot_redirect_marker_observation ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 73 tests\ntest backend::tests::root_error_and_literal_path_are_preserved_without_retry ... ok\ntest children::tests::routing_uses_supplied_observation_without_new_io ... ok\ntest backend::tests::root_observation_borrows_backend_and_never_enumerates_or_normalizes ... ok\ntest execution::tests::checkpoint_stop_keeps_the_existing_receive_then_retire_boundary ... ok\ntest children::tests::selection_preserves_order_indices_and_clones_context_only_for_directories ... ok\ntest execution::tests::disconnection_preserves_unanswered_count_in_both_wait_modes ... ok\ntest backend::tests::directory_and_file_roots_keep_their_observed_metadata ... ok\ntest execution::tests::callback_panic_propagates_to_the_host_scope ... ok\ntest children::tests::empty_or_all_skipped_listing_completes_without_stop ... ok\ntest execution::tests::stop_after_receipt_retires_but_does_not_dispatch_the_message ... ok\ntest execution::tests::precancelled_work_preserves_the_queued_response ... ok\ntest execution::tests::empty_work_does_not_checkpoint_receive_or_check_stop ... ok\ntest execution::tests::dispatch_can_schedule_more_work_before_the_next_termination_check ... ok\ntest execution::tests::host_and_messages_can_borrow_non_send_state ... ok\ntest ledger::tests::dropping_stopped_ledger_releases_unclaimed_listing_and_pending_payloads_once ... ok\ntest execution::tests::zero_interval_is_rejected_instead_of_busy_polling - should panic ... ok\ntest children::tests::stop_is_terminal_and_keeps_already_returned_prefix ... ok\ntest ledger::tests::ignored_measurement_still_needs_a_response_but_has_no_payload ... ok\ntest ledger::tests::duplicate_listing_is_a_host_protocol_error - should panic ... ok\ntest ledger::tests::listed_and_measured_messages_keep_separate_response_counts ... ok\ntest ledger::tests::registration_assigns_nonreused_ids_and_retains_request_values ... ok\ntest backend::tests::standard_directory_backend_returns_original_entries_and_open_error ... ok\ntest ledger::tests::setup_failure_receipt_leaves_unclaimed_state_for_drop ... ok\ntest ledger::tests::response_without_outstanding_work_is_a_host_protocol_error - should panic ... ok\ntest listing::tests::empty_precancelled_listing_is_completed_without_callbacks ... ok\ntest listing::tests::open_failure_precedes_stop_and_preserves_context_path_and_error ... ok\ntest backend::tests::final_symlinks_are_entries_including_directory_and_dangling_targets ... ok\ntest execution::tests::timeout_repeats_checkpoint_without_retiring_a_response ... ok\ntest listing::tests::consumes_supplied_iterator_without_opening_or_rewriting_its_paths ... ok\ntest subtree::tests::byte_addition_saturates_instead_of_wrapping ... ok\ntest subtree::tests::empty_root_becomes_ready_and_completes_once ... ok\ntest subtree::tests::host_can_force_a_partial_prefix_while_directories_are_pending ... ok\ntest subtree::tests::finished_root_waits_for_every_announced_directory ... ok\ntest children::tests::directory_symlink_is_a_leaf_and_raw_path_is_preserved ... ok\ntest subtree::tests::known_leaf_size_replaces_the_total ... ok\ntest subtree::tests::partial_marker_and_host_force_combine_without_losing_bytes ... ok\ntest subtree::tests::nested_states_follow_host_accounting_and_wait_for_their_own_root ... ok\ntest subtree::tests::unannounced_directory_completion_is_a_host_protocol_error - should panic ... ok\ntest listing::tests::ordered_entries_and_observer_errors_retain_children_and_borrowed_context ... ok\ntest listing::tests::observer_cancellation_keeps_current_entry_and_stops_before_next_observer ... ok\ntest measurement::tests::precancelled_directory_error_still_prepares_before_stopping ... ok\ntest listing::tests::observer_panic_propagates_before_visiting_later_entries ... ok\ntest measurement::tests::file_callback_panic_propagates_and_releases_prepared_state ... ok\ntest listing::tests::observed_links_remain_links_without_resolving_targets ... ok\ntest measurement::tests::cancellation_keeps_original_position_prefix_and_drops_prepared_state ... ok\ntest tests::failed_open_preserves_path_and_os_error_even_if_cancelled ... ok\ntest tests::empty_directory_completes_without_observations ... ok\ntest measurement::tests::typed_backend_preserves_order_slots_identity_and_file_errors ... ok\ntest work::tests::close_releases_queued_payloads_without_dropping_in_flight_payload ... ok\ntest measurement::tests::empty_and_omitted_slots_still_prepare_without_file_calls ... ok\ntest task::tests::cancelled_plan_still_prepares_after_directory_error_but_does_not_measure_slots ... ok\ntest task::tests::cancellation_keeps_original_slot_prefix ... ok\ntest work::tests::lifo_and_closed_queue_returns_task_ownership ... ok\ntest task::tests::intent_and_host_prefetch_select_plan_without_context_policy ... ok\ntest work::tests::closing_releases_all_idle_workers ... ok\ntest work::tests::worker_cap_is_positive_and_respected ... ok\ntest work::tests::coordinator_unwind_closes_queue_before_scope_join ... ok\ntest task::tests::slot_alignment_and_directory_prepare_file_order_are_preserved ... ok\ntest tests::sparse_file_sizes_match_platform_metadata ... ok\ntest worker::tests::cancellation_after_listing_still_publishes_partial_measurement ... ok\ntest worker::tests::closed_queue_does_not_invoke_host ... ok\ntest worker::tests::host_intent_and_prefetch_publish_listing_before_measurement ... ok\ntest task::tests::symbolic_link_and_directory_slots_do_not_invoke_backend ... ok\ntest work::tests::worker_panic_closes_peers_before_coordinator_exits ... ok\ntest work::tests::workers_can_expand_recursive_tasks_and_finish_before_return ... ok\ntest worker::tests::listing_only_does_not_measure ... ok\ntest worker::tests::rejected_publication_stops_without_popping_another_task ... ok\ntest worker::tests::host_panic_propagates_through_shutdown_guard ... ok\ntest worker::tests::successful_publications_continue_in_queue_order ... ok\ntest tests::enumerates_directory_file_and_link_without_following_link_target ... ok\ntest tests::iteration_errors_do_not_discard_later_entries ... ok\ntest tests::cancellation_retains_only_the_emitted_prefix ... ok\ntest tests::hard_links_remain_individually_measured ... ok\n\ntest result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)\n    Finished `release` profile [optimized] target(s) in 1.11s\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo/release/deps/hunter_fs-c8d0550915b01237)\n     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo/release/deps/hunter_fs_core-81f67c7436456359)\n   Doc-tests hunter_fs\n   Doc-tests hunter_fs_core\n"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--locked",
+      "--all-targets",
+      "--offline",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.24s\n"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "{\n  \"capabilities\": [\n    \"hunter.fs.backend\",\n    \"hunter.fs.child_traversal\",\n    \"hunter.fs.directory_listing\",\n    \"hunter.fs.directory_tasks\",\n    \"hunter.fs.directory_worker\",\n    \"hunter.fs.measurement_backend\",\n    \"hunter.fs.portable\",\n    \"hunter.fs.scan_execution\",\n    \"hunter.fs.scoped_metadata\",\n    \"hunter.fs.subtree_progress\",\n    \"hunter.fs.task_ledger\",\n    \"hunter.fs.work\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/child-traversal.spec.yaml\",\n    \"specs/directory-listing.spec.yaml\",\n    \"specs/directory-tasks.spec.yaml\",\n    \"specs/directory-worker.spec.yaml\",\n    \"specs/filesystem-backend.spec.yaml\",\n    \"specs/measurement-backend.spec.yaml\",\n    \"specs/portable.spec.yaml\",\n    \"specs/scan-execution.spec.yaml\",\n    \"specs/scoped-metadata.spec.yaml\",\n    \"specs/subtree-progress.spec.yaml\",\n    \"specs/task-ledger.spec.yaml\",\n    \"specs/work.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"Hunter filesystem primitives\",\n    \"package_id\": \"hunter.filesystem\",\n    \"version\": \"0.1.0-draft.12\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 8,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"interfaces.inbound.0.id\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: metadata (effects.sideEffects.0.id, interfaces.inbound.0.id)\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/portable.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/filesystem-backend.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/directory-worker.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.work\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/directory-worker.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/directory-listing.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.portable\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/measurement-backend.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "HunterPrimitives\n  ScopedMetadata\n    DescriptorLifetime\n    RegularFileObservation\n    LocalMetadataGuard\n  PortableDirectory\n  MetadataSizing\n  ScopedWork\n    TaskQueue\n    WorkerLaunch\n    Shutdown\n  DirectoryTasks\n    MeasurementPlanning\n    ResultEnvelope\n  ChildTraversal\n    HostSelection\n    RecursiveRequests\n  TaskLedger\n    TaskIdentity\n    ResponseAccounting\n    DeferredState\n  SubtreeProgress\n    ByteAggregation\n    CompletionReadiness\n    PartialCompletion\n  ScanExecution\n    ResultPump\n    IdleCheckpoint\n    StopBoundary\n  FilesystemBackend\n    NativePathAccess\n    RootObservation\n  DirectoryWorker\n    TaskExecution\n    ListingFirst\n    PublicationBoundary\n  DirectoryAcquisition\n    OrderedCollection\n    ContextObservation\n    AcquisitionOutcome\n  MeasurementBackend\n    DirectoryPreparation\n    PreparedFileEffects\n    SharedSlotExecution\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "metadata",
+      "--format-version",
+      "1",
+      "--no-deps",
+      "--offline"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "{\"packages\":[{\"name\":\"hunter-fs-core\",\"version\":\"0.1.0\",\"id\":\"path+file:///Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core#0.1.0\",\"license\":\"MIT\",\"license_file\":null,\"description\":\"Dependency-free directory enumeration and size primitives\",\"source\":null,\"dependencies\":[],\"targets\":[{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"hunter_fs_core\",\"src_path\":\"/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true}],\"features\":{},\"manifest_path\":\"/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core/Cargo.toml\",\"metadata\":null,\"publish\":null,\"authors\":[],\"categories\":[],\"keywords\":[],\"readme\":\"README.md\",\"repository\":null,\"homepage\":null,\"documentation\":null,\"edition\":\"2024\",\"links\":null,\"default_run\":null,\"rust_version\":null},{\"name\":\"hunter-fs\",\"version\":\"0.1.0\",\"id\":\"path+file:///Users/egor/Development/GitHub/Hunter#hunter-fs@0.1.0\",\"license\":\"MIT\",\"license_file\":null,\"description\":\"Scoped filesystem acquisition primitives for search engines\",\"source\":null,\"dependencies\":[{\"name\":\"libc\",\"source\":\"registry+https://github.com/rust-lang/crates.io-index\",\"req\":\"^0.2\",\"kind\":null,\"rename\":null,\"optional\":false,\"uses_default_features\":true,\"features\":[],\"target\":\"cfg(unix)\",\"registry\":null}],\"targets\":[{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"hunter_fs\",\"src_path\":\"/Users/egor/Development/GitHub/Hunter/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true}],\"features\":{},\"manifest_path\":\"/Users/egor/Development/GitHub/Hunter/Cargo.toml\",\"metadata\":null,\"publish\":null,\"authors\":[],\"categories\":[],\"keywords\":[],\"readme\":\"README.md\",\"repository\":null,\"homepage\":null,\"documentation\":null,\"edition\":\"2024\",\"links\":null,\"default_run\":null,\"rust_version\":null}],\"workspace_members\":[\"path+file:///Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core#0.1.0\",\"path+file:///Users/egor/Development/GitHub/Hunter#hunter-fs@0.1.0\"],\"workspace_default_members\":[\"path+file:///Users/egor/Development/GitHub/Hunter#hunter-fs@0.1.0\"],\"resolve\":null,\"target_directory\":\"/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo\",\"build_directory\":\"/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo\",\"version\":1,\"workspace_root\":\"/Users/egor/Development/GitHub/Hunter\",\"metadata\":null}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "rustc",
+      "--version"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "rustc 1.97.0 (2d8144b78 2026-07-07)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "--version"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "cargo 1.97.0 (c980f4866 2026-06-30)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "specpm",
+      "--version"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/Hunter",
+    "exit_code": 0,
+    "stdout": "specpm 0.2.0\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "checks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--quiet"
+      ],
+      "result": "70 library and 4 CLI unit tests passed"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "crates/buildhunter-plugin-policy/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--quiet"
+      ],
+      "result": "2 unit and 17 integration tests passed"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/test_offline_cli.py"
+      ],
+      "result": "fresh Cargo home offline check, install and executable --help passed; temporary outputs on TB5"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/verify_plugin_dependencies.py"
+      ],
+      "result": "default, policy and scanner graphs passed; one verified core; exact Hunter/Rifle sources"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_plugin_dependencies.py"
+      ],
+      "result": "9 tests passed"
+    }
+  ]
+}

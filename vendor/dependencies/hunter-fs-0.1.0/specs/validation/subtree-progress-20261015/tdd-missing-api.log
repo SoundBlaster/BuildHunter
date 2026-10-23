@@ -1,0 +1,99 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `subtree::SubtreeCompletion`, `subtree::SubtreeProgress`
+   --> crates/hunter-fs-core/src/lib.rs:304:19
+    |
+304 | pub use subtree::{SubtreeCompletion, SubtreeProgress};
+    |                   ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^ no `SubtreeProgress` in `subtree`
+    |                   |
+    |                   no `SubtreeCompletion` in `subtree`
+
+error[E0422]: cannot find struct, variant or union type `SubtreeCompletion` in this scope
+ --> crates/hunter-fs-core/src/subtree.rs:9:48
+  |
+9 |         assert_eq!(state.complete(false), Some(SubtreeCompletion {bytes:0,partial:false}));
+  |                                                ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `SubtreeCompletion` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:46:47
+   |
+46 |         assert_eq!(state.complete(false),Some(SubtreeCompletion{bytes:9,partial:false}));
+   |                                               ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `SubtreeCompletion` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:53:52
+   |
+53 |             assert_eq!(state.complete(forced),Some(SubtreeCompletion{bytes:17,partial:marked||forced}));
+   |                                                    ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `SubtreeCompletion` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:59:46
+   |
+59 |         assert_eq!(state.complete(true),Some(SubtreeCompletion{bytes:23,partial:true}));
+   |                                              ^^^^^^^^^^^^^^^^^ not found in this scope
+
+warning: unused import: `super::*`
+ --> crates/hunter-fs-core/src/subtree.rs:3:9
+  |
+3 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+ --> crates/hunter-fs-core/src/subtree.rs:6:25
+  |
+6 |         let mut state = SubtreeProgress::default();
+  |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:15:25
+   |
+15 |         let mut state = SubtreeProgress::default();
+   |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:24:25
+   |
+24 |         let mut outer = SubtreeProgress::default();
+   |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:25:25
+   |
+25 |         let mut inner = SubtreeProgress::default();
+   |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:39:25
+   |
+39 |         let mut state = SubtreeProgress::default();
+   |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:45:25
+   |
+45 |         let mut state = SubtreeProgress::default(); state.add_bytes(4); state.set_bytes(9);
+   |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:51:29
+   |
+51 |             let mut state = SubtreeProgress::default(); state.add_bytes(17);
+   |                             ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:58:25
+   |
+58 |         let mut state = SubtreeProgress::default(); state.add_pending_directory(); state.add_bytes(23);
+   |                         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+error[E0433]: cannot find type `SubtreeProgress` in this scope
+  --> crates/hunter-fs-core/src/subtree.rs:67:9
+   |
+67 |         SubtreeProgress::default().finish_pending_directory();
+   |         ^^^^^^^^^^^^^^^ use of undeclared type `SubtreeProgress`
+
+Some errors have detailed explanations: E0422, E0432, E0433.
+For more information about an error, try `rustc --explain E0422`.
+warning: `hunter-fs-core` (lib test) generated 1 warning
+error: could not compile `hunter-fs-core` (lib test) due to 14 previous errors; 1 warning emitted

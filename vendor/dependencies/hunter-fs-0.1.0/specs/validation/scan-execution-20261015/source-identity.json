@@ -1,0 +1,63 @@
+{
+  "recorded_at_utc": "2026-10-15T21:02:27.320433+00:00",
+  "baseline": "107dcd7999d9376b3fe1cc07d9f56ef172836eee",
+  "buildhunter_baseline": "10e8aeed81af8db51e04bebcf0033871bb38716e",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "b72bb8fc3caeb8920e6d4a28664033fb4532bc6f9e1b5ba96dca8a03509cf101"
+    },
+    {
+      "path": "crates/hunter-fs-core/Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b"
+    },
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "602673056cf5e6cda4c459c6b2770cb3a2adeb9d694262f55674609169a8891a"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/lib.rs",
+      "sha256": "fb0a003dceece9bfff5733e1082cfba7889fa2d0d6a103dfbbb61f0333df2d39"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "9b1be4ddf0874dcf098279d1b2fadcd0b0c2a2679b6a267c77cc0d875dd5d8ad"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "ef0603c7fca49ea14d2ef1b16a828b0688bd03301daab8a146d6a0e1630f6781"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4fa54933d382ec13f4646414a64b1d796ac03cf54a8194a48f747043e45a1281"
+    },
+    {
+      "path": "specs/scan-execution.spec.yaml",
+      "sha256": "90f270c362ddee4ba21d080ba2c14d82e26e19d6704ceda2ef658dd51fad55af"
+    }
+  ]
+}

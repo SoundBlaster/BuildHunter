@@ -1,0 +1,92 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.scan_execution
+  title: Serial scan result execution loop
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Drive an initialized scan's result waiting, checkpoints and stop/dispatch
+    boundary with synchronous host-owned state and opaque messages.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Outstanding-work termination, blocking or timed receive, idle checkpoints,
+    receipt-before-stop ordering and synchronous dispatch that can add work.
+  excludes:
+  - Root setup, filesystem acquisition, classification, channel construction,
+    worker spawn/shutdown/join, partial finalization, terminal status/events and budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.scan_execution
+    role: primary
+    summary: Execute the serial result pump without interpreting host messages or policy.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: execution
+    kind: library
+    summary: drive_scan(&mut ScanCoordinator, &Receiver<Message>, Option<Duration>)
+      returns CoordinatorExit Drained, Stopped or Disconnected. Host provides
+      outstanding, should_stop, checkpoint, response_received and dispatch.
+  outbound: []
+constraints:
+- id: ordering
+  level: MUST
+  statement: At each loop boundary zero outstanding work returns Drained before
+    inspecting stop. Otherwise stop returns Stopped. Run checkpoint, receive,
+    response_received, stop check and dispatch in that order. A stop after receipt
+    returns Stopped even if receipt retired the last response; do not dispatch it.
+    Dispatch may announce new work, which is visible to the next loop check.
+- id: waiting
+  level: MUST
+  statement: None selects blocking receive; Some requires a positive duration or
+    panics. Timeout repeats the loop without receipt or dispatch. Disconnection
+    returns Disconnected without retiring a response. Stop raised during checkpoint
+    is checked after receipt or at the next timeout loop; stop does not interrupt
+    a blocking receive, filesystem syscall or callback. Host must arrange wakeup.
+- id: ownership
+  level: MUST
+  statement: Callbacks run synchronously on the calling thread without Send or
+    static requirements on host or messages. Move received payload into dispatch
+    once, or drop it when stopped after receipt. Unread queued payloads remain in
+    the caller-owned receiver. The pump adds no owned buffers, channels or workers.
+    Callback panics propagate; no panic-to-status translation is performed.
+- id: assembly
+  level: MUST
+  statement: Host initializes work/state, maintains valid response accounting and
+    message ordering, and owns callback effects, finalization and result mapping.
+    Exit variants do not represent final scan statuses or worker completion.
+    Host retains queue close and helper shutdown guards inside the outer thread
+    scope through all normal/unwind paths, then joins before terminal publication.
+    No bounded total memory, atomic tree snapshot or full filesystem engine follows.
+effects:
+  sideEffects:
+  - id: host_coordination
+    kind: event_emit
+    summary: Blocks on a host-owned result receiver and invokes synchronous host callbacks.
+evidence:
+- id: execution_source
+  kind: source
+  path: crates/hunter-fs-core/src/execution.rs
+  supports: [intent.summary, scope, interfaces, constraints.ordering, constraints.waiting, constraints.ownership, constraints.assembly]
+- id: execution_docs
+  kind: documentation
+  path: crates/hunter-fs-core/README.md
+  supports: [constraints.assembly]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter Scanner.run at 10e8aeed81af8db51e04bebcf0033871bb38716e.
+    This draft describes the result pump; full filesystem execution remains partial.
+implementationBindings:
+- id: execution_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/execution.rs]
+    border: [crates/hunter-fs-core/src/lib.rs]

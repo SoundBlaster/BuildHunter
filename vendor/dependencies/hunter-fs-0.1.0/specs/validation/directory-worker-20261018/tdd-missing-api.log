@@ -1,0 +1,18 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `crate::DirectoryWorker`, `crate::run_directory_worker`
+ --> crates/hunter-fs-core/src/worker.rs:5:24
+  |
+5 |         DirectoryTask, DirectoryWorker, MeasuredSize, WorkQueue, run_directory_worker,
+  |                        ^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^^^^^^^ no `run_directory_worker` in the root
+  |                        |
+  |                        no `DirectoryWorker` in the root
+  |
+help: a similar name exists in the module
+  |
+5 -         DirectoryTask, DirectoryWorker, MeasuredSize, WorkQueue, run_directory_worker,
+5 +         DirectoryTask, DirectoryTask, MeasuredSize, WorkQueue, run_directory_worker,
+  |
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `hunter-fs-core` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

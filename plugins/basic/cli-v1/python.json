@@ -1,0 +1,436 @@
+{
+  "format": "buildhunter.plugin/1-draft.1",
+  "id": "org.buildhunter.python",
+  "version": "1.0.0",
+  "title": "Python basic checks",
+  "description": "Bundled public basic catalog. Client profile: cli-v1.",
+  "program": {
+    "format": "rifle.program/1-draft.1",
+    "facts": [
+      {
+        "id": "kind",
+        "type": "string"
+      },
+      {
+        "id": "name",
+        "type": "string"
+      },
+      {
+        "id": "pyproject",
+        "type": "boolean"
+      },
+      {
+        "id": "setup",
+        "type": "boolean"
+      },
+      {
+        "id": "setupcfg",
+        "type": "boolean"
+      },
+      {
+        "id": "venv",
+        "type": "boolean"
+      }
+    ],
+    "rules": [
+      {
+        "id": "python-bytecode",
+        "when": {
+          "any": [
+            {
+              "all": [
+                {
+                  "fact": "kind",
+                  "op": "eq",
+                  "value": "directory"
+                },
+                {
+                  "fact": "name",
+                  "op": "eq",
+                  "value": "__pycache__"
+                }
+              ]
+            },
+            {
+              "all": [
+                {
+                  "fact": "kind",
+                  "op": "eq",
+                  "value": "regular_file"
+                },
+                {
+                  "any": [
+                    {
+                      "fact": "name",
+                      "op": "suffix",
+                      "value": ".pyc"
+                    },
+                    {
+                      "fact": "name",
+                      "op": "suffix",
+                      "value": ".pyo"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-pytest-cache",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": ".pytest_cache"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-mypy-cache",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": ".mypy_cache"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-ruff-cache",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": ".ruff_cache"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-pytype-cache",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": ".pytype"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-tox",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": ".tox"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-nox",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": ".nox"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-build",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": "build"
+            },
+            {
+              "any": [
+                {
+                  "fact": "pyproject",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "fact": "setup",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "fact": "setupcfg",
+                  "op": "eq",
+                  "value": true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-dist",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "eq",
+              "value": "dist"
+            },
+            {
+              "any": [
+                {
+                  "fact": "pyproject",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "fact": "setup",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "fact": "setupcfg",
+                  "op": "eq",
+                  "value": true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-egg-info",
+        "when": {
+          "all": [
+            {
+              "any": [
+                {
+                  "fact": "kind",
+                  "op": "eq",
+                  "value": "directory"
+                },
+                {
+                  "fact": "kind",
+                  "op": "eq",
+                  "value": "regular_file"
+                }
+              ]
+            },
+            {
+              "fact": "name",
+              "op": "suffix",
+              "value": ".egg-info"
+            }
+          ]
+        }
+      },
+      {
+        "id": "python-environment",
+        "when": {
+          "all": [
+            {
+              "fact": "kind",
+              "op": "eq",
+              "value": "directory"
+            },
+            {
+              "fact": "name",
+              "op": "in",
+              "values": [
+                ".venv",
+                "venv"
+              ]
+            },
+            {
+              "fact": "venv",
+              "op": "eq",
+              "value": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": {
+    "kind": {
+      "source": "node.kind"
+    },
+    "name": {
+      "source": "node.name"
+    },
+    "pyproject": {
+      "source": "marker",
+      "scope": "parent",
+      "name": "pyproject.toml"
+    },
+    "setup": {
+      "source": "marker",
+      "scope": "parent",
+      "name": "setup.py"
+    },
+    "setupcfg": {
+      "source": "marker",
+      "scope": "parent",
+      "name": "setup.cfg"
+    },
+    "venv": {
+      "source": "marker",
+      "scope": "own",
+      "name": "pyvenv.cfg"
+    }
+  },
+  "targets": [
+    {
+      "id": "python.bytecode",
+      "title": "Python bytecode",
+      "ecosystem": "python",
+      "kind": "bytecode",
+      "ruleIds": [
+        "python-bytecode"
+      ]
+    },
+    {
+      "id": "python.pytest-cache",
+      "title": "pytest cache",
+      "ecosystem": "python",
+      "kind": "cache",
+      "ruleIds": [
+        "python-pytest-cache"
+      ]
+    },
+    {
+      "id": "python.mypy-cache",
+      "title": "mypy cache",
+      "ecosystem": "python",
+      "kind": "cache",
+      "ruleIds": [
+        "python-mypy-cache"
+      ]
+    },
+    {
+      "id": "python.ruff-cache",
+      "title": "Ruff cache",
+      "ecosystem": "python",
+      "kind": "cache",
+      "ruleIds": [
+        "python-ruff-cache"
+      ]
+    },
+    {
+      "id": "python.pytype-cache",
+      "title": "pytype cache",
+      "ecosystem": "python",
+      "kind": "cache",
+      "ruleIds": [
+        "python-pytype-cache"
+      ]
+    },
+    {
+      "id": "python.tox",
+      "title": "tox environment",
+      "ecosystem": "python",
+      "kind": "cache",
+      "ruleIds": [
+        "python-tox"
+      ]
+    },
+    {
+      "id": "python.nox",
+      "title": "nox environment",
+      "ecosystem": "python",
+      "kind": "cache",
+      "ruleIds": [
+        "python-nox"
+      ]
+    },
+    {
+      "id": "python.build",
+      "title": "Python build directory",
+      "ecosystem": "python",
+      "kind": "build_output",
+      "ruleIds": [
+        "python-build"
+      ]
+    },
+    {
+      "id": "python.dist",
+      "title": "Python distribution directory",
+      "ecosystem": "python",
+      "kind": "build_output",
+      "ruleIds": [
+        "python-dist"
+      ]
+    },
+    {
+      "id": "python.egg-info",
+      "title": "Python package metadata",
+      "ecosystem": "python",
+      "kind": "metadata",
+      "ruleIds": [
+        "python-egg-info"
+      ]
+    },
+    {
+      "id": "python.environment",
+      "title": "Python virtual environment",
+      "ecosystem": "python",
+      "kind": "environment",
+      "ruleIds": [
+        "python-environment"
+      ]
+    }
+  ]
+}

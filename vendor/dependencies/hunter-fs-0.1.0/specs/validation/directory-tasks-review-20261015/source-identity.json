@@ -1,0 +1,22 @@
+{
+  "recorded_at_utc": "2026-10-15T11:51:39.738101+00:00",
+  "baseline": "e9b77e44f50ac72e543b727a11afa2c28666226e",
+  "files": [
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "b713824ad602bb76c5aea58bfc549b7c2b8cc9f43142d70128cb24022a84a709"
+    },
+    {
+      "path": "specs/directory-tasks.spec.yaml",
+      "sha256": "4ce35ef0ddbce93c82696e2d81be8f96b2a63e8ef5b1856b0ad4e214d0981249"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "81f80521a442421b15071ef4da37af92cc12a204252f1350d4ef88203f6605ef"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "173e0001d9b5d888247d737f96a04e753f17f3a7af01b9f4a22fe5cb42abaa90"
+    }
+  ]
+}

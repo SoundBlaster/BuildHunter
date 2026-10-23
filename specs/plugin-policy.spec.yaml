@@ -2,8 +2,8 @@ apiVersion: specpm.dev/v0.1
 kind: BoundarySpec
 metadata:
   id: buildhunter.plugin.policy
-  title: Pure opt-in plugin policy adapter
-  version: 0.1.0-draft.1
+  title: Pure plugin policy adapter and basic client profiles
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Validate BuildHunter plugin semantics and classify supplied facts with exclusions and explicit conflict/unknown
@@ -11,11 +11,11 @@ intent:
 scope:
   boundedContext: artifact_plugin_policy
   includes:
-  - Closed plugin shape, typed bindings, origin/namespace checks, complete target-rule references, catalog budgets,
+  - Public versioned basic profiles, conservative name dispatch, closed plugin shape, typed bindings, origin/namespace checks, complete target-rule references, catalog budgets,
     exclusion plans and pure target decisions.
   excludes:
   - Filesystem traversal/probes, platform no-follow enforcement, filesystem scanner integration (owned by buildhunter.plugin.scanner), current CLI/GUI/FFI wiring, measurement, pruning,
-    Store delivery, complete baseline plugin parity and performance claims.
+    Store delivery, default-client cutover and end-to-end performance claims.
 provides:
   capabilities:
   - id: buildhunter.plugin.policy
@@ -54,6 +54,9 @@ constraints:
   level: MUST
   statement: Use three-valued OR within one target; multiple true targets are Ambiguous, zero/one true plus unknown
     is Indeterminate. Sort IDs and relevant package-qualified unavailable facts; no measurement or pruning decisions.
+- id: indexed_dispatch
+  level: MUST
+  statement: Index only necessary positive name conditions. Negation and unconstrained alternatives retain fallback evaluation; unavailable names retain every possible target. Evaluate enabled target plans through Rifle and request only candidate-relevant marker bindings; exclusions and unknown outcomes remain explicit.
 - id: fact_boundary
   level: MUST
   statement: Consume typed observations only. Missing required marker is an error; inaccessible/invalid-name facts
@@ -65,8 +68,7 @@ constraints:
     unique declared scope/name markers. No whole-process RSS or throughput guarantee.
 - id: opt_in
   level: MUST
-  statement: Expose only through an independent Cargo package with its own lockfile; root CLI builds must remain dependency-free and offline-capable; existing CLI/GUI scanner classification, defaults and FFI
-    remain unchanged by this pilot.
+  statement: Keep the pure policy separately testable and free of filesystem acquisition. The host now depends on this runtime, with vendored source replacement preserving fresh-cache offline builds; default CLI/GUI scan classification remains unchanged in the preparation layer. Versioned catalog metadata is additive to the legacy scan ABI.
 effects:
   sideEffects: []
 evidence:
@@ -92,6 +94,11 @@ evidence:
   path: Cargo.toml
   supports:
   - constraints.opt_in
+- id: dispatch_source
+  kind: source
+  path: crates/buildhunter-plugin-policy/src/dispatch.rs
+  supports:
+  - constraints.indexed_dispatch
 - id: plugin_tests
   kind: test
   path: crates/buildhunter-plugin-policy/tests/plugin_adapter.rs
@@ -102,6 +109,7 @@ evidence:
   - constraints.classification
   - constraints.fact_boundary
   - constraints.budgets
+  - constraints.indexed_dispatch
 - id: offline_cli_regression
   kind: test
   path: scripts/test_offline_cli.py
@@ -127,6 +135,8 @@ implementationBindings:
   scope: component
   files:
     owned:
+    - crates/buildhunter-plugin-policy/src/dispatch.rs
+    - crates/buildhunter-plugin-policy/src/builtin.rs
     - crates/buildhunter-plugin-policy/src/lib.rs
     - crates/buildhunter-plugin-policy/src/validation.rs
     border:

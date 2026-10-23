@@ -1,0 +1,170 @@
+[
+  {
+    "name": "block-buffer",
+    "version": "0.10.4",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "build-hunter",
+    "version": "0.1.0",
+    "source": null,
+    "license": "MIT"
+  },
+  {
+    "name": "buildhunter-plugin-policy",
+    "version": "0.1.0",
+    "source": null,
+    "license": "MIT"
+  },
+  {
+    "name": "cfg-if",
+    "version": "1.0.5",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "cpufeatures",
+    "version": "0.2.17",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "crypto-common",
+    "version": "0.1.7",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "digest",
+    "version": "0.10.7",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "generic-array",
+    "version": "0.14.7",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT"
+  },
+  {
+    "name": "hunter-fs",
+    "version": "0.1.0",
+    "source": "git+https://github.com/SoundBlaster/Hunter.git?rev=bfcd75f8996b5a958c81238bb6d44d9fa1f88047#bfcd75f8996b5a958c81238bb6d44d9fa1f88047",
+    "license": "MIT"
+  },
+  {
+    "name": "hunter-fs-core",
+    "version": "0.1.0",
+    "source": null,
+    "license": "MIT"
+  },
+  {
+    "name": "itoa",
+    "version": "1.0.18",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "libc",
+    "version": "0.2.190",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "memchr",
+    "version": "2.8.3",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "Unlicense OR MIT"
+  },
+  {
+    "name": "proc-macro2",
+    "version": "1.0.107",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "quote",
+    "version": "1.0.47",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "rifle-rules",
+    "version": "0.1.0",
+    "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910",
+    "license": "MIT"
+  },
+  {
+    "name": "ryu-js",
+    "version": "1.0.3",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "Apache-2.0 OR BSL-1.0"
+  },
+  {
+    "name": "serde",
+    "version": "1.0.229",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "serde_core",
+    "version": "1.0.229",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "serde_derive",
+    "version": "1.0.229",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "serde_json",
+    "version": "1.0.154",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "serde_json_canonicalizer",
+    "version": "0.4.1",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT"
+  },
+  {
+    "name": "sha2",
+    "version": "0.10.9",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "syn",
+    "version": "3.0.6",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "typenum",
+    "version": "1.20.1",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "name": "unicode-ident",
+    "version": "1.0.26",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "(MIT OR Apache-2.0) AND Unicode-3.0"
+  },
+  {
+    "name": "version_check",
+    "version": "0.9.5",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT/Apache-2.0"
+  },
+  {
+    "name": "zmij",
+    "version": "1.0.23",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "license": "MIT"
+  }
+]

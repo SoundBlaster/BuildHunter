@@ -1,0 +1,80 @@
+[
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 9 tests\ntest scoped_metadata::tests::dataless_metadata_is_classified_as_cloud_unavailable ... ok\ntest scoped_metadata::tests::invalid_names_are_rejected_without_metadata_access ... ok\ntest scoped_metadata::tests::inaccessible_directory_is_unknown_not_missing_marker ... ok\ntest scoped_metadata::tests::parent_of_root_is_unavailable_but_child_parent_is_inside_scope ... ok\ntest scoped_metadata::tests::paths_outside_root_are_rejected_before_io ... ok\ntest scoped_metadata::tests::parent_selection_cannot_hide_out_of_scope_components ... ok\ntest scoped_metadata::tests::regular_directory_and_link_entries_keep_distinct_results ... ok\ntest scoped_metadata::tests::selected_root_descriptor_stays_anchored_after_path_replacement ... ok\ntest scoped_metadata::tests::replacing_intermediate_directory_with_link_cannot_redirect_marker_observation ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/lib.rs (target/debug/deps/hunter_fs-bd7d5eefc9924479)\n   Doc-tests hunter_fs\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--release"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 9 tests\ntest scoped_metadata::tests::dataless_metadata_is_classified_as_cloud_unavailable ... ok\ntest scoped_metadata::tests::invalid_names_are_rejected_without_metadata_access ... ok\ntest scoped_metadata::tests::inaccessible_directory_is_unknown_not_missing_marker ... ok\ntest scoped_metadata::tests::paths_outside_root_are_rejected_before_io ... ok\ntest scoped_metadata::tests::parent_selection_cannot_hide_out_of_scope_components ... ok\ntest scoped_metadata::tests::parent_of_root_is_unavailable_but_child_parent_is_inside_scope ... ok\ntest scoped_metadata::tests::regular_directory_and_link_entries_keep_distinct_results ... ok\ntest scoped_metadata::tests::selected_root_descriptor_stays_anchored_after_path_replacement ... ok\ntest scoped_metadata::tests::replacing_intermediate_directory_with_link_cannot_redirect_marker_observation ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running unittests src/lib.rs (target/release/deps/hunter_fs-c8d0550915b01237)\n   Doc-tests hunter_fs\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--check"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"capabilities\": [\n    \"hunter.fs.scoped_metadata\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/scoped-metadata.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"Hunter filesystem primitives\",\n    \"package_id\": \"hunter.filesystem\",\n    \"version\": \"0.1.0-draft.1\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 2,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"interfaces.inbound.0.id\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: metadata (effects.sideEffects.0.id, interfaces.inbound.0.id)\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "HunterPrimitives\n  ScopedMetadata\n    DescriptorLifetime\n    RegularFileObservation\n    LocalMetadataGuard\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  }
+]

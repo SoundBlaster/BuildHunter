@@ -1,0 +1,9 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved import `crate::collect_directory`
+ --> crates/hunter-fs-core/src/listing.rs:3:33
+  |
+3 |     use crate::{DirectoryVisit, collect_directory};
+  |                                 ^^^^^^^^^^^^^^^^^ no `collect_directory` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `hunter-fs-core` (lib test) due to 1 previous error

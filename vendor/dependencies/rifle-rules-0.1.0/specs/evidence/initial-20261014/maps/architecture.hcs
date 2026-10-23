@@ -1,0 +1,28 @@
+Rifle:
+  boundary_spec: "rifle.program"
+  entrypoint: "src/lib.rs"
+  scope: "pure-program-evaluator"
+ProgramLoading:
+  source: "src/validate.rs"
+StrictJson:
+  source: "src/json.rs"
+SemanticValidation:
+  source: "src/validate.rs"
+ValidatedPlan:
+  source: "src/lib.rs"
+  implementation: "Plan + indexed Expression"
+Evaluation:
+  source: "src/lib.rs"
+  implementation: "Plan::evaluate + Expression::evaluate"
+ContractTests:
+  source: "tests/contract.rs"
+@contract:
+  Rifle:
+    boundary_spec: string
+    entrypoint: string
+  ProgramLoading:
+    source: string
+  StrictJson:
+    source: string
+  Evaluation:
+    source: string

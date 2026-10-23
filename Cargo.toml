@@ -11,6 +11,14 @@ crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 hunter-fs-core = { path = "vendor/hunter-fs-core" }
+buildhunter-plugin-policy = { path = "crates/buildhunter-plugin-policy" }
+serde_json = "1"
+
+[target.'cfg(unix)'.dependencies]
+hunter-fs = { git = "https://github.com/SoundBlaster/Hunter.git", rev = "bfcd75f8996b5a958c81238bb6d44d9fa1f88047" }
+
+[patch."https://github.com/SoundBlaster/Hunter.git"]
+hunter-fs-core = { path = "vendor/hunter-fs-core" }
 
 [features]
 # Experimental: the default CLI and GUI keep the portable backend.
