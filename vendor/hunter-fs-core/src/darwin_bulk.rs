@@ -49,8 +49,27 @@ pub use crate::DirectorySizes;
 /// The final directory component is opened no-follow; ancestors remain pathname-based.
 pub fn read_directory_sizes(
     path: &Path,
-    mut should_stop: impl FnMut() -> bool,
+    should_stop: impl FnMut() -> bool,
 ) -> io::Result<DirectorySizes> {
+    read_directory_sizes_with_limits(path, should_stop, crate::ListingLimits::UNBOUNDED)
+        .map(|collected| collected.sizes)
+}
+
+/// Bounded batch result. A retention limit is truncation, independently of cancellation.
+pub struct BoundedDirectorySizes {
+    pub sizes: DirectorySizes,
+    pub limit: Option<crate::ListingLimit>,
+    pub retained_weight: usize,
+}
+
+/// Optional count/estimated-payload limits, checked before retaining each decoded
+/// observation. The fixed native buffer and hash-table overhead are outside weight.
+/// `max_errors` is unused: errors occupy the same observation slots as sizes.
+pub fn read_directory_sizes_with_limits(
+    path: &Path,
+    mut should_stop: impl FnMut() -> bool,
+    limits: crate::ListingLimits,
+) -> io::Result<BoundedDirectorySizes> {
     // Public <sys/fcntl.h>: no symlink following for the opened directory.
     const OPEN_FLAGS: i32 = 0x100 | 0x10_0000 | 0x100_0000;
     let directory = OpenOptions::new()
@@ -69,6 +88,8 @@ pub fn read_directory_sizes(
     // u64 elements provide the alignment Darwin requires for each record.
     let mut buffer = vec![0u64; 32_768];
     let mut result = HashMap::new();
+    let mut retained_weight = 0;
+    let mut limit = None;
     while !should_stop() {
         // SAFETY: fd owns an open directory; attrlist has the documented C layout;
         // the initialized, aligned buffer is writable for the supplied byte count.
@@ -91,9 +112,22 @@ pub fn read_directory_sizes(
         // is valid until the next syscall. Parsing below checks every range.
         let bytes =
             unsafe { std::slice::from_raw_parts(buffer.as_ptr().cast::<u8>(), buffer.len() * 8) };
-        parse_batch(bytes, count as usize, &mut result)?;
+        limit = parse_batch_with_limits(
+            bytes,
+            count as usize,
+            &mut result,
+            limits,
+            &mut retained_weight,
+        )?;
+        if limit.is_some() {
+            break;
+        }
     }
-    Ok(result)
+    Ok(BoundedDirectorySizes {
+        sizes: result,
+        limit,
+        retained_weight,
+    })
 }
 
 fn invalid() -> io::Error {
@@ -127,7 +161,25 @@ impl Cursor<'_> {
     }
 }
 
+#[cfg(test)]
 fn parse_batch(bytes: &[u8], count: usize, result: &mut DirectorySizes) -> io::Result<()> {
+    parse_batch_with_limits(
+        bytes,
+        count,
+        result,
+        crate::ListingLimits::UNBOUNDED,
+        &mut 0,
+    )
+    .map(|_| ())
+}
+
+fn parse_batch_with_limits(
+    bytes: &[u8],
+    count: usize,
+    result: &mut DirectorySizes,
+    limits: crate::ListingLimits,
+    retained_weight: &mut usize,
+) -> io::Result<Option<crate::ListingLimit>> {
     let mut offset = 0usize;
     for _ in 0..count {
         let length = u32::from_ne_bytes(
@@ -199,25 +251,36 @@ fn parse_batch(bytes: &[u8], count: usize, result: &mut DirectorySizes) -> io::R
         if name.is_empty() || name.contains(&0) || name.contains(&b'/') {
             return Err(invalid());
         }
-        if error != 0 {
-            result.insert(
-                name.to_vec(),
-                Err(io::Error::from_raw_os_error(error as i32)),
-            );
+        let value = if error != 0 {
+            Some(Err(io::Error::from_raw_os_error(error as i32)))
         } else if kind.is_some_and(|kind| kind != 2 && kind != 5)
             && let (Some(apparent), Some(allocated)) = (apparent, allocated)
         {
-            // VDIR=2 and VLNK=5: neither is measured as a regular file slot.
-            result.insert(
-                name.to_vec(),
-                Ok(MeasuredSize {
-                    apparent,
-                    allocated,
-                }),
-            );
+            // VDIR=2 and VLNK=5 are not regular file slots.
+            Some(Ok(MeasuredSize {
+                apparent,
+                allocated,
+            }))
+        } else {
+            None
+        };
+        if let Some(value) = value {
+            // Duplicate records conservatively consume additional weight. This
+            // avoids under-counting replacement storage under concurrent mutation.
+            if !result.contains_key(name) && result.len() >= limits.max_entries {
+                return Ok(Some(crate::ListingLimit::Entries));
+            }
+            let weight = name
+                .len()
+                .saturating_add(std::mem::size_of::<(Vec<u8>, io::Result<MeasuredSize>)>());
+            if weight > limits.max_weight.saturating_sub(*retained_weight) {
+                return Ok(Some(crate::ListingLimit::Weight));
+            }
+            *retained_weight += weight;
+            result.insert(name.to_vec(), value);
         }
     }
-    Ok(())
+    Ok(None)
 }
 
 #[cfg(test)]
@@ -247,6 +310,56 @@ mod tests {
             let _ = fs::remove_dir_all(&self.0);
         }
     }
+    #[test]
+    fn limited_batch_stops_before_retaining_an_over_budget_observation() {
+        let mut bytes = record(0);
+        let mut second = record(13);
+        second[56..60].copy_from_slice(b"next");
+        bytes.extend(second);
+        let mut sizes = HashMap::new();
+        let mut weight = 0;
+        let limits = crate::ListingLimits {
+            max_entries: 1,
+            ..crate::ListingLimits::UNBOUNDED
+        };
+        assert_eq!(
+            parse_batch_with_limits(&bytes, 2, &mut sizes, limits, &mut weight).unwrap(),
+            Some(crate::ListingLimit::Entries)
+        );
+        assert_eq!(sizes.len(), 1);
+        assert!(weight > 0);
+        let mut sizes = HashMap::new();
+        let mut weight = 0;
+        let limits = crate::ListingLimits {
+            max_weight: 1,
+            ..crate::ListingLimits::UNBOUNDED
+        };
+        assert_eq!(
+            parse_batch_with_limits(&bytes, 2, &mut sizes, limits, &mut weight).unwrap(),
+            Some(crate::ListingLimit::Weight)
+        );
+        assert!(sizes.is_empty());
+        assert_eq!(weight, 0);
+    }
+
+    #[test]
+    fn native_limited_read_reports_truncation_and_exact_limit_exhaustion() {
+        let _guard = crate::NonMaterializingIoGuard::enter().unwrap();
+        let tree = Tree::new();
+        fs::write(tree.0.join("first"), b"one").unwrap();
+        let limits = crate::ListingLimits {
+            max_entries: 1,
+            ..crate::ListingLimits::UNBOUNDED
+        };
+        let exact = read_directory_sizes_with_limits(&tree.0, || false, limits).unwrap();
+        assert_eq!(exact.sizes.len(), 1);
+        assert_eq!(exact.limit, None);
+        fs::write(tree.0.join("second"), b"two").unwrap();
+        let truncated = read_directory_sizes_with_limits(&tree.0, || false, limits).unwrap();
+        assert_eq!(truncated.sizes.len(), 1);
+        assert_eq!(truncated.limit, Some(crate::ListingLimit::Entries));
+    }
+
     #[test]
     fn precancellation_keeps_open_before_checkpoint_and_returns_empty_batch() {
         let _guard = crate::NonMaterializingIoGuard::enter().unwrap();

@@ -1,0 +1,23 @@
+{
+  "base": "44bc0c243fe3d8bb84c98103da99a1912ecdf33a",
+  "state": "base plus identified resource-foundations content",
+  "files": {
+    "Cargo.toml": "6d5bae10f528ead1d4ccc77f946ccc7da8a1f350206466d7ce2777524a071028",
+    "Cargo.lock": "e9a34d7f9cb19b61c17c801516ebcd44cfce393a08e3a642ada734c0f3e0e219",
+    "specpm.yaml": "f61586e407db11f3013b037b32796ac03768429c8f5445c87ddea0dacdc68d02",
+    "crates/hunter-fs-core/src/work.rs": "9d85a97aad98bb45bf02108f1787a90d357e17472be3b7686e6f34c1afb33fc0",
+    "crates/hunter-fs-core/src/ledger.rs": "90830735bf69b022f2d9ba9e1393bef8bfabf0f222934b939a2be3ab02c31a2f",
+    "crates/hunter-fs-core/src/launch.rs": "e4579e58bd9a0860535edfe3cd9fea16ad90ad8d8b791713c5aa50d41d421ee6",
+    "crates/hunter-fs-core/src/coordinator.rs": "d489b2b61a704ec45ed121a4076cfd09b847257fd458251ad3931ee493200259",
+    "crates/hunter-fs-core/src/assembly.rs": "31088483f5b044e189ef419e3b882824450b9227262c028c33bc2b09d8e372e5",
+    "crates/hunter-fs-core/src/engine.rs": "41873d1dca4716b893eb483c7327e7e1323242051b00f0b465fca30f54d46b9e",
+    "crates/hunter-fs-core/src/lib.rs": "0e12199fc6de20e1d99baaf7c13d4dd7ae7f6a918a03763110a9bb3c5063ec24",
+    "specs/hypercode/current.hc": "bb49484ff1128f9b531c6f5c54b03b912cb69709d80fb832db94cc4a93fffae6",
+    "specs/hypercode/current.hcs": "14ed652f5a270f3c338d529fd6d17f07793145d5e3eee84a6309185b49e8d52d",
+    "specs/work.spec.yaml": "6d9b7bc979e73bee3b4649afc0d6bace5c0138f5ebdd4ed62309f40e414ac5d3",
+    "specs/task-ledger.spec.yaml": "8e616e2fa8d10263736ae9817d078060ba8daf37241a39967a8a35b0ba47eb49",
+    "specs/scan-assembly.spec.yaml": "0db146f4de79a8ea4e5e320e362f1f8db295a33dd9589e01a69d42c09007b0e8",
+    "specs/traversal-coordinator.spec.yaml": "7665ca8b30f2c9f00b44620f04bf3bda1831849c702ff445b275735c898031ef",
+    "specs/resource-budget-progress.md": "08e336e88e2b6545b9ac93505e7f8d4cc0f872053c134c725556002a3ad6bfd0"
+  }
+}

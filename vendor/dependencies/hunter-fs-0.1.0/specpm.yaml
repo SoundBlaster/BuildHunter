@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: hunter.filesystem
   name: Hunter filesystem primitives
-  version: 0.1.0-draft.25
+  version: 0.1.0-draft.28
   summary: Scoped metadata, portable enumeration/sizing and generic scoped task coordination;
     full product-independent filesystem recursion pending.
   license: MIT

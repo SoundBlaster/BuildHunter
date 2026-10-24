@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.fs.work
   title: Scoped recursive-work coordination
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Queue opaque recursive tasks and launch scoped workers with shutdown on
@@ -15,7 +15,7 @@ scope:
     clones, positive caller cap and panic-triggered shutdown.
   excludes:
   - Filesystem selection, product classification, result aggregation, cloud/QoS setup,
-    in-flight I/O interruption, detached threads and bounded whole-queue memory.
+    in-flight I/O interruption, detached threads and a whole-process RSS guarantee.
 provides:
   capabilities:
   - id: hunter.fs.work
@@ -28,8 +28,7 @@ interfaces:
   inbound:
   - id: queue
     kind: library
-    summary: WorkQueue<T>::push/pop/close/close_on_drop; spawn_workers(scope, queue,
-      count, worker); worker_count(maximum).
+    summary: WorkQueue<T>::with_limits/try_push_weighted/push/pop/snapshot/close/close_on_drop; QueueLimits and typed ownership-preserving rejection; scoped workers and worker_count(maximum).
   outbound: []
 constraints:
 - id: ownership
@@ -51,8 +50,7 @@ constraints:
 - id: budgets
   level: MUST
   statement: Count/cap is positive and worker_count limits available parallelism to
-    the caller maximum. Queue remains unbounded; LIFO scheduling does not establish
-    a pending-memory budget or interrupt blocking I/O.
+    the caller maximum. Default queue remains unbounded for compatibility; explicit positive max_tasks/max_weight reject admission without blocking. Weight units are caller-defined, not allocator accounting. Rejection returns the task and Closed/TaskLimit/WeightLimit. Pop/close release charged weight, and snapshots retain high-water counters. This does not interrupt I/O or bound RSS/payloads retained elsewhere.
 effects:
   sideEffects:
   - id: threads
@@ -83,6 +81,7 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - R5 foundations add opt-in admission limits and high-water accounting; callers must handle full admission explicitly. This library layer does not configure application defaults. Fresh source/run identities are under validation/resource-foundations-20261024.
   - Queue/scoped launch extracted from BuildHunter bb21773. Draft observed contract;
     filesystem recursion/status remain host-owned. Scope join is not the return of
     spawn_workers.

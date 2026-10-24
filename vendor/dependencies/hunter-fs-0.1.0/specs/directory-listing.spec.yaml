@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.fs.directory_listing
   title: Owned directory listing acquisition
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Collect host-opened directory entries and path-qualified errors while
@@ -12,10 +12,11 @@ scope:
   boundedContext: filesystem_acquisition
   includes:
   - Owned DirectoryListing assembly, synchronous entry observer/context update and
-    DirectoryVisit outcome from the existing portable visitor.
+    DirectoryVisit outcome from the existing portable visitor; opt-in ordered-prefix
+    entry/error/estimated-weight retention limits for portable and event acquisition.
   excludes:
   - Directory opening, permission/cloud/guard policy, observer interpretation,
-    recursion, measurement, status/terminal events, snapshots and resource budgets.
+    recursion, measurement, status/terminal events, snapshots and whole-process memory guarantees.
 provides:
   capabilities:
   - id: hunter.fs.directory_listing
@@ -33,6 +34,12 @@ interfaces:
     summary: collect_directory(path, Result<iterator>, context, should_stop, observe)
       returns (DirectoryListing<Context>, DirectoryVisit); observe borrows child Path,
       observed EntryType and mutable context, and returns io::Result<()>.
+  - id: bounded_collect
+    kind: library
+    summary: collect_directory_with_limits and collect_directory_events_with_limits
+      return BoundedDirectoryListing with owned prefix, original visitor outcome,
+      optional typed limit and retained estimated weight. Event visitors receive
+      a budget stop predicate.
   outbound: []
 constraints:
 - id: ownership
@@ -43,19 +50,19 @@ constraints:
     The input iterator and observer may allocate or perform host-owned effects.
 - id: observer
   level: MUST
-  statement: Invoke the synchronous observer once for each successful entry type,
+  statement: The compatibility collectors invoke the synchronous observer once for each successful entry type,
     before retaining the child. Observer error is retained at that child path and
     does not discard the child or roll back context changes. Continue after errors;
     observer/stop/iterator panics propagate without visiting later entries.
 - id: errors
   level: MUST
-  statement: Preserve visitor errors in encounter order; iteration errors use the
+  statement: The compatibility collectors preserve visitor errors in encounter order; iteration errors use the
     supplied directory path, type errors the entry path. Failed open returns one
     directory error and OpenFailed even if already stopped. Error observations
     do not invoke the entry observer. Preserve owned I/O error identity/codes.
 - id: stop_boundary
   level: MUST
-  statement: Add no stop checks beyond the existing visitor check before entry type
+  statement: The compatibility collectors add no stop checks beyond the existing visitor check before entry type
     lookup. Cancellation requested by an observer retains the current child/context
     and any observer error, then stops at the next visitor check. Empty input is
     Completed even if stopped; an iterator may acquire one entry before checking.
@@ -68,6 +75,22 @@ constraints:
     Observed EntryType does not follow link targets; host observer may explicitly do
     so. Default path visitors retain pathname race limits; collect_directory_events accepts
     observations from an independently specified acquisition backend without reopening paths.
+- id: retention_limits
+  level: MUST
+  statement: Limited collectors retain an ordered prefix within entry/error counts
+    and estimated owned payload weight, and reject an over-budget entry before
+    its observer. Once a limit is reached, ignore later observations and expose
+    Entries, Errors or Weight separately from the original visitor outcome. An
+    admitted entry/context survives an over-budget observer error. Preserve retained
+    raw paths and I/O error identity. Limits do not bound an already-created event,
+    opaque context/error allocations, iterator internals or whole-process RSS.
+- id: bounded_stop
+  level: MUST
+  statement: Portable limited collection combines host and budget cancellation at
+    the existing visitor boundary. Event acquisition must poll the supplied budget
+    stop predicate to stop I/O; uncooperative acquisition still cannot exceed
+    retained quotas. Active calls cannot be interrupted. Host must interpret a
+    reported limit as truncation even if the visitor independently returns Completed.
 effects:
   sideEffects:
   - id: listing_reads
@@ -77,7 +100,7 @@ evidence:
 - id: listing_source
   kind: source
   path: crates/hunter-fs-core/src/listing.rs
-  supports: [intent.summary, scope, interfaces, constraints.ownership, constraints.observer, constraints.errors, constraints.stop_boundary, constraints.assembly]
+  supports: [intent.summary, scope, interfaces, constraints.ownership, constraints.observer, constraints.errors, constraints.stop_boundary, constraints.assembly, constraints.retention_limits, constraints.bounded_stop]
 - id: listing_docs
   kind: documentation
   path: crates/hunter-fs-core/README.md
@@ -88,6 +111,8 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - R5 optional retention limits (2026-10-24); compatibility collectors remain
+    unbounded. Executed bounded-listings-20261024 regressions are separate evidence.
   - R3 acquisition update (2026-10-23); portable EntryType now represents directory,
     regular file, symlink and other categories instead of opaque std FileType.
     Default path backend behavior is preserved; optional scoped acquisition and

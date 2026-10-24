@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.fs.traversal_coordinator
   title: Owned root and task-response coordinator
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Own admission and task bookkeeping around a serial opaque host interpreter.
@@ -51,7 +51,7 @@ constraints:
     then pushes. Callback panic occurs before publication. Rejection returns original
     task and leaves reservation visible; host must interpret rejection and stop.
     Listing receipt may reserve measurement; ignored speculative responses still retire.
-    Preserve original nonreused IDs and payload transfer behavior. No bound follows.
+    Preserve original nonreused IDs and payload transfer behavior. try_enqueue_weighted preserves the same reservation/telemetry ordering and returns exact queue rejection with ownership. Its rejected reservation stays live until the host stops/drops the coordinator; callers must not keep registering after rejection. Queue limits do not bound reports or RSS.
 - id: execution
   level: MUST
   statement: Preserve drive_scan empty-before-stop, checkpoint/receive/retire/stop/dispatch

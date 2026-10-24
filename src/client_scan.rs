@@ -80,12 +80,57 @@ pub fn scan_client(
         targets: BTreeMap<u64, Arc<TargetDescriptor>>,
         diagnostics: Vec<CatalogDiagnostic>,
         observations: u64,
+        diagnostic_budget: crate::scan_budget::Retention,
+    }
+    impl State {
+        fn retain_diagnostic(
+            &mut self,
+            diagnostic: &CatalogDiagnostic,
+            control: &ScanControl,
+        ) -> bool {
+            let classification = &diagnostic.classification;
+            let mut weight =
+                diagnostic
+                    .relative_path
+                    .capacity()
+                    .saturating_add(std::mem::size_of::<CatalogDiagnostic>())
+                    .saturating_add(
+                        (classification.matched.capacity() + classification.unknown.capacity())
+                            .saturating_mul(std::mem::size_of::<String>()),
+                    )
+                    .saturating_add(classification.unavailable.capacity().saturating_mul(
+                        std::mem::size_of::<buildhunter_plugin_policy::FactNotice>(),
+                    ));
+            for id in classification.matched.iter().chain(&classification.unknown) {
+                weight = weight.saturating_add(id.capacity());
+            }
+            for notice in &classification.unavailable {
+                weight = weight
+                    .saturating_add(notice.package_id.capacity())
+                    .saturating_add(notice.fact_id.capacity())
+                    .saturating_add(notice.reason.capacity());
+            }
+            let limits = control.limits();
+            if let Err(reason) = self.diagnostic_budget.admit(
+                weight,
+                limits.diagnostics,
+                limits.diagnostic_weight,
+                crate::ScanLimit::Diagnostics,
+                crate::ScanLimit::DiagnosticWeight,
+            ) {
+                control.exhaust(reason);
+                return false;
+            }
+            self.diagnostics.push(diagnostic.clone());
+            true
+        }
     }
     let state_cell = RefCell::new(State {
         selected: None,
         targets: BTreeMap::new(),
         diagnostics: Vec::new(),
         observations: 0,
+        diagnostic_budget: crate::scan_budget::Retention::default(),
     });
     let emit = RefCell::new(emit);
     let catalog = snapshot.catalog();
@@ -143,7 +188,9 @@ pub fn scan_client(
                         "environment_admission",
                         reason.clone(),
                     );
-                    state.diagnostics.push(diagnostic.clone());
+                    if !state.retain_diagnostic(&diagnostic, control) {
+                        return CandidateAction::Traverse;
+                    }
                     drop(state);
                     (emit.borrow_mut())(&CatalogScanEvent::Diagnostic(diagnostic));
                     state = state_cell.borrow_mut();
@@ -201,7 +248,9 @@ pub fn scan_client(
                         "policy_error",
                         error.to_string(),
                     );
-                    state.diagnostics.push(diagnostic.clone());
+                    if !state.retain_diagnostic(&diagnostic, control) {
+                        return CandidateAction::Traverse;
+                    }
                     drop(state);
                     (emit.borrow_mut())(&CatalogScanEvent::Diagnostic(diagnostic));
                     CandidateAction::Prune
@@ -220,7 +269,9 @@ pub fn scan_client(
                             relative_path: crate::relative_path(root, path),
                             classification,
                         };
-                        state.diagnostics.push(diagnostic.clone());
+                        if !state.retain_diagnostic(&diagnostic, control) {
+                            return CandidateAction::Traverse;
+                        }
                         drop(state);
                         (emit.borrow_mut())(&CatalogScanEvent::Diagnostic(diagnostic));
                         CandidateAction::Traverse

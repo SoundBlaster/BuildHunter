@@ -1,0 +1,90 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.scan.resources
+  title: Per-scan retention and response admission
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Bound scanner-owned pending payloads and report retention with explicit truncation instead of successful omission.
+scope:
+  boundedContext: scan_resources
+  includes:
+  - Immutable ScanLimits in a single-use ScanControl; weighted nonblocking task admission, bounded responses, listing and optional batch retention, findings/progress, warnings and client diagnostics.
+  excludes:
+  - A process-wide RSS ceiling, allocator/table overhead, arbitrary callbacks, opaque filesystem/provider allocations, multiple windows or hard interruption of syscalls.
+  - Profile pending/history accounting and GUI/export resource disclosure, tracked as the next R5 layer.
+provides:
+  capabilities:
+  - id: buildhunter.scan.resources
+    role: primary
+    summary: Apply per-scan retention quotas and preserve explicit incomplete/cancellation/failure semantics.
+requires:
+  capabilities:
+  - id: hunter.fs.work
+    optional: false
+    summary: Nonblocking owned task/estimated-weight admission with typed rejection.
+  - id: hunter.fs.directory_listing
+    optional: false
+    summary: Ordered bounded entry/error prefix and explicit limit separate from visit outcome.
+  - id: hunter.fs.scan_assembly
+    optional: false
+    summary: Bounded response transport and receiver release before scoped join.
+interfaces:
+  inbound:
+  - id: select_limits
+    kind: library
+    summary: ScanControl::with_limits(ScanLimits) selects immutable limits before a single scan; new uses documented defaults. resource_limit and resource_usage_json expose first limit and observed high water.
+  outbound: []
+constraints:
+- id: admission
+  level: MUST
+  statement: Never block the serial coordinator behind work admission. Charge queued task and retained node/path/ancestry estimate. Rejected publication stops traversal; closed queue remains failure. Response producers may block, but receiver drops before queue close/join on stop or panic. Completed ledger slots release immediately; IDs are never reused.
+- id: listing
+  level: MUST
+  statement: Bound each portable/scoped listing by entry/error count and estimated payload, inspect its limit independently of visit outcome and stop on truncation. Apply count/weight limits to optional Darwin prepared metadata too. Do not add path fallback or change raw-path/no-follow scope.
+- id: retained_reports
+  level: MUST
+  statement: Gate findings/progress, warnings and typed diagnostics before retained clone/event publication. Keep discovered IDs and target maps coherent. Stop on the first rejected payload and reserve one constant-sized explanatory warning after worker join, outside the normal warning quota.
+- id: terminal
+  level: MUST
+  statement: Limit exhaustion produces Incomplete unless failure or caller cancellation takes precedence. Complete every already-discovered open finding once as partial; do not relabel already-completed independent findings. Publish one Finished last after all workers join; never claim a truncated prefix is a successful full scan.
+- id: accounting_scope
+  level: MUST
+  statement: Counts and estimated payload weights are per scan, not exact allocator accounting or an RSS ceiling. Active callbacks/syscalls are not interrupted. Reports/UI/export copies, opaque consumer effects and concurrent scans require separate accounting. No data is written to the scanned tree.
+effects:
+  sideEffects:
+  - id: stop_work
+    kind: event_emit
+    summary: Stop future traversal and emit explicit warning/partial/terminal events on budget exhaustion.
+evidence:
+- id: budget_source
+  kind: source
+  path: src/scan_budget.rs
+  supports: [interfaces, constraints.accounting_scope]
+- id: host_source
+  kind: source
+  path: src/lib.rs
+  supports: [constraints.admission, constraints.listing, constraints.retained_reports, constraints.terminal]
+- id: join_source
+  kind: source
+  path: src/scan_session.rs
+  supports: [constraints.terminal, constraints.admission]
+- id: regressions
+  kind: test
+  path: src/resource_tests.rs
+  supports: [constraints.admission, constraints.listing, constraints.retained_reports, constraints.terminal]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - R5 implementation draft. Limits are explicit host policy and are not owner acceptance of C5 or a measured whole-process memory guarantee. Fresh execution is recorded separately.
+implementationBindings:
+- id: resource_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [src/scan_budget.rs, src/resource_tests.rs]
+    border: [src/lib.rs, src/scan_session.rs, src/client_scan.rs, src/measurement.rs]

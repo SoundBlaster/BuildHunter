@@ -26,8 +26,9 @@ No live cloud, recursive race, memory or throughput acceptance is inferred.
 
 ## Recursive work coordination
 
-WorkQueue<T> owns an unbounded LIFO stack of opaque jobs. push returns the job
-when closed; pop blocks until work or shutdown. close wakes all waiters and drops
+WorkQueue<T> owns a LIFO stack of opaque jobs (unbounded by default). Explicit
+QueueLimits add nonblocking count/weight admission. push returns the job when
+closed or full; pop blocks until work or shutdown. close wakes all waiters and drops
 pending jobs outside the mutex; it does not interrupt in-flight operations.
 Queue length/memory is not bounded by LIFO order or worker count. Job destructors
 and worker closure cloning must be well-behaved (especially non-panicking during
@@ -113,7 +114,8 @@ channels, cancellation, queue lifetime, recursive accounting and final status.
 
 Payloads are opaque and never cloned. Unclaimed listing/deferred values release
 on ledger drop, independently of worker completion; retain guards until actual
-scope join. Vector/map capacities remain until drop, so the registry has no fixed
+scope join. Consumed listing records are removed; map capacity follows peak live
+concurrency until drop, so the registry alone has no fixed
 memory bound. Tests cover out-of-order IDs/results, ignored responses, setup
 failure, stopped-state release and invalid host operations. No full scan engine
 or runtime resource improvement follows from this extraction.
@@ -432,10 +434,11 @@ See specs/scan-engine.spec.yaml and the integration witnesses in engine.rs.
 
 ## Launching the engine within a session
 
-ScanChannel owns the same unbounded mpsc response channel the host previously wired
-by hand. Allocate it after guard/backend setup at the original point relative to
+ScanChannel::new retains the unbounded compatibility response channel; bounded
+selects synchronous backpressure. Allocate it after guard/backend setup at the original point relative to
 QoS/profile capture. sender() clones a worker producer; the owner retains the original
-sender until coordinator entry. No message interpretation or memory budget is added.
+sender until coordinator entry. Payload byte accounting and product interpretation
+remain host obligations.
 
 EngineLaunch groups the borrowed backend/raw root, owned channel, root preflight and
 optional idle interval. A closure stored in its preflight field can annotate its path
@@ -507,3 +510,33 @@ authoritative; fully cached passes acquire nothing. `collect_directory_events`
 shares listing/context collection with the default std visitor. These seams alone
 do not promise an anchored tree; the facade's ScopedFilesystem supplies the
 macOS/Linux implementation and the host retains its guards.
+
+
+## Optional resource foundations (R5)
+
+`WorkQueue::with_limits(QueueLimits { max_tasks, max_weight })` admits work without
+waiting on workers. `try_push_weighted` returns the untouched task and the exact
+Closed/TaskLimit/WeightLimit reason; callers must stop/interpret rejection, not
+silently skip it. Weight is a caller-defined accounting unit, not RSS. Pop/close
+release charged weight; `snapshot` exposes pending and peak counts/weights.
+`with_scan_session_limits` selects these limits after guarded backend preparation.
+
+`ScanChannel::bounded(capacity)` applies response backpressure; zero is rendezvous.
+`run_engine` still drops its receiver before collect/join on normal return or
+unwind, releasing producers. An external clone/receiver retained by a caller can
+break termination and remains the caller's responsibility. Do not block the
+coordinator waiting for task-queue space while workers wait for response space.
+
+The ledger removes consumed listing records while keeping checked monotonic IDs.
+Its retained capacity follows peak concurrent work, not all previously visited
+folders. Compatibility constructors remain unbounded. Directory listing payloads,
+reports/diagnostics, profile storage and application-wide RSS require separate
+consumer limits. Draft contracts/evidence: [resource foundations](../../specs/validation/resource-foundations-20261024/README.md).
+
+The optional `collect_directory_with_limits` / `collect_directory_events_with_limits`
+collectors bound the retained prefix by entries, errors and estimated payload weight.
+They return a typed limit independently of `DirectoryVisit`; a host must never
+interpret `Completed` plus a limit as a complete listing. Event acquisition must
+poll the supplied stop predicate to stop further I/O. The current event, opaque
+context/error allocations and iterator internals are outside the estimate. See
+[bounded listing evidence](../../specs/validation/bounded-listings-20261024).

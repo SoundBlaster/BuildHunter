@@ -3,17 +3,16 @@ kind: BoundarySpec
 metadata:
   id: hunter.fs.scan_assembly
   title: Guarded queue and scoped worker session assembly
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Compose a same-thread guard/backend scope with one owned queue and one scoped launch.
 scope:
   boundedContext: filesystem_acquisition
   includes:
-  - with_scan_session, consuming ScanSession::run/run_engine, ScanChannel and EngineLaunch.
+  - with_scan_session/with_scan_session_limits, consuming ScanSession::run/run_engine, ScanChannel and EngineLaunch.
   excludes:
-  - Root selection policy, task semantics, alternative channel/backpressure design,
-    status interpretation, telemetry, worker effects and resource budgets.
+  - Root selection policy, task semantics, product status interpretation, worker effects, payload-byte accounting and whole-process resource budgets.
 provides:
   capabilities:
   - id: hunter.fs.scan_assembly
@@ -53,7 +52,7 @@ constraints:
     after scoped joins; backend releases before guard during ordinary unwinding.
 - id: engine_channel_collection
   level: MUST
-  statement: ScanChannel allocates one unbounded response channel when the host requests;
+  statement: ScanChannel::new retains an unbounded compatibility channel; bounded(capacity) returns a synchronous bounded channel, including rendezvous at zero. The owner is generic over sender type;
     sender clones a producer. run_engine starts helpers/workers using existing run,
     drops the original producer on coordinator entry, calls make_host on the caller,
     runs ScanEngine, drops unread receiver then calls collect(host,outcome) before
@@ -74,7 +73,7 @@ constraints:
     remains after join. Helpers must stop when their stop guard drops, workers
     must terminate on closure/host stop, and destructors must be well-behaved. No
     guard-dependent resources may escape. External backend borrows remain external.
-    Guard restoration excludes abort/double panic; no timeout or memory bound follows.
+    Guard restoration excludes abort/double panic. with_scan_session_limits constructs the explicitly limited nonblocking task queue after successful backend preparation. Bounded response producers wake on receiver drop; queue fullness must never block the coordinator. Counts/weights exclude arbitrary payload allocations and do not establish a whole-process RSS bound.
 effects:
   sideEffects:
   - id: callbacks_threads
@@ -99,6 +98,7 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - R5 adds bounded channel ownership and task/weight admission configuration. A rendezvous producer blocked during a factory panic is released before join. Existing entrypoints/default channel types remain compatible; product limits are not selected in this layer. Fresh receipts are under validation/resource-foundations-20261024.
   - Recovered from BuildHunter scan_session.rs at 404458276e3082fc37d302cdc0708a827e5ecc2e.
     Four integration witnesses and compile-fail single-use check supplement existing
     admission, scoped worker and guarded backend tests. Draft is not owner acceptance.

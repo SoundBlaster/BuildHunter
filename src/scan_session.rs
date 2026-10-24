@@ -4,7 +4,7 @@ use crate::{
     ScanControl, ScanEvent, ScanOptions, ScanReport, ScanStatus, ScanWarning, materialization,
     profile, run_worker, thread_qos,
 };
-use hunter_fs_core::{EngineLaunch, GuardedSetupError, ScanChannel, with_scan_session};
+use hunter_fs_core::{EngineLaunch, GuardedSetupError, ScanChannel, with_scan_session_limits};
 use std::{
     path::{Path, PathBuf},
     sync::atomic::Ordering,
@@ -19,13 +19,17 @@ pub(super) fn run(
     probes: &Probes,
     legacy_policy: bool,
 ) -> ScanReport {
-    let result = with_scan_session(
+    let result = with_scan_session_limits(
         materialization::Guard::enter,
         || Ok::<_, std::convert::Infallible>(probes),
         MAX_SCAN_WORKERS,
+        hunter_fs_core::QueueLimits {
+            max_tasks: control.limits.queued_tasks,
+            max_weight: control.limits.queued_weight,
+        },
         |backend, session| {
             let probes = *backend;
-            let channel = ScanChannel::new();
+            let channel = ScanChannel::bounded(control.limits.response_capacity);
             let worker_qos = thread_qos::capture();
             let profile_state = control
                 .profiling
@@ -33,7 +37,7 @@ pub(super) fn run(
                 .then(profile::ProfileState::new);
             let profile = profile_state.as_ref();
             let sender = channel.sender();
-            let (artifacts, warnings, had_errors, changed) = session.run_engine(
+            let (artifacts, mut warnings, had_errors, changed) = session.run_engine(
                 EngineLaunch {
                     backend: probes,
                     root,
@@ -68,6 +72,8 @@ pub(super) fn run(
                         artifacts: Vec::new(),
                         progress: Vec::new(),
                         warnings: Vec::new(),
+                        finding_budget: crate::scan_budget::Retention::default(),
+                        warning_budget: crate::scan_budget::Retention::default(),
                         had_errors: false,
                         changed: false,
                         profile,
@@ -86,11 +92,27 @@ pub(super) fn run(
                     )
                 },
             );
+            // A reserved constant-size summary is outside the normal warning quota.
+            // Publish after workers join so a late worker limit is not missed.
+            if let Some(reason) = control.resource_limit() {
+                let warning = ScanWarning {
+                    relative_path: PathBuf::from("."),
+                    message: format!(
+                        "Resource limit reached: {}. Scan stopped; retained results may be partial.",
+                        reason.name()
+                    ),
+                };
+                warnings.push(warning.clone());
+                if let Some(profile) = profile {
+                    profile::bump(&profile.counters.warnings, 1);
+                }
+                emit(&ScanEvent::Warning(warning));
+            }
             let status = if control.is_failed() {
                 ScanStatus::Failed
             } else if control.is_cancelled() {
                 ScanStatus::Cancelled
-            } else if had_errors {
+            } else if had_errors || control.resource_limit().is_some() {
                 ScanStatus::Incomplete
             } else if changed {
                 ScanStatus::CompletedWithChanges

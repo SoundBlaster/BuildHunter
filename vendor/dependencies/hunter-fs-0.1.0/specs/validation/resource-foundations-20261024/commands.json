@@ -1,0 +1,57 @@
+[
+  {
+    "name": "fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-foundations-fmt-final.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "debug",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--workspace",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-foundations-debug-final.log",
+    "sha256": "a0b26a2c0e7ce731d6786264a2b930b2199f43cff466f03d6017e32f92f2d35e"
+  },
+  {
+    "name": "release",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--release",
+      "--workspace",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-foundations-release-final.log",
+    "sha256": "e36c7e8c33515d15e638093fc65236f6e3c15dc596daf613a3e73a8680e38609"
+  },
+  {
+    "name": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--workspace",
+      "--all-features",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-foundations-clippy-final.log",
+    "sha256": "82f19d44b22c472c7e9a756aa2e83f601fb0e0e7c69148c66a34d766302d70d3"
+  }
+]

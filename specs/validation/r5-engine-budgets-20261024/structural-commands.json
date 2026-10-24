@@ -1,0 +1,124 @@
+[
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-0.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-1.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-2.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-3.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-4.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-5.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-6.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-7.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/ci.hc"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-8.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/ci.hc",
+      "--hcs",
+      "specs/hypercode/ci.hcs"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/hc-9.log"
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/r5-engine-budgets-20261024/specpm.json"
+  }
+]

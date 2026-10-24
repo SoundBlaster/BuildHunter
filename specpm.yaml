@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: buildhunter.module_architecture
   name: BuildHunter current boundaries and target module architecture
-  version: 0.1.0-draft.37
+  version: 0.1.0-draft.38
   summary: Reviewable current boundaries and target modular architecture, including
     integrated Hunter scan engine/session and remaining backend, OS primitive and plugin delivery work.
   license: MIT
@@ -11,6 +11,7 @@ metadata:
   - name: Egor Merkushev
 specs:
 - path: specs/ci-validation.spec.yaml
+- path: specs/resource-budget.spec.yaml
 - path: specs/current-scan.spec.yaml
 - path: specs/current-classification.spec.yaml
 - path: specs/current-bridge.spec.yaml
@@ -27,6 +28,7 @@ index:
   provides:
     capabilities:
     - buildhunter.delivery.ci
+    - buildhunter.scan.resources
     - buildhunter.current.scan
     - buildhunter.current.classification
     - buildhunter.current.bridge

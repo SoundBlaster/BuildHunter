@@ -5,17 +5,20 @@ use std::collections::HashMap;
 /// Holds opaque listing state and deferred measurement state keyed by non-reused IDs.
 /// Not a scheduler, channel, protocol validator or join boundary. The host records
 /// each received message before taking its result state and supplies valid IDs/order.
-/// Arena capacity and HashMap capacity are retained until drop; no memory bound.
+/// Completed listing slots are removed immediately. HashMap capacity follows the
+/// largest concurrent set, not the total visited count; admission limits are host-owned.
 #[derive(Debug)]
 pub struct DirectoryTaskLedger<State, Pending> {
-    listings: Vec<Option<State>>,
+    listings: HashMap<usize, State>,
+    next_id: usize,
     measurements: HashMap<usize, Option<Pending>>,
     outstanding: usize,
 }
 impl<State, Pending> Default for DirectoryTaskLedger<State, Pending> {
     fn default() -> Self {
         Self {
-            listings: Vec::new(),
+            listings: HashMap::new(),
+            next_id: 0,
             measurements: HashMap::new(),
             outstanding: 0,
         }
@@ -29,8 +32,12 @@ impl<State, Pending> DirectoryTaskLedger<State, Pending> {
         request: DirectoryRequest<Context>,
         state: State,
     ) -> DirectoryTask<usize, Context> {
-        let task = request.into_task(self.listings.len());
-        self.listings.push(Some(state));
+        let id = self.next_id;
+        self.next_id = id
+            .checked_add(1)
+            .expect("directory task identity exhausted");
+        let task = request.into_task(id);
+        self.listings.insert(id, state);
         self.outstanding += 1;
         task
     }
@@ -56,8 +63,7 @@ impl<State, Pending> DirectoryTaskLedger<State, Pending> {
     pub fn take_listing(&mut self, id: usize, measuring: bool) -> State {
         let state = self
             .listings
-            .get_mut(id)
-            .and_then(Option::take)
+            .remove(&id)
             .expect("each directory is listed once");
         if measuring {
             self.outstanding += 1;
@@ -92,6 +98,23 @@ mod tests {
             context: 17,
             measure: true,
         }
+    }
+
+    #[test]
+    fn completed_listing_storage_tracks_concurrency_not_visited_count() {
+        let mut ledger = DirectoryTaskLedger::<usize, ()>::default();
+        for n in 0..100_000 {
+            let task = ledger.register(request("entry"), n);
+            assert_eq!(task.id, n, "IDs must never be recycled");
+            ledger.response_received();
+            assert_eq!(ledger.take_listing(task.id, false), n);
+            assert!(ledger.listings.is_empty());
+            assert!(
+                ledger.listings.capacity() < 16,
+                "No historical listing slots retained"
+            );
+        }
+        assert_eq!(ledger.outstanding(), 0);
     }
     #[test]
     fn registration_assigns_nonreused_ids_and_retains_request_values() {

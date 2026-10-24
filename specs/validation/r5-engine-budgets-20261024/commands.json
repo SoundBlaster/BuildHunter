@@ -1,0 +1,62 @@
+[
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-engine-fmt.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-engine-test.log",
+    "sha256": "aaa468e19dc108ba2d059ef91b3c927275b3740bd4d1dc0ce066e607bbad3686"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-engine-clippy.log",
+    "sha256": "079a251d5b8a84afc9cd63ba3173d227015c9786723746e87efed26ec93c3dea"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-engine-vendor.log",
+    "sha256": "e12137efc563f4465212fba471d7b78357f22786d4b5499b5a1e7b9a75714cac"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--release",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-engine-release.log",
+    "sha256": "5bf3120f7d6093a9054b966e1ec90969c7450b0e066bbbaad593ba7ff7f98c62"
+  }
+]

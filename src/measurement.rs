@@ -32,7 +32,7 @@ struct MetadataBackend<'a> {
     control: &'a ScanControl,
 }
 #[cfg(all(target_os = "macos", feature = "macos-bulk-metadata"))]
-use hunter_fs_core::{PreparedDirectorySizes, darwin_bulk::read_directory_sizes};
+use hunter_fs_core::{PreparedDirectorySizes, darwin_bulk::read_directory_sizes_with_limits};
 
 struct PreparedFiles<'a> {
     probes: &'a Probes<'a>,
@@ -78,10 +78,21 @@ impl<'a> DirectoryMeasurementBackend for MetadataBackend<'a> {
             }
             #[cfg(test)]
             self.probes.record_policy();
-            Some(PreparedDirectorySizes::new(read_directory_sizes(
+            let batch = read_directory_sizes_with_limits(
                 path,
                 || self.control.should_stop(),
-            )))
+                self.control.limits.listing(),
+            )
+            .map(|batch| {
+                if let Some(limit) = batch.limit {
+                    self.control.exhaust(match limit {
+                        hunter_fs_core::ListingLimit::Entries => crate::ScanLimit::MetadataEntries,
+                        _ => crate::ScanLimit::MetadataWeight,
+                    });
+                }
+                batch.sizes
+            });
+            Some(PreparedDirectorySizes::new(batch))
         } else {
             None
         };

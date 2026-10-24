@@ -1,0 +1,53 @@
+[
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-bulk-fmt.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--workspace",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-bulk-test.log",
+    "sha256": "b320b89a13de77a4bb5cff0bd4a1f1f52843298e1f25a814690af45b6871450c"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--workspace",
+      "--all-features",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-bulk-clippy.log",
+    "sha256": "d4bb0e9426c70a711d75a3173841ab11e65b8af1afd10638e27cae8202f73240"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--release",
+      "--locked",
+      "--workspace",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/r5-bulk-release.log",
+    "sha256": "a11bd5fa7acfc9e88ddee3f362dded294fa86ae10b7a59ad0f6bc746c1aeb9e8"
+  }
+]

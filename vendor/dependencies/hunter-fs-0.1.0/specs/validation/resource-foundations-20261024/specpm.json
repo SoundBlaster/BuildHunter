@@ -1,0 +1,172 @@
+{
+  "capabilities": [
+    "hunter.fs.backend",
+    "hunter.fs.backend_lifetime",
+    "hunter.fs.child_traversal",
+    "hunter.fs.darwin_bulk_metadata",
+    "hunter.fs.directory_listing",
+    "hunter.fs.directory_tasks",
+    "hunter.fs.directory_worker",
+    "hunter.fs.entry_processing",
+    "hunter.fs.measurement_backend",
+    "hunter.fs.portable",
+    "hunter.fs.prepared_directory_sizes",
+    "hunter.fs.root_admission",
+    "hunter.fs.scan_assembly",
+    "hunter.fs.scan_engine",
+    "hunter.fs.scan_execution",
+    "hunter.fs.scoped_filesystem",
+    "hunter.fs.scoped_metadata",
+    "hunter.fs.scoped_session",
+    "hunter.fs.subtree_progress",
+    "hunter.fs.task_ledger",
+    "hunter.fs.traversal_coordinator",
+    "hunter.fs.work",
+    "hunter.platform.process_resources",
+    "hunter.platform.requested_qos"
+  ],
+  "checked_files": [
+    "specpm.yaml",
+    "specs/backend-lifetime.spec.yaml",
+    "specs/child-traversal.spec.yaml",
+    "specs/darwin-bulk.spec.yaml",
+    "specs/directory-listing.spec.yaml",
+    "specs/directory-tasks.spec.yaml",
+    "specs/directory-worker.spec.yaml",
+    "specs/entry-processing.spec.yaml",
+    "specs/filesystem-backend.spec.yaml",
+    "specs/measurement-backend.spec.yaml",
+    "specs/portable.spec.yaml",
+    "specs/prepared-batch.spec.yaml",
+    "specs/process-platform.spec.yaml",
+    "specs/root-admission.spec.yaml",
+    "specs/scan-assembly.spec.yaml",
+    "specs/scan-engine.spec.yaml",
+    "specs/scan-execution.spec.yaml",
+    "specs/scoped-filesystem.spec.yaml",
+    "specs/scoped-metadata.spec.yaml",
+    "specs/scoped-session.spec.yaml",
+    "specs/subtree-progress.spec.yaml",
+    "specs/task-ledger.spec.yaml",
+    "specs/traversal-coordinator.spec.yaml",
+    "specs/work.spec.yaml"
+  ],
+  "error_count": 0,
+  "errors": [],
+  "intent_mappings": [],
+  "intents": [],
+  "package_identity": {
+    "name": "Hunter filesystem primitives",
+    "package_id": "hunter.filesystem",
+    "version": "0.1.0-draft.26"
+  },
+  "status": "warning_only",
+  "warning_count": 15,
+  "warnings": [
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/scoped-metadata.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "duplicate_boundary_document_id",
+      "field": "interfaces.inbound.0.id",
+      "file": "specs/scoped-metadata.spec.yaml",
+      "message": "ID is reused across BoundarySpec sections: metadata (effects.sideEffects.0.id, interfaces.inbound.0.id)",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/scoped-filesystem.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/portable.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/filesystem-backend.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/directory-worker.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.work",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/directory-worker.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.directory_tasks",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/directory-listing.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.portable",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/measurement-backend.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.directory_tasks",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/scoped-session.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.work",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/root-admission.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.backend",
+      "severity": "warning"
+    },
+    {
+      "code": "duplicate_boundary_document_id",
+      "field": "effects.sideEffects.0.id",
+      "file": "specs/backend-lifetime.spec.yaml",
+      "message": "ID is reused across BoundarySpec sections: thread_policy (constraints.2.id, effects.sideEffects.0.id)",
+      "severity": "warning"
+    },
+    {
+      "code": "duplicate_boundary_document_id",
+      "field": "interfaces.inbound.0.id",
+      "file": "specs/scan-assembly.spec.yaml",
+      "message": "ID is reused across BoundarySpec sections: assembly (implementationBindings.0.id, interfaces.inbound.0.id)",
+      "severity": "warning"
+    },
+    {
+      "code": "duplicate_boundary_document_id",
+      "field": "interfaces.inbound.0.id",
+      "file": "specs/traversal-coordinator.spec.yaml",
+      "message": "ID is reused across BoundarySpec sections: coordinator (implementationBindings.0.id, interfaces.inbound.0.id)",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/darwin-bulk.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    }
+  ]
+}

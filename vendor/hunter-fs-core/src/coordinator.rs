@@ -1,7 +1,7 @@
 //! Root admission and serial task/response coordination with opaque host state.
 use crate::{
     CoordinatorExit, DirectoryRequest, DirectoryTask, DirectoryTaskLedger, FilesystemBackend,
-    RootAdmission, ScanCoordinator, WorkQueue, admit_root, drive_scan,
+    QueueRejection, RootAdmission, ScanCoordinator, WorkQueue, admit_root, drive_scan,
 };
 use std::{path::Path, sync::mpsc, time::Duration};
 
@@ -33,10 +33,24 @@ impl<'env, State, Pending, Context> TraversalTasks<'env, State, Pending, Context
         state: State,
         before_publish: impl FnOnce(usize),
     ) -> Result<usize, DirectoryTask<usize, Context>> {
+        self.try_enqueue_weighted(request, state, 1, before_publish)
+            .map_err(|rejected| rejected.task)
+    }
+
+    /// Same reservation/telemetry order as enqueue, with nonblocking weighted admission.
+    /// On rejection the reservation remains live; the host must stop and release the
+    /// coordinator. A rejected task is returned with its exact queue reason.
+    pub fn try_enqueue_weighted(
+        &mut self,
+        request: DirectoryRequest<Context>,
+        state: State,
+        weight: usize,
+        before_publish: impl FnOnce(usize),
+    ) -> Result<usize, QueueRejection<DirectoryTask<usize, Context>>> {
         let task = self.ledger.register(request, state);
         let id = task.id;
         before_publish(self.outstanding());
-        self.queue.push(task).map(|()| id)
+        self.queue.try_push_weighted(task, weight).map(|()| id)
     }
     pub fn take_listing(&mut self, id: usize, measuring: bool) -> State {
         self.ledger.take_listing(id, measuring)
@@ -169,6 +183,41 @@ mod tests {
         fs, io,
         rc::Rc,
     };
+
+    #[test]
+    fn weighted_rejection_preserves_reservation_and_reports_exact_reason() {
+        let queue = WorkQueue::with_limits(crate::QueueLimits {
+            max_tasks: 2,
+            max_weight: 6,
+        });
+        let mut tasks = TraversalTasks::<_, (), u8>::new(&queue);
+        let telemetry = Cell::new(0);
+        let request = || DirectoryRequest {
+            path: "literal".into(),
+            context: 1,
+            measure: false,
+        };
+        assert_eq!(
+            tasks
+                .try_enqueue_weighted(request(), "first", 5, |n| telemetry.set(n))
+                .unwrap(),
+            0
+        );
+        let rejection = tasks
+            .try_enqueue_weighted(request(), "second", 2, |n| telemetry.set(n))
+            .unwrap_err();
+        assert_eq!(rejection.reason, crate::QueueRejectionReason::WeightLimit);
+        assert_eq!(rejection.task.id, 1);
+        assert_eq!(
+            tasks.outstanding(),
+            2,
+            "The host must stop after rejection; no response was fabricated"
+        );
+        assert_eq!(telemetry.get(), 2);
+        assert_eq!(queue.snapshot().pending_tasks, 1);
+        assert_eq!(queue.pop().unwrap().id, 0);
+        queue.close();
+    }
 
     struct Backend {
         calls: Cell<usize>,

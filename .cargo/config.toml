@@ -2,9 +2,9 @@
 [source.crates-io]
 replace-with = "vendored-sources"
 
-[source."git+https://github.com/SoundBlaster/Hunter.git?rev=bfcd75f8996b5a958c81238bb6d44d9fa1f88047"]
+[source."git+https://github.com/SoundBlaster/Hunter.git?rev=286cebffdac7f1396a8d3dffed8a7d54b2ea34eb"]
 git = "https://github.com/SoundBlaster/Hunter.git"
-rev = "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
+rev = "286cebffdac7f1396a8d3dffed8a7d54b2ea34eb"
 replace-with = "vendored-sources"
 
 [source."git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910"]
