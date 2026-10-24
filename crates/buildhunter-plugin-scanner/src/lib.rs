@@ -5,9 +5,12 @@ use build_hunter::{ScanControl, ScanOptions, ScanProfileSample, ScanStatus, Scan
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 use buildhunter_plugin_policy::{CandidateFacts, Decision, MarkerFact, MarkerProbe, NodeKind};
 use buildhunter_plugin_policy::{Classification, PluginCatalog, TargetDescriptor};
-use std::path::{Path, PathBuf};
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 use std::{cell::RefCell, collections::BTreeMap};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod scope;
@@ -16,7 +19,7 @@ mod scope;
 pub struct PluginArtifact {
     pub id: u64,
     pub relative_path: PathBuf,
-    pub target: TargetDescriptor,
+    pub target: Arc<TargetDescriptor>,
     pub bytes: u64,
     pub nested: bool,
     pub partial: bool,
@@ -121,18 +124,27 @@ pub fn scan(
         let filesystem = hunter_fs::ScopedFilesystem::open(&root).map_err(ScanError::Io)?;
         let scope = scope::Scope::new(&filesystem, !requests.is_empty()).map_err(ScanError::Io)?;
         struct State {
-            selected: Option<TargetDescriptor>,
-            targets: BTreeMap<u64, TargetDescriptor>,
+            selected: Option<Arc<TargetDescriptor>>,
+            targets: BTreeMap<u64, Arc<TargetDescriptor>>,
             diagnostics: Vec<CandidateDiagnostic>,
             failure: Option<PolicyError>,
             observations: u64,
+            diagnostic_budget: build_hunter::DiagnosticRetention,
         }
+        // Each descriptor is owned once per catalog; finding/event/report clones
+        // share it, so a large description is not multiplied by finding count.
+        let descriptors: BTreeMap<_, _> = catalog
+            .targets()
+            .iter()
+            .map(|target| (target.id.as_str(), Arc::new(target.clone())))
+            .collect();
         let state = RefCell::new(State {
             selected: None,
             targets: BTreeMap::new(),
             diagnostics: Vec::new(),
             failure: None,
             observations: 0,
+            diagnostic_budget: build_hunter::DiagnosticRetention::default(),
         });
         let report = build_hunter::scan_with_candidate_access(
             &root,
@@ -196,10 +208,8 @@ pub fn scan(
                     Ok(classification) => match &classification.decision {
                         Decision::Found(id) => {
                             state.selected = Some(
-                                catalog
-                                    .targets()
-                                    .iter()
-                                    .find(|t| &t.id == id)
+                                descriptors
+                                    .get(id.as_str())
                                     .expect("validated target exists")
                                     .clone(),
                             );
@@ -216,6 +226,13 @@ pub fn scan(
                                 relative_path: path.strip_prefix(&root).unwrap_or(path).to_owned(),
                                 classification,
                             };
+                            if !state.diagnostic_budget.admit(
+                                &diagnostic.relative_path,
+                                &diagnostic.classification,
+                                control,
+                            ) {
+                                return CandidateAction::Traverse;
+                            }
                             state.diagnostics.push(diagnostic.clone());
                             // Deliver while processing this candidate so the observer can
                             // cancel before traversal continues, even without core events.

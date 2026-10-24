@@ -25,6 +25,7 @@ BuildHunterRuntime
         WorkAdmission
         ResponseRetention
         ReportRetention
+        DiagnosticAdmission
         ProfileBacklog
         ResourceDisclosure
       ResourceProfile
@@ -135,6 +136,7 @@ BuildHunterRuntime
       CandidateObservation
       MarkerAcquisition
       TargetRouting
+      SharedTargetOwnership
     RustSwiftBridge
       PolicyTable
       EventChannel

@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/r5-profile-rendering-20261024/source-identity.json"
+  current_evidence: "specs/validation/r5-plugin-budgets-20261024/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -508,3 +508,12 @@ LiveMetricRendering:
   source: "macos/Sources/BuildHunter/UI/ScanProfilePanel.swift"
   implementation: "immediate live numeric labels; independent line/sunburst motion preserved; native font-cache workaround"
   folded_into: "buildhunter.current.application"
+
+DiagnosticAdmission:
+  source: "src/scan_budget.rs"
+  implementation: "one DiagnosticRetention per scan; common catalog/scoped pre-clone count and estimated payload gate"
+  folded_into: "buildhunter.scan.resources"
+SharedTargetOwnership:
+  source: "crates/buildhunter-plugin-scanner/src/lib.rs"
+  implementation: "Arc descriptors shared by discoveries, completions and reports; owned beyond input catalog lifetime"
+  folded_into: "buildhunter.plugin.scanner"

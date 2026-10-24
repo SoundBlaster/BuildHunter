@@ -1,0 +1,27 @@
+{
+  "revision": "R5 layer4 working tree; source-identity.json",
+  "binary_sha256": "1b7d9305f52807d1aef40f8910b012023eb65230c3172c4a75ae0d5c7adae3e3",
+  "command": [
+    "<pinned-Release-CLI>",
+    "<home>",
+    "--json",
+    "--profile",
+    "<external>/profile.json"
+  ],
+  "root": "<home>",
+  "timed_out": true,
+  "exit_code": -15,
+  "wall_seconds": 120.02364991704235,
+  "user_seconds": 2.885981,
+  "system_seconds": 29.258789,
+  "peak_rss_bytes": 42303488,
+  "first_finding_seconds": null,
+  "latency_scope": "Final profile was not emitted before timeout; no first-finding latency is available",
+  "measurement_scope": "kernel wait4 CPU and peak RSS for one CLI process; not GUI footprint or an RSS guarantee",
+  "source_identity_sha256": "5bc3c700e5c36ee1c3f6787e966fb6699c499b3cc1f3a38723103eda05393de2",
+  "stack_sample": {
+    "duration_seconds": 1,
+    "sha256": "b522103fd2466fc88ad1bc93885ff213898ecb7881126b703b91ea4316936196",
+    "observation": "Two workers in read_dir -> opendir -> open$NOCANCEL; cause unverified; process terminated at timeout"
+  }
+}

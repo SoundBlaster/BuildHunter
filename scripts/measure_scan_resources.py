@@ -58,7 +58,7 @@ def main():
         "command": command, "root": str(root), "timed_out": timed_out, "exit_code": process.returncode,
         "wall_seconds": time.perf_counter()-started, "user_seconds":usage.ru_utime,
         "system_seconds":usage.ru_stime, "peak_rss_bytes":usage.ru_maxrss * (1 if sys.platform == "darwin" else 1024),
-        "first_finding_seconds":None, "latency_scope":"CLI total time; first-finding latency is not exposed by this CLI",
+        "first_finding_seconds":None, "latency_scope":"CLI total time; first-finding latency unavailable unless a profile records it",
         "measurement_scope":"kernel wait4 CPU and peak RSS for one CLI process; not GUI footprint or an RSS guarantee"}
     if profile.exists():
         data=json.loads(profile.read_text())

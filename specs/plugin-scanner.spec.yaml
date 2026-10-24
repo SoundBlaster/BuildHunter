@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.plugin.scanner
   title: Opt-in catalog-driven scanner integration
-  version: 0.1.0-draft.5
+  version: 0.1.0-draft.6
   status: draft
 intent:
   summary: Acquire scoped plugin marker facts and route supplied catalog decisions into measured artifacts with live metadata and diagnostics.
@@ -14,7 +14,7 @@ scope:
   - Immutable catalog/exclusions, arbitrary target metadata, streaming results, cancellation and typed diagnostics.
   excludes:
   - Default CLI/GUI/FFI policy migration, complete baseline plugin parity, Windows marker backend, Store delivery and whole-engine safety/resource acceptance.
-  - Atomic filesystem snapshots, stable cross-pass entry identity, bounded report memory and throughput claims.
+  - Atomic filesystem snapshots, stable cross-pass entry identity, exact/global RSS ceilings and throughput claims.
 provides:
   capabilities:
   - id: buildhunter.plugin.scan
@@ -65,6 +65,9 @@ constraints:
 - id: routing
   level: MUST
   statement: Found carries full target metadata and creates one artifact. Ambiguous, Indeterminate, NoMatch and exclusions do not prune descendants. Typed policy diagnostics remain distinct from traversal I/O warnings and are delivered during candidate processing without waiting for a core event; observers may cancel before descendants are processed.
+- id: resource_retention
+  level: MUST
+  statement: Apply the same ScanControl finding/listing/queue/warning quotas as default clients. Gate typed diagnostics through one per-scan DiagnosticRetention before retained clone or observer publication; diagnostic count/weight exhaustion requests an explicit Incomplete stop with a reserved resource warning. Share each immutable TargetDescriptor through Arc between event and report artifacts, including after the input catalog drops. This changes the experimental Rust target field from an owned descriptor to Arc; catalog size and active classification allocations remain outside report payload estimates. Diagnostic-only scans without quota exhaustion retain their existing Completed semantics.
 - id: lifecycle
   level: MUST
   statement: Retain catalog digest and exclusions in the report; keep immutable catalog/control/access alive until scoped workers finish; preserve inherited size/cancellation/partial events and guard restoration. Cancellation request alone does not prove completion.
@@ -93,7 +96,7 @@ evidence:
 - id: integration_source
   kind: source
   path: crates/buildhunter-plugin-scanner/src/lib.rs
-  supports: [intent.summary, interfaces, constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.compatibility]
+  supports: [intent.summary, interfaces, constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.compatibility, constraints.resource_retention]
 - id: scope_source
   kind: source
   path: crates/buildhunter-plugin-scanner/src/scope.rs
@@ -105,7 +108,7 @@ evidence:
 - id: integration_tests
   kind: test
   path: crates/buildhunter-plugin-scanner/tests/scanning.rs
-  supports: [constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.marker_scope, constraints.traversal_scope]
+  supports: [constraints.candidate_gate, constraints.effective_acquisition, constraints.routing, constraints.lifecycle, constraints.marker_scope, constraints.traversal_scope, constraints.resource_retention]
 - id: unsupported_tests
   kind: test
   path: crates/buildhunter-plugin-scanner/tests/unsupported.rs
@@ -133,6 +136,7 @@ evidence:
 provenance:
   sourceConfidence: {intent: high, boundary: high, behavior: medium}
   notes:
+  - R5 scoped diagnostic admission and shared target ownership have fresh source/test receipts in specs/validation/r5-plugin-budgets-20261024; earlier receipts remain historical.
   - The rebased R3 stack includes the reviewed scoped-error diagnostic boundary;
     fresh post-rebase plugin checks and hashes are in plugin-scoped-review-20261023.
     Prior plugin-scoped-scan receipts remain historical for the pre-review inputs.
@@ -158,6 +162,7 @@ implementationBindings:
     - crates/buildhunter-plugin-scanner/src/scope.rs
     border:
     - src/lib.rs
+    - src/scan_budget.rs
     - vendor/hunter-fs-core/UPSTREAM.json
     - scripts/verify_plugin_dependencies.py
     - scripts/test_plugin_dependencies.py

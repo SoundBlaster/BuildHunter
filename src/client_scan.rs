@@ -80,7 +80,7 @@ pub fn scan_client(
         targets: BTreeMap<u64, Arc<TargetDescriptor>>,
         diagnostics: Vec<CatalogDiagnostic>,
         observations: u64,
-        diagnostic_budget: crate::scan_budget::Retention,
+        diagnostic_budget: crate::DiagnosticRetention,
     }
     impl State {
         fn retain_diagnostic(
@@ -88,37 +88,11 @@ pub fn scan_client(
             diagnostic: &CatalogDiagnostic,
             control: &ScanControl,
         ) -> bool {
-            let classification = &diagnostic.classification;
-            let mut weight =
-                diagnostic
-                    .relative_path
-                    .capacity()
-                    .saturating_add(std::mem::size_of::<CatalogDiagnostic>())
-                    .saturating_add(
-                        (classification.matched.capacity() + classification.unknown.capacity())
-                            .saturating_mul(std::mem::size_of::<String>()),
-                    )
-                    .saturating_add(classification.unavailable.capacity().saturating_mul(
-                        std::mem::size_of::<buildhunter_plugin_policy::FactNotice>(),
-                    ));
-            for id in classification.matched.iter().chain(&classification.unknown) {
-                weight = weight.saturating_add(id.capacity());
-            }
-            for notice in &classification.unavailable {
-                weight = weight
-                    .saturating_add(notice.package_id.capacity())
-                    .saturating_add(notice.fact_id.capacity())
-                    .saturating_add(notice.reason.capacity());
-            }
-            let limits = control.limits();
-            if let Err(reason) = self.diagnostic_budget.admit(
-                weight,
-                limits.diagnostics,
-                limits.diagnostic_weight,
-                crate::ScanLimit::Diagnostics,
-                crate::ScanLimit::DiagnosticWeight,
+            if !self.diagnostic_budget.admit(
+                &diagnostic.relative_path,
+                &diagnostic.classification,
+                control,
             ) {
-                control.exhaust(reason);
                 return false;
             }
             self.diagnostics.push(diagnostic.clone());
@@ -130,7 +104,7 @@ pub fn scan_client(
         targets: BTreeMap::new(),
         diagnostics: Vec::new(),
         observations: 0,
-        diagnostic_budget: crate::scan_budget::Retention::default(),
+        diagnostic_budget: crate::DiagnosticRetention::default(),
     });
     let emit = RefCell::new(emit);
     let catalog = snapshot.catalog();

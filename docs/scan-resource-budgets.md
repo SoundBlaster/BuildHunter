@@ -65,3 +65,19 @@ The helper uses Unix `wait4` for one child's CPU and kernel peak RSS and preserv
 raw local report/profile/stderr files. Do not publish raw home paths/errors; the
 repository receipt contains aggregate counts, sanitized commands and log hashes.
 It is a manual measurement tool and does not add hosted CI jobs.
+
+## Adapter parity
+
+Both `scan_client` and the experimental scoped plugin scanner use one per-scan
+`DiagnosticRetention` from `src/scan_budget.rs`. Admission precedes report/event
+cloning; count or estimated-payload rejection sets the same first resource limit.
+The engine then joins workers and emits its reserved explanatory warning and
+terminal status. This does not change diagnostic-only pilot scans that stay within
+quota: their pre-existing status remains `Completed`, with typed diagnostics.
+
+Both adapters share immutable target descriptors rather than multiplying their
+strings by finding count. The experimental `PluginArtifact.target` is now
+`Arc<TargetDescriptor>`: borrow with `.as_ref()`, and clone the inner descriptor only
+when an independently owned mutable copy is required. Descriptors survive dropping
+the input catalog. Catalog/package loading and temporary classification payloads
+are not included in report retention estimates.

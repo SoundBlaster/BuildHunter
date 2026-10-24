@@ -170,6 +170,63 @@ impl Retention {
     }
 }
 
+/// One per-scan gate shared by default catalog and scoped plugin adapters.
+/// Admit before cloning/storing/emitting a diagnostic. A rejection sets the
+/// control's first resource limit so the engine stops with explicit Incomplete.
+/// The estimate includes owned path/string capacities and inline vector slots,
+/// not allocator overhead or a whole-process RSS promise.
+#[derive(Default)]
+pub struct DiagnosticRetention {
+    retained: Retention,
+}
+impl DiagnosticRetention {
+    pub fn admit(
+        &mut self,
+        path: &std::path::PathBuf,
+        classification: &buildhunter_plugin_policy::Classification,
+        control: &crate::ScanControl,
+    ) -> bool {
+        let mut weight = path
+            .capacity()
+            .saturating_add(std::mem::size_of::<std::path::PathBuf>())
+            .saturating_add(std::mem::size_of::<buildhunter_plugin_policy::Classification>())
+            .saturating_add(
+                classification
+                    .matched
+                    .capacity()
+                    .saturating_add(classification.unknown.capacity())
+                    .saturating_mul(std::mem::size_of::<String>()),
+            )
+            .saturating_add(
+                classification
+                    .unavailable
+                    .capacity()
+                    .saturating_mul(std::mem::size_of::<buildhunter_plugin_policy::FactNotice>()),
+            );
+        for id in classification.matched.iter().chain(&classification.unknown) {
+            weight = weight.saturating_add(id.capacity());
+        }
+        for notice in &classification.unavailable {
+            weight = weight
+                .saturating_add(notice.package_id.capacity())
+                .saturating_add(notice.fact_id.capacity())
+                .saturating_add(notice.reason.capacity());
+        }
+        let limits = control.limits();
+        if let Err(reason) = self.retained.admit(
+            weight,
+            limits.diagnostics,
+            limits.diagnostic_weight,
+            ScanLimit::Diagnostics,
+            ScanLimit::DiagnosticWeight,
+        ) {
+            control.exhaust(reason);
+            return false;
+        }
+        true
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

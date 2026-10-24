@@ -41,7 +41,7 @@ pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
     bh_scan_with_policy_table,
 };
-pub use scan_budget::{ScanLimit, ScanLimits};
+pub use scan_budget::{DiagnosticRetention, ScanLimit, ScanLimits};
 
 #[cfg(unix)]
 use std::os::unix::ffi::OsStrExt;

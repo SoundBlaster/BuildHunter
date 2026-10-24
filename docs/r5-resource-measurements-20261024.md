@@ -85,3 +85,13 @@ in `specs/validation/r5-profile-rendering-20261024`. `scripts/measure_gui_resour
 repeats passive measurement of an already-running selected executable/PID; it does
 not automate UI or grant permissions. Open-folder and popover actions were native
 Computer Use. The source change adds no new hosted CI job.
+
+## Final adapter layer control run
+
+The final R5 layer repeats all three controlled CLI fixtures; numeric receipts and
+binary/source hashes are in `specs/validation/r5-plugin-budgets-20261024`.
+A fresh home attempt timed out after 120 seconds, at 40.34 MiB kernel peak RSS.
+Two workers were sampled in `read_dir → opendir → open$NOCANCEL`; no final report
+or profile was produced. It does not replace the earlier completed three-run
+comparison, prove equal results, or establish a home-scan latency improvement.
+The native open stall remains unresolved; no iCloud/TCC cause is established.

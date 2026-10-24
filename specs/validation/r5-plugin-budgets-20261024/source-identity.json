@@ -1,0 +1,17 @@
+{
+  "parent": "d917196c0f6a3dbb938f2218055cb07cc3ca50d3",
+  "files": {
+    "src/scan_budget.rs": "9200f7a11295d039776abd87527d929a1998d155e8cdd5258198bcd0d31fca65",
+    "src/lib.rs": "5363afec85946d607b8f81da3f8a370111b402b96b70c9b67a9e6f8ee344dc0a",
+    "src/client_scan.rs": "1957497ac315e7152451cc33e817febd55a48a24ba42ed387cb45cee64e6d496",
+    "crates/buildhunter-plugin-scanner/src/lib.rs": "99c8957dad710b6d4cb7efaf32ab2ee66ef3b5a50ffd7f281a646791d45cae87",
+    "crates/buildhunter-plugin-scanner/tests/scanning.rs": "50e1a09ecb1c8a0c80fd3fd586a1be88505da56ff93af1d5760a8da0d142576c",
+    "specs/plugin-scanner.spec.yaml": "08256c52fd7971eb66a2ff188df868ddcb47fe55b6660a686db3e47798c7a529",
+    "specs/resource-budget.spec.yaml": "a13e00fdd853742f68f3ff5070f6d7121951b7d4729556cfe4933cae319161c9",
+    "specs/catalog-client-scan.spec.yaml": "f3145bb4d0335397309a5b3d5534176e2e496a5e3f1a9186b30e0452f4ff6b55",
+    "specs/hypercode/current.hc": "87ce144ef2e01ac7a4ac6b188aac59d18fb8df188a7a7665defbecc62817b8fd",
+    "specs/hypercode/current.hcs": "0a2b77ebd169dea14629d814002808a9098074fc522093444814f5204e3e7aec",
+    "specpm.yaml": "5e4ced270e9ee3b28fc45d0a08b8392481af31d659a214bd5ed0884482554420",
+    "scripts/measure_scan_resources.py": "17987a2a40239f941c7d1f81719c6f776344ae9999c1368d8de245d1ed58a9ae"
+  }
+}
