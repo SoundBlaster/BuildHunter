@@ -13,7 +13,9 @@ gaps, RAM integration and 600-point history. These build/smoke results do not
 claim full local XCTest execution. CI must execute native tests at the ready tip.
 HC current/target/CI profiles and SpecPM passed (0 errors/49 unresolved-capability
 warnings). Correctly invoked CLI/golden/vendor/dependency checks are recorded
-separately; an initial unittest discovery was inappropriate for argv-driven CLI
+separately. Plugin contract schemas passed all 12 tests in a dedicated TB5 venv;
+the initial bundled-Python attempt lacked jsonschema and is recorded as failed.
+An initial unittest discovery was inappropriate for argv-driven CLI
 scripts and its failed output is not a passing receipt.
 
 Three Release CLI runs per baseline/input and candidate/input preserve results

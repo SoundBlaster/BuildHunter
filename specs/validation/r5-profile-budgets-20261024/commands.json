@@ -141,8 +141,18 @@
       "/Users/egor/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
       "scripts/test_plugin_contract.py"
     ],
-    "exit_code": 0,
+    "exit_code": 1,
     "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-profile-final-contract.log",
-    "sha256": "cbfc0f8a51224baf6a405a03050dc044f4f7524791cb60bec0c69d847a5d902d"
+    "sha256": "cbfc0f8a51224baf6a405a03050dc044f4f7524791cb60bec0c69d847a5d902d",
+    "note": "Global bundled Python lacked jsonschema; this attempt did not validate the schema."
+  },
+  {
+    "command": [
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-schema-venv/bin/python3",
+      "scripts/test_plugin_contract.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-schema-contract-validated.log",
+    "sha256": "df7fee044e6ac8584b6c2108a270efd5c0e119590664137875cf47f388deb99e"
   }
 ]
