@@ -22,8 +22,10 @@ Composition is not execution order, dataflow, imports or a call graph. Dependenc
 and parent lifecycle obligations are explicit in the Markdown/BoundarySpecs.
 Current and target trees are deliberately separate: a structural diff between
 them would not prove that implementation was refactored. The pure policy and scanner integration are separate opt-in Rust packages;
-CLI/GUI classification and FFI are not connected to them. Unix marker access is
-descriptor-bound; traversal/measurement still use the existing pathname backend.
+default CLI/GUI classification now uses PluginPolicy through ClientCatalogScan and
+versioned catalog FFI. The strict opt-in PluginScanning path uses descriptor-bound
+macOS/Linux traversal/markers/measurement; default clients deliberately preserve the
+legacy-file-markers/1 compatibility path without that confinement claim.
 
 Source bindings use real repository paths and symbols, not executable imports.
 File existence and HC property validation do not prove semantic correspondence.
@@ -181,3 +183,13 @@ listings and prepared sizing are implemented on macOS/Linux; current source and
 execution identities are in plugin-scoped-scan-20261023. Older claims of pathname
 traversal for the pilot are historical. Default clients, C3/C4, R4/R5, Windows and
 live provider acceptance remain separate.
+
+### R4 default client cutover — 2026-10-23
+
+ClientPolicy now selects immutable CLI/GUI plugin profiles. CandidateSelection and
+MarkerVocabulary describe the dynamic client path; LegacyPolicyCompatibility keeps
+existing numeric Rust/Swift policies visible without presenting them as default.
+Settings, report/export identity, typed diagnostics and lossy path action safety are
+folded into existing client/bridge boundaries. Current source/tool/run hashes and
+Release 200-target results are under `../validation/r4-client-cutover-20261023`;
+earlier paragraphs and receipts describe their dated stages, not current defaults.

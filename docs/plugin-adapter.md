@@ -1,12 +1,13 @@
 # Pure BuildHunter plugin adapter
 
 Available as the independent Cargo package `crates/buildhunter-plugin-policy`.
-It remains independently testable with its own lockfile. R4 catalog preparation
-adds it to the host dependency graph; Cargo source replacement preserves fresh-cache
-offline CLI builds. Default scan entrypoints have not switched in this layer. Rifle is pinned to merge commit
+It remains independently testable with its own lockfile. R4 connects it to default
+CLI/GUI catalog scanning; Cargo source replacement preserves fresh-cache
+offline CLI builds. Rifle is pinned to merge commit
 `693a284123faaa1ad3192cd88b259ba97a7b5910`. Cargo downloads the public dependency
 through HTTPS so hosted CI does not need an SSH key; developer Git remotes remain
-SSH. This does not change CLI/GUI defaults or connect plugins to traversal/FFI.
+SSH. [Client migration](catalog-client-migration.md) describes profile compatibility,
+versioned event FFI, Settings and the separate stricter scoped scanner.
 
 ## Validation and immutable settings
 
@@ -86,8 +87,7 @@ cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked 
 ```
 
 The opt-in [scanner integration](plugin-scanner-integration.md) now observes
-arbitrary candidates and acquires scoped marker facts. Default client policies
-remain unchanged. Next: descriptor-bound traversal and C2–C4 migration decisions
-before changing client behavior, then expose catalog/diagnostics
-through versioned FFI/Settings. No JIT, plugin commands or private dependency is
-required for this public pilot.
+arbitrary candidates and uses descriptor-bound acquisition on macOS/Linux.
+Default CLI/GUI use the separate `legacy-file-markers/1` compatibility path with
+frozen C2 profiles, catalog/diagnostics through versioned FFI/Settings and rejection
+of lossy GUI path actions. No JIT, plugin commands or private dependency is required.

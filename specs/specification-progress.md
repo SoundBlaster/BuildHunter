@@ -1041,3 +1041,22 @@ profile, preserving existing marker links/selected-root context without claiming
 R3 descriptor safety. C4 transports raw paths; final GUI action safety belongs to
 the next layer. Source/run identities: `validation/r4-catalog-bridge-20261023`.
 This preparation does not accept new requirements or switch default clients.
+
+## 2026-10-24 — R4 layer 3: default client catalog cutover
+
+CLI and GUI now select ClientCatalogScan; Settings enumerate ClientCatalog targets.
+CandidateSelection/MarkerVocabulary bindings describe the dynamic path and
+LegacyPolicyCompatibility explicitly folds the retained numeric/SpecificationCore
+APIs. Catalog decoding, typed diagnostics, target IDs, frozen schema-2 export and
+lossy action guards belong to existing bridge/application boundaries. No new
+accepted requirements, Hunter/Rifle dependency bump or user plugin import is implied.
+
+C1 has end-to-end dynamic-name/probe witnesses; C2 keeps the R2 client profiles.
+C3 remains explicit legacy-file-markers/1 compatibility, not R3 confinement. C4
+rejects lossy path actions while retaining safe ancestors. C5 budgets remain R5.
+The 200-target Release benchmark is part of existing Rust/CLI jobs; ready-tip
+macOS scheduling and merge policy stay unchanged. Fresh source/tool/command hashes
+and raw benchmark rounds: `validation/r4-client-cutover-20261023`. Historical
+preparation receipts retain their earlier scope. Local Xcode compilation is not
+GUI execution: the local test host stalled in dyld/open and was terminated after
+five minutes; CI execution is still required.

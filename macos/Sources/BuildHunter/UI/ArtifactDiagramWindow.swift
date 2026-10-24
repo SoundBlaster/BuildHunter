@@ -42,6 +42,7 @@ struct ArtifactDiagramWindow: View {
                                           isScanning: scan.isScanning, statistics: diagram.focus.statistics,
                                           focusID: diagram.focusID, reportID: scan.reportID,
                                           targetURL: diagram.targetURL,
+                                          unsafePathPrefixes: diagram.unsafePathPrefixes,
                                           canNavigateUp: diagram.canNavigateUp,
                                           navigation: navigation, navigationStart: navigationStart,
                                           goUp: { navigate(to: diagram.focus.parentID ?? "") },
@@ -223,6 +224,7 @@ private struct ArtifactSunburstChart: View {
     var focusID = ""
     var reportID: UUID?
     var targetURL: URL?
+    var unsafePathPrefixes: Set<String> = []
     var canNavigateUp = false
     var navigation: DiagramNavigationPresentation?
     var navigationStart: Date?
@@ -387,8 +389,8 @@ private struct ArtifactSunburstChart: View {
 
     /// A grouped Other sector has no single folder, and a synthetic report has no target URL.
     private func folderURL(for sector: ArtifactSunburstLayout.Sector?) -> URL? {
-        guard let nodeID = sector?.nodeID, let targetURL else { return nil }
-        return targetURL.appendingPathComponent(nodeID, isDirectory: true)
+        guard let nodeID = sector?.nodeID else { return nil }
+        return ArtifactFolderLocation.actionURL(root: targetURL, relativePath: nodeID, unsafePrefixes: unsafePathPrefixes)
     }
 
     private func recordChartInputs(size: CGSize) {
@@ -678,7 +680,7 @@ private struct ArtifactDiagramSidebar: View {
                         ArtifactDiagramFolderRow(
                             node: node,
                             swatch: model.palette.color(for: node.id),
-                            folderURL: model.targetURL?.appendingPathComponent(node.id, isDirectory: true),
+                            folderURL: model.actionURL(for: node.id),
                             onReveal: { reveal(node.id) }
                         ) {
                             navigate(node.id)
@@ -699,8 +701,8 @@ private struct ArtifactDiagramSidebar: View {
     }
 
     private func reveal(_ path: String) {
-        guard let root = model.targetURL else { return }
-        reveal(url: root.appendingPathComponent(path, isDirectory: true))
+        guard let url = model.actionURL(for: path) else { return }
+        reveal(url: url)
     }
 
     private func reveal(url: URL) {

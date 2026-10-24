@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.application
   title: Current client assembly
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
@@ -70,7 +70,7 @@ constraints:
 - id: cli_profile
   level: MUST
   statement: CLI JSON formats paths lossily and lists nested findings while summing only outer roots; language/exclusion/environment
-    options and process exit codes belong to this adapter, not generic traversal.
+    options and process exit codes belong to this adapter, not generic traversal. JSON schema 2 adds full catalog metadata, per-row target IDs and typed diagnostics; GUI exports freeze the same identity with the selected report. Legacy/mock exports without metadata retain schema 1.
 effects:
   sideEffects:
   - id: user_export
@@ -172,6 +172,7 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - R4 adds catalog/diagnostic ownership and action-safety prefixes to the current report; rescan clears all three. Metadata/exclusions/rows are captured together before opening export UI. Source/run identities and execution limits are in validation/r4-client-cutover-20261023.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.

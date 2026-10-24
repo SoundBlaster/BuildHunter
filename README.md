@@ -17,7 +17,7 @@ File → Export Results… (⇧⌘E) или кнопка Export в тулбар�
 недоступен и приложение просит дождаться конца.
 
 Read-only CLI для поиска локальных артефактов сборки и кешей Swift, Rust и Python.
-Rust, без внешних dependencies. Утилита ничего не удаляет.
+Rust с vendored dependencies для офлайн-сборки. Утилита ничего не удаляет.
 
 ```sh
 cargo install --path .
@@ -36,6 +36,10 @@ build-hunter . --exclude rust --json
 `--exclude` принимает стабильные ID из `--list-filters`, список через запятую или
 имя языка (`swift`, `rust`, `python`); параметр можно повторять. `--language`
 по-прежнему выбирает язык, исключения дополнительно ограничивают результаты.
+
+CLI, GUI и Settings используют [каталог плагинов](docs/catalog-client-migration.md)
+с версионированными профилями. JSON-отчёт schema 2 включает идентичность каталога,
+исключения и target ID находок. Импорт пользовательских плагинов ещё не реализован.
 
 После стандартного `cargo install` executable находится в `~/.cargo/bin`.
 Также можно сразу запускать `target/release/build-hunter` из папки проекта.
@@ -164,7 +168,9 @@ the Rust static library and Swift bridge from matching sources together.
 
 [Module architecture](docs/modular-architecture.md) defines the intended public
 Hunter filesystem core, abstract Rifle rule engine/Swift authoring SDK, artifact
-product BuildHunter and private Arsenal catalog. Extraction is not implemented.
+product BuildHunter and private Arsenal catalog. Hunter extraction is integrated;
+default clients use the public basic plugin catalogs. Swift authoring SDK, user
+plugin installation and commercial composition remain separate work.
 
 [Current/target Hypercode maps](specs/hypercode/README.md), the descriptive
 [SpecPM package](specpm.yaml), [claim matrix](specs/claim-matrix.md) and

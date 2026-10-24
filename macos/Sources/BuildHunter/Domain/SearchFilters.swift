@@ -83,15 +83,84 @@ struct SearchFilterSnapshot: Sendable {
     }
 }
 
+/// Versioned scanner metadata; decoded once per scan before target IDs are used.
+struct ScanCatalogMetadata: Codable, Equatable, Sendable {
+    struct Target: Codable, Equatable, Sendable {
+        let id: String
+        let title: String
+        let ecosystem: String
+        let kind: String
+        let presentationKind: String
+
+        var language: String { ecosystem.prefix(1).uppercased() + ecosystem.dropFirst() }
+        var artifactKind: ArtifactKind? {
+            switch presentationKind {
+            case "build": .buildOutput
+            case "cache", "bytecode", "metadata": .cache
+            case "environment": .environment
+            case "test-environment": .testEnvironment
+            default: nil
+            }
+        }
+    }
+    let format: String
+    let profile: String
+    let digest: String
+    let markerPolicy: String
+    let excludedTargetIDs: [String]
+    let targets: [Target]
+
+    var isSupported: Bool {
+        format == "buildhunter.catalog/1" && profile == "buildhunter.gui/1"
+            && markerPolicy == "legacy-file-markers/1"
+            && digest.utf8.count == 64 && digest.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+            && targets.count <= 2_048 && Set(targets.map(\.id)).count == targets.count
+            && targets.allSatisfy { !$0.id.isEmpty && $0.artifactKind != nil }
+    }
+
+    static func basic() -> Self? {
+        guard bh_catalog_abi_version() == 1, let handle = bh_catalog_create(2, nil, 0) else { return nil }
+        defer { bh_catalog_destroy(handle) }
+        guard let pointer = bh_catalog_json(handle), let data = String(cString: pointer).data(using: .utf8),
+              let metadata = try? JSONDecoder().decode(Self.self, from: data), metadata.isSupported else { return nil }
+        return metadata
+    }
+}
+
+struct ScanDiagnostic: Codable, Equatable, Sendable {
+    struct Classification: Codable, Equatable, Sendable {
+        struct Notice: Codable, Equatable, Sendable { let packageID: String; let factID: String; let reason: String }
+        let kind: String
+        let matchedTargetIDs: [String]
+        let unknownTargetIDs: [String]
+        let unavailable: [Notice]
+    }
+    let relativePath: String
+    let classification: Classification
+    let message: String
+    enum CodingKeys: String, CodingKey { case relativePath = "relative_path", classification, message }
+}
+
 enum SearchFilterCatalog {
     static func load() -> [SearchFilterDescriptor] {
-        guard let pointer = bh_search_filter_catalog_json() else { return [] }
-        let json = String(cString: pointer)
-        guard let data = json.data(using: .utf8),
-              let descriptors = try? JSONDecoder().decode([SearchFilterDescriptor].self, from: data) else {
-            return []
+        guard let metadata = ScanCatalogMetadata.basic() else { return [] }
+        // Hints support the retained legacy policy/table APIs. Runtime membership,
+        // titles and scan decisions now come from the plugin catalog.
+        let legacy: [SearchFilterDescriptor]
+        if let pointer = bh_search_filter_catalog_json(), let data = String(cString: pointer).data(using: .utf8) {
+            legacy = (try? JSONDecoder().decode([SearchFilterDescriptor].self, from: data)) ?? []
+        } else { legacy = [] }
+        let descriptors = metadata.targets.map { target in
+            let hint = legacy.first { $0.id == target.id }
+            return SearchFilterDescriptor(id: target.id, title: target.title, group: target.language,
+                nodeNames: hint?.nodeNames ?? [], suffixes: hint?.suffixes ?? [],
+                requiresVenvMarker: hint?.requiresVenvMarker ?? false)
         }
-        return descriptors
+        return descriptors.sorted { left, right in
+            let first = legacy.firstIndex { $0.id == left.id } ?? .max
+            let second = legacy.firstIndex { $0.id == right.id } ?? .max
+            return first == second ? left.id < right.id : first < second
+        }
     }
 }
 

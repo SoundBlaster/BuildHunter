@@ -1,5 +1,21 @@
 # Policy performance series (issue 25)
 
+## R4 client integration update — 2026-10-24
+
+This supersedes the dated library-only/default-client entries below for the R4
+source state. CLI/GUI now use public declarative catalogs through the indexed
+Rifle adapter and dynamic marker acquisition. Numeric APIs remain compatibility
+entrypoints. The full 200-target scanner regression and a paired 13/200-target
+Release gate are implemented; no new library release/version is inferred.
+On this arm64 Mac, seven warm rounds measured medians 10.424/10.577 ms (about
+1.5% difference) with equal findings and bytes. Raw rounds include CPU/RSS and
+first-finding latency in `specs/validation/r4-client-cutover-20261023`.
+The broad gate limits regressions, not general performance or C5 budgets. Current
+CLI/Rust checks and Xcode compilation passed locally; the local XCTest host hung
+before connection, so GUI execution remains a CI requirement. Historical rows
+and measurements below retain their original scope.
+
+
 Source: https://github.com/SoundBlaster/BuildHunter/issues/25 and its performance
 addenda, including the corrected Swift specialization diagnosis.
 

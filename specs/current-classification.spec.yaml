@@ -3,44 +3,45 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.classification
   title: Current artifact classification and filters
-  version: 0.1.0-draft.4
+  version: 0.1.0-draft.5
   status: draft
 intent:
-  summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
-    extracting Hunter.
+  summary: Classify default CLI and GUI candidates through immutable versioned plugin catalogs while preserving client profiles.
 scope:
   boundedContext: module_recovery_and_design
   includes:
-  - Rust candidate/prefetch/name-marker catalog and CLI policy; Swift SpecificationCore policy and immutable filter
-    snapshots.
+  - Default catalog-derived candidate dispatch, marker requests, CLI/GUI profiles and immutable exclusion snapshots.
+  - Retained numeric Rust/Swift policy APIs for compatibility and differential tests.
   excludes:
-  - A single existing plugin interpreter.
+  - User plugin installation and a Swift authoring SDK.
   - Identical CLI/GUI environment and kind behavior.
-  - Arbitrary custom names reaching a callback through the current hard-coded prefilter.
+  - Descriptor confinement or resource-budget acceptance for the compatibility client scan.
 provides:
   capabilities:
   - id: buildhunter.current.classification
     role: primary
-    summary: Describe the existing artifact vocabulary and client-specific decisions that must be disentangled before
-      extracting Hunter.
+    summary: Route default client decisions through validated catalog targets and explicit admission profiles.
 requires:
-  capabilities: []
+  capabilities:
+  - id: buildhunter.catalog.scan
+    optional: false
+    summary: Catalog decisions, client admission, dynamic facts and measurement.
+  - id: buildhunter.catalog.snapshot
+    optional: false
+    summary: Validated descriptors, identity and exclusions.
 interfaces:
   inbound:
   - id: consumer_interface
     kind: library
-    summary: Existing rust_cli_policy / BuildHunterScanPolicy.decision and shared filter catalog; names/flags and
-      current numeric classification codes are artifact-specific.
+    summary: CatalogSnapshot, scan_client and SearchFilterSettings; numeric policy APIs remain compatibility entrypoints.
     operations:
     - name: classify
-      summary: Existing rust_cli_policy / BuildHunterScanPolicy.decision and shared filter catalog; names/flags and
-        current numeric classification codes are artifact-specific.
+      summary: Evaluate catalog-selected Rifle rules against candidate-specific observations; preserve target IDs.
   outbound: []
 constraints:
 - id: selection
   level: MUST
-  statement: Candidate and prefetch paths use fixed artifact names and marker bits in src/lib.rs; changing only the
-    callback cannot introduce arbitrary names beyond that gate.
+  statement: Default clients observe every candidate through scan_client, derive marker requests from enabled bindings and classify via conservative name dispatch. Legacy fixed names/marker bits and speculative prefetch are bypassed for this path; retained numeric APIs still have their original vocabulary.
 - id: client_profiles
   level: MUST
   statement: CLI defaults exclude environments and retains nested rows; GUI includes environments by default and accepts
@@ -48,15 +49,14 @@ constraints:
 - id: taxonomy
   level: MUST
   statement: CLI bytecode/metadata kinds and tox/nox cache classification differ from GUI cache/testEnvironment presentation.
-    Export preserves scannerKind when available; migration must explicitly choose parity or approved changes.
+    Versioned profile presentationKind preserves these differences; no harmonization is implied.
 - id: filter_snapshot
   level: MUST
   statement: Capture GUI exclusion IDs once per scan; excluded recognized roots traverse to allow nested eligible
-    discoveries. Unknown stored IDs remain in preferences and unrecognized classifications remain included.
+    discoveries. Unknown valid stored IDs remain in preferences and the immutable snapshot; classification ambiguity/unavailability is diagnostic rather than a silently selected target.
 - id: catalog_lifetime
   level: MUST
-  statement: bh_search_filter_catalog_json exposes immutable process-lifetime UTF-8 descriptors; this is a built-in
-    filter catalog, not user-plugin loading or validation.
+  statement: Settings/list-filters consume validated plugin descriptors and stable target IDs. Full digest identifies content independently of exclusions; each running scan owns a snapshot. Legacy bh_search_filter_catalog_json supplies presentation ordering/matching hints only, not default membership or classification.
 effects:
   sideEffects: []
 evidence:
@@ -139,6 +139,9 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - R4 default cutover uses legacy-file-markers/1 to preserve R2 marker links/selected-root context.
+    This is compatibility migration, not acceptance of a unified C3 policy or R3 descriptor safety.
+    Current source/run hashes and limits are in validation/r4-client-cutover-20261023.
   - R2 freezes reviewed client expectations at main 1fd905620c0d5c0317c6b08123cfe5b0653253c2.
     CLI and deterministic core witnesses are recorded in validation/migration-parity-20261022;
     Swift witnesses use the same corpus through the real GUI event source. Local compilation passed;
@@ -157,11 +160,14 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 1fd905620c0d5c0317c6b08123cfe5b0653253c2
+    revision: 85e3188
   files:
     owned:
     - src/lib.rs
     - src/main.rs
+    - src/client_scan.rs
+    - src/catalog.rs
+    - plugins/basic
     - macos/Sources/BuildHunter/Domain/ClassifyArtifactRoot.swift
     - macos/Sources/BuildHunter/Domain/SearchFilters.swift
     - macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift

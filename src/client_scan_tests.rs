@@ -7,6 +7,57 @@ use crate::{
 use serde_json::Value;
 use std::collections::BTreeSet;
 
+#[path = "../tests/support/catalog_fixture.rs"]
+mod catalog_fixture;
+
+#[test]
+fn two_hundred_targets_scan_dynamic_names_and_only_probe_relevant_markers() {
+    let tree = tests::TempTree::new();
+    catalog_fixture::prepare_synthetic(&tree.0, 200, 1024);
+    let full = catalog_fixture::snapshot(ClientProfile::GuiV1, 200, false, &[]);
+    let excluded =
+        catalog_fixture::snapshot(ClientProfile::GuiV1, 200, false, &["example.cache-137"]);
+    assert_eq!(full.catalog().targets().len(), 200);
+    assert_eq!(
+        full.catalog().catalog_digest(),
+        excluded.catalog().catalog_digest()
+    );
+    for (snapshot, expected) in [(&full, 200), (&excluded, 199)] {
+        let mut completions = BTreeSet::new();
+        let report = scan_client(
+            &tree.0,
+            snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |event| {
+                if let CatalogScanEvent::ArtifactCompleted { id, .. } = event {
+                    assert!(completions.insert(*id));
+                }
+            },
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+        assert_eq!(report.artifacts.len(), expected);
+        assert_eq!(completions.len(), expected);
+        assert_eq!(report.marker_observations, expected as u64);
+        assert_eq!(catalog_fixture::semantic_rows(&report).len(), expected);
+        for artifact in &report.artifacts {
+            let name = artifact.relative_path.to_str().unwrap();
+            assert_eq!(artifact.target.id, format!("example.{name}"));
+            assert_eq!(artifact.bytes, independent_bytes(&tree.0.join(name), false));
+            assert!(!artifact.partial && !artifact.nested);
+        }
+        assert_eq!(
+            report
+                .artifacts
+                .iter()
+                .any(|a| a.target.id == "example.cache-137"),
+            expected == 200
+        );
+    }
+}
+
 fn fixture(case: &Value) -> tests::TempTree {
     let tree = tests::TempTree::new();
     for name in case["directories"].as_array().unwrap() {

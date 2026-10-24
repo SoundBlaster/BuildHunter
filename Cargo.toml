@@ -27,3 +27,7 @@ macos-bulk-metadata = ["hunter-fs-core/macos-bulk-metadata"]
 [[bench]]
 name = "scanner"
 harness = false
+
+[[bench]]
+name = "catalog_scan"
+harness = false

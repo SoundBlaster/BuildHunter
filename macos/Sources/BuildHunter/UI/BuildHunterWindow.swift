@@ -175,12 +175,14 @@ struct BuildHunterWindow: View {
         let warnings = model.warnings
         let excluded = model.excludedFilterIDs
         let elapsed = model.profile.latest?.elapsedSeconds
+        let catalog = model.catalogMetadata
+        let diagnostics = model.diagnostics
         let tableOrder = tableModel.sortOrder
         let version = Self.appVersion
         let panel = ScanResultsExportPanel { order in
             ScanReportExport(rootName: targetName, rootURL: rootURL, status: status, rows: rows, order: order,
                              tableOrder: tableOrder, warnings: warnings, excludedFilterIDs: excluded,
-                             elapsedSeconds: elapsed, appVersion: version)
+                             elapsedSeconds: elapsed, appVersion: version, catalogMetadata: catalog, diagnostics: diagnostics)
         }
         let window = NSApp.keyWindow
         Task {
@@ -295,6 +297,7 @@ struct ArtifactReportTable: View {
 
     var body: some View {
         ArtifactNativeTable(rows: model.rows, sortOrder: model.sortOrder, rootURL: scan.targetURL,
+                            unsafePathPrefixes: scan.unsafePathPrefixes,
                             onSort: { model.sortOrder = $0 }, onReveal: reveal)
         .nestedAccessibilityIdentifier("table")
         .finderNoticeAlert($finderNotice)
@@ -309,7 +312,7 @@ struct ArtifactReportTable: View {
     }
 
     private func artifactURL(for row: ScanRow) -> URL? {
-        scan.targetURL?.appendingPathComponent(row.relativePath, isDirectory: true)
+        scan.actionURL(for: row.relativePath)
     }
 
     private func reveal(_ row: ScanRow) {
@@ -324,6 +327,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
     let rows: [ScanRow]
     let sortOrder: [ScanRowComparator]
     let rootURL: URL?
+    let unsafePathPrefixes: Set<String>
     let onSort: ([ScanRowComparator]) -> Void
     let onReveal: (ScanRow) -> Void
 
@@ -373,6 +377,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
         }
         private var items: [Item] = []
         private var rootURL: URL?
+        private var unsafePathPrefixes: Set<String> = []
         private var onSort: (([ScanRowComparator]) -> Void)?
         private var onReveal: ((ScanRow) -> Void)?
         private var isUpdating = false
@@ -381,6 +386,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
             onSort = input.onSort
             onReveal = input.onReveal
             rootURL = input.rootURL
+            unsafePathPrefixes = input.unsafePathPrefixes
             isUpdating = true
             defer { isUpdating = false }
             let descriptors = input.sortOrder.map {
@@ -416,7 +422,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
             case "kind": text = row.kind.rawValue
             default: text = row.relativePath
             }
-            let url = rootURL?.appendingPathComponent(row.relativePath, isDirectory: true)
+            let url = ArtifactFolderLocation.actionURL(root: rootURL, relativePath: row.relativePath, unsafePrefixes: unsafePathPrefixes)
             // Capture the action and this row only, never input.rows or a projection.
             let reveal = onReveal
             let cell = ArtifactReportCell(text: text,

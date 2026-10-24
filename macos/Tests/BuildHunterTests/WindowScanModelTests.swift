@@ -5,6 +5,51 @@ import Testing
 @Suite("Window scan lifecycle")
 @MainActor
 struct WindowScanModelTests {
+    @Test("Report freezes catalog identity, diagnostics and export fields, then resets them on rescan")
+    func catalogReportLifecycle() async throws {
+        let source = ControlledScanSource()
+        let model = WindowScanModel(source: source)
+        let root = URL(filePath: "/tmp/catalog-root", directoryHint: .isDirectory)
+        model.accept(target: root)
+        let generation = model.generation
+        let metadata = try #require(ScanCatalogMetadata.basic())
+        let diagnostic = ScanDiagnostic(relativePath: "conflict", classification: .init(
+            kind: "ambiguous", matchedTargetIDs: ["a.cache", "b.cache"], unknownTargetIDs: [], unavailable: []),
+            message: "Conflicting plugin targets")
+        let artifact = ScanArtifact(id: UUID(), relativePath: "lossy/�/.build", language: "Swift", kind: .buildOutput,
+            targetID: "swift.build", catalogDigest: metadata.digest, unsafePathPrefix: "lossy/�")
+        source.yield(.catalog(generation: generation, metadata: metadata, rootPathIsExact: true))
+        source.yield(.diagnostic(generation: generation, diagnostic: diagnostic))
+        source.yield(.discovered(generation: generation, artifact: artifact))
+        source.yield(.completed(generation: generation, artifactID: artifact.id, bytes: 123))
+        source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
+        await model.waitForCurrentScan()
+        #expect(model.phase == .incomplete && model.diagnostics == [diagnostic])
+        #expect(model.catalogMetadata == metadata && model.rows.first?.targetID == "swift.build")
+        #expect(model.actionURL(for: "lossy") != nil)
+        #expect(model.actionURL(for: "lossy/�/.build") == nil)
+        let report = ScanReportExport(rootName: "catalog-root", rootURL: root, status: .incomplete,
+            rows: model.rows, order: .table, tableOrder: [], warnings: model.warnings,
+            excludedFilterIDs: model.excludedFilterIDs, elapsedSeconds: nil, appVersion: "test",
+            catalogMetadata: model.catalogMetadata, diagnostics: model.diagnostics)
+        let json = try #require(JSONSerialization.jsonObject(with: report.data(as: .json)) as? [String: Any])
+        #expect(json["schema_version"] as? Int == 2)
+        #expect((json["catalog"] as? [String: Any])?["digest"] as? String == metadata.digest)
+        let rows = try #require(json["artifacts"] as? [[String: Any]])
+        #expect(rows.first?["target_id"] as? String == "swift.build")
+        #expect(rows.first?["path_is_exact"] as? Bool == false)
+        #expect((json["diagnostics"] as? [[String: Any]])?.count == 1)
+        #expect(report.csv().contains("Target ID,Catalog Digest,Path Is Exact"))
+        model.rescan()
+        #expect(model.catalogMetadata == nil && model.diagnostics.isEmpty && model.unsafePathPrefixes.isEmpty)
+        #expect(model.rows.isEmpty)
+        // Late metadata from the previous scan must not replace the new report.
+        model.apply(.catalog(generation: generation, metadata: metadata, rootPathIsExact: false))
+        #expect(model.catalogMetadata == nil)
+        model.stop()
+    }
+
     @Test("Demo source completes without manufacturing access warnings")
     func demoCompletesNormally() async {
         let model = WindowScanModel(source: DemoScanSource())

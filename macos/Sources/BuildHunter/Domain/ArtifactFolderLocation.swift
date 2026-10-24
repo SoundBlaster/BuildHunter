@@ -20,6 +20,16 @@ enum FinderRevealOutcome: Equatable {
 }
 
 enum ArtifactFolderLocation {
+    /// A displayed replacement character never becomes an action capability.
+    /// Safe ancestors before the first invalid component remain usable.
+    static func actionURL(root: URL?, relativePath: String, unsafePrefixes: Set<String>) -> URL? {
+        guard let root, root.isFileURL, !relativePath.hasPrefix("/"),
+              !relativePath.split(separator: "/").contains("..") else { return nil }
+        let path = relativePath == "." ? "" : relativePath
+        guard !unsafePrefixes.contains(where: { $0.isEmpty || path == $0 || path.hasPrefix($0 + "/") }) else { return nil }
+        return path.isEmpty ? root : root.appendingPathComponent(path, isDirectory: true)
+    }
+
     /// The folder itself if it still exists as a directory, otherwise its nearest existing
     /// ancestor, but never above `root`, the folder the user chose to scan. A sandboxed build
     /// can only see inside that folder, so climbing past it could report a misleading
