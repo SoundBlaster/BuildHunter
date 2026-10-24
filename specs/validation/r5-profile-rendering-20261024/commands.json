@@ -1,0 +1,76 @@
+[
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "CODE_SIGNING_ALLOWED=NO",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "-configuration",
+      "Release",
+      "build"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-numeric-immediate-build.log",
+    "sha256": "cd3ded5c08670022b9fd6c545adc73d43d4f470bb24e9ec685f49c2f7053a740"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "CODE_SIGNING_ALLOWED=NO",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "build-for-testing"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-rendering-test-build.log",
+    "sha256": "06a09ac0a735a1e9274eccc1e149c8645c1fd70ea9316b86b4f12113ffd10620"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/measure_gui_resources.py",
+      "--pid",
+      "<Release-PID>",
+      "--executable",
+      "<Release-Binary>",
+      "--seconds",
+      "5",
+      "--output",
+      "<external>/r5-gui-helper-smoke.json"
+    ],
+    "exit_code": 0,
+    "receipt_sha256": "edc2aa30ecc7eb42b93e1ec28a143a6d4c1cf300ab16d2c472bc805ee108c2c6"
+  }
+]

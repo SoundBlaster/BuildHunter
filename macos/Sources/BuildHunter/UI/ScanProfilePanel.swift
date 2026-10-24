@@ -110,8 +110,9 @@ struct ScanProfilePanel: View {
                 Spacer()
                 Text("\(profile.latest?.elapsedSeconds ?? 0, format: .number.precision(.fractionLength(1))) s")
                     .monospacedDigit().foregroundStyle(.secondary)
-                    .contentTransition(.numericText())
-                    .animation(sampleAnimation, value: profile.latest?.elapsedMicroseconds)
+                    // Per-tick numeric interpolation retained native font-cache
+                    // buffers on macOS 27. Keep live values immediate; plot motion
+                    // is independent and remains animated.
             }
             HStack(spacing: 12) {
                 statistic("Current", value: metric.isResource || isScanning ? current : 0)
@@ -301,8 +302,7 @@ struct ScanProfilePanel: View {
                 // Keep the complete measurement available to assistive technology.
                 .accessibilityValue(value.map(formatted) ?? "—")
                 .nestedAccessibilityIdentifier("\(title.lowercased()).value")
-                .contentTransition(.numericText(value: value ?? 0))
-                .animation(sampleAnimation, value: value)
+
         }
         // Each statistic owns an equal column, independent of live digit counts.
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)

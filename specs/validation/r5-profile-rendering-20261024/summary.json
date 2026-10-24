@@ -1,0 +1,16 @@
+{
+  "before_peak_sampled_rss_bytes": 681623552,
+  "after_peak_sampled_rss_bytes": 304971776,
+  "after_per_minute_max_mib": [
+    290.84,
+    279.52,
+    272.14,
+    269.58
+  ],
+  "after_last_rss_bytes": 259244032,
+  "before_gui_scan_completed": false,
+  "after_gui_scan_completed": false,
+  "blocked_opens_in_each_run": 2,
+  "orphaned_leaks_bytes_baseline": 23584,
+  "diagnostic_scope": "sample/vmmap/heap and memgraph reference trees; xctrace attach timed out and is not allocation evidence"
+}

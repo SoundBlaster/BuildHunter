@@ -1092,3 +1092,20 @@ multiple-window accounting scope is documented; no absolute RSS ceiling follows.
 A GUI scan revealed popover-associated font-cache retention and two blocked native
 opens. The next stack layer investigates numeric transitions; no completed home
 GUI scan or whole-app C5 acceptance is claimed by these measurements.
+
+### R5 live metric rendering workaround — 2026-10-24
+
+A source-grounded font-cache hypothesis was tested by removing only per-tick
+`numericText` from live metric/timer labels. Line/sunburst motion stays independent.
+The new `current.application/live_metric_rendering` claim and HC
+`ReportPresentation/LiveMetricRendering` role capture this consumer obligation.
+Four-minute sampled RSS stayed below 291 MiB with decreasing per-minute maxima,
+versus 650 MiB in the earlier shorter animated-label run. Heap raw retention and
+local reference trees support the workaround; xctrace attach failed and is not
+claimed as evidence. Fresh receipt: `validation/r5-profile-rendering-20261024`.
+
+The bounded queue/listing/report/profile implementation and controlled stop/join
+regressions are separate from this UI fix. Full home GUI completion remains
+unverified because native opens did not return; do not claim whole-system
+interruption, a universal RSS ceiling or owner acceptance from these measurements.
+Final ready-tip CI must run the complete native test suite.

@@ -15,9 +15,9 @@ response capacity is 16; an earlier 8-message trial had higher CPU cost on home.
 | Input | R4 peak RSS | R5 peak RSS | R4 wall | R5 wall | R4 CPU | R5 CPU | Result |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | traversal | 10.94 MiB | 6.59 MiB | 0.327 s | 0.222 s | 2.292 s | 1.426 s | same semantic digest |
-| burst | 5.66 MiB | 5.83 MiB | 0.057 s | 0.057 s | 0.370 s | 0.366 s | same semantic digest |
-| wide | 29.59 MiB | 12.97 MiB | 0.274 s | 0.057 s | 0.261 s | 0.019 s | explicit listing payload limit; truncated, not a speedup |
-| home | 119.86 MiB | 45.56 MiB | 9.808 s | 11.464 s | 33.079 s | 32.392 s | same 44,451 findings, 658 warnings and digest; no quota hit |
+| burst | 5.66 MiB | 5.83 MiB | 0.057 s | 0.057 s | 0.369 s | 0.364 s | same semantic digest |
+| wide | 29.59 MiB | 12.97 MiB | 0.274 s | 0.057 s | 0.260 s | 0.019 s | explicit listing payload limit; truncated, not a speedup |
+| home | 119.86 MiB | 45.56 MiB | 9.808 s | 11.464 s | 33.105 s | 32.392 s | same 44,451 findings, 658 warnings and digest; no quota hit |
 
 - Traversal fixture: 20,201 directories; no selected findings. Burst fixture:
   65,536 files under a selected `.build` root. Both retain exact size/selection
@@ -59,3 +59,29 @@ is not a successful allocation profile. Sample/vmmap/heap/memgraph evidence is
 saved locally. The next stack layer checks a workaround for continuous numeric
 text transitions while retaining line and sunburst animations. C5 whole-app
 acceptance remains open until that GUI behavior and final CI have been assessed.
+
+## Follow-up: numeric label interpolation
+
+The next layer removed only continuous `numericText` transitions from the timer
+and Current/Average/Peak values. The line chart, sparkline and sunburst animation
+code is unchanged. The same Release GUI home scenario kept its RAM popover open
+for over five minutes; the four-minute external sampler recorded 290.84 MiB peak
+and 247.23 MiB at the end. Per-minute maxima were 290.84, 279.52, 272.14, 269.58 MiB.
+The earlier animated-label run reached 650.05 MiB sampled peak within three
+minutes. This is a rendering A/B observation, not a completed-scan throughput
+comparison or a guarantee for all macOS versions. Both runs reached two blocked
+native opens, with 18,204 findings / 659 warnings.
+
+Heap non-object retained payload decreased from about 304 MiB to 21.4 MiB in
+separate snapshots; graph caches and allocator residency remain different metrics.
+Combined with the reverse font-cache references, the A/B result supports the
+workaround. It does not identify every private-framework allocation or prove all
+Apple rendering paths are safe. No anonymous/remote data was uploaded for profiling.
+
+![Sampled GUI RSS before and after the label workaround](../specs/validation/r5-profile-rendering-20261024/gui-rss.png)
+
+Receipts, exact GUI executable hashes, sanitized time series and a vector plot are
+in `specs/validation/r5-profile-rendering-20261024`. `scripts/measure_gui_resources.py`
+repeats passive measurement of an already-running selected executable/PID; it does
+not automate UI or grant permissions. Open-folder and popover actions were native
+Computer Use. The source change adds no new hosted CI job.

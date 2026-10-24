@@ -1,0 +1,11 @@
+{
+  "parent": "fce9166e851ae6caec3c032286388532c1e3c7fa",
+  "files": {
+    "macos/Sources/BuildHunter/UI/ScanProfilePanel.swift": "e786d1d73bf2f57c39a40ae744bf86b4f2d3b19bb436f323e9dec67d111514ca",
+    "scripts/measure_gui_resources.py": "43ebcdc1e15766ac0d937777ccde35b6b29481eb70ac1d8c3b3b5186fc88f06d",
+    "specs/current-application.spec.yaml": "e34ce22c4db61fadd2ad12cb1fed4ada90d7518100d27a46926c514da8003009",
+    "specs/hypercode/current.hc": "271913589ca5b61135f78a084df42be0ec708c23723d6237e08f755dae692b10",
+    "specs/hypercode/current.hcs": "70e96e92e90a2dac146427218efb9eb35953ca682b9b85d60f350ae4a4a1d9dd",
+    "specpm.yaml": "1767b964ffbf4f201c53726900ae9bb8cee3936b4ece17b0250ccf4617a2a17b"
+  }
+}
