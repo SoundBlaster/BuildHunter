@@ -4,6 +4,7 @@ BuildHunterRuntime
     MacApplication
       WindowSession
       ReportPresentation
+        LiveMetricRendering
       FolderActions
       Export
       Settings

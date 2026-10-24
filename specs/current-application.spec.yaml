@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.application
   title: Current client assembly
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
@@ -46,6 +46,9 @@ interfaces:
         operations are separate adapters.
   outbound: []
 constraints:
+- id: live_metric_rendering
+  level: MUST
+  statement: Update live timer and metric labels immediately without continuous numericText interpolation. Preserve monospaced digits, stable columns, unit labels and accessibility values. Line and sunburst animation policies remain independent. Local macOS font-cache A/B evidence is a workaround result, not a universal rendering-memory guarantee.
 - id: resource_disclosure
   level: MUST
   statement: Preserve optional scan budget/high-water/profile-loss metadata in CLI JSON/profile output and GUI JSON exports. Producer loss is separate from rolling history eviction; GUI resource series have gaps and omit missing RAM intervals from integration. Reports and table/diagram/export projections retain bounded admitted source sets per scan, not a process-global memory guarantee. Independent windows and still-stopping generations may overlap.
@@ -86,6 +89,14 @@ effects:
     kind: state_mutation
     summary: Update exclusions/preferences and clipboard on user actions.
 evidence:
+- id: metric_rendering_source
+  kind: source
+  path: macos/Sources/BuildHunter/UI/ScanProfilePanel.swift
+  supports: [constraints.live_metric_rendering]
+- id: metric_rendering_receipt
+  kind: documentation
+  path: specs/validation/r5-profile-rendering-20261024/README.md
+  supports: [constraints.live_metric_rendering]
 - id: source_0
   kind: source
   path: macos/Sources/BuildHunter/Scanning/WindowScanModel.swift
@@ -199,6 +210,7 @@ implementationBindings:
     - macos/Sources/BuildHunter/Scanning/ArtifactDiagramModel.swift
     - macos/Sources/BuildHunter/Domain/ArtifactSunburst.swift
     - src/main.rs
+    - macos/Sources/BuildHunter/UI/ScanProfilePanel.swift
     - src/profile_report.rs
     border:
     - macos/Tests/BuildHunterTests/WindowScanModelTests.swift

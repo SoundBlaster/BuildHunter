@@ -10,7 +10,8 @@
       "status": "completed",
       "semantic_sha256": [
         "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      ]
+      ],
+      "cpu_seconds": 2.2920719999999997
     },
     "channel16": {
       "wall_seconds": 0.22212441600000002,
@@ -22,7 +23,8 @@
       "status": "completed",
       "semantic_sha256": [
         "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      ]
+      ],
+      "cpu_seconds": 1.425789
     }
   },
   "burst": {
@@ -36,7 +38,8 @@
       "status": "completed",
       "semantic_sha256": [
         "4db0e4c68b3534bb51164772f217c4c4f3627ad023b1124d96d1b26ebf3f9335"
-      ]
+      ],
+      "cpu_seconds": 0.368957
     },
     "channel16": {
       "wall_seconds": 0.05738700000000001,
@@ -48,7 +51,8 @@
       "status": "completed",
       "semantic_sha256": [
         "4db0e4c68b3534bb51164772f217c4c4f3627ad023b1124d96d1b26ebf3f9335"
-      ]
+      ],
+      "cpu_seconds": 0.36442199999999997
     }
   },
   "wide": {
@@ -62,7 +66,8 @@
       "status": "completed",
       "semantic_sha256": [
         "dc66f54668b881352d54fb3fcf5b548712eb90742a9e41ca9e22176dca7dcf26"
-      ]
+      ],
+      "cpu_seconds": 0.259872
     },
     "channel16": {
       "wall_seconds": 0.056670917,
@@ -74,7 +79,8 @@
       "status": "incomplete",
       "semantic_sha256": [
         "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      ]
+      ],
+      "cpu_seconds": 0.018711
     }
   },
   "home": {
@@ -88,7 +94,8 @@
       "status": "incomplete",
       "semantic_sha256": [
         "9f6aea06fbdbbd80b3a232e70a6610beed9b599958336733567c6791033043d0"
-      ]
+      ],
+      "cpu_seconds": 33.104904
     },
     "channel16": {
       "wall_seconds": 11.463880584,
@@ -100,7 +107,8 @@
       "status": "incomplete",
       "semantic_sha256": [
         "9f6aea06fbdbbd80b3a232e70a6610beed9b599958336733567c6791033043d0"
-      ]
+      ],
+      "cpu_seconds": 32.392343000000004
     }
   }
 }
