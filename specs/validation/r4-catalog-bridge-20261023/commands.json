@@ -1,0 +1,58 @@
+[
+  {
+    "name": "debug",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-bridge-debug.log"
+  },
+  {
+    "name": "release",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--release",
+      "client_scan_tests",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-bridge-release.log"
+  },
+  {
+    "name": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-features",
+      "--all-targets",
+      "--quiet",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-bridge-clippy.log"
+  },
+  {
+    "name": "header",
+    "command": [
+      "clang",
+      "-x",
+      "c",
+      "-fsyntax-only",
+      "macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-bridge-header.log"
+  }
+]

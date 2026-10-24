@@ -85,6 +85,25 @@ void *bh_catalog_create(uint32_t profile, const uint8_t *exclusions, size_t len)
 const char *bh_catalog_json(const void *catalog);
 void bh_catalog_destroy(void *catalog);
 
+/* Catalog event ABI 1: all payloads are borrowed only until callback return.
+ * Type 6 (before scan events): metadata is the frozen catalog JSON.
+ * Type 1: target_id identifies a descriptor in that snapshot.
+ * Type 7: metadata is a typed classification diagnostic; base path/message are
+ * displayable warning data. Other base types/statuses retain their old meaning. */
+typedef struct BHCatalogScanEvent {
+    uint32_t version;
+    BHScanEvent base;
+    const uint8_t *target_id;
+    size_t target_id_len;
+    const uint8_t *metadata;
+    size_t metadata_len;
+} BHCatalogScanEvent;
+typedef void (*BHCatalogEventCallback)(void *context, const BHCatalogScanEvent *event);
+int32_t bh_scan_catalog_v1(void *control, const void *catalog, const uint8_t *root,
+                           size_t root_len, uint8_t apparent_size,
+                           uint8_t include_environments,
+                           BHCatalogEventCallback callback, void *context);
+
 void *bh_scan_control_create(void);
 /* Cancellation is thread-safe. Destroy the control only after bh_scan returns;
  * serialize destruction with cancellation so no caller uses a destroyed handle.

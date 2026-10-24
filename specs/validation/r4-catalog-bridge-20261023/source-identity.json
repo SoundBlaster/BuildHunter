@@ -1,0 +1,23 @@
+{
+  "baseline": "e5f3722a6957e4e64378cd7a422ea05a00ac41f5",
+  "state": "R4 layer 2, client-compatible acquisition; default entrypoints not switched yet",
+  "files": {
+    "docs/catalog-client-migration.md": "e009037a71de0982ab60af2c61c5c36a87570f1cf1f624c691c3a641a109e895",
+    "macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h": "d14339cb8b3607a4f63b4b64d4674bcf88795ae8bbd54fc5ae1a2be07ebb47d7",
+    "specpm.yaml": "520405fd8c3cc7125ce39521b93afd4062ce0e6ee919a9cf85a4e390e20fc8da",
+    "specs/catalog-client-scan.spec.yaml": "8a5df731e039261e5cd9346917b14a91ad2e6b7aaaf99e02d17615d477042d00",
+    "specs/hypercode/README.md": "c6fed823b5b51c4d466c3beefba4fadac1b7ed55dbc7729364839d43537a128b",
+    "specs/hypercode/ci.hc": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a",
+    "specs/hypercode/ci.hcs": "d87059efdbb8fa1e0d28640cb7dc298a05ecd5b0dcac3c8da0da74508d31a5a1",
+    "specs/hypercode/current.hc": "ee71d752a3a5912ffa4cae5c72bb06590713408560c7efd5d088fd7bbbc4227c",
+    "specs/hypercode/current.hcs": "c134e5062eaeb489f3a2b49c021f2d57110404080b1803c3e911cbadb0c0fafb",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/specification-progress.md": "4795efe929518b1ec010bd7ccdd0c4cb4d7e8e4dd24a869d3e141102891da47d",
+    "src/catalog.rs": "4051820f19603f137138e3b0d2491e67b8617e7564e4ef4c7a798620f4c93708",
+    "src/catalog_bridge.rs": "604961b20478e9f85762c234bdf18ce90e1a628c7d557fac929be4743ad051d7",
+    "src/client_scan.rs": "c988186078aef783455dec4c166ac1287a21f55b5c5517ee1e050d7904ceae73",
+    "src/client_scan_tests.rs": "163c73476a8bbf9b6c4b504ee0f5e07e071630c720fb95ecd320b27789032005",
+    "src/lib.rs": "d4f7b920b2655703c76ca23506741f6760cfd647d7e73130a888156ffafb244e"
+  }
+}
