@@ -7,8 +7,7 @@ use hunter_fs_core::{
     DirectoryRequest, DirectoryResult, DirectoryTask, DirectoryVisit, DirectoryWorker,
     FilesystemBackend, GuardedSetupError, ListingAction, MeasuredSize, PendingSelection,
     RootAdmission, RootObservation, ScanHandler, SelectedEntry, StdFilesystem, SubtreeProgress,
-    TraversalTasks, collect_directory, process_resources, run_directory_worker, thread_qos,
-    with_guarded_backend,
+    TraversalTasks, process_resources, run_directory_worker, thread_qos, with_guarded_backend,
 };
 #[cfg(test)]
 use hunter_fs_core::{ScanEngine, spawn_workers};
@@ -33,6 +32,7 @@ mod resources;
 pub use resources::{ResourceHistory, ResourceSummary};
 mod materialization;
 mod measurement;
+mod scan_budget;
 mod scan_session;
 /// Thread-scoped protection for filesystem preflight before starting a scan.
 /// On macOS this refuses materialization; other platforms use a no-op guard.
@@ -41,6 +41,7 @@ pub use policy_table::{
     bh_policy_table_cell_count, bh_policy_table_cell_facts, bh_policy_table_version,
     bh_scan_with_policy_table,
 };
+pub use scan_budget::{ScanLimit, ScanLimits};
 
 #[cfg(unix)]
 use std::os::unix::ffi::OsStrExt;
@@ -370,6 +371,8 @@ impl ScanReport {
 }
 
 pub struct ScanControl {
+    limits: ScanLimits,
+    usage: scan_budget::Usage,
     profiling: AtomicBool,
     cancelled: AtomicBool,
     failed: AtomicBool,
@@ -391,7 +394,15 @@ pub struct ScanWorkTimings {
 
 impl ScanControl {
     pub fn new() -> Self {
+        Self::with_limits(ScanLimits::default())
+    }
+
+    /// Select immutable budgets before starting one scan. A control is single-use.
+    pub fn with_limits(limits: ScanLimits) -> Self {
+        limits.validate();
         Self {
+            limits,
+            usage: scan_budget::Usage::default(),
             profiling: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
             failed: AtomicBool::new(false),
@@ -400,6 +411,22 @@ impl ScanControl {
             bulk_directories: std::sync::atomic::AtomicU64::new(0),
             bulk_fallbacks: std::sync::atomic::AtomicU64::new(0),
         }
+    }
+
+    pub fn limits(&self) -> ScanLimits {
+        self.limits
+    }
+
+    pub fn resource_limit(&self) -> Option<ScanLimit> {
+        self.usage.limit()
+    }
+
+    pub fn resource_usage_json(&self) -> serde_json::Value {
+        self.usage.json(self.limits)
+    }
+
+    pub(crate) fn exhaust(&self, reason: ScanLimit) {
+        self.usage.stop(reason);
     }
 
     /// Enable before starting a scan. Disabled scans emit no profile events.
@@ -449,7 +476,7 @@ impl ScanControl {
     }
 
     fn should_stop(&self) -> bool {
-        self.is_cancelled() || self.is_failed()
+        self.is_cancelled() || self.is_failed() || self.resource_limit().is_some()
     }
 }
 
@@ -722,9 +749,23 @@ enum WorkerMessage {
 
 type WorkQueue = hunter_fs_core::WorkQueue<ListTask>;
 
+trait WorkerSink: Sync {
+    fn send(&self, message: WorkerMessage) -> bool;
+}
+impl WorkerSink for std::sync::mpsc::Sender<WorkerMessage> {
+    fn send(&self, message: WorkerMessage) -> bool {
+        std::sync::mpsc::Sender::send(self, message).is_ok()
+    }
+}
+impl WorkerSink for std::sync::mpsc::SyncSender<WorkerMessage> {
+    fn send(&self, message: WorkerMessage) -> bool {
+        std::sync::mpsc::SyncSender::send(self, message).is_ok()
+    }
+}
+
 fn run_worker(
     queue: &WorkQueue,
-    results: &std::sync::mpsc::Sender<WorkerMessage>,
+    results: &impl WorkerSink,
     control: &ScanControl,
     probes: &Probes,
     legacy_policy: bool,
@@ -741,7 +782,7 @@ fn run_worker(
 
 fn run_worker_with_guard<G>(
     queue: &WorkQueue,
-    results: &std::sync::mpsc::Sender<WorkerMessage>,
+    results: &impl WorkerSink,
     control: &ScanControl,
     probes: &Probes,
     legacy_policy: bool,
@@ -768,13 +809,13 @@ fn run_worker_with_guard<G>(
     }
 }
 
-struct WorkerAdapter<'a> {
-    results: &'a std::sync::mpsc::Sender<WorkerMessage>,
+struct WorkerAdapter<'a, S: WorkerSink> {
+    results: &'a S,
     control: &'a ScanControl,
     probes: &'a Probes<'a>,
     legacy_policy: bool,
 }
-impl DirectoryWorker for WorkerAdapter<'_> {
+impl<S: WorkerSink> DirectoryWorker for WorkerAdapter<'_, S> {
     type Id = usize;
     type Context = u32;
 
@@ -802,7 +843,7 @@ impl DirectoryWorker for WorkerAdapter<'_> {
         measured
     }
     fn publish(&mut self, result: DirectoryResult<usize, u32>) -> bool {
-        self.results.send(WorkerMessage::Directory(result)).is_ok()
+        self.results.send(WorkerMessage::Directory(result))
     }
 }
 
@@ -830,10 +871,11 @@ fn list_directory(
     let observe = |child: &Path, file_type, markers: &mut u32| {
         observe_legacy_marker(child, file_type, markers, probes, legacy_policy)
     };
-    let (listing, outcome) = if let Some(access) = probes.access {
-        hunter_fs_core::collect_directory_events(
+    let bounded = if let Some(access) = probes.access {
+        hunter_fs_core::collect_directory_events_with_limits(
             0,
-            |emit| {
+            control.limits.listing(),
+            |emit, budget_stop| {
                 if let Err(error) = probes.record_directory(path) {
                     emit(hunter_fs_core::DirectoryEvent::Error {
                         path: path.to_owned(),
@@ -841,28 +883,49 @@ fn list_directory(
                     });
                     return DirectoryVisit::OpenFailed;
                 }
-                access.visit_directory(path, &mut || control.should_stop(), &mut |event| {
-                    emit(match event {
-                        hunter_fs_core::DirectoryEvent::Error { path, error } => {
-                            let error = probes.describe_error(&path, error);
-                            hunter_fs_core::DirectoryEvent::Error { path, error }
-                        }
-                        event => event,
-                    });
-                })
+                access.visit_directory(
+                    path,
+                    &mut || control.should_stop() || budget_stop(),
+                    &mut |event| {
+                        emit(match event {
+                            hunter_fs_core::DirectoryEvent::Error { path, error } => {
+                                let error = probes.describe_error(&path, error);
+                                hunter_fs_core::DirectoryEvent::Error { path, error }
+                            }
+                            event => event,
+                        });
+                    },
+                )
             },
             observe,
         )
     } else {
-        collect_directory(
+        hunter_fs_core::collect_directory_with_limits(
             path,
             probes.read_dir(path),
             0,
+            control.limits.listing(),
             || control.should_stop(),
             observe,
         )
     };
-    if outcome == DirectoryVisit::OpenFailed {
+    control
+        .usage
+        .peak_listing_entries
+        .fetch_max(bounded.listing.children.len() as u64, Ordering::Relaxed);
+    control
+        .usage
+        .peak_listing_weight
+        .fetch_max(bounded.retained_weight as u64, Ordering::Relaxed);
+    if let Some(limit) = bounded.limit {
+        control.exhaust(match limit {
+            hunter_fs_core::ListingLimit::Entries => ScanLimit::ListingEntries,
+            hunter_fs_core::ListingLimit::Errors => ScanLimit::ListingErrors,
+            hunter_fs_core::ListingLimit::Weight => ScanLimit::ListingWeight,
+        });
+    }
+    let listing = bounded.listing;
+    if bounded.visit == DirectoryVisit::OpenFailed {
         return listing;
     }
     #[cfg(test)]
@@ -924,6 +987,8 @@ struct ArtifactHandler<'a, P, E> {
     artifacts: Vec<Artifact>,
     progress: Vec<SubtreeProgress>,
     warnings: Vec<ScanWarning>,
+    finding_budget: scan_budget::Retention,
+    warning_budget: scan_budget::Retention,
     had_errors: bool,
     changed: bool,
     profile: Option<&'a profile::ProfileState>,
@@ -1121,6 +1186,10 @@ where
     }
 
     fn sync_outstanding(&self, outstanding: usize) {
+        self.control
+            .usage
+            .peak_pending_tasks
+            .fetch_max(outstanding as u64, Ordering::Relaxed);
         if let Some(profile) = self.profile {
             profile
                 .counters
@@ -1175,11 +1244,27 @@ where
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.warnings, 1);
         }
-        self.warnings.push(warning.clone());
-        self.emit(&ScanEvent::Warning(warning));
         for id in chain {
             self.progress[Self::index(*id)].mark_partial();
         }
+        let weight = warning
+            .relative_path
+            .capacity()
+            .saturating_add(warning.message.capacity())
+            .saturating_add(std::mem::size_of::<ScanWarning>());
+        let limits = self.control.limits;
+        if let Err(reason) = self.warning_budget.admit(
+            weight,
+            limits.warnings,
+            limits.warning_weight,
+            ScanLimit::Warnings,
+            ScanLimit::WarningWeight,
+        ) {
+            self.control.exhaust(reason);
+            return;
+        }
+        self.warnings.push(warning.clone());
+        self.emit(&ScanEvent::Warning(warning));
     }
 
     fn index(id: u64) -> usize {
@@ -1218,21 +1303,53 @@ where
         request: DirectoryRequest<u32>,
         tasks: &mut ProductTasks<'_>,
     ) {
-        if tasks
-            .enqueue(request, node, |outstanding| {
-                self.sync_outstanding(outstanding)
-            })
-            .is_err()
-        {
-            self.control.fail();
+        // Account both queue payload and its retained coordinator state. Admission
+        // is nonblocking: blocking here behind response producers can deadlock.
+        let weight = request
+            .path
+            .capacity()
+            .saturating_add(node.path.capacity())
+            .saturating_add(
+                node.chain
+                    .capacity()
+                    .saturating_mul(std::mem::size_of::<u64>()),
+            )
+            .saturating_add(std::mem::size_of::<DirNode>() + std::mem::size_of::<ListTask>());
+        if let Err(rejected) = tasks.try_enqueue_weighted(request, node, weight, |outstanding| {
+            self.sync_outstanding(outstanding)
+        }) {
+            match rejected.reason {
+                hunter_fs_core::QueueRejectionReason::Closed => self.control.fail(),
+                hunter_fs_core::QueueRejectionReason::TaskLimit => {
+                    self.control.exhaust(ScanLimit::QueuedTasks)
+                }
+                hunter_fs_core::QueueRejectionReason::WeightLimit => {
+                    self.control.exhaust(ScanLimit::QueuedWeight)
+                }
+            }
         }
     }
 
-    fn discover(&mut self, path: &Path, nested: bool, language: u32, kind: u32) -> u64 {
+    fn discover(&mut self, path: &Path, nested: bool, language: u32, kind: u32) -> Option<u64> {
+        let relative_path = relative_path(self.root, path);
+        let weight = relative_path.capacity().saturating_add(
+            std::mem::size_of::<Artifact>() + std::mem::size_of::<SubtreeProgress>(),
+        );
+        let limits = self.control.limits;
+        if let Err(reason) = self.finding_budget.admit(
+            weight,
+            limits.findings,
+            limits.findings_weight,
+            ScanLimit::Findings,
+            ScanLimit::FindingsWeight,
+        ) {
+            self.control.exhaust(reason);
+            return None;
+        }
         let id = self.artifacts.len() as u64 + 1;
         let artifact = Artifact {
             id,
-            relative_path: relative_path(self.root, path),
+            relative_path,
             language: language_name(language),
             kind: kind_name(kind),
             bytes: 0,
@@ -1245,7 +1362,7 @@ where
         self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
         self.artifacts.push(artifact);
         self.progress.push(SubtreeProgress::default());
-        id
+        Some(id)
     }
 
     fn complete(&mut self, id: u64) {
@@ -1300,7 +1417,7 @@ where
         }
         let artifact = match action {
             CandidateAction::Classify(code) => {
-                Some(self.discover(&path, !chain.is_empty(), code.language, code.kind))
+                Some(self.discover(&path, !chain.is_empty(), code.language, code.kind)?)
             }
             CandidateAction::Traverse | CandidateAction::Prune => None,
         };
@@ -1390,7 +1507,9 @@ where
             return ListingAction::Complete(ArtifactBranch { chain, parent_len });
         }
         if let CandidateAction::Classify(code) = action {
-            let id = self.discover(&path, parent_len > 0, code.language, code.kind);
+            let Some(id) = self.discover(&path, parent_len > 0, code.language, code.kind) else {
+                return ListingAction::Abandon;
+            };
             chain.push(id);
         }
         for (index, (error_path, error)) in
@@ -2403,6 +2522,8 @@ mod tests {
             artifacts: Vec::new(),
             progress: Vec::new(),
             warnings: Vec::new(),
+            finding_budget: scan_budget::Retention::default(),
+            warning_budget: scan_budget::Retention::default(),
             had_errors: false,
             changed: false,
             profile: None,
@@ -2463,6 +2584,8 @@ mod tests {
                 artifacts: Vec::new(),
                 progress: Vec::new(),
                 warnings: Vec::new(),
+                finding_budget: scan_budget::Retention::default(),
+                warning_budget: scan_budget::Retention::default(),
                 had_errors: false,
                 changed: false,
                 profile: Some(&profile),
@@ -3929,3 +4052,6 @@ mod scoped_access_tests;
 
 #[cfg(test)]
 mod client_scan_tests;
+
+#[cfg(test)]
+mod resource_tests;

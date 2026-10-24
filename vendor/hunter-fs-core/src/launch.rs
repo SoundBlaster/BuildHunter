@@ -5,20 +5,32 @@ use crate::{
 };
 use std::{path::Path, sync::mpsc, thread, time::Duration};
 
-/// One unbounded response channel, allocated when the host chooses. The original
+/// One response channel, allocated when the host chooses. The original
 /// sender stays owned until coordinator entry; worker producers use cloned senders.
-/// Neither message interpretation nor resource bounds are supplied by this owner.
-pub struct ScanChannel<Message> {
-    sender: mpsc::Sender<Message>,
+/// `new` retains the unbounded compatibility path; `bounded` applies backpressure.
+/// A coordinator must drop the receiver before worker join, including on panic.
+pub struct ScanChannel<Message, Sender = mpsc::Sender<Message>> {
+    sender: Sender,
     receiver: mpsc::Receiver<Message>,
 }
+
 impl<Message> ScanChannel<Message> {
     pub fn new() -> Self {
         let (sender, receiver) = mpsc::channel();
         Self { sender, receiver }
     }
+}
+impl<Message> ScanChannel<Message, mpsc::SyncSender<Message>> {
+    /// Includes at most `capacity` queued messages (plus producer-owned in-flight
+    /// payloads). Zero is a rendezvous channel. This does not bound payload bytes.
+    pub fn bounded(capacity: usize) -> Self {
+        let (sender, receiver) = mpsc::sync_channel(capacity);
+        Self { sender, receiver }
+    }
+}
+impl<Message, Sender: Clone> ScanChannel<Message, Sender> {
     /// Clone a producer handle. The host must eventually release every producer.
-    pub fn sender(&self) -> mpsc::Sender<Message> {
+    pub fn sender(&self) -> Sender {
         self.sender.clone()
     }
 }
@@ -31,10 +43,10 @@ impl<Message> Default for ScanChannel<Message> {
 /// Borrowed engine inputs plus owned response channel. Construct after guard/backend
 /// setup; allocate the channel separately to retain host startup/profile timing.
 /// The backend and raw root are not owned, normalized, retried or moved to workers.
-pub struct EngineLaunch<'a, Backend: ?Sized, Message, Preflight> {
+pub struct EngineLaunch<'a, Backend: ?Sized, Message, Preflight, Sender = mpsc::Sender<Message>> {
     pub backend: &'a Backend,
     pub root: &'a Path,
-    pub channel: ScanChannel<Message>,
+    pub channel: ScanChannel<Message, Sender>,
     pub preflight: Preflight,
     pub wake_interval: Option<Duration>,
 }
@@ -54,7 +66,7 @@ impl<'env, Context: Send + 'env> ScanSession<'env, DirectoryTask<usize, Context>
     /// and non-panicking destructors. No extra stop probe, I/O or thread is added.
     pub fn run_engine<B, H, P, W, S, G, F, C, R>(
         self,
-        launch: EngineLaunch<'_, B, H::Message, P>,
+        launch: EngineLaunch<'_, B, H::Message, P, impl Sized>,
         worker: W,
         start_helpers: S,
         make_host: F,
@@ -90,5 +102,28 @@ impl<'env, Context: Send + 'env> ScanSession<'env, DirectoryTask<usize, Context>
             drop(receiver);
             collect(host, outcome)
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bounded_channel_rejects_an_extra_queued_message_and_drop_releases_producer() {
+        let channel = ScanChannel::bounded(1);
+        let sender = channel.sender();
+        sender.try_send(1).unwrap();
+        assert_eq!(sender.try_send(2), Err(mpsc::TrySendError::Full(2)));
+        let ScanChannel {
+            sender: original,
+            receiver,
+        } = channel;
+        drop(original);
+        thread::scope(|scope| {
+            let worker = scope.spawn(move || sender.send(3));
+            drop(receiver);
+            assert_eq!(worker.join().unwrap().unwrap_err().0, 3);
+        });
     }
 }

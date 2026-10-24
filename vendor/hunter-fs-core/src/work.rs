@@ -4,42 +4,118 @@ use std::{
     thread,
 };
 
-/// Unbounded LIFO tasks; worker count is capped separately. Closing wakes all
+/// LIFO tasks with optional nonblocking admission limits. Worker count is capped separately. Closing wakes all
 /// waiters, discards pending tasks and rejects new tasks. In-flight work is not
 /// interrupted: workers must use their host's cancellation checks for blocking I/O.
 pub struct WorkQueue<T> {
     state: Mutex<State<T>>,
     ready: Condvar,
 }
+/// Weight units are defined by the caller (e.g. estimated owned payload bytes),
+/// not allocator/RSS accounting. Admission never waits on worker consumption.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct QueueLimits {
+    pub max_tasks: usize,
+    pub max_weight: usize,
+}
+impl QueueLimits {
+    pub const UNBOUNDED: Self = Self {
+        max_tasks: usize::MAX,
+        max_weight: usize::MAX,
+    };
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum QueueRejectionReason {
+    Closed,
+    TaskLimit,
+    WeightLimit,
+}
+#[derive(Debug)]
+pub struct QueueRejection<T> {
+    pub task: T,
+    pub reason: QueueRejectionReason,
+}
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct QueueSnapshot {
+    pub pending_tasks: usize,
+    pub pending_weight: usize,
+    pub peak_tasks: usize,
+    pub peak_weight: usize,
+}
 struct State<T> {
-    tasks: Vec<T>,
+    tasks: Vec<(T, usize)>,
     closed: bool,
+    limits: QueueLimits,
+    snapshot: QueueSnapshot,
 }
 impl<T> Default for WorkQueue<T> {
     fn default() -> Self {
+        Self::with_limits(QueueLimits::UNBOUNDED)
+    }
+}
+impl<T> WorkQueue<T> {
+    pub fn with_limits(limits: QueueLimits) -> Self {
+        assert!(
+            limits.max_tasks > 0 && limits.max_weight > 0,
+            "queue limits must be positive"
+        );
         Self {
             state: Mutex::new(State {
                 tasks: Vec::new(),
                 closed: false,
+                limits,
+                snapshot: QueueSnapshot::default(),
             }),
             ready: Condvar::new(),
         }
     }
-}
-impl<T> WorkQueue<T> {
     /// Returns ownership to the caller when shutdown has already started.
+    /// For a limited queue this also rejects exhausted admission; use try_push_weighted
+    /// to retain the exact reason. No reservation or payload is silently discarded.
     pub fn push(&self, task: T) -> Result<(), T> {
+        self.try_push_weighted(task, 1)
+            .map_err(|rejected| rejected.task)
+    }
+    pub fn try_push_weighted(&self, task: T, weight: usize) -> Result<(), QueueRejection<T>> {
         let mut state = self
             .state
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if state.closed {
-            return Err(task);
+        let reason = if state.closed {
+            Some(QueueRejectionReason::Closed)
+        } else if state.tasks.len() >= state.limits.max_tasks {
+            Some(QueueRejectionReason::TaskLimit)
+        } else if weight
+            > state
+                .limits
+                .max_weight
+                .saturating_sub(state.snapshot.pending_weight)
+        {
+            Some(QueueRejectionReason::WeightLimit)
+        } else {
+            None
+        };
+        if let Some(reason) = reason {
+            drop(state);
+            return Err(QueueRejection { task, reason });
         }
-        state.tasks.push(task);
+        state.tasks.push((task, weight));
+        state.snapshot.pending_tasks = state.tasks.len();
+        state.snapshot.pending_weight += weight;
+        state.snapshot.peak_tasks = state.snapshot.peak_tasks.max(state.snapshot.pending_tasks);
+        state.snapshot.peak_weight = state
+            .snapshot
+            .peak_weight
+            .max(state.snapshot.pending_weight);
         drop(state);
         self.ready.notify_one();
         Ok(())
+    }
+    pub fn snapshot(&self) -> QueueSnapshot {
+        self.state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .snapshot
     }
     pub fn pop(&self) -> Option<T> {
         let mut state = self
@@ -50,7 +126,9 @@ impl<T> WorkQueue<T> {
             if state.closed {
                 return None;
             }
-            if let Some(task) = state.tasks.pop() {
+            if let Some((task, weight)) = state.tasks.pop() {
+                state.snapshot.pending_tasks = state.tasks.len();
+                state.snapshot.pending_weight -= weight;
                 return Some(task);
             }
             state = self
@@ -66,6 +144,8 @@ impl<T> WorkQueue<T> {
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner);
             state.closed = true;
+            state.snapshot.pending_tasks = 0;
+            state.snapshot.pending_weight = 0;
             std::mem::take(&mut state.tasks)
         };
         self.ready.notify_all();
@@ -141,6 +221,59 @@ mod tests {
         },
         time::Duration,
     };
+    #[test]
+    fn admission_is_nonblocking_and_preserves_rejected_payload_and_weight() {
+        let queue = WorkQueue::with_limits(QueueLimits {
+            max_tasks: 2,
+            max_weight: 5,
+        });
+        queue.try_push_weighted("first", 2).unwrap();
+        let rejected = queue.try_push_weighted("too-heavy", 4).unwrap_err();
+        assert_eq!(
+            (rejected.task, rejected.reason),
+            ("too-heavy", QueueRejectionReason::WeightLimit)
+        );
+        queue.try_push_weighted("second", 3).unwrap();
+        let rejected = queue.try_push_weighted("too-many", 0).unwrap_err();
+        assert_eq!(
+            (rejected.task, rejected.reason),
+            ("too-many", QueueRejectionReason::TaskLimit)
+        );
+        assert_eq!(
+            queue.snapshot(),
+            QueueSnapshot {
+                pending_tasks: 2,
+                pending_weight: 5,
+                peak_tasks: 2,
+                peak_weight: 5
+            }
+        );
+        assert_eq!(queue.pop(), Some("second"));
+        queue.try_push_weighted("replacement", 3).unwrap();
+        queue.close();
+        assert_eq!(queue.snapshot().pending_weight, 0);
+        assert_eq!(queue.snapshot().pending_tasks, 0);
+        assert_eq!(queue.snapshot().peak_tasks, 2);
+        assert_eq!(
+            queue.try_push_weighted("closed", 1).unwrap_err().reason,
+            QueueRejectionReason::Closed
+        );
+    }
+
+    #[test]
+    fn weight_cannot_overflow_or_be_freed_twice() {
+        let queue = WorkQueue::with_limits(QueueLimits::UNBOUNDED);
+        queue.try_push_weighted(1, usize::MAX).unwrap();
+        assert_eq!(
+            queue.try_push_weighted(2, 1).unwrap_err().reason,
+            QueueRejectionReason::WeightLimit
+        );
+        assert_eq!(queue.pop(), Some(1));
+        assert_eq!(queue.snapshot().pending_weight, 0);
+        queue.close();
+        queue.close();
+        assert_eq!(queue.snapshot().pending_weight, 0);
+    }
     #[test]
     fn lifo_and_closed_queue_returns_task_ownership() {
         let queue = WorkQueue::default();

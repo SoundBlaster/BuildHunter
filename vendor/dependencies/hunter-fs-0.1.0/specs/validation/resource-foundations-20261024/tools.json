@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "rustc",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "rustc 1.97.0 (2d8144b78 2026-07-07)"
+  },
+  {
+    "command": [
+      "cargo",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "cargo 1.97.0 (c980f4866 2026-06-30)"
+  },
+  {
+    "command": [
+      "specpm",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "specpm 0.2.0"
+  }
+]

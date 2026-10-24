@@ -11,6 +11,7 @@ HunterPrimitives
   MetadataSizing
   ScopedWork
     TaskQueue
+    QueueAdmission
     WorkerLaunch
     Shutdown
   DirectoryTasks
@@ -43,6 +44,7 @@ HunterPrimitives
     OrderedCollection
     ContextObservation
     AcquisitionOutcome
+    ListingRetention
   MeasurementBackend
     DirectoryPreparation
     PreparedFileEffects
@@ -82,6 +84,7 @@ HunterPrimitives
     NoFollowOpen
     CheckedRecords
     BatchCheckpoint
+    BatchRetention
   PreparedDirectorySizes
     ConsumeOnceLookup
     BatchErrorFallback

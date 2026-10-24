@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.19
+  version: 0.1.0-draft.20
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -164,8 +164,7 @@ constraints:
     the scan with Failed. Other OS/providers do not acquire a universal no-download guarantee.
 - id: memory_scope
   level: MUST
-  statement: 'Do not infer bounded whole-process memory from the Swift event ring: current scanner retains reports
-    and directory arena capacity and uses unbounded worker response channels.'
+  statement: 'Apply buildhunter.scan.resources per-scan retention/admission limits. Completed ledger slots release immediately and worker responses are bounded. Do not infer a whole-process RSS ceiling from estimated payload quotas; reports, profile backlog, opaque allocations and multiple consumers/windows require separate accounting.'
 - id: result_execution
   level: MUST
   statement: The result pump checks outstanding work and stop before checkpoint/receive,
@@ -228,7 +227,7 @@ constraints:
   level: MUST
   statement: Product scan_session::run selects the guard/backend constructors and owns
     profile/QoS setup, host construction, final status and event/report publication.
-    Hunter with_scan_session owns guarded backend lifetime, the empty shared queue
+    Hunter with_scan_session_limits owns guarded backend lifetime, the empty shared queue
     and capped worker-count selection. Its non-cloneable ScanSession token is
     consumed once to launch scoped work; root admission stays inside the guarded caller coordinator. Hunter
     starts host sampler helpers, launches workers, invokes coordinator on caller
@@ -241,7 +240,7 @@ constraints:
 - id: session_assembly
   level: MUST
   statement: Delegate guard/backend scope, queue construction and capped parallelism
-    to with_scan_session and consume ScanSession::run_engine once. Allocate ScanChannel
+    to with_scan_session_limits and consume ScanSession::run_engine once. Allocate bounded ScanChannel
     at the existing point before profile/QoS capture and clone the worker producer before
     launch. EngineLaunch passes guarded Probes, raw root, cloud preflight and idle interval.
     Hunter drops the original producer before caller-thread ArtifactHandler construction
@@ -438,6 +437,7 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - R5 bounded scan admission/listing/report work pins Hunter 286cebffdac7f1396a8d3dffed8a7d54b2ea34eb. Historical unbounded arena/response notes are superseded by buildhunter.scan.resources, not by a whole-process memory guarantee.
   - R3 scoped-error review removes native diagnostic metadata probes from all
     scoped root/listing/directory/file error paths. Original backend errors stay
     authoritative. Validation and hashes are in scoped-error-review-20261023;

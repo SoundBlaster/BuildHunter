@@ -1,0 +1,10 @@
+{
+  "parent": "89fe65cd6a77d3856b15672e24c56300b9e3b408",
+  "files": {
+    "crates/hunter-fs-core/src/darwin_bulk.rs": "ab4201a3f0c1c813334117294bf7e808876644ccbf1cf7e923a042e8eec4e471",
+    "specs/darwin-bulk.spec.yaml": "d450610621e723b5f0364c7f7b52276cdab7e5a02a0a4965801407b356907ff6",
+    "specs/hypercode/current.hc": "6fddd989611f3ebb4ab58f762939b3eb5e488b189c0bcda3602d96f41a7fb1f2",
+    "specs/hypercode/current.hcs": "14d751765407202ee5a3bd7449a3886a07111bfb991274f6ba0b10ea25a40925",
+    "specpm.yaml": "c73d8e0034b1528014c7b9a66d04aa59b03af0e71657e5eb421b156e3e646661"
+  }
+}

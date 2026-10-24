@@ -1,0 +1,32 @@
+[
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/bounded-metadata-20261024/hc-0.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/bounded-metadata-20261024/hc-1.log"
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/bounded-metadata-20261024/specpm.json"
+  }
+]

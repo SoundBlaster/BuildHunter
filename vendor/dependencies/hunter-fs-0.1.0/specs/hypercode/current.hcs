@@ -39,7 +39,7 @@ ScopedWork:
   source: "crates/hunter-fs-core/src/work.rs"
   boundary_spec: "hunter.fs.work"
 TaskQueue:
-  implementation: "WorkQueue<T>, LIFO, unbounded"
+  implementation: "WorkQueue<T>, LIFO, optional nonblocking task/weight limits; default compatibility is unbounded"
   folded_into: "hunter.fs.work"
 WorkerLaunch:
   implementation: "spawn_workers + worker_count; caller-owned thread Scope"
@@ -69,7 +69,7 @@ TaskLedger:
   source: "crates/hunter-fs-core/src/ledger.rs"
   boundary_spec: "hunter.fs.task_ledger"
 TaskIdentity:
-  implementation: "DirectoryTaskLedger::register + take_listing"
+  implementation: "checked monotonic identity counter + sparse live listing state"
   folded_into: "hunter.fs.task_ledger"
 ResponseAccounting:
   implementation: "response_received + outstanding; host protocol ordering"
@@ -185,7 +185,7 @@ ScanAssembly:
   launch_source: "crates/hunter-fs-core/src/launch.rs"
   boundary_spec: "hunter.fs.scan_assembly"
 GuardedQueue:
-  implementation: "with_scan_session; queue and capped parallelism after backend preparation"
+  implementation: "with_scan_session/with_scan_session_limits; caller-selected queue limits and capped workers after preparation"
   folded_into: "hunter.fs.scan_assembly"
 SingleLaunch:
   implementation: "consuming ScanSession::run; no Clone; scoped join before return"
@@ -234,7 +234,7 @@ EngineLaunch:
   implementation: "ScanSession::run_engine composes existing session + ScanEngine"
   folded_into: "hunter.fs.scan_assembly"
 ResponseChannel:
-  implementation: "ScanChannel; original sender drops before factory; receiver drops before collect/join"
+  implementation: "ScanChannel new/bounded; generic sender type; unread receiver drops before collect/join, waking blocked producers"
   folded_into: "hunter.fs.scan_assembly"
 HostConstruction:
   implementation: "caller-thread make_host after worker startup and before root observation"
@@ -274,3 +274,17 @@ RequestedThreadQos:
 ProcessResourceSnapshot:
   source: "crates/hunter-fs-core/src/process_resources.rs"
   folded_into: "hunter.platform.process"
+
+QueueAdmission:
+  implementation: "QueueLimits + typed ownership-preserving rejection + QueueSnapshot high-water accounting"
+  folded_into: "hunter.fs.work"
+
+ListingRetention:
+  source: "crates/hunter-fs-core/src/listing.rs"
+  implementation: "optional entry/error/estimated-weight prefix; typed limit, visitor stop predicate; legacy collectors unchanged"
+  folded_into: "hunter.fs.directory_listing"
+
+BatchRetention:
+  source: "crates/hunter-fs-core/src/darwin_bulk.rs"
+  implementation: "optional observation/estimated-weight cap before insert; typed prefix limit"
+  folded_into: "hunter.fs.darwin_bulk_metadata"

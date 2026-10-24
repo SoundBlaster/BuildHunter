@@ -1,0 +1,11 @@
+{
+  "parent": "1738c9d1d504982fe301b3223fb6136339966bf1",
+  "files": {
+    "crates/hunter-fs-core/src/listing.rs": "d7c55c14231e9ee38c43f938185793ac7beabb1ffc80c105f7f448ec337a912d",
+    "crates/hunter-fs-core/src/lib.rs": "2a16eafa2806b4e0018aa1f57b25ebd5d7c05eddde9908492fca4aa1496ab5a3",
+    "specs/directory-listing.spec.yaml": "dceb14dcdffd38a4130c53cd41f63c4f017a51a7d86eb78ee7ed7400a66ef53c",
+    "specs/hypercode/current.hc": "219e44c1ad7f2bee82fa40f5f8aacc9885ce682dbc940a590d3ea56430bd6002",
+    "specs/hypercode/current.hcs": "8615972b2c9cec727b80591acbc42c7aa9695fa4f2d4ba04905619129f9836c0",
+    "specpm.yaml": "18305137a04bda76d3edb552c42844c1bbd787d031233fe199bac61b9dc5ab78"
+  }
+}

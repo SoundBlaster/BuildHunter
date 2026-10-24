@@ -1077,6 +1077,50 @@ mod tests {
         assert!(b.calls.borrow().is_empty());
     }
     #[test]
+    fn bounded_launch_factory_panic_wakes_a_producer_before_join() {
+        use crate::{EngineLaunch, ScanChannel};
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let b = backend();
+        let joined = AtomicBool::new(false);
+        let (ready, started) = mpsc::channel();
+        let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            with_scan_session(
+                || Ok::<_, ()>(()),
+                || Ok::<_, ()>(()),
+                1,
+                |_, session: crate::ScanSession<'_, crate::DirectoryTask<usize, u8>>| {
+                    let channel = ScanChannel::bounded(0);
+                    let sender = channel.sender();
+                    session.run_engine(
+                        EngineLaunch {
+                            backend: &b,
+                            root: Path::new("literal/../root"),
+                            channel,
+                            preflight: |_: &Path| None,
+                            wake_interval: None,
+                        },
+                        |_| {
+                            ready.send(()).unwrap();
+                            // No receiver consumes this rendezvous send. Only dropping
+                            // the engine-owned receiver on panic can release the worker.
+                            assert!(sender.send(Message::Control).is_err());
+                            joined.store(true, Ordering::SeqCst);
+                        },
+                        |_| (),
+                        || -> Host<'_> {
+                            started.recv_timeout(Duration::from_secs(5)).unwrap();
+                            panic!("factory");
+                        },
+                        |_, _| panic!("collect must not run"),
+                    )
+                },
+            )
+        }));
+        assert!(panic.is_err());
+        assert!(joined.load(Ordering::SeqCst));
+        assert!(b.calls.borrow().is_empty());
+    }
+    #[test]
     fn launch_collect_panic_joins_before_outer_backend_and_guard_drop() {
         use crate::{EngineLaunch, ScanChannel};
         use std::sync::{

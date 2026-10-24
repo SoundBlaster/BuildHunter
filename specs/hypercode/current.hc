@@ -20,6 +20,10 @@ BuildHunterRuntime
         BatchPreparation
         MetadataFallback
       CloudGuard
+      ScanResources
+        WorkAdmission
+        ResponseRetention
+        ReportRetention
       ResourceProfile
     ArtifactClassification
       CandidateSelection

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: hunter.fs.darwin_bulk_metadata
   title: Opt-in Darwin batch metadata acquisition
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Acquire one directory's apparent and allocated file sizes through checked
@@ -33,6 +33,11 @@ interfaces:
     kind: library
     summary: darwin_bulk::read_directory_sizes(Path, FnMut() -> bool) returns
       Result<DirectorySizes>; DirectorySizes maps Vec<u8> basenames to native size/error.
+  - id: limited_sizes
+    kind: library
+    summary: read_directory_sizes_with_limits(Path, stop, ListingLimits) returns
+      BoundedDirectorySizes with sizes, optional Entries/Weight limit and estimated
+      retained_weight. max_errors is unused; size/error observations share slots.
   outbound: []
 constraints:
 - id: acquisition_order
@@ -64,7 +69,12 @@ constraints:
     the call and chooses the feature/backend. Only the final opened directory component
     is no-follow; intermediate path replacement and whole-tree descriptor anchoring
     remain outside this API. Cancellation retains a live-tree prefix, not an atomic view.
-    No resource bound is claimed for the per-directory result map or complete scan.
+    The compatibility read is unbounded; optional limited reads cap retained
+    observations and estimated name/value weight before insertion. Duplicates
+    conservatively charge weight again. The fixed native buffer, hash-table/allocator
+    overhead and opaque error allocations are outside the estimate; no RSS bound
+    or complete-scan resource guarantee is claimed. Host must handle limit separately
+    from cancellation, and not treat the retained prefix as a complete pass.
 effects:
   sideEffects:
   - id: directory_metadata
@@ -81,6 +91,8 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - R5 adds optional bounded retention; bounded-metadata-20261024 records native
+    exact-cap/truncation and decoder-rejection checks. Compatibility ordering stays unchanged.
   - Extracted from BuildHunter src/bulk_metadata.rs at 7ab00f16ae437fe88427c2acbe1b651b30b044f1,
     MIT licensed. Replace only product ScanControl with the synchronous stop callback.
     Existing decoder/syscall behavior is retained; fresh test results and source identities

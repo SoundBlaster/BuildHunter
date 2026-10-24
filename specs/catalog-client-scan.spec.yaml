@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.catalog.scan
   title: Catalog client scanning and event ABI
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Route immutable catalog decisions into measured findings and versioned client events without a per-candidate Swift callback.
@@ -47,7 +47,7 @@ constraints:
   statement: Findings retain full target descriptors through shared immutable ownership; reports retain profile, full digest and frozen exclusions. Numeric core labels remain transport placeholders and must not replace plugin identity.
 - id: diagnostics
   level: MUST
-  statement: Surface ambiguous and unavailable classification as typed diagnostics and continue descendants unless cancelled. Diagnostics make otherwise completed results incomplete; cancellation and failure take precedence. Profile warning counters include diagnostics. Policy errors fail the scan and preserve an explanatory diagnostic.
+  statement: Surface ambiguous and unavailable classification as typed diagnostics and continue descendants unless cancelled or an explicit resource quota is reached. Diagnostics make otherwise completed results incomplete; cancellation and failure take precedence. Profile warning counters include diagnostics. Policy errors fail the scan and preserve an explanatory diagnostic within its retention quota; quota exhaustion preserves a reserved resource-limit warning. Target-map growth follows admitted findings.
 - id: event_lifetime
   level: MUST
   statement: Emit metadata before scan events; deliver callbacks serially on the caller thread. All event pointers are borrowed only until callback return. Consumers retain control/catalog/context through return, after worker join. Preserve one completion per discovery and Finished last; invalid arguments return 3 before events.

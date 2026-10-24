@@ -1060,3 +1060,18 @@ and raw benchmark rounds: `validation/r4-client-cutover-20261023`. Historical
 preparation receipts retain their earlier scope. Local Xcode compilation is not
 GUI execution: the local test host stalled in dyld/open and was terminated after
 five minutes; CI execution is still required.
+
+### R5 bounded engine/report retention — 2026-10-24
+
+Hunter #27/#28/#30 provide optional nonblocking count/weight admission, bounded
+responses, sparse completed-slot release and bounded listing/native batch prefixes.
+BuildHunter pins exact `286cebffdac7f1396a8d3dffed8a7d54b2ea34eb` and gates its
+findings/progress, warnings, client target map and diagnostics. The new draft
+`buildhunter.scan.resources` owns host policy; `current.scan/memory_scope` and
+`catalog.scan/diagnostics` reflect explicit truncation. No classification or
+no-follow policy change is intended. Fresh source/tests are recorded under
+`validation/r5-engine-budgets-20261024`; R4 receipts remain historical.
+
+Profile backlog, GUI/export disclosure and end-to-end CPU/RSS/latency measurements
+are the next layer. Per-scan estimated payloads do not establish a whole-process
+RSS ceiling or owner acceptance of C5.

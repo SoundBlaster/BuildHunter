@@ -1,5 +1,8 @@
 //! One guarded session, one queue and one scoped worker launch.
-use crate::{GuardedSetupError, WorkQueue, run_scoped_workers, with_guarded_backend, worker_count};
+use crate::{
+    GuardedSetupError, QueueLimits, WorkQueue, run_scoped_workers, with_guarded_backend,
+    worker_count,
+};
 use std::thread;
 
 /// A single-use launch token borrowing the guarded session's queue.
@@ -53,8 +56,22 @@ pub fn with_scan_session<T, G, B, GE, BE, R>(
     maximum_workers: usize,
     run: impl FnOnce(&mut B, ScanSession<'_, T>) -> R,
 ) -> Result<R, GuardedSetupError<GE, BE>> {
+    with_scan_session_limits(enter, prepare, maximum_workers, QueueLimits::UNBOUNDED, run)
+}
+
+/// Explicit host-selected task/weight admission limits. Queue construction remains
+/// inside the successful guarded backend scope. Full admission never blocks the
+/// coordinator; callers must handle rejection and tear down the response receiver
+/// before joining blocked producers. Limits do not account for arbitrary payload bytes.
+pub fn with_scan_session_limits<T, G, B, GE, BE, R>(
+    enter: impl FnOnce() -> Result<G, GE>,
+    prepare: impl FnOnce() -> Result<B, BE>,
+    maximum_workers: usize,
+    queue_limits: QueueLimits,
+    run: impl FnOnce(&mut B, ScanSession<'_, T>) -> R,
+) -> Result<R, GuardedSetupError<GE, BE>> {
     with_guarded_backend(enter, prepare, |backend| {
-        let queue = WorkQueue::default();
+        let queue = WorkQueue::with_limits(queue_limits);
         let workers = worker_count(maximum_workers);
         run(
             backend,
