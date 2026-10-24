@@ -1,0 +1,11 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `crate::GuardedSetupError`, `crate::with_guarded_backend`
+ --> crates/hunter-fs-core/src/lifetime.rs:3:17
+  |
+3 |     use crate::{GuardedSetupError, with_guarded_backend, run_scoped_workers, WorkQueue};
+  |                 ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^ no `with_guarded_backend` in the root
+  |                 |
+  |                 no `GuardedSetupError` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `hunter-fs-core` (lib test) due to 1 previous error

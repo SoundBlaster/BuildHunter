@@ -1,0 +1,20 @@
+{
+  "project": "/Users/egor/Development/GitHub/Hunter",
+  "project_key": "Hunter-66bb94ef0aea8ae3",
+  "volume_uuid": "04B9F65E-894C-4A7C-B517-FC542E8D8E36",
+  "build_root": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3",
+  "swiftpm_build": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/swiftpm",
+  "cargo_target": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/cargo",
+  "xcode_derived_data": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/xcode/DerivedData",
+  "xcode_source_packages": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/xcode/SourcePackages",
+  "python_bytecode": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/python/bytecode",
+  "pytest_cache": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/python/pytest",
+  "mypy_cache": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/python/mypy",
+  "ruff_cache": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/python/ruff",
+  "swiftpm_cache": "/Volumes/TB5/Developer/Caches/swiftpm",
+  "uv_cache": "/Volumes/TB5/Developer/Caches/uv",
+  "pip_cache": "/Volumes/TB5/Developer/Caches/pip",
+  "npm_cache": "/Volumes/TB5/Developer/Caches/npm",
+  "go_build_cache": "/Volumes/TB5/Developer/Caches/go-build",
+  "go_module_cache": "/Volumes/TB5/Developer/Caches/go-mod"
+}

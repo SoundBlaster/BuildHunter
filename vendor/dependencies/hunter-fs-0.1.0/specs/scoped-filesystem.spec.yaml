@@ -1,0 +1,121 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.scoped_filesystem
+  title: Descriptor-relative scan acquisition
+  version: 0.1.0-draft.2
+  status: draft
+intent:
+  summary: Acquire directory entries and metadata through one selected-root anchor,
+    without product classification or file-content reads.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - macOS/Linux directory-root descriptors, no-follow component resolution,
+    directory enumeration, prepared directory sizing and shared marker root identity.
+  - Portable ScanAccess/DirectoryAccess interfaces, EntryType categories and
+    lazy coordinator fallback preparation in hunter-fs-core.
+  excludes:
+  - Windows and other Unix implementations, an atomic filesystem snapshot,
+    stable identity of entries between independent passes, root-ancestor policy,
+    product classification, action URLs, resource budgets and live cloud acceptance.
+provides:
+  capabilities:
+  - id: hunter.fs.scoped_filesystem
+    role: primary
+    summary: Observe names/types/sizes without following replacement directory links.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: Host owns effective permissions and per-thread materialization policy.
+interfaces:
+  inbound:
+  - id: scan_access
+    kind: library
+    summary: ScopedFilesystem::open(root) implements ScanAccess; root_metadata,
+      visit_directory, prepare_directory and marker_scope share the selected root.
+  - id: directory_access
+    kind: library
+    summary: DirectoryAccess retains an opened directory; metadata returns its native
+      metadata, entry_metadata(single OsStr) returns EntryMetadata with EntryType and
+      apparent/allocated MeasuredSize. No std metadata layout assumptions.
+  outbound: []
+constraints:
+- id: anchoring
+  level: MUST
+  statement: A directory root is opened no-follow once; subsequent report
+    paths are resolved relative to that descriptor, one no-follow directory component
+    at a time. Reject outside paths and parent components. Initial root ancestors are
+    selected by the caller. Retain the original root identity for relative-root calls,
+    using an absolute path only for initial acquisition. Selected non-directories retain one initial no-follow
+    metadata observation and cannot become directory traversal roots.
+- id: metadata
+  level: MUST
+  statement: Child metadata uses fstatat with AT_SYMLINK_NOFOLLOW, without opening
+    file contents or requiring file read permission. Apparent bytes are nonnegative
+    st_size; allocated bytes are nonnegative st_blocks times 512 with saturation.
+    Dataless child metadata is an EWOULDBLOCK error on macOS. Links remain links.
+- id: prepared_lifetime
+  level: MUST
+  statement: A prepared pass retains its directory until dropped, even after pathname
+    replacement. A coordinator fallback acquires at most one prepared directory per
+    selected pass, lazily at the first missing result; cached results/errors are not
+    retried. Failed scoped acquisition never falls back to pathname access. Independent
+    passes can observe changed regular entries; this is not a snapshot or an inode ledger.
+- id: listing
+  level: MUST
+  statement: Each listing has an independent directory stream offset, closes it on
+    return or unwind, preserves raw names and original report prefixes, opens before
+    cancellation, checks stop before type observation and emits qualified errors.
+- id: platform_policy
+  level: MUST
+  statement: Only macOS/Linux provide ScopedFilesystem. Host installs and retains
+    non-materializing guards on every calling thread; synthetic dataless checks do
+    not establish a no-download guarantee on a live provider. No descriptor is held
+    per queued path by this backend; no whole-scan descriptor/RSS bound is claimed.
+effects:
+  sideEffects:
+  - id: metadata_io
+    kind: filesystem_read
+    summary: Root metadata, directory opens/streams and relative stat; no file contents
+      or filesystem writes. Owned descriptors release on Drop.
+evidence:
+- id: source
+  kind: source
+  path: src/scoped_filesystem.rs
+  supports: [intent.summary, interfaces, constraints.anchoring, constraints.metadata, constraints.listing]
+- id: fallback
+  kind: source
+  path: crates/hunter-fs-core/src/processing.rs
+  supports: [constraints.prepared_lifetime]
+- id: tests
+  kind: source
+  path: tests/scoped_filesystem.rs
+  supports: [constraints.anchoring, constraints.metadata, constraints.prepared_lifetime, constraints.listing]
+- id: documentation
+  kind: documentation
+  path: README.md
+  supports: [scope, constraints.platform_policy]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - R3 observed implementation; acceptance stays draft. Per-file identities and
+    executed results are recorded under specs/validation/scoped-filesystem-20261023.
+implementationBindings:
+- id: scoped_acquisition
+  language: rust
+  files:
+    owned:
+    - src/scoped_filesystem.rs
+    - crates/hunter-fs-core/src/scan_access.rs
+    border:
+    - src/scoped_metadata.rs
+    - crates/hunter-fs-core/src/backend.rs
+    - crates/hunter-fs-core/src/processing.rs
+    - crates/hunter-fs-core/src/listing.rs
+    - crates/hunter-fs-core/src/lib.rs
+    - tests/scoped_filesystem.rs

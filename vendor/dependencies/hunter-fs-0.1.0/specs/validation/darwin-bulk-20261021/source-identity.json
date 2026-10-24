@@ -1,0 +1,25 @@
+{
+  "created_utc": "2026-10-20T21:17:42.438142+00:00",
+  "base_revision": "860d995374d677d68b39093101da25c3cacfff9b",
+  "working_tree_inputs": true,
+  "source_origin": {
+    "repository": "SoundBlaster/BuildHunter",
+    "revision": "7ab00f16ae437fe88427c2acbe1b651b30b044f1",
+    "path": "src/bulk_metadata.rs",
+    "license": "MIT"
+  },
+  "decoder_body_unchanged_after_type_alias_rename": true,
+  "files": {
+    "crates/hunter-fs-core/src/darwin_bulk.rs": "a71a0ca95a9e2a0c13ad7081ae1b1ac119adb2495903b7a8d8dfc8a9d880a0b1",
+    "crates/hunter-fs-core/src/lib.rs": "8b7b6f7fa4005f08bf75e57a4e8f6e9c8bc9b3279fbbca5f498fd8b322d0ecde",
+    "crates/hunter-fs-core/Cargo.toml": "702db05b06cced8f5bf11172c2af1a5fb0d9073836125a06f3be5911d92f963d",
+    "crates/hunter-fs-core/README.md": "c7862ace30580f6076e9ba5e2d092fa2c552e3b382c317118c5fc6d3bdf7723e",
+    "Cargo.toml": "6d5bae10f528ead1d4ccc77f946ccc7da8a1f350206466d7ce2777524a071028",
+    "Cargo.lock": "e9a34d7f9cb19b61c17c801516ebcd44cfce393a08e3a642ada734c0f3e0e219",
+    ".github/workflows/ci.yml": "d6f419e9aa5c2b5ee94725c881ec832ea68bc0f9930a1a64438ac49fd060a0f6",
+    "specpm.yaml": "e638a01e3daa99760538505fcffb6431947fc75b15b1be49cfec24c320b00782",
+    "specs/darwin-bulk.spec.yaml": "a7120c9a4f18ad19f3892679283cb958fa967ba8540186a499978f76d34aef75",
+    "specs/hypercode/current.hc": "17a2c804d1700c7bc6c5bdd3f8a2870bff265be12e72b65f040a1b5742dd81e3",
+    "specs/hypercode/current.hcs": "aaf9ea4e66f9891d7837fde1b84f542956975adfd10d9f9b94da446bb443f1f4"
+  }
+}

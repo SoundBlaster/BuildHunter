@@ -1,0 +1,107 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: rifle.program
+  title: Validated pure Rifle program
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Validate a bounded declarative program and evaluate it over host-supplied typed facts with explicit unknown
+    outcomes.
+scope:
+  boundedContext: rule_evaluation
+  includes:
+  - Strict JSON decoding, semantic validation, indexed immutable plan, typed three-valued evaluation and diagnostics.
+  excludes:
+  - Filesystem probes, artifact taxonomy, plugin target conflicts, package/catalog loading, JCS, Swift SDK, FFI
+    and execution-plan performance claims.
+provides:
+  capabilities:
+  - id: rifle.program.evaluate
+    role: primary
+    summary: Validate and evaluate the pure v1 draft program.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: rust_api
+    kind: library
+    summary: Plan::from_json validates bytes; facts exposes ordered descriptors; evaluate accepts positional FactValue
+      and returns owned Outcome or Error.
+  outbound: []
+constraints:
+- id: pure
+  level: MUST
+  statement: Evaluate supplied facts without filesystem, network, host callbacks or artifact vocabulary.
+- id: validation
+  level: MUST
+  statement: Reject duplicate JSON keys, unknown shape/formats, bad IDs/references/types, unused facts and excessive
+    program complexity before evaluation.
+- id: three_valued
+  level: MUST
+  statement: Preserve true/false/unknown truth tables; not unknown is unknown. Return sorted unique relevant unavailable
+    facts only for unknown rule outcomes.
+- id: input_contract
+  level: MUST
+  statement: Host supplies the declared positional fact order and matching types. Missing facts are errors, not
+    false; returned outcomes own data and Plan is immutable/shareable.
+- id: limits
+  level: MUST
+  statement: Enforce the byte, defensive parser-depth, fact/rule/operand and expression limits in docs/contract.md.
+    These do not establish a whole-process memory or latency budget.
+effects:
+  sideEffects: []
+evidence:
+- id: implementation
+  kind: source
+  path: src/lib.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.pure
+  - constraints.three_valued
+  - constraints.input_contract
+- id: validation_source
+  kind: source
+  path: src/validate.rs
+  supports:
+  - constraints.validation
+  - constraints.limits
+- id: json
+  kind: source
+  path: src/json.rs
+  supports:
+  - constraints.validation
+- id: tests
+  kind: test
+  path: tests/contract.rs
+  supports:
+  - constraints.pure
+  - constraints.validation
+  - constraints.three_valued
+  - constraints.input_contract
+  - constraints.limits
+- id: contract
+  kind: documentation
+  path: docs/contract.md
+  supports:
+  - scope
+  - constraints.limits
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Wire contract direction approved in BuildHunter; Rust API and this recovered implementation contract are new
+    reviewable drafts. Fresh local execution evidence is recorded separately from CI.
+implementationBindings:
+- id: rust_library
+  scope: component
+  files:
+    owned:
+    - src/lib.rs
+    - src/validate.rs
+    - src/json.rs
+    border:
+    - tests/contract.rs

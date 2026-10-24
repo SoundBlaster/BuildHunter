@@ -1,5 +1,6 @@
 """Regression coverage for duplicate-core and stale-pin dependency graphs."""
 import copy
+import subprocess
 from pathlib import Path
 import unittest
 
@@ -18,7 +19,7 @@ def graph(kind="scanner", unix=True):
         {"id": "facade", "name": "hunter-fs", "source": f"git+{HUNTER}?rev={H}#{H}"},
         {"id": "rifle", "name": "rifle-rules", "source": f"git+{RIFLE}?rev={R}#{R}"},
     ]
-    deps = {"default": ["core"], "policy": ["rifle"],
+    deps = {"default": ["core", "rifle"] + (["facade"] if unix else []), "policy": ["rifle"],
             "scanner": ["core", "rifle"] + (["facade"] if unix else [])}[kind]
     nodes = [{"id": "root", "deps": [{"pkg": p} for p in deps]}]
     nodes += [{"id": p, "deps": ([{"pkg": "core"}] if p == "facade" else [])}
@@ -39,6 +40,11 @@ class GraphTests(unittest.TestCase):
         result = self.verify(graph(unix=False), unix=False)
         self.assertNotIn("hunter-fs", result)
         self.assertIn("hunter-fs-core", result)
+
+    def test_windows_default_keeps_catalog_without_a_unix_facade(self):
+        result = self.verify(graph("default", unix=False), "default", unix=False)
+        self.assertIn("rifle-rules", result)
+        self.assertNotIn("hunter-fs", result)
 
     def test_rejects_second_reachable_core(self):
         value = graph()
@@ -74,6 +80,17 @@ class GraphTests(unittest.TestCase):
         value["resolve"]["nodes"][0]["deps"].append({"pkg": "core"})
         with self.assertRaisesRegex(ValueError, "expected 0 active hunter-fs-core"):
             self.verify(value, "policy")
+
+    def test_vendored_sources_keep_exact_bytes_under_windows_checkout(self):
+        root = Path(__file__).resolve().parents[1]
+        for path in ["vendor/dependencies/rifle-rules-0.1.0/specs/hypercode/architecture.hc",
+                     "vendor/dependencies/hunter-fs-0.1.0/README.md",
+                     "vendor/dependencies/libc-0.2.190/Cargo.toml"]:
+            raw = subprocess.check_output(["git", "show", "HEAD:" + path], cwd=root)
+            checkout = subprocess.check_output(["git", "-c", "core.autocrlf=true", "cat-file",
+                                                "--filters", "--path=" + path, "HEAD:" + path], cwd=root)
+            with self.subTest(path=path):
+                self.assertEqual(raw, checkout, "Git checkout must preserve Cargo checksum bytes")
 
     def test_missing_resolved_package_is_rejected(self):
         value = graph()

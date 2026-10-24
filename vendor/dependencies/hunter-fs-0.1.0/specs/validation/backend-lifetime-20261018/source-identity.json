@@ -1,0 +1,115 @@
+{
+  "recorded_at_utc": "2026-10-18T09:15:40.690630+00:00",
+  "baseline": "a896115af9693eb7e9c1ecdd3fe67deadd56827b",
+  "buildhunter_baseline": "86c3defd3d40f36940340070f9eaa113191e2323",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "e9a34d7f9cb19b61c17c801516ebcd44cfce393a08e3a642ada734c0f3e0e219"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "6d5bae10f528ead1d4ccc77f946ccc7da8a1f350206466d7ce2777524a071028"
+    },
+    {
+      "path": "README.md",
+      "sha256": "21af3ee5341c767c3ed7ce22909fa9455ceb2dde7e9058d8611aad5e5e786a91"
+    },
+    {
+      "path": "crates/hunter-fs-core/Cargo.toml",
+      "sha256": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b"
+    },
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "407d986a60a11d5e9a3a5190a4adb2533ed92862cdcf3733aa34cf18ba8cc31d"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/admission.rs",
+      "sha256": "d88e14a775a0980e33162784867891fa2337fb276e21233a67bb5feb6fc43887"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/backend.rs",
+      "sha256": "2268d3799d11fbf3659ee838e1b6191a8f5429c9af7593377a0990828a7c8d87"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/execution.rs",
+      "sha256": "20d797a2b498042688902fe22e698bc46455565a23aeaf39e88b4fceb38edbae"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/ledger.rs",
+      "sha256": "f554dec111534029f3614b30a3e924d4e2559575d5e71dc9830a0a1a42bf25bb"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/lib.rs",
+      "sha256": "782841d8210d5d0f9b0cd1c322cf0305d594dcf262e9a3e9d322e6b545e25495"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/lifetime.rs",
+      "sha256": "74f61ce81c9e78b241bb9fae664f69aee79d684dc14ba212d231cda8ab0018e7"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/listing.rs",
+      "sha256": "55c144f250bf41184b462e69e9ab29735899602fcabc753239f54a65d69f4d6e"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/materialization.rs",
+      "sha256": "5d45250d5a7a6c1a7fadb9ad8f49eabd457538a2ec8a6ab3eeff173a029131a2"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/measurement.rs",
+      "sha256": "7366e1a3377bd9005c22ddd7f603c52c2d09da4a28ca2045cdd85df3dff90f7d"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/session.rs",
+      "sha256": "1f1b3256d3df6f5ad090901aae752fdf53a60bcb643e32f545ea369a47ee71c4"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/subtree.rs",
+      "sha256": "db331af2b8cc66eb9042ffd546696046f0ed86d76e6beaddea313a4740d3a08b"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/task.rs",
+      "sha256": "906bce62ddad02953c2b2710491cafbca9849fc68a54e041da52a2e89664cf5a"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/work.rs",
+      "sha256": "00989079fc4cd11f5a4f849b2453b28add7b8f0cb4a3389811d20ec6d67e0160"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/worker.rs",
+      "sha256": "8e38252af9c5b891e2460be2de4a9b102f4ee66523e038e715db3754a2d7baa1"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "8ef8de8060739303c9a1b8c6ae4bd34b823e2d4ee5fe797312795677f3217992"
+    },
+    {
+      "path": "specs/backend-lifetime.spec.yaml",
+      "sha256": "54eb9f5dd4b3fdcd1323ebca395d6b85bfe60b1ef3bfe375cdc51a519b12b0f2"
+    },
+    {
+      "path": "specs/directory-tasks.spec.yaml",
+      "sha256": "5ede7c0f70a753f6a1d3c68e7767d8471c2658cc12a20046f5ea4706b83f61d1"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "2abadeea6bb94f96b357576db0beb3c8ee49376c247bf56075998c8055c97080"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "7f334460bac0ebe412e84b8f840cda42d0b5f0780b7c17a1ae2e774a9a6f530a"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "9970c6684ef089f2abdc515f80b3ab0f6caad2273c07115718c216b2e420262e"
+    },
+    {
+      "path": "src/scoped_metadata.rs",
+      "sha256": "07a8b5a733024ec838c38290902fc9f2a8cb4f031a41a7117f0aadc64503d0be"
+    }
+  ]
+}

@@ -2,11 +2,11 @@
 name = "buildhunter-plugin-policy"
 version = "0.1.0"
 edition = "2024"
-description = "Pure opt-in BuildHunter artifact plugin policy"
+description = "Pure BuildHunter artifact plugin policy and client profiles"
 license = "MIT"
 publish = false
 
-# Deliberately independent: root CLI builds must not resolve plugin dependencies.
+# Separately testable pure package; the host now depends on this catalog runtime.
 [workspace]
 
 [dependencies]

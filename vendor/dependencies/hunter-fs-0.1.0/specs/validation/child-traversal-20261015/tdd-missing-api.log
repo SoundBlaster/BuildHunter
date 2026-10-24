@@ -1,0 +1,143 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `children::ChildDecision`, `children::ChildTraversal`, `children::DirectoryRequest`, `children::PlannedChild`
+   --> crates/hunter-fs-core/src/lib.rs:298:20
+    |
+298 | pub use children::{ChildDecision, ChildTraversal, DirectoryRequest, PlannedChild};
+    |                    ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^ no `PlannedChild` in `children`
+    |                    |              |               |
+    |                    |              |               no `DirectoryRequest` in `children`
+    |                    |              no `ChildTraversal` in `children`
+    |                    no `ChildDecision` in `children`
+
+warning: unused import: `super::*`
+ --> crates/hunter-fs-core/src/children.rs:3:9
+  |
+3 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0433]: cannot find type `ChildTraversal` in this scope
+  --> crates/hunter-fs-core/src/children.rs:27:22
+   |
+27 |         let mut plan=ChildTraversal::new(t.entries(&["file","dir","file"]), Context {value:17,clones:clones.clone()}, true);
+   |                      ^^^^^^^^^^^^^^ use of undeclared type `ChildTraversal`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:29:83
+   |
+29 | ...| { checked.push(index); if index==0 {ChildDecision::Skip} else {ChildDecision::Visit} }).unwrap();
+   |                                          ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:29:110
+   |
+29 | ... index==0 {ChildDecision::Skip} else {ChildDecision::Visit} }).unwrap();
+   |                                          ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:39:64
+   |
+39 |         match plan.next_child(|index,_,_| {checked.push(index);ChildDecision::Visit}).unwrap() {
+   |                                                                ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildTraversal` in this scope
+  --> crates/hunter-fs-core/src/children.rs:48:41
+   |
+48 |         let t=Tree::new(); let mut plan=ChildTraversal::new(t.entries(&["file","dir","file"]), (), false);
+   |                                         ^^^^^^^^^^^^^^ use of undeclared type `ChildTraversal`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:49:40
+   |
+49 |         assert!(plan.next_child(|_,_,_|ChildDecision::Visit).is_some());
+   |                                        ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:51:54
+   |
+51 |         assert!(plan.next_child(|i,_,_|{seen.push(i);ChildDecision::Stop}).is_none());
+   |                                                      ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildTraversal` in this scope
+  --> crates/hunter-fs-core/src/children.rs:57:41
+   |
+57 |         let t=Tree::new(); let mut plan=ChildTraversal::new(Vec::new(), (), false);
+   |                                         ^^^^^^^^^^^^^^ use of undeclared type `ChildTraversal`
+
+error[E0433]: cannot find type `ChildTraversal` in this scope
+  --> crates/hunter-fs-core/src/children.rs:59:22
+   |
+59 |         let mut plan=ChildTraversal::new(t.entries(&["dir","file"]), (), false);
+   |                      ^^^^^^^^^^^^^^ use of undeclared type `ChildTraversal`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:60:40
+   |
+60 |         assert!(plan.next_child(|_,_,_|ChildDecision::Skip).is_none()); assert!(!plan.is_stopped());
+   |                                        ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildTraversal` in this scope
+  --> crates/hunter-fs-core/src/children.rs:66:22
+   |
+66 |         let mut plan=ChildTraversal::new(entries, 7, false);
+   |                      ^^^^^^^^^^^^^^ use of undeclared type `ChildTraversal`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:67:38
+   |
+67 |         match plan.next_child(|_,_,_|ChildDecision::Visit).unwrap() {
+   |                                      ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:71:49
+   |
+71 |         assert!(matches!(plan.next_child(|_,_,_|ChildDecision::Visit),Some(PlannedChild::Entry{index:1,..})));
+   |                                                 ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `ChildTraversal` in this scope
+  --> crates/hunter-fs-core/src/children.rs:81:22
+   |
+81 |         let mut plan=ChildTraversal::new(entries, (), true);
+   |                      ^^^^^^^^^^^^^^ use of undeclared type `ChildTraversal`
+
+error[E0433]: cannot find type `ChildDecision` in this scope
+  --> crates/hunter-fs-core/src/children.rs:82:38
+   |
+82 |         match plan.next_child(|_,_,_|ChildDecision::Visit).unwrap() {
+   |                                      ^^^^^^^^^^^^^ use of undeclared type `ChildDecision`
+
+error[E0433]: cannot find type `PlannedChild` in this scope
+  --> crates/hunter-fs-core/src/children.rs:83:13
+   |
+83 |             PlannedChild::Entry {path,file_type,index}=>{assert_eq!(path,raw);assert!(file_type.is_symlink());assert_eq!(index,0);}
+   |             ^^^^^^^^^^^^ use of undeclared type `PlannedChild`
+
+error[E0433]: cannot find type `PlannedChild` in this scope
+  --> crates/hunter-fs-core/src/children.rs:40:13
+   |
+40 | ...   PlannedChild::Entry {index,path,file_type} => {assert_eq!(index,2);assert_eq!(path,t.0.join("file"));assert!(file_type.is_file...
+   |       ^^^^^^^^^^^^ use of undeclared type `PlannedChild`
+
+error[E0433]: cannot find type `PlannedChild` in this scope
+  --> crates/hunter-fs-core/src/children.rs:68:13
+   |
+68 |             PlannedChild::Directory {request,..}=>{assert!(!request.measure);assert_eq!(request.context,7);}
+   |             ^^^^^^^^^^^^ use of undeclared type `PlannedChild`
+
+error[E0433]: cannot find type `PlannedChild` in this scope
+  --> crates/hunter-fs-core/src/children.rs:31:13
+   |
+31 |             PlannedChild::Directory {index,request} => {
+   |             ^^^^^^^^^^^^ use of undeclared type `PlannedChild`
+
+error[E0433]: cannot find type `PlannedChild` in this scope
+  --> crates/hunter-fs-core/src/children.rs:71:76
+   |
+71 |         assert!(matches!(plan.next_child(|_,_,_|ChildDecision::Visit),Some(PlannedChild::Entry{index:1,..})));
+   |                                                                            ^^^^^^^^^^^^ use of undeclared type `PlannedChild`
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.
+warning: `hunter-fs-core` (lib test) generated 1 warning
+error: could not compile `hunter-fs-core` (lib test) due to 21 previous errors; 1 warning emitted

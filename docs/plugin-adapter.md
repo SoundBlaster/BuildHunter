@@ -1,8 +1,9 @@
 # Pure BuildHunter plugin adapter
 
 Available as the independent Cargo package `crates/buildhunter-plugin-policy`.
-It has its own lockfile and is deliberately outside the root dependency graph.
-Building or installing the existing CLI does not resolve or fetch Rifle. Rifle is pinned to merge commit
+It remains independently testable with its own lockfile. R4 catalog preparation
+adds it to the host dependency graph; Cargo source replacement preserves fresh-cache
+offline CLI builds. Default scan entrypoints have not switched in this layer. Rifle is pinned to merge commit
 `693a284123faaa1ad3192cd88b259ba97a7b5910`. Cargo downloads the public dependency
 through HTTPS so hosted CI does not need an SSH key; developer Git remotes remain
 SSH. This does not change CLI/GUI defaults or connect plugins to traversal/FFI.

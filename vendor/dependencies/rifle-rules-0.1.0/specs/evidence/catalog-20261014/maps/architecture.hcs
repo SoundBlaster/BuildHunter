@@ -1,0 +1,43 @@
+Rifle:
+  boundary_spec: "rifle.program"
+  entrypoint: "src/lib.rs"
+  scope: "pure-program-evaluator"
+ProgramLoading:
+  source: "src/validate.rs"
+StrictJson:
+  source: "src/json.rs"
+SemanticValidation:
+  source: "src/validate.rs"
+ValidatedPlan:
+  source: "src/lib.rs"
+  implementation: "Plan + indexed Expression"
+Evaluation:
+  source: "src/lib.rs"
+  implementation: "Plan::evaluate + Expression::evaluate"
+ContractTests:
+  source: "tests/contract.rs"
+ContentIdentity:
+  source: "src/identity.rs"
+  boundary_spec: "rifle.catalog"
+CanonicalJson:
+  source: "src/identity.rs"
+  implementation: "JsonIdentity + serde_json_canonicalizer 0.4.1"
+Sha256Digest:
+  source: "src/identity.rs"
+ProgramCatalog:
+  source: "src/catalog.rs"
+  boundary_spec: "rifle.catalog"
+PackageValidation:
+  source: "src/catalog.rs"
+AggregateValidation:
+  source: "src/catalog.rs"
+@contract:
+  Rifle:
+    boundary_spec: string
+    entrypoint: string
+  ProgramLoading:
+    source: string
+  StrictJson:
+    source: string
+  Evaluation:
+    source: string

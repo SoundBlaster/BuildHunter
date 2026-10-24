@@ -1,0 +1,97 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.platform.process
+  title: Requested thread QoS and current-process resource snapshots
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Expose best-effort OS observations and explicit thread QoS propagation without scan policy.
+scope:
+  boundedContext: process_platform
+  includes:
+  - Requested thread QoS capture/apply; current-process CPU/RSS reads.
+  excludes:
+  - Scan scheduling, automatic worker setup, restoration guards, sampling timers,
+    percentages, averaging, peak calculation, UI, child-process accounting and budgets.
+provides:
+  capabilities:
+  - id: hunter.platform.requested_qos
+    role: primary
+    summary: Capture an opaque request and explicitly apply it on a receiving thread.
+  - id: hunter.platform.process_resources
+    role: supporting
+    summary: Read independent optional cumulative CPU times and resident bytes for self.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: requested_qos
+    kind: library
+    summary: thread_qos::capture() returns Copy RequestedQos; apply(RequestedQos)
+      affects only the thread calling apply, never another thread by identifier.
+  - id: process_reading
+    kind: library
+    summary: process_resources::read() returns Reading with cpu Option of user/system
+      nanoseconds and rss Option of current resident bytes.
+  outbound: []
+constraints:
+- id: qos_semantics
+  level: MUST
+  statement: On macOS capture the requested pthread QoS class and relative priority;
+    unspecified class or query failure means no request. Apply both captured values
+    on the calling thread and ignore set failures. Other platforms are no-ops.
+    Do not interpret requested QoS as effective QoS, promise scheduling or restore
+    the previous request automatically. The host chooses capture/apply order and threads.
+- id: process_scope
+  level: MUST
+  statement: Read current-process cumulative user/system CPU nanoseconds and current
+    RSS independently. They include unrelated activity in that process, exclude child
+    processes and are not an atomic paired snapshot. RSS is not peak memory or macOS
+    physical footprint; on Windows it is the working set.
+- id: absence
+  level: MUST
+  statement: Preserve missing counters as None independently, never fabricated zeroes.
+    Support macOS, 64-bit Linux and Windows; unsupported platforms return no counters.
+    Checked time/page conversions reject invalid or overflowing values. Acquisition
+    failures do not fail a scan or introduce retries, background tasks or callbacks.
+- id: host_assembly
+  level: MUST
+  statement: The consumer owns polling cadence, baseline/delta calculation, handling of
+    decreasing CPU counters, availability presentation and resource budgets. Captured
+    values are owned and contain no borrowed OS buffer. No selected-tree I/O occurs;
+    Linux reads only kernel accounting at /proc/self/statm.
+effects:
+  sideEffects:
+  - id: qos_request_effect
+    kind: state_mutation
+    summary: Explicit apply requests current-thread QoS on macOS; no restoration.
+  - id: accounting_query_effect
+    kind: filesystem_read
+    summary: Query OS accounting; Linux reads procfs, never the selected scan tree.
+evidence:
+- id: qos_source
+  kind: source
+  path: crates/hunter-fs-core/src/thread_qos.rs
+  supports: [interfaces.requested_qos, constraints.qos_semantics, constraints.host_assembly]
+- id: resource_source
+  kind: source
+  path: crates/hunter-fs-core/src/process_resources.rs
+  supports: [interfaces.process_reading, constraints.process_scope, constraints.absence, constraints.host_assembly]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Extracted from BuildHunter a9d3dec61c716a63009b3108e5fdacf06440c824
+    src/thread_qos.rs and src/process_resources.rs (MIT); algorithms and OS layouts preserved.
+  - Contracts are descriptive drafts. Local execution and hosted cross-platform
+    evidence are separate; tests cannot prove scheduler behavior or bounded whole-process memory.
+implementationBindings:
+- id: process_platform_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/thread_qos.rs, crates/hunter-fs-core/src/process_resources.rs]
+    border: [crates/hunter-fs-core/src/lib.rs]

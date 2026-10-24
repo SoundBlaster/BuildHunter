@@ -1,0 +1,117 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.scan_assembly
+  title: Guarded queue and scoped worker session assembly
+  version: 0.1.0-draft.2
+  status: draft
+intent:
+  summary: Compose a same-thread guard/backend scope with one owned queue and one scoped launch.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - with_scan_session, consuming ScanSession::run/run_engine, ScanChannel and EngineLaunch.
+  excludes:
+  - Root selection policy, task semantics, alternative channel/backpressure design,
+    status interpretation, telemetry, worker effects and resource budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.scan_assembly
+    role: primary
+    summary: Join scoped work before host finalization while backend and guard remain alive.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: assembly
+    kind: library
+    summary: with_scan_session(enter, prepare, maximum_workers, body) supplies a mutable
+      backend borrow and non-cloneable single-use ScanSession token to the body.
+  - id: launch
+    kind: library
+    summary: ScanSession::run(worker, start_helpers, coordinate) passes the shared queue
+      to the caller-thread coordinator and returns its result after scoped join.
+  - id: engine_launch
+    kind: library
+    summary: ScanSession run_engine accepts EngineLaunch (borrowed backend/raw root,
+      owned ScanChannel, preflight, wake interval), workers/helpers, host factory and
+      pre-join collection callback. Returns the collected result after actual join.
+  outbound: []
+constraints:
+- id: ordering
+  level: MUST
+  statement: Enter guard then prepare backend before constructing an empty queue and
+    selecting available parallelism capped by a positive host maximum. Run body on
+    caller thread. Consuming launch token starts helpers then workers then coordinator;
+    stop helpers, close queue and join before returning coordinator result to body.
+    Body may finalize before queue, owned backend and guard release in that order.
+- id: failures
+  level: MUST
+  statement: Preserve GuardedSetupError original Guard/Backend payloads and bypass
+    queue/cap selection and body on setup failure. Zero cap panics only after successful
+    preparation. Unused token launches no threads. Callback/worker panics propagate
+    after scoped joins; backend releases before guard during ordinary unwinding.
+- id: engine_channel_collection
+  level: MUST
+  statement: ScanChannel allocates one unbounded response channel when the host requests;
+    sender clones a producer. run_engine starts helpers/workers using existing run,
+    drops the original producer on coordinator entry, calls make_host on the caller,
+    runs ScanEngine, drops unread receiver then calls collect(host,outcome) before
+    helper stop, queue closure and join. Host/result may be non-Send. Factory/engine
+    panic releases receiver before join and skips collect. Collection panic still
+    joins before outer backend/guard release. Worker panic can surface at join after
+    collect already ran; collect completion is not terminal success. No extra worker,
+    stop probe, root observation, metadata I/O or normalization is introduced.
+- id: host_obligations
+  level: MUST
+  statement: Host retains root admission inside coordinator and chooses when to call
+    admit_root; no admission is moved ahead of worker startup. Host owns worker effects,
+    final publication and external producer handles. Low-level run callers own channels
+    and must release unread receivers before return/unwind join; run_engine owns its
+    ScanChannel and enforces that release. Construct the channel at the original host
+    startup point to retain profile/QoS timing. collect must release host-only state
+    before join where required and must not publish terminal events; final publication
+    remains after join. Helpers must stop when their stop guard drops, workers
+    must terminate on closure/host stop, and destructors must be well-behaved. No
+    guard-dependent resources may escape. External backend borrows remain external.
+    Guard restoration excludes abort/double panic; no timeout or memory bound follows.
+effects:
+  sideEffects:
+  - id: callbacks_threads
+    kind: event_emit
+    summary: Host factories/callbacks and scoped threads may perform independent effects.
+evidence:
+- id: assembly_source
+  kind: source
+  path: crates/hunter-fs-core/src/assembly.rs
+  supports: [intent.summary, scope, interfaces, constraints, effects]
+- id: engine_launch_source
+  kind: source
+  path: crates/hunter-fs-core/src/launch.rs
+  supports: [interfaces.inbound, constraints.engine_channel_collection, constraints.host_obligations, scope]
+- id: engine_launch_tests
+  kind: source
+  path: crates/hunter-fs-core/src/engine.rs
+  supports: [constraints.engine_channel_collection, constraints.ordering, constraints.failures]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter scan_session.rs at 404458276e3082fc37d302cdc0708a827e5ecc2e.
+    Four integration witnesses and compile-fail single-use check supplement existing
+    admission, scoped worker and guarded backend tests. Draft is not owner acceptance.
+  - run_engine composition recovered from BuildHunter scan_session.rs at
+    65c5b2ffd38d419aaf3541bfd594882e13a0832d. Four additional launch witnesses cover
+    receiver/collection/host-state release, factory/collection panic and root skip.
+    Fresh local receipts are separate from live/provider/hosted acceptance.
+implementationBindings:
+- id: assembly
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/assembly.rs, crates/hunter-fs-core/src/launch.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/lifetime.rs,
+      crates/hunter-fs-core/src/session.rs, crates/hunter-fs-core/src/admission.rs,
+      crates/hunter-fs-core/src/engine.rs]

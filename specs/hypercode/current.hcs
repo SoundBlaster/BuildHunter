@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/plugin-scoped-review-20261023/source-identity.json"
+  current_evidence: "specs/validation/r4-basic-catalog-20261023/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -100,7 +100,7 @@ AccessLifetime:
 PluginPolicy:
   source: "crates/buildhunter-plugin-policy/src/lib.rs"
   boundary_spec: "buildhunter.plugin.policy"
-  enabled_by: "independent buildhunter-plugin-policy crate"
+  enabled_by: "host dependency plus independently testable pure crate"
   connected_to_clients: false
 CatalogValidation:
   source: "crates/buildhunter-plugin-policy/src/validation.rs"
@@ -444,3 +444,20 @@ DescriptorListing:
 PreparedMetadataPass:
   implementation: "worker/coordinator directory handles; no content opens or pathname fallback"
   folded_into: "buildhunter.plugin.scanner"
+
+ClientCatalog:
+  source: "src/catalog.rs"
+  boundary_spec: "buildhunter.catalog.snapshot"
+BasicProfiles:
+  source: "crates/buildhunter-plugin-policy/src/builtin.rs"
+  folded_into: "buildhunter.catalog.snapshot"
+CatalogIdentity:
+  implementation: "full catalog digest, profile ID, all descriptors and frozen exclusions"
+  folded_into: "buildhunter.catalog.snapshot"
+CatalogHandle:
+  implementation: "version 1 owned C handle; copied inputs; borrowed immutable metadata until destruction"
+  folded_into: "buildhunter.catalog.snapshot"
+CandidateDispatch:
+  source: "crates/buildhunter-plugin-policy/src/dispatch.rs"
+  implementation: "conservative name index selects target-specific Rifle plans; unknown names retain candidates"
+  folded_into: "buildhunter.plugin.policy"

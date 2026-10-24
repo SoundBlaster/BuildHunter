@@ -1,0 +1,124 @@
+[
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.109,
+    "stdout": "",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/0.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--workspace",
+      "--all-features",
+      "--locked",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "seconds": 3.448,
+    "stdout": "\nrunning 9 tests\n.........\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 8 tests\n........\ntest result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 138 tests\n....................................................................................... 87/138\n...................................................\ntest result: ok. 138 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 2 tests\n..\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s\n\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/1.log",
+    "log_sha256": "359d4ca1a6cec86ccc4cfe0fca8ade9a8d4b008865ac29731bdec40dd10c6fdc"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "test",
+      "--workspace",
+      "--all-features",
+      "--locked",
+      "--release",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "seconds": 3.669,
+    "stdout": "\nrunning 9 tests\n.........\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 8 tests\n........\ntest result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 138 tests\n....................................................................................... 87/138\n...................................................\ntest result: ok. 138 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 2 tests\n..\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/2.log",
+    "log_sha256": "6b094f3973aee448375173544f7afa0638ee82e1ba8c4301a52ff56e3e3f80a5"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-features",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "seconds": 0.4,
+    "stdout": "",
+    "stderr": "    Checking hunter-fs v0.1.0 (/Users/egor/Development/GitHub/Hunter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s\n",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/3.log",
+    "log_sha256": "1013a0b53188dad91904b03276b9b9e184c81baca299d72fd1433335ff222825"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "seconds": 0.019,
+    "stdout": "HunterPrimitives\n  ScopedMetadata\n    DescriptorLifetime\n    RegularFileObservation\n    LocalMetadataGuard\n  ScopedFilesystem\n    SelectedRootAnchor\n    DescriptorEnumeration\n    PreparedDirectoryMetadata\n  PortableDirectory\n  MetadataSizing\n  ScopedWork\n    TaskQueue\n    WorkerLaunch\n    Shutdown\n  DirectoryTasks\n    MeasurementPlanning\n    ResultEnvelope\n  ChildTraversal\n    HostSelection\n    RecursiveRequests\n  TaskLedger\n    TaskIdentity\n    ResponseAccounting\n    DeferredState\n  SubtreeProgress\n    ByteAggregation\n    CompletionReadiness\n    PartialCompletion\n  ScanExecution\n    ResultPump\n    IdleCheckpoint\n    StopBoundary\n  FilesystemBackend\n    NativePathAccess\n    RootObservation\n    ScopedAcquisitionInterface\n  DirectoryWorker\n    TaskExecution\n    ListingFirst\n    PublicationBoundary\n  DirectoryAcquisition\n    OrderedCollection\n    ContextObservation\n    AcquisitionOutcome\n  MeasurementBackend\n    DirectoryPreparation\n    PreparedFileEffects\n    SharedSlotExecution\n  ScopedSession\n    HelperStartup\n    QueueShutdown\n    JoinBoundary\n  RootAdmission\n    HostPreflight\n    AdmissionOutcome\n  BackendLifetime\n    GuardedPreparation\n    BackendRelease\n    ThreadMaterializationPolicy\n  ScanAssembly\n    GuardedQueue\n    SingleLaunch\n    HostFinalization\n    EngineLaunch\n      ResponseChannel\n      HostConstruction\n      PreJoinCollection\n  TraversalCoordinator\n    RootInitialization\n    OwnedTaskAccounting\n    HostInterpretation\n  EntryProcessing\n    ChildRouting\n    SelectedMetadata\n    CompletionCallbacks\n  ScanEngine\n    ResponseInterpretation\n    BranchPreparation\n    DeferredResolution\n  DarwinBatchMetadata\n    NoFollowOpen\n    CheckedRecords\n    BatchCheckpoint\n  PreparedDirectorySizes\n    ConsumeOnceLookup\n    BatchErrorFallback\n  ProcessPlatform\n    RequestedThreadQos\n    ProcessResourceSnapshot\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/4.log",
+    "log_sha256": "c8cf358415fc496efc4daa6aada296057d97802f1dd38cb592ecd5fcc9fbd02f"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "seconds": 0.013,
+    "stdout": "ok: no issues found\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/5.log",
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.347,
+    "stdout": "{\n  \"capabilities\": [\n    \"hunter.fs.backend\",\n    \"hunter.fs.backend_lifetime\",\n    \"hunter.fs.child_traversal\",\n    \"hunter.fs.darwin_bulk_metadata\",\n    \"hunter.fs.directory_listing\",\n    \"hunter.fs.directory_tasks\",\n    \"hunter.fs.directory_worker\",\n    \"hunter.fs.entry_processing\",\n    \"hunter.fs.measurement_backend\",\n    \"hunter.fs.portable\",\n    \"hunter.fs.prepared_directory_sizes\",\n    \"hunter.fs.root_admission\",\n    \"hunter.fs.scan_assembly\",\n    \"hunter.fs.scan_engine\",\n    \"hunter.fs.scan_execution\",\n    \"hunter.fs.scoped_filesystem\",\n    \"hunter.fs.scoped_metadata\",\n    \"hunter.fs.scoped_session\",\n    \"hunter.fs.subtree_progress\",\n    \"hunter.fs.task_ledger\",\n    \"hunter.fs.traversal_coordinator\",\n    \"hunter.fs.work\",\n    \"hunter.platform.process_resources\",\n    \"hunter.platform.requested_qos\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/backend-lifetime.spec.yaml\",\n    \"specs/child-traversal.spec.yaml\",\n    \"specs/darwin-bulk.spec.yaml\",\n    \"specs/directory-listing.spec.yaml\",\n    \"specs/directory-tasks.spec.yaml\",\n    \"specs/directory-worker.spec.yaml\",\n    \"specs/entry-processing.spec.yaml\",\n    \"specs/filesystem-backend.spec.yaml\",\n    \"specs/measurement-backend.spec.yaml\",\n    \"specs/portable.spec.yaml\",\n    \"specs/prepared-batch.spec.yaml\",\n    \"specs/process-platform.spec.yaml\",\n    \"specs/root-admission.spec.yaml\",\n    \"specs/scan-assembly.spec.yaml\",\n    \"specs/scan-engine.spec.yaml\",\n    \"specs/scan-execution.spec.yaml\",\n    \"specs/scoped-filesystem.spec.yaml\",\n    \"specs/scoped-metadata.spec.yaml\",\n    \"specs/scoped-session.spec.yaml\",\n    \"specs/subtree-progress.spec.yaml\",\n    \"specs/task-ledger.spec.yaml\",\n    \"specs/traversal-coordinator.spec.yaml\",\n    \"specs/work.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"Hunter filesystem primitives\",\n    \"package_id\": \"hunter.filesystem\",\n    \"version\": \"0.1.0-draft.24\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 15,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"interfaces.inbound.0.id\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: metadata (effects.sideEffects.0.id, interfaces.inbound.0.id)\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/scoped-filesystem.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/portable.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/filesystem-backend.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/directory-worker.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.work\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/directory-worker.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/directory-listing.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.portable\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/measurement-backend.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.directory_tasks\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/scoped-session.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.work\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/root-admission.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: hunter.fs.backend\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"effects.sideEffects.0.id\",\n      \"file\": \"specs/backend-lifetime.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: thread_policy (constraints.2.id, effects.sideEffects.0.id)\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"interfaces.inbound.0.id\",\n      \"file\": \"specs/scan-assembly.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: assembly (implementationBindings.0.id, interfaces.inbound.0.id)\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"interfaces.inbound.0.id\",\n      \"file\": \"specs/traversal-coordinator.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: coordinator (implementationBindings.0.id, interfaces.inbound.0.id)\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/darwin-bulk.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": "",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/Hunter-66bb94ef0aea8ae3/scoped-filesystem-20261023/6.log",
+    "log_sha256": "763c14b9476fa34c581be68e1d201e0a47357711f0bf248e1688c8fc4f192bec"
+  }
+]

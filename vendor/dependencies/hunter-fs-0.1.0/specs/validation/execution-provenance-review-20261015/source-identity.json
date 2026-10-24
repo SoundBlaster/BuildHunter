@@ -1,0 +1,27 @@
+{
+  "recorded_at_utc": "2026-10-15T21:11:10.996699+00:00",
+  "runtime_revision": "3af2a4dd549f473e79364b45f248197ee4ec57ee",
+  "canonical_distribution_unchanged": true,
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "1d995a4951608b11adf60d0e0d070677be52613fe11f4e3703bfd8f35656cb8a"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "ef0603c7fca49ea14d2ef1b16a828b0688bd03301daab8a146d6a0e1630f6781"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "4fa54933d382ec13f4646414a64b1d796ac03cf54a8194a48f747043e45a1281"
+    },
+    {
+      "path": "specs/scan-execution.spec.yaml",
+      "sha256": "90f270c362ddee4ba21d080ba2c14d82e26e19d6704ceda2ef658dd51fad55af"
+    },
+    {
+      "path": "specs/validation/scan-execution-20261015/output-locations.json",
+      "sha256": "b5d14b9a4ea17b7b6e859e34fabfe9a122b579d130f7c1cad8ab69404c1483d1"
+    }
+  ]
+}

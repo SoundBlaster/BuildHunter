@@ -446,3 +446,183 @@ fn new_ecosystem_rule_is_evaluated_without_fixed_marker_vocabulary() {
         Decision::Found("example.forge-output".into())
     );
 }
+
+#[test]
+fn two_hundred_targets_request_only_the_relevant_marker() {
+    let mut doc: Value = serde_json::from_slice(RUST).unwrap();
+    doc["id"] = json!("example.dispatch");
+    let mut facts = vec![
+        json!({"id":"name","type":"string"}),
+        json!({"id":"kind","type":"string"}),
+    ];
+    let mut bindings = json!({"name":{"source":"node.name"},"kind":{"source":"node.kind"}});
+    let mut rules = Vec::new();
+    let mut targets = Vec::new();
+    for i in 0..200 {
+        let fact = format!("marker-{i}");
+        facts.push(json!({"id":fact,"type":"boolean"}));
+        bindings[&fact] =
+            json!({"source":"marker","scope":"own","name":format!("project-{i}.toml")});
+        rules.push(json!({"id":format!("rule-{i}"),"when":{"all":[
+            {"fact":"name","op":"eq","value":format!("cache-{i}")},
+            {"fact":"kind","op":"eq","value":"directory"},
+            {"fact":fact,"op":"eq","value":true}
+        ]}}));
+        targets.push(json!({"id":format!("example.target-{i}"),"title":format!("Cache {i}"),"ecosystem":"example","kind":"cache","ruleIds":[format!("rule-{i}")]}));
+    }
+    doc["program"]["facts"] = json!(facts);
+    doc["program"]["rules"] = json!(rules);
+    doc["bindings"] = bindings;
+    doc["targets"] = json!(targets);
+    let documents = (0..2)
+        .map(|batch| {
+            let mut document = doc.clone();
+            document["id"] = json!(format!("example.dispatch-{batch}"));
+            document["program"]["rules"] =
+                json!(doc["program"]["rules"].as_array().unwrap()[batch * 100..(batch + 1) * 100]);
+            document["targets"] =
+                json!(doc["targets"].as_array().unwrap()[batch * 100..(batch + 1) * 100]);
+            document["program"]["facts"]
+                .as_array_mut()
+                .unwrap()
+                .retain(|f| {
+                    let id = f["id"].as_str().unwrap();
+                    id.strip_prefix("marker-").is_none_or(|i| {
+                        (batch * 100..(batch + 1) * 100).contains(&i.parse::<usize>().unwrap())
+                    })
+                });
+            let used = document["program"]["facts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|f| f["id"].as_str().unwrap().to_owned())
+                .collect::<BTreeSet<_>>();
+            document["bindings"]
+                .as_object_mut()
+                .unwrap()
+                .retain(|id, _| used.contains(id));
+            serde_json::to_vec(&document).unwrap()
+        })
+        .collect::<Vec<_>>();
+    let inputs = documents
+        .iter()
+        .map(|bytes| input(bytes, Origin::External))
+        .collect::<Vec<_>>();
+    for exclusions in [&[][..], &["example.target-137"][..]] {
+        let catalog = PluginCatalog::load(&inputs, exclusions).unwrap();
+        let requested = catalog.candidate_marker_requests(Some("cache-137"), NodeKind::Directory);
+        assert_eq!(requested.len(), usize::from(exclusions.is_empty()));
+        if let Some(probe) = requested.first() {
+            assert_eq!(probe.name, "project-137.toml");
+        }
+        let markers = requested
+            .into_iter()
+            .map(|p| (p.clone(), MarkerFact::Known(true)))
+            .collect();
+        let result = catalog
+            .classify(facts_for_dispatch(Some("cache-137"), &markers))
+            .unwrap();
+        assert_eq!(
+            result.decision,
+            if exclusions.is_empty() {
+                Decision::Found("example.target-137".into())
+            } else {
+                Decision::NoMatch
+            }
+        );
+        assert!(
+            catalog
+                .candidate_marker_requests(Some("ordinary"), NodeKind::Directory)
+                .is_empty()
+        );
+    }
+}
+
+fn facts_for_dispatch<'a>(
+    name: Option<&'a str>,
+    markers: &'a BTreeMap<MarkerProbe, MarkerFact<'a>>,
+) -> CandidateFacts<'a> {
+    CandidateFacts {
+        name,
+        kind: NodeKind::Directory,
+        markers,
+    }
+}
+
+#[test]
+fn indexed_dispatch_agrees_with_rifle_for_boolean_and_unavailable_facts() {
+    let eq = json!({"fact":"name","op":"eq","value":"target"});
+    let suffix = json!({"fact":"name","op":"suffix","value":"get"});
+    let marker = json!({"fact":"project","op":"eq","value":true});
+    let expressions = vec![
+        json!({"all":[eq.clone(), marker.clone()]}),
+        json!({"any":[eq.clone(),marker.clone()]}),
+        json!({"not":eq.clone()}),
+        json!({"all":[{"not":eq.clone()},marker.clone()]}),
+        json!({"any":[{"all":[eq.clone(),marker.clone()]},suffix.clone()]}),
+        json!({"all":[{"any":[eq.clone(),suffix]},marker.clone()]}),
+        json!({"all":[{"fact":"name","op":"in","values":["target","other"]},marker]}),
+    ];
+    for expression in expressions {
+        let mut doc: Value = serde_json::from_slice(RUST).unwrap();
+        doc["program"]["rules"][0]["when"] = expression;
+        // Keep exactly the used facts, as required by Rifle validation.
+        let text = doc["program"]["rules"].to_string();
+        doc["program"]["facts"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|f| text.contains(&format!("\"fact\":\"{}\"", f["id"].as_str().unwrap())));
+        let used = doc["program"]["facts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|f| f["id"].as_str().unwrap().to_owned())
+            .collect::<BTreeSet<_>>();
+        doc["bindings"]
+            .as_object_mut()
+            .unwrap()
+            .retain(|id, _| used.contains(id));
+        let bytes = serde_json::to_vec(&doc).unwrap();
+        let catalog = load(&bytes).unwrap();
+        let plan =
+            rifle_rules::Plan::from_json(&serde_json::to_vec(&doc["program"]).unwrap()).unwrap();
+        for name in [Some("target"), Some("other"), Some("unrelated"), None] {
+            for marker in [
+                MarkerFact::Known(true),
+                MarkerFact::Known(false),
+                MarkerFact::Unavailable("denied"),
+            ] {
+                let markers = BTreeMap::from([(rust_marker(), marker)]);
+                let actual = catalog
+                    .classify(facts_for_dispatch(name, &markers))
+                    .unwrap();
+                let values = plan
+                    .facts()
+                    .iter()
+                    .map(|f| match f.id.as_str() {
+                        "name" => name
+                            .map(rifle_rules::FactValue::String)
+                            .unwrap_or(rifle_rules::FactValue::Unavailable("invalid_name")),
+                        "project" => match marker {
+                            MarkerFact::Known(v) => rifle_rules::FactValue::Boolean(v),
+                            MarkerFact::Unavailable(reason) => {
+                                rifle_rules::FactValue::Unavailable(reason)
+                            }
+                        },
+                        _ => unreachable!(),
+                    })
+                    .collect::<Vec<_>>();
+                let expected = match plan.evaluate(&values).unwrap()[0].truth {
+                    rifle_rules::Truth::True => Decision::Found("rust.target".into()),
+                    rifle_rules::Truth::False => Decision::NoMatch,
+                    rifle_rules::Truth::Unknown => Decision::Indeterminate,
+                };
+                assert_eq!(
+                    actual.decision, expected,
+                    "name={name:?}, expression={}",
+                    doc["program"]["rules"][0]["when"]
+                );
+            }
+        }
+    }
+}

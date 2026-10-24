@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: buildhunter.module_architecture
   name: BuildHunter current boundaries and target module architecture
-  version: 0.1.0-draft.34
+  version: 0.1.0-draft.35
   summary: Reviewable current boundaries and target modular architecture, including
     integrated Hunter scan engine/session and remaining backend, OS primitive and plugin delivery work.
   license: MIT
@@ -19,6 +19,7 @@ specs:
 - path: specs/rifle-design.spec.yaml
 - path: specs/buildhunter-design.spec.yaml
 - path: specs/arsenal-design.spec.yaml
+- path: specs/catalog-snapshot.spec.yaml
 - path: specs/plugin-policy.spec.yaml
 - path: specs/plugin-scanner.spec.yaml
 index:
@@ -33,6 +34,7 @@ index:
     - rifle.design.rules
     - buildhunter.design.product
     - arsenal.design.catalog
+    - buildhunter.catalog.snapshot
     - buildhunter.plugin.policy
     - buildhunter.plugin.scan
   requires:

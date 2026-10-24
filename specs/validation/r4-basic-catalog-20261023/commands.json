@@ -1,0 +1,112 @@
+[
+  {
+    "name": "root-all-features",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features",
+      "--quiet"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-root-all-features.log"
+  },
+  {
+    "name": "root-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--quiet",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-root-clippy.log"
+  },
+  {
+    "name": "policy-release",
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "crates/buildhunter-plugin-policy/Cargo.toml",
+      "--locked",
+      "--offline",
+      "--release",
+      "--quiet"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-policy-release.log"
+  },
+  {
+    "name": "policy-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "crates/buildhunter-plugin-policy/Cargo.toml",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--quiet",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 101,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-policy-clippy.log"
+  },
+  {
+    "name": "policy-clippy-fixed",
+    "command": [
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "crates/buildhunter-plugin-policy/Cargo.toml",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--quiet",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-policy-clippy-fixed.log"
+  },
+  {
+    "name": "header",
+    "command": [
+      "clang",
+      "-x",
+      "c",
+      "-fsyntax-only",
+      "macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-header.log"
+  },
+  {
+    "name": "project",
+    "command": [
+      "plutil",
+      "-lint",
+      "macos/BuildHunter.xcodeproj/project.pbxproj"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r4-basic-project.log"
+  }
+]

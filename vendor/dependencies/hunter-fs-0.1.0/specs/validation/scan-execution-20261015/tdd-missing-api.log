@@ -1,0 +1,12 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `crate::CoordinatorExit`, `crate::ScanCoordinator`, `crate::drive_scan`
+ --> crates/hunter-fs-core/src/execution.rs:3:17
+  |
+3 |     use crate::{CoordinatorExit, ScanCoordinator, drive_scan};
+  |                 ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^ no `drive_scan` in the root
+  |                 |                |
+  |                 |                no `ScanCoordinator` in the root
+  |                 no `CoordinatorExit` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `hunter-fs-core` (lib test) due to 1 previous error

@@ -1,0 +1,95 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.backend_lifetime
+  title: Guarded backend preparation and lifetime
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Own same-thread guard and backend cleanup around synchronous scan work.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - with_guarded_backend, GuardedSetupError and NonMaterializingIoGuard.
+  excludes:
+  - Backend algorithm/selection, cloud path policy, error/status decoration,
+    permission prompts, syscall interruption, asynchronous task ownership and budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.backend_lifetime
+    role: primary
+    summary: Prepare/use/drop the owned backend while the same-thread guard is active.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: lifetime
+    kind: library
+    summary: with_guarded_backend(enter -> Result guard, prepare -> Result backend,
+      run -> result). GuardedSetupError distinguishes unchanged Guard/Backend errors.
+  - id: thread_guard
+    kind: library
+    summary: NonMaterializingIoGuard::enter; macOS current_policy provides raw
+      thread-policy diagnostics. Re-exported by hunter-fs and hunter-fs-core.
+  outbound: []
+constraints:
+- id: ordering
+  level: MUST
+  statement: Enter guard before preparing backend, then invoke body with a mutable
+    backend borrow on the calling thread. Drop owned backend before guard and before
+    successful return. No Send/Sync/Clone/static bound is imposed on helper inputs,
+    errors or results; no thread is created by this helper.
+- id: failures
+  level: MUST
+  statement: Guard failure skips prepare/body. Backend failure skips body and releases
+    guard. Preserve original error payloads in distinct variants. Factory/body panics
+    propagate; owned backend drops before guard when unwinding from body. Guard also
+    releases after a single backend-destructor panic. Arbitrary unused callback captures
+    are outside the backend cleanup-order guarantee. Double panic/abort cannot promise cleanup.
+- id: thread_policy
+  level: MUST
+  statement: On macOS read current MATERIALIZE_DATALESS_FILES thread policy, set OFF,
+    and retain the original value for best-effort restoration in Drop on the same
+    thread. A non-Send/non-Sync marker prevents thread transfer. Failed reads/sets
+    return original OS errors. Other platforms use a no-op guard and provide no
+    download-prevention guarantee. This is not a universal cloud-provider guarantee.
+- id: host_obligations
+  level: MUST
+  statement: Host chooses guard/backend constructors, interprets setup errors and
+    ensures all scoped work and guard-dependent cleanup finish before body return.
+    Do not extract guard-dependent handles into the result or external state.
+    Externally borrowed backend state remains externally owned. Guard destructors
+    must not panic. Active I/O/callbacks must terminate; no watchdog is introduced.
+effects:
+  sideEffects:
+  - id: thread_policy
+    kind: state_mutation
+    summary: Read/set/restore Darwin calling-thread I/O policy; no-op elsewhere.
+  - id: host_callbacks
+    kind: event_emit
+    summary: Synchronous host factories/body/destructors may perform independent effects.
+evidence:
+- id: lifetime_source
+  kind: source
+  path: crates/hunter-fs-core/src/lifetime.rs
+  supports: [intent.summary, scope, interfaces, constraints.ordering, constraints.failures, constraints.host_obligations]
+- id: guard_source
+  kind: source
+  path: crates/hunter-fs-core/src/materialization.rs
+  supports: [constraints.thread_policy, effects]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Recovered from BuildHunter coordinator/worker guard scopes at 86c3defd3d40f36940340070f9eaa113191e2323.
+    Five generic lifetime witnesses and a Darwin nested/unwind witness are distinct
+    from product integration tests and live cloud acceptance. Draft is not acceptance.
+implementationBindings:
+- id: backend_lifetime
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/lifetime.rs, crates/hunter-fs-core/src/materialization.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, src/lib.rs, Cargo.toml]

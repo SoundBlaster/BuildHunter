@@ -73,6 +73,18 @@ typedef void (*BHEventCallback)(void *context, const BHScanEvent *event);
  * immutable and valid for the lifetime of the process; callers must not free it. */
 const char *bh_search_filter_catalog_json(void);
 
+/* Catalog ABI 1: profile 1 buildhunter.cli/1, profile 2 buildhunter.gui/1.
+ * exclusions is a UTF-8 JSON array of stable target IDs (null/0 means []).
+ * Creation copies data, validates all bundled plugins and applies exclusions.
+ * The immutable snapshot retains unknown valid IDs. Malformed input returns null.
+ * JSON describes format, profile, digest, all target descriptors and exclusions.
+ * Metadata pointers are borrowed until destruction. Keep the handle alive across
+ * every scan/reader; destroy exactly once after they have finished. */
+uint32_t bh_catalog_abi_version(void);
+void *bh_catalog_create(uint32_t profile, const uint8_t *exclusions, size_t len);
+const char *bh_catalog_json(const void *catalog);
+void bh_catalog_destroy(void *catalog);
+
 void *bh_scan_control_create(void);
 /* Cancellation is thread-safe. Destroy the control only after bh_scan returns;
  * serialize destruction with cancellation so no caller uses a destroyed handle.

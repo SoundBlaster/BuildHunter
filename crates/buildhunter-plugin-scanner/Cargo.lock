@@ -15,7 +15,10 @@ dependencies = [
 name = "build-hunter"
 version = "0.1.0"
 dependencies = [
+ "buildhunter-plugin-policy",
+ "hunter-fs",
  "hunter-fs-core",
+ "serde_json",
 ]
 
 [[package]]

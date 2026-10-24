@@ -1,0 +1,108 @@
+{
+  "recorded_at_utc": "2026-10-13T22:25:55.571808+00:00",
+  "bootstrap_revision": "4f5798f",
+  "schema_source_revision": "79fa49303e73a595330fcb7441d5f8c2f430098d",
+  "note": "New source/test/doc inputs pinned independently of the bootstrap Git revision. Validation/evidence directories excluded to avoid recursive hashes.",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "32df386d75ecf59f0761fd955a77f8be1dce698369ac7b0ae14287f593648d17"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "e24ee6b8d1ea018139be37dc6e3b6d6fb2c359aff6f0783718adfbed362f7957"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "83e94e0c0eb6dfecca27941f034dd9d577ce535ff2c0037b11db4d157a261438"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "d1ccf3defb43dd39f6e3babf31bfefd1ac515cc6b8210e50f7b9472722fb6692"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "461e24b3490c003db4c5e4225e5d029733b8d444941fcadde4bdc5681c3c97ff"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1"
+    },
+    {
+      "path": "README.md",
+      "sha256": "1e8564c69cac57d49cb42a3c63bfb15ed3d77c2018203a455206cae45ca17ec0"
+    },
+    {
+      "path": "docs/contract.md",
+      "sha256": "91d5e84c393499d5b4d6c68dcbf1279529b92abfda8419cb20bbfbdf9e4a3941"
+    },
+    {
+      "path": "examples/evaluate.rs",
+      "sha256": "2e66ebacf0f6c0525f027626ee5631c528aeedcc5bde762e3c55426c16a4462b"
+    },
+    {
+      "path": "fixtures/rust-program.json",
+      "sha256": "2af96efd84ebc89279663efac4c79e2709c37a8dc0708aa01f0fec9e4250d8e3"
+    },
+    {
+      "path": "fixtures/synthetic-program.json",
+      "sha256": "1c747ec3af43646493dc1b56f6f272e0d0868f386b897d1b8285d291aee8cc05"
+    },
+    {
+      "path": "schemas/program.schema.json",
+      "sha256": "2e77d3b8493ac486e6679cb5a13311dcd9e78427cadaa5cd826a1f6c1ccbeee3"
+    },
+    {
+      "path": "scripts/ci_changes.py",
+      "sha256": "4caa9781badf7e269df0ef542ee5e07cf48ead73a4f8146ead5c7bb214954078"
+    },
+    {
+      "path": "scripts/schema-requirements.txt",
+      "sha256": "756cc9e506ae4ee1a6f6c0507088b5cfc0dc8ba350fb2d2d46f1ffa72033adb6"
+    },
+    {
+      "path": "scripts/test_ci_changes.py",
+      "sha256": "5d3dcc4c2369cdd89e1faacb60f251dcaa3427fe7c520ee3a4ae93ae5938e5d0"
+    },
+    {
+      "path": "scripts/test_schema.py",
+      "sha256": "7eab4b4c2175a141cef21b1abdcfff5c9b6831b2c0d5063cf40519664266fc7e"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "21b56b17a1ae4ded92290a93b26709a710b4e47518f31536bf15c211631f3f57"
+    },
+    {
+      "path": "specs/hypercode/architecture.hc",
+      "sha256": "98424c357bd2626441583cb4339c926f460d3bbdeaa3b57864c985cffe377400"
+    },
+    {
+      "path": "specs/hypercode/architecture.hcs",
+      "sha256": "9c4c90645ddf717126698443a01bd8c059f1e691387aa14a66dff0c1659ddd8f"
+    },
+    {
+      "path": "specs/program.spec.yaml",
+      "sha256": "966f98cb1f15191705c85bee2a4c5ec10eac3a0ae2808b3d5c68f9146d26ff82"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "1e81a93a0a024ab918064cafabd5b35a3492aadf9b3e0b4a924696373d2cf897"
+    },
+    {
+      "path": "src/json.rs",
+      "sha256": "967245061add8f3ca497172871f7fb0e8bdc7f70ec121b5e9ebb3260f78c382c"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "45b22645acb9a0c72f950e04ae51150a5edf3161db026a5df969711f001c8aa2"
+    },
+    {
+      "path": "src/validate.rs",
+      "sha256": "a68ff086b70ba3cb45629173a9a025877d61f5d57ec5068d622f4c59e3ae677d"
+    },
+    {
+      "path": "tests/contract.rs",
+      "sha256": "d4c269c8f450bf221aa0287c999fccda97474c37c19be6a44424ffc84b34f824"
+    }
+  ]
+}

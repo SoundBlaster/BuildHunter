@@ -1,0 +1,140 @@
+{
+  "recorded_at_utc": "2026-10-14T05:11:51.242697+00:00",
+  "baseline": "fb319c7ccaa005f6f63ffbeaa034dd3b4ddb7c73",
+  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+  "hypercode_sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b",
+  "specpm_version": "specpm 0.2.0",
+  "commands": [
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "test",
+        "--locked",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest negation_never_matches_unavailable_fact ... ok\ntest known_and_unknown_are_distinct ... ok\ntest duplicate_json_keys_and_ids_are_rejected_before_information_is_lost ... ok\ntest parser_rejects_invalid_unicode_trailing_data_and_nested_duplicates ... ok\ntest input_errors_are_not_rule_false_and_plan_is_reusable ... ok\ntest concurrent_read_only_evaluation ... ok\ntest published_program_examples_need_no_artifact_vocabulary_in_engine ... ok\ntest string_operations_are_exact_and_typed ... ok\ntest unknown_diagnostics_are_sorted_deduplicated_and_relevant ... ok\ntest reject_version_fields_references_and_types ... ok\ntest identifiers_lengths_types_and_subobjects_are_closed ... ok\ntest malformed_conditions_and_literals_are_rejected ... ok\ntest complete_three_valued_truth_tables_and_permutations ... ok\ntest limit_boundaries_are_enforced ... ok\ntest accepted_count_and_node_boundaries_are_not_off_by_one ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 12 tests\ntest malformed_input_and_unsafe_integer_metadata_are_not_silently_hashed ... ok\ntest utf16_key_order_and_escaping_are_jcs_not_rust_string_sorting ... ok\ntest identity_is_exact_canonical_sha256_and_preserves_arrays_and_unicode ... ok\ntest jcs_rfc_serialization_vector ... ok\ntest catalog_owns_its_snapshot_and_preserves_evaluator_input_contract ... ok\ntest integer_token_admission_does_not_scan_inside_strings_or_change_jcs_floats ... ok\ntest opaque_host_fields_are_hashed_but_not_claimed_valid_by_rifle ... ok\ntest invalid_package_is_atomic_and_reports_program_location ... ok\ntest duplicate_packages_fail_even_across_versions_but_local_rule_ids_are_namespaced ... ok\ntest catalog_order_is_stable_and_full_package_content_is_covered ... ok\ntest package_header_and_aggregate_limits_are_enforced ... ok\ntest aggregate_rules_and_nodes_are_counted_not_just_package_count ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s\n     Running unittests src/lib.rs (target/debug/deps/rifle_rules-7283a0c17e68174d)\n     Running tests/contract.rs (target/debug/deps/contract-aa9ab95838ffc255)\n     Running tests/identity_catalog.rs (target/debug/deps/identity_catalog-2556faf16dd6a074)\n     Running unittests examples/catalog.rs (target/debug/examples/catalog-16a0edecd7c15323)\n     Running unittests examples/evaluate.rs (target/debug/examples/evaluate-421d33a7775188ed)\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest parser_rejects_invalid_unicode_trailing_data_and_nested_duplicates ... ok\ntest known_and_unknown_are_distinct ... ok\ntest negation_never_matches_unavailable_fact ... ok\ntest published_program_examples_need_no_artifact_vocabulary_in_engine ... ok\ntest input_errors_are_not_rule_false_and_plan_is_reusable ... ok\ntest duplicate_json_keys_and_ids_are_rejected_before_information_is_lost ... ok\ntest concurrent_read_only_evaluation ... ok\ntest string_operations_are_exact_and_typed ... ok\ntest reject_version_fields_references_and_types ... ok\ntest malformed_conditions_and_literals_are_rejected ... ok\ntest unknown_diagnostics_are_sorted_deduplicated_and_relevant ... ok\ntest identifiers_lengths_types_and_subobjects_are_closed ... ok\ntest complete_three_valued_truth_tables_and_permutations ... ok\ntest limit_boundaries_are_enforced ... ok\ntest accepted_count_and_node_boundaries_are_not_off_by_one ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest identity_is_exact_canonical_sha256_and_preserves_arrays_and_unicode ... ok\ntest utf16_key_order_and_escaping_are_jcs_not_rust_string_sorting ... ok\ntest integer_token_admission_does_not_scan_inside_strings_or_change_jcs_floats ... ok\ntest jcs_rfc_serialization_vector ... ok\ntest catalog_owns_its_snapshot_and_preserves_evaluator_input_contract ... ok\ntest opaque_host_fields_are_hashed_but_not_claimed_valid_by_rifle ... ok\ntest malformed_input_and_unsafe_integer_metadata_are_not_silently_hashed ... ok\ntest invalid_package_is_atomic_and_reports_program_location ... ok\ntest duplicate_packages_fail_even_across_versions_but_local_rule_ids_are_namespaced ... ok\ntest catalog_order_is_stable_and_full_package_content_is_covered ... ok\ntest package_header_and_aggregate_limits_are_enforced ... ok\ntest aggregate_rules_and_nodes_are_counted_not_just_package_count ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `release` profile [optimized] target(s) in 1.28s\n     Running unittests src/lib.rs (target/release/deps/rifle_rules-06f4561238fd701c)\n     Running tests/contract.rs (target/release/deps/contract-4ac684cf1aff5980)\n     Running tests/identity_catalog.rs (target/release/deps/identity_catalog-fe9367c6eaf86cbe)\n     Running unittests examples/catalog.rs (target/release/examples/catalog-a1440b017b3ad86c)\n     Running unittests examples/evaluate.rs (target/release/examples/evaluate-e9cd16935e669d57)\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "    Checking rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "run",
+        "--locked",
+        "--example",
+        "catalog"
+      ],
+      "exit_code": 0,
+      "stdout": "catalog a7329c8f8e4eba4e9b78d91920c8d555e7520bab962e0f2ebd63016dc91dadbe\npackage 228430cd7ba3d6c29452f63a0e680895b3e5c299086b13aa3881291561ac361b\n",
+      "stderr": "   Compiling rifle-rules v0.1.0 (/Users/egor/Development/GitHub/Rifle)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s\n     Running `target/debug/examples/catalog`\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/architecture.hc"
+      ],
+      "exit_code": 0,
+      "stdout": "Rifle\n  ProgramLoading\n    StrictJson\n    SemanticValidation\n  ValidatedPlan\n  Evaluation\n  ContentIdentity\n    CanonicalJson\n    Sha256Digest\n  ProgramCatalog\n    PackageValidation\n    AggregateValidation\n  ContractTests\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/architecture.hc",
+        "--hcs",
+        "specs/hypercode/architecture.hcs"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: no issues found\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "specpm",
+        "validate",
+        ".",
+        "--json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"capabilities\": [\n    \"rifle.catalog.validate\",\n    \"rifle.json.identity\",\n    \"rifle.program.evaluate\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/catalog.spec.yaml\",\n    \"specs/program.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"Rifle rule engine\",\n    \"package_id\": \"rifle\",\n    \"version\": \"0.1.0-draft.2\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 1,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/catalog.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: rifle.program.evaluate\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/opt/homebrew/opt/python@3.10/bin/python3.10",
+        "-B",
+        "scripts/test_ci_changes.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.269s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "/opt/homebrew/opt/python@3.10/bin/python3.10",
+        "scripts/test_schema.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Schema validated: rust-program.json\nSchema validated: synthetic-program.json\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "created_utc": "2026-10-20T21:19:59.186278+00:00",
+  "base_revision": "ae6b18f0c0f5fa10e7bc60fe743cee3e24e1371b",
+  "working_tree_inputs": true,
+  "files": {
+    "crates/hunter-fs-core/src/batch.rs": "7fe8a7ca0a04380451701e1e4d18d56d4d7f4783a368e66e7dcd675bc44951c1",
+    "crates/hunter-fs-core/src/darwin_bulk.rs": "4ae4d58586617c119369bcf1719303f0b19706902ebb8950aa983db3f30bf772",
+    "crates/hunter-fs-core/src/lib.rs": "40dabafd1b79745ccd91af7357d2defebb3d918f6165b3f55ef0a7435dca0c42",
+    "crates/hunter-fs-core/Cargo.toml": "702db05b06cced8f5bf11172c2af1a5fb0d9073836125a06f3be5911d92f963d",
+    "crates/hunter-fs-core/README.md": "be97f378d1bb1d8a78abf14095eb8316f97218a7aa9bbf2cf5e22dfbca0028cb",
+    "Cargo.toml": "6d5bae10f528ead1d4ccc77f946ccc7da8a1f350206466d7ce2777524a071028",
+    "Cargo.lock": "e9a34d7f9cb19b61c17c801516ebcd44cfce393a08e3a642ada734c0f3e0e219",
+    "specpm.yaml": "7819e41cd8e32bf29be6b5e9266e08dde296869435cd0ac065cd75f66d359922",
+    "specs/prepared-batch.spec.yaml": "2c1a3a6c0dfdf92246602053a051513491baf93aaed66092b54f9232d40198a7",
+    "specs/hypercode/current.hc": "69265ba3e88196b2beedf9a58b6aab146b035f92559ae0497b31810209ccfd88",
+    "specs/hypercode/current.hcs": "85f586deb783a07adb593a46b49d135e66bdf0ee42da145830d3623ef98f16f5"
+  }
+}

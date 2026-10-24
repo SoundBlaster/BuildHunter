@@ -1,0 +1,18 @@
+{
+  "baseline": "7fb8b0827cf777ce852ecb6ca94bdcad017ce6fb",
+  "runtime_revision": "10268f69c41890bb23ab4cdc33d25f3aac8e46d1",
+  "files": {
+    "Cargo.toml": "6d5bae10f528ead1d4ccc77f946ccc7da8a1f350206466d7ce2777524a071028",
+    "Cargo.lock": "e9a34d7f9cb19b61c17c801516ebcd44cfce393a08e3a642ada734c0f3e0e219",
+    "crates/hunter-fs-core/Cargo.toml": "2c2f8c254b7a67ec3bc6c2fab846156d141f0a4f07dc1084e958254c6a58e87b",
+    "crates/hunter-fs-core/src/coordinator.rs": "2cd2b6419a9fa6d7ad30fb4493083299c508244c2dbf02974c00ae5df2c37fc8",
+    "crates/hunter-fs-core/src/lib.rs": "da08234baece06ce156aceb4a3e608addcee085e1fe93f787734fb310014c2f3",
+    "crates/hunter-fs-core/README.md": "db24ddb3e659ba9ad7222295ab1f2d7dec2aa2c3f5ce7c34c23037b0afc7f138",
+    "README.md": "eea56ef55167abb2f3d49cdfe13e02ce421125456c4ce76ce362844a43f3f5f2",
+    "specpm.yaml": "baf325e0c53b42d3da5b548035cd666bbcd51fb21ab6fcdd0aded402499c662b",
+    "specs/traversal-coordinator.spec.yaml": "9e24dce67764bd80e4da84f834617b62d89cd7de69be64bbcf100e851aa9c66b",
+    "specs/hypercode/current.hc": "f48e69c3d75580b503e27470ced1caaad04b10d3e4930a4185520e0a19f79792",
+    "specs/hypercode/current.hcs": "90c827915fb91b690ff9b0711525d0582e611041fb9cff638e881fc2fe282c03"
+  },
+  "hypercode_sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b"
+}

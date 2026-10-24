@@ -1,0 +1,11 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `crate::RootAdmission`, `crate::admit_root`
+ --> crates/hunter-fs-core/src/admission.rs:3:36
+  |
+3 |     use crate::{FilesystemBackend, RootAdmission, RootObservation, admit_root};
+  |                                    ^^^^^^^^^^^^^                   ^^^^^^^^^^ no `admit_root` in the root
+  |                                    |
+  |                                    no `RootAdmission` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `hunter-fs-core` (lib test) due to 1 previous error

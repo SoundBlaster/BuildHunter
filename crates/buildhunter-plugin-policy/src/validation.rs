@@ -284,7 +284,7 @@ pub(super) fn plugin(
         markers,
     ))
 }
-fn collect_facts(expr: &Value, used: &mut BTreeSet<String>) {
+pub(super) fn collect_facts(expr: &Value, used: &mut BTreeSet<String>) {
     if let Some(fact) = expr.get("fact").and_then(Value::as_str) {
         used.insert(fact.into());
     }

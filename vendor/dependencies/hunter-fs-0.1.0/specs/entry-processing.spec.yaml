@@ -1,0 +1,99 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.entry_processing
+  title: Child routing and selected metadata resolution
+  version: 0.1.0-draft.2
+  status: draft
+intent:
+  summary: Drive host-selected child routing and reconcile selected metadata without domain interpretation.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - ChildTraversal route, ChildHandler, RoutedChildren, SelectedEntry,
+    SelectedMeasurementPlan and MeasurementHandler.
+  excludes:
+  - Classification, access policy, scheduling meaning, byte aggregation,
+    cancellation decisions, guards, tree snapshots, deduplication and budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.entry_processing
+    role: primary
+    summary: Preserve child positions and root/worker/fallback precedence around serial host callbacks.
+requires:
+  capabilities: []
+interfaces:
+  inbound:
+  - id: children
+    kind: library
+    summary: Consuming ChildTraversal route drives select/directory/entry callbacks,
+      returning an ordered selected prefix and stopped flag.
+  - id: measurements
+    kind: library
+    summary: SelectedMeasurementPlan owns directory path/inclusion/root observation
+      and selected entries. Consuming resolve uses backend and supplied responses,
+      calling directory, checkpoint, entry and finish on the host.
+constraints:
+- id: routing
+  level: MUST
+  statement: Preserve original listing order and indices, host selection before routing,
+    context cloning only for admitted directories, and original supplied file types.
+    No extra child vector is built. Empty input has no callbacks. Stop is terminal;
+    no later entry is routed. Return selected prefix and release listing/suffix/context
+    before normal return. Callback panic unwinds selected prefix and plan.
+- id: metadata_precedence
+  level: MUST
+  statement: For selected directory use root metadata, otherwise supplied worker
+    result, otherwise the optional prepared directory or one backend symlink_metadata on original path. For each selected
+    entry take supplied slot by original index once; absent, out-of-range or consumed
+    slots fall back once. Supplied errors are delivered without retry. Unselected
+    directory performs no directory read/delivery. SelectedEntry resolve_metadata
+    uses the same supplied-or-fallback rule independently.
+- id: callbacks
+  level: MUST
+  statement: Invoke selected directory first, then checkpoint at selected-entry ordinal
+    before each lookup/I/O, then deliver entry, and finish once before owned selected/
+    cached buffers release. No extra cancellation check is introduced. Callback/backend
+    panic propagates without finish and releases owned buffers. Callbacks/context may
+    borrow non-Send state and execute serially on the caller; no thread is launched.
+- id: host_obligations
+  level: MUST
+  statement: Host owns access/stop/checkpoint policy, selected types and directory
+    inclusion, context meaning, queue scheduling, byte mode/aggregation and partial/
+    terminal interpretation. Guard-dependent work must remain inside the caller scope;
+    no guard, join fence, regular-file/no-link check or race-free snapshot is added.
+    Supplied observations may be stale. Well-behaved destructors are required and
+    abort/double panic has no cleanup guarantee. No whole-process memory bound follows.
+effects:
+  sideEffects:
+  - id: callbacks_metadata
+    kind: event_emit
+    summary: Synchronous host callbacks and missing-metadata backend reads; no directory enumeration.
+evidence:
+- id: processing_source
+  kind: source
+  path: crates/hunter-fs-core/src/processing.rs
+  supports: [intent.summary, scope, interfaces, constraints, effects]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Optional scoped fallback is lazy and retained for the selected pass; errors never
+    fall back to paths and cached errors never reopen. Default backends return None.
+  - R3 acquisition update (2026-10-23); portable EntryType now represents directory,
+    regular file, symlink and other categories instead of opaque std FileType.
+    Default path backend behavior is preserved; optional scoped acquisition and
+    current source/run identities are recorded in scoped-filesystem-20261023.
+  - Recovered from BuildHunter ArtifactHandler process_listing/finish_measure at
+    defea70cf2a6daee4b380ba8e3862be4b39ad86d. Seven integration witnesses supplement
+    existing child/measurement/product tests. Draft is not owner acceptance.
+implementationBindings:
+- id: processing
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/processing.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/src/children.rs,
+      crates/hunter-fs-core/src/backend.rs]

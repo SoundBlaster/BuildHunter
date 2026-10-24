@@ -1,0 +1,46 @@
+{
+  "recorded_at_utc": "2026-10-14T12:18:03.337608+00:00",
+  "derived_from_buildhunter": "96780d7f9a9a9e5a6a19a53e2eea2f4f4ff1a2aa",
+  "files": [
+    {
+      "path": "src/lib.rs",
+      "sha256": "877fc619e975e920b89a80d0848e4dbc8ae2a828a79657bcb5402f8a26d7a5ef"
+    },
+    {
+      "path": "src/scoped_metadata.rs",
+      "sha256": "029b921ceb3f983e0be34f655d312551ac945f06def0823e7ba46c0481ef5df3"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "6df71199950181ec451a89dcc87befd2077d23e8ea85a41ad7dd1d116c1bd1ca"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "32a24e0456722b9a4dee0bb32e6e58b2864b9437867e5b7d79bb9cf77b1b01d2"
+    },
+    {
+      "path": "README.md",
+      "sha256": "7a27e007c095bb443de9bfba449d02c5730424226132f6fbd9cac73d3c3214e7"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "bdce4f5d6014eefd90f8d32a148fff47cec067041559620e6c6c062abd495185"
+    },
+    {
+      "path": "specs/scoped-metadata.spec.yaml",
+      "sha256": "5b430f186dd568d4c1cfaa2c370884b8e9ad031d316eb81a9ab8922b3847e431"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "73d7cb393e320cd5f26b8367947d3313758270d4933a31c57850745e2fd27ebc"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "b32bba0f88dbc8d549e5b26bbf370a55afde2bd743f5976672e7fef26bbeda7a"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "590292ca74810858f3c4e4252bf7e01002fdae9fa1ee11dfa12e5083a6f64f29"
+    }
+  ]
+}

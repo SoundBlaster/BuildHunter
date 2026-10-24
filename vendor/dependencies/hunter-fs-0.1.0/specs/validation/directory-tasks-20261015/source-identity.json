@@ -1,0 +1,39 @@
+{
+  "recorded_at_utc": "2026-10-15T05:16:56.652007+00:00",
+  "baseline": "c3f6ca2adb49c2f1c718e76d3f5063f1c8ca3422",
+  "buildhunter_baseline": "aefd712b543281dd1718ba5b5b149dd71f06927e",
+  "files": [
+    {
+      "path": "crates/hunter-fs-core/src/lib.rs",
+      "sha256": "27c629578bc610ceaa119fcb9a306de698f34a4eaef41cca1efe7ff76a88c9df"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/task.rs",
+      "sha256": "1d49ce09a994b4093dd0803906a268081986bc8a827bcf7cc8ed2802ab6bf19c"
+    },
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "71d719e9cfc0e1d95fa5fcf6b85e46ca642cae5ea9ee76fea1837ef557da7fff"
+    },
+    {
+      "path": "README.md",
+      "sha256": "ef6d85dccf4995cb3051dbe1648e5f5497ecb6bf4390c88094f17cb530a1fdac"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "944651c0afbda08fd964540fd3ed55dcc4d3f7a1a0c0502e8b212c277b2d814c"
+    },
+    {
+      "path": "specs/directory-tasks.spec.yaml",
+      "sha256": "6416a3c62c0a226c4108062f03f6d63848f26ce0d85f9f0917c5e557ba98c931"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "81f80521a442421b15071ef4da37af92cc12a204252f1350d4ef88203f6605ef"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "173e0001d9b5d888247d737f96a04e753f17f3a7af01b9f4a22fe5cb42abaa90"
+    }
+  ]
+}

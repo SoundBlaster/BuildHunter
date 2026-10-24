@@ -1,0 +1,95 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.darwin_bulk_metadata
+  title: Opt-in Darwin batch metadata acquisition
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Acquire one directory's apparent and allocated file sizes through checked
+    getattrlistbulk records without product selection or file-content reads.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - macOS-only read_directory_sizes, DirectorySizes, checked native record decoder
+    and borrowed synchronous stop callback under the macos-bulk-metadata feature.
+  excludes:
+  - Backend selection, effective permissions, guard installation, artifact names,
+    profiling counters, product error decoration, portable fallback, full descriptor
+    traversal, atomic snapshots and whole-scan memory budgets.
+provides:
+  capabilities:
+  - id: hunter.fs.darwin_bulk_metadata
+    role: primary
+    summary: Return owned lossless basename-to-size/error observations for one directory.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: Host provides effective access and holds its non-materializing thread guard.
+interfaces:
+  inbound:
+  - id: read_directory_sizes
+    kind: library
+    summary: darwin_bulk::read_directory_sizes(Path, FnMut() -> bool) returns
+      Result<DirectorySizes>; DirectorySizes maps Vec<u8> basenames to native size/error.
+  outbound: []
+constraints:
+- id: acquisition_order
+  level: MUST
+  statement: Open the directory with the original no-follow flags before checking stop.
+    Allocate the original aligned 262144-byte buffer and check stop once before each
+    getattrlistbulk call. Stop returns accumulated observations; syscalls are not interrupted.
+    Open/syscall/decode failure returns an error instead of a partial-success result.
+- id: decoder
+  level: MUST
+  statement: Check record extents, length/alignment, requested/returned attribute masks,
+    relative name ranges, trailing NUL, embedded NUL/slash and nonnegative sizes.
+    Keep raw name bytes; do not normalize or decode UTF-8. Preserve native per-entry
+    errno. Directory/link size records are omitted; duplicate names retain the last
+    decoded observation as in the source implementation.
+- id: size_units
+  level: MUST
+  statement: Preserve ATTR_FILE_DATALENGTH apparent bytes and ATTR_FILE_ALLOCSIZE
+    allocated bytes without hardlink deduplication or unit conversion. Do not inspect
+    contents. This is metadata size, not reclaimable space or disk read throughput.
+- id: ownership
+  level: MUST
+  statement: The opened descriptor, buffer and result map belong to this call and release
+    on error or unwind. Returned names/errors/sizes are owned. Stop can borrow non-Send
+    host state and may panic; no host callback or borrow escapes the synchronous call.
+- id: scope
+  level: MUST
+  statement: The caller holds effective permissions and materialization policy through
+    the call and chooses the feature/backend. Only the final opened directory component
+    is no-follow; intermediate path replacement and whole-tree descriptor anchoring
+    remain outside this API. Cancellation retains a live-tree prefix, not an atomic view.
+    No resource bound is claimed for the per-directory result map or complete scan.
+effects:
+  sideEffects:
+  - id: directory_metadata
+    kind: filesystem_read
+    summary: Open a directory and enumerate size metadata with getattrlistbulk.
+evidence:
+- id: acquisition_source
+  kind: source
+  path: crates/hunter-fs-core/src/darwin_bulk.rs
+  supports: [intent.summary, scope, interfaces, constraints.acquisition_order, constraints.decoder, constraints.size_units, constraints.ownership, constraints.scope]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Extracted from BuildHunter src/bulk_metadata.rs at 7ab00f16ae437fe88427c2acbe1b651b30b044f1,
+    MIT licensed. Replace only product ScanControl with the synchronous stop callback.
+    Existing decoder/syscall behavior is retained; fresh test results and source identities
+    are separate evidence in specs/validation/darwin-bulk-20261021.
+  - macOS feature opt-in, not a default backend change or full hunter.design.scan acceptance.
+implementationBindings:
+- id: darwin_bulk_implementation
+  scope: component
+  language: rust
+  files:
+    owned: [crates/hunter-fs-core/src/darwin_bulk.rs]
+    border: [crates/hunter-fs-core/src/lib.rs, crates/hunter-fs-core/Cargo.toml]

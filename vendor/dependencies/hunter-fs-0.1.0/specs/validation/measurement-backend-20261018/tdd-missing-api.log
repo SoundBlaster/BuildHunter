@@ -1,0 +1,36 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved imports `crate::DirectoryMeasurementBackend`, `crate::FileMeasurementBackend`
+ --> crates/hunter-fs-core/src/measurement.rs:3:17
+  |
+3 |     use crate::{DirectoryMeasurementBackend, DirectoryTask, FileMeasurementBackend, MeasuredSize};
+  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^                 ^^^^^^^^^^^^^^^^^^^^^^ no `FileMeasurementBackend` in the root
+  |                 |
+  |                 no `DirectoryMeasurementBackend` in the root
+  |
+help: a similar name exists in the module
+  |
+3 -     use crate::{DirectoryMeasurementBackend, DirectoryTask, FileMeasurementBackend, MeasuredSize};
+3 +     use crate::{DirectoryMeasurementPlan, DirectoryTask, FileMeasurementBackend, MeasuredSize};
+  |
+help: a similar name exists in the module
+  |
+3 -     use crate::{DirectoryMeasurementBackend, DirectoryTask, FileMeasurementBackend, MeasuredSize};
+3 +     use crate::{DirectoryMeasurementBackend, DirectoryTask, FileMeasurements, MeasuredSize};
+  |
+
+error[E0223]: ambiguous associated type
+  --> crates/hunter-fs-core/src/measurement.rs:41:71
+   |
+41 |         fn prepare_files(&mut self,_:&Path,slots:&[Option<PathBuf>])->Self::Prepared {
+   |                                                                       ^^^^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `Prepared` implemented for `Backend<'a>`, you could use the fully-qualified path
+   |
+41 -         fn prepare_files(&mut self,_:&Path,slots:&[Option<PathBuf>])->Self::Prepared {
+41 +         fn prepare_files(&mut self,_:&Path,slots:&[Option<PathBuf>])-><Backend<'a> as Example>::Prepared {
+   |
+
+Some errors have detailed explanations: E0223, E0432.
+For more information about an error, try `rustc --explain E0223`.
+error: could not compile `hunter-fs-core` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

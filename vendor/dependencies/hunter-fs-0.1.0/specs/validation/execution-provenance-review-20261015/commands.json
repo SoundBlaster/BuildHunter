@@ -1,0 +1,53 @@
+[
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"capabilities\": [\n    \"hunter.fs.child_traversal\",\n    \"hunter.fs.directory_tasks\",\n    \"hunter.fs.portable\",\n    \"hunter.fs.scan_execution\",\n    \"hunter.fs.scoped_metadata\",\n    \"hunter.fs.subtree_progress\",\n    \"hunter.fs.task_ledger\",\n    \"hunter.fs.work\"\n  ],\n  \"checked_files\": [\n    \"specpm.yaml\",\n    \"specs/child-traversal.spec.yaml\",\n    \"specs/directory-tasks.spec.yaml\",\n    \"specs/portable.spec.yaml\",\n    \"specs/scan-execution.spec.yaml\",\n    \"specs/scoped-metadata.spec.yaml\",\n    \"specs/subtree-progress.spec.yaml\",\n    \"specs/task-ledger.spec.yaml\",\n    \"specs/work.spec.yaml\"\n  ],\n  \"error_count\": 0,\n  \"errors\": [],\n  \"intent_mappings\": [],\n  \"intents\": [],\n  \"package_identity\": {\n    \"name\": \"Hunter filesystem primitives\",\n    \"package_id\": \"hunter.filesystem\",\n    \"version\": \"0.1.0-draft.8\"\n  },\n  \"status\": \"warning_only\",\n  \"warning_count\": 3,\n  \"warnings\": [\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"duplicate_boundary_document_id\",\n      \"field\": \"interfaces.inbound.0.id\",\n      \"file\": \"specs/scoped-metadata.spec.yaml\",\n      \"message\": \"ID is reused across BoundarySpec sections: metadata (effects.sideEffects.0.id, interfaces.inbound.0.id)\",\n      \"severity\": \"warning\"\n    },\n    {\n      \"code\": \"required_capability_unresolved\",\n      \"field\": \"requires.capabilities\",\n      \"file\": \"specs/portable.spec.yaml\",\n      \"message\": \"Required capability is not resolved by MVP validation: platform.filesystem.metadata\",\n      \"severity\": \"warning\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "stdout": "HunterPrimitives\n  ScopedMetadata\n    DescriptorLifetime\n    RegularFileObservation\n    LocalMetadataGuard\n  PortableDirectory\n  MetadataSizing\n  ScopedWork\n    TaskQueue\n    WorkerLaunch\n    Shutdown\n  DirectoryTasks\n    MeasurementPlanning\n    ResultEnvelope\n  ChildTraversal\n    HostSelection\n    RecursiveRequests\n  TaskLedger\n    TaskIdentity\n    ResponseAccounting\n    DeferredState\n  SubtreeProgress\n    ByteAggregation\n    CompletionReadiness\n    PartialCompletion\n  ScanExecution\n    ResultPump\n    IdleCheckpoint\n    StopBoundary\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs"
+    ],
+    "exit_code": 0,
+    "stdout": "ok: no issues found\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

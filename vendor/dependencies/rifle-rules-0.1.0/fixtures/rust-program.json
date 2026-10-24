@@ -1,0 +1,41 @@
+{
+  "format": "rifle.program/1-draft.1",
+  "facts": [
+    {
+      "id": "name",
+      "type": "string"
+    },
+    {
+      "id": "kind",
+      "type": "string"
+    },
+    {
+      "id": "project",
+      "type": "boolean"
+    }
+  ],
+  "rules": [
+    {
+      "id": "output",
+      "when": {
+        "all": [
+          {
+            "fact": "kind",
+            "op": "eq",
+            "value": "directory"
+          },
+          {
+            "fact": "name",
+            "op": "eq",
+            "value": "target"
+          },
+          {
+            "fact": "project",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      }
+    }
+  ]
+}

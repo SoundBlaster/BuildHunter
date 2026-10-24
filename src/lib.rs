@@ -19,6 +19,7 @@ use std::{
     },
 };
 
+pub mod catalog;
 mod policy_table;
 mod profile;
 pub use profile::{PROFILE_INTERVAL, ScanProfileSample};
@@ -3204,7 +3205,11 @@ mod tests {
         assert!(report.artifacts.iter().all(|artifact| !artifact.nested));
         assert_eq!(
             report.total_bytes(),
-            report.artifacts.iter().map(|artifact| artifact.bytes).sum()
+            report
+                .artifacts
+                .iter()
+                .map(|artifact| artifact.bytes)
+                .sum::<u64>()
         );
         assert!(
             candidates

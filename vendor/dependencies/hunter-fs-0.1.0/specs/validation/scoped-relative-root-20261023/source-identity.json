@@ -1,0 +1,13 @@
+{
+  "baseline": "eafb6ff38e27745b23be53ce8df7b4dada51f2c2",
+  "state": "relative-root correction; exact worktree hashes",
+  "files": {
+    "src/scoped_filesystem.rs": "3f27f0005de7e62b068a6eb545c8a7d4c8c926dc490ef51625635822de94d24a",
+    "tests/scoped_filesystem.rs": "b1c523c67db12d54db39ff0d451af914167cbfd82bbb6104490d962e0f1d38b1",
+    "README.md": "7a93b19cd4b65833ab46702ead509ded4952e445e1ac57fa0016d217d2fc7db8",
+    "specpm.yaml": "c1b6d3c1d10052b3f06a79d9a6bdad9a1f2a20cdd308bab46333cbe3557eb2ed",
+    "specs/scoped-filesystem.spec.yaml": "7cccfdb3b1df2e3545bead4fa9e7f8728afd87523a62d16877c186490832732b",
+    "specs/hypercode/current.hc": "c8cf358415fc496efc4daa6aada296057d97802f1dd38cb592ecd5fcc9fbd02f",
+    "specs/hypercode/current.hcs": "d22b22869e95bc446033382dee47372b1715e8b495604fd78482195d24c48801"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "recorded_at_utc": "2026-10-14T05:12:13.955692+00:00",
+  "baseline": "fb319c7ccaa005f6f63ffbeaa034dd3b4ddb7c73",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "32df386d75ecf59f0761fd955a77f8be1dce698369ac7b0ae14287f593648d17"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "e24ee6b8d1ea018139be37dc6e3b6d6fb2c359aff6f0783718adfbed362f7957"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "83e94e0c0eb6dfecca27941f034dd9d577ce535ff2c0037b11db4d157a261438"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "a0313a963672b1be6aef5a6883cdc9dd087cb50465097b07c60bc8972c8d3188"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "62350471d7b7836b32ac5d994b00eb4ca7f0d9757116f1dd1f46c7c71212b548"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "fbabef436c926f05fe8cbba9b4d377e03f224b89a7c4d235319de1dddef692d1"
+    },
+    {
+      "path": "README.md",
+      "sha256": "0db6d82922c3793efdb8747dc689e57d50a9e3e653181fa861efb08d674ab730"
+    },
+    {
+      "path": "docs/catalog-identity.md",
+      "sha256": "a42477a988e054e56fa6a601d796e8107ca1ffcb5f92a4e00dc1b2475f05c76f"
+    },
+    {
+      "path": "docs/contract.md",
+      "sha256": "0ec576a0ef74b8586d862c83f583b6e744959d39dfa65dba5cbdefee4a8cfe69"
+    },
+    {
+      "path": "examples/catalog.rs",
+      "sha256": "e7cd49b8423fad6443b23879d93282756ede72a03fc57cc3a9041e1e1e9b289a"
+    },
+    {
+      "path": "examples/evaluate.rs",
+      "sha256": "2e66ebacf0f6c0525f027626ee5631c528aeedcc5bde762e3c55426c16a4462b"
+    },
+    {
+      "path": "fixtures/rust-program.json",
+      "sha256": "2af96efd84ebc89279663efac4c79e2709c37a8dc0708aa01f0fec9e4250d8e3"
+    },
+    {
+      "path": "fixtures/synthetic-program.json",
+      "sha256": "1c747ec3af43646493dc1b56f6f272e0d0868f386b897d1b8285d291aee8cc05"
+    },
+    {
+      "path": "schemas/program.schema.json",
+      "sha256": "2e77d3b8493ac486e6679cb5a13311dcd9e78427cadaa5cd826a1f6c1ccbeee3"
+    },
+    {
+      "path": "scripts/ci_changes.py",
+      "sha256": "4caa9781badf7e269df0ef542ee5e07cf48ead73a4f8146ead5c7bb214954078"
+    },
+    {
+      "path": "scripts/schema-requirements.txt",
+      "sha256": "756cc9e506ae4ee1a6f6c0507088b5cfc0dc8ba350fb2d2d46f1ffa72033adb6"
+    },
+    {
+      "path": "scripts/test_ci_changes.py",
+      "sha256": "5d3dcc4c2369cdd89e1faacb60f251dcaa3427fe7c520ee3a4ae93ae5938e5d0"
+    },
+    {
+      "path": "scripts/test_schema.py",
+      "sha256": "7eab4b4c2175a141cef21b1abdcfff5c9b6831b2c0d5063cf40519664266fc7e"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "2e53202ed75bb58996e224b17c144ef90654502e2412a484b340850ac8196e09"
+    },
+    {
+      "path": "specs/catalog.spec.yaml",
+      "sha256": "cad514db8b41921bb1e7e7088664b616359b567646674cfcee2408677ad336f0"
+    },
+    {
+      "path": "specs/hypercode/architecture.hc",
+      "sha256": "3668791382a9825ddf5140cbace1bef9fc193166e5bede0c12924346279e3249"
+    },
+    {
+      "path": "specs/hypercode/architecture.hcs",
+      "sha256": "ba5b5696c9de4d0e23b1248c626cc3e40b911353e8fe893b33ca36216f3b4af9"
+    },
+    {
+      "path": "specs/program.spec.yaml",
+      "sha256": "966f98cb1f15191705c85bee2a4c5ec10eac3a0ae2808b3d5c68f9146d26ff82"
+    },
+    {
+      "path": "specs/specification-progress.md",
+      "sha256": "2a9d3e22663cb0981914d89be23678c2ee424767f1d5163c5fdaa59fc1755aeb"
+    },
+    {
+      "path": "src/catalog.rs",
+      "sha256": "9d74c1db842a65eba4c7528db80c6c91fa4deaedd2356135eb9b767747b0215c"
+    },
+    {
+      "path": "src/identity.rs",
+      "sha256": "b6ca9b0d3e866594880fabeccd82b97e097ce1ef8480d998f9f2df4417b5d516"
+    },
+    {
+      "path": "src/json.rs",
+      "sha256": "d9b5e63c99ad05cffab73d3ff61b612234975a0fe3107d969443389d4f0f6109"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "75f2c55e7a5b1e1aacfbe3a98f1e6b93e07c9adadb01ed6cccd35266147c3de9"
+    },
+    {
+      "path": "src/validate.rs",
+      "sha256": "1271f3785ac719ea148bbf86802d2842c9baeb80ea5d52d4e11cee233884d7f7"
+    },
+    {
+      "path": "tests/contract.rs",
+      "sha256": "d4c269c8f450bf221aa0287c999fccda97474c37c19be6a44424ffc84b34f824"
+    },
+    {
+      "path": "tests/identity_catalog.rs",
+      "sha256": "ce6860496cdbe7d91baf1739e73ada5b30a148dc4326cf09433babb235e14995"
+    }
+  ]
+}

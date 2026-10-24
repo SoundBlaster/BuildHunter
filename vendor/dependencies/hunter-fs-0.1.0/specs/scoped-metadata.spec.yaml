@@ -1,0 +1,90 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: hunter.fs.scoped_metadata
+  title: Unix scoped regular-file metadata
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Inspect scoped regular-file presence through owned directory descriptors
+    without product rules or content reads.
+scope:
+  boundedContext: filesystem_acquisition
+  includes:
+  - Unix scoped descriptors, regular-file presence, technical unavailable outcomes
+    and final metadata attempt accounting.
+  excludes:
+  - Plugin interpretation, full traversal/measurement, thread materialization policy
+    installation, workers, cancellation, Windows implementation and atomic snapshots.
+provides:
+  capabilities:
+  - id: hunter.fs.scoped_metadata
+    role: primary
+    summary: Acquire no-follow regular-file metadata within an anchored selected root.
+requires:
+  capabilities:
+  - id: platform.filesystem.metadata
+    optional: false
+    summary: Host owns permissions and calling-thread materialization policy.
+interfaces:
+  inbound:
+  - id: metadata
+    kind: library
+    summary: ScopedMetadata::open(root); inspect_regular_file(candidate, Location,
+      &OsStr) -> Observation.
+  outbound: []
+constraints:
+- id: scope
+  level: MUST
+  statement: Own/Parent stay within the selected root; reject candidate parent components before deriving Parent; root Parent is unavailable;
+    root and intermediate directory descriptors use no-follow opens; final metadata
+    uses AT_SYMLINK_NOFOLLOW.
+- id: outcomes
+  level: MUST
+  statement: Only a regular file is true; missing entries, directories and links are
+    false. AccessDenied, OutOfScope, CloudSkipped, IoError and InvalidName remain
+    distinguishable. Invalid single-component names cause no metadata I/O.
+- id: host_obligations
+  level: MUST
+  statement: Host grants effective access and installs non-materializing thread policy
+    before use on macOS. Dataless synthetic tests alone do not prove live cloud behavior.
+effects:
+  sideEffects:
+  - id: metadata
+    kind: filesystem_read
+    summary: Descriptor opens, clones and stat observations; no file contents or filesystem
+      writes.
+evidence:
+- id: source
+  kind: source
+  path: src/scoped_metadata.rs
+  supports:
+  - intent.summary
+  - interfaces
+  - constraints.scope
+  - constraints.outcomes
+- id: docs
+  kind: documentation
+  path: README.md
+  supports:
+  - scope
+  - constraints.host_obligations
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Observed extraction; draft requirement acceptance is separate from test execution.
+    BuildHunter source baseline 96780d7; Windows API and live cloud acceptance pending.
+implementationBindings:
+- id: metadata_implementation
+  scope: component
+  language: rust
+  files:
+    owned:
+    - src/lib.rs
+    - src/scoped_metadata.rs
+    border:
+    - Cargo.toml
+    - README.md

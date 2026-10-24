@@ -1,0 +1,55 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/Hunter/crates/hunter-fs-core)
+error[E0432]: unresolved import `ledger::DirectoryTaskLedger`
+   --> crates/hunter-fs-core/src/lib.rs:301:9
+    |
+301 | pub use ledger::DirectoryTaskLedger;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `DirectoryTaskLedger` in `ledger`
+
+warning: unused import: `super::*`
+ --> crates/hunter-fs-core/src/ledger.rs:3:9
+  |
+3 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0433]: cannot find type `DirectoryTaskLedger` in this scope
+  --> crates/hunter-fs-core/src/ledger.rs:11:26
+   |
+11 |         let mut ledger = DirectoryTaskLedger::<&str, ()>::default();
+   |                          ^^^^^^^^^^^^^^^^^^^ use of undeclared type `DirectoryTaskLedger`
+
+error[E0433]: cannot find type `DirectoryTaskLedger` in this scope
+  --> crates/hunter-fs-core/src/ledger.rs:27:26
+   |
+27 |         let mut ledger = DirectoryTaskLedger::default();
+   |                          ^^^^^^^^^^^^^^^^^^^ use of undeclared type `DirectoryTaskLedger`
+
+error[E0433]: cannot find type `DirectoryTaskLedger` in this scope
+  --> crates/hunter-fs-core/src/ledger.rs:47:26
+   |
+47 |         let mut ledger = DirectoryTaskLedger::<(), ()>::default();
+   |                          ^^^^^^^^^^^^^^^^^^^ use of undeclared type `DirectoryTaskLedger`
+
+error[E0433]: cannot find type `DirectoryTaskLedger` in this scope
+  --> crates/hunter-fs-core/src/ledger.rs:63:26
+   |
+63 |         let mut ledger = DirectoryTaskLedger::default();
+   |                          ^^^^^^^^^^^^^^^^^^^ use of undeclared type `DirectoryTaskLedger`
+
+error[E0433]: cannot find type `DirectoryTaskLedger` in this scope
+  --> crates/hunter-fs-core/src/ledger.rs:76:9
+   |
+76 |         DirectoryTaskLedger::<(), ()>::default().response_received();
+   |         ^^^^^^^^^^^^^^^^^^^ use of undeclared type `DirectoryTaskLedger`
+
+error[E0433]: cannot find type `DirectoryTaskLedger` in this scope
+  --> crates/hunter-fs-core/src/ledger.rs:81:26
+   |
+81 |         let mut ledger = DirectoryTaskLedger::<(), ()>::default();
+   |                          ^^^^^^^^^^^^^^^^^^^ use of undeclared type `DirectoryTaskLedger`
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.
+warning: `hunter-fs-core` (lib test) generated 1 warning
+error: could not compile `hunter-fs-core` (lib test) due to 7 previous errors; 1 warning emitted

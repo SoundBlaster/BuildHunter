@@ -1018,3 +1018,15 @@ selection/fixtures are unchanged, but error-path evidence must use the corrected
 engine. Current top-level hashes and repeated plugin Debug/Release/bulk checks:
 `validation/plugin-scoped-review-20261023`. Prior pre-review receipts remain
 historical and do not prove the fixed diagnostic boundary.
+
+## 2026-10-23 — R4 layer 1: client catalog preparation
+
+Baseline main ebcdcef. ClientCatalog is a new significant boundary with a draft
+`buildhunter.catalog.snapshot`; BasicProfiles/Identity/Handle are folded into it.
+PluginPolicy gains conservative CandidateDispatch, folded into the policy spec.
+Default CLI/GUI scan bindings and C2/C3/C4 behavior are still the R2 baseline; this
+layer adds metadata/ownership APIs and public basic documents. The former opt-in
+pure policy is now a host dependency, with exact Cargo source replacement retaining
+fresh-cache offline delivery. Previous receipts are historical; current source and
+validation identities: `validation/r4-basic-catalog-20261023`. No new acceptance,
+resource bound or end-to-end speedup is inferred from pure dispatch tests.

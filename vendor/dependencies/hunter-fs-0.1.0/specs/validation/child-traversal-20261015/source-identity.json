@@ -1,0 +1,39 @@
+{
+  "recorded_at_utc": "2026-10-15T15:16:29.502800+00:00",
+  "baseline": "8e25e5ab8e41e6e7d4551238340276bfac46ca75",
+  "buildhunter_baseline": "4b402055c971ffb82f7d13420887300ffcddae17",
+  "files": [
+    {
+      "path": "crates/hunter-fs-core/src/lib.rs",
+      "sha256": "a3ee3f37ad834dafd8fc014517622da5de80b0540bfa54f741e3bb9d9739b3e1"
+    },
+    {
+      "path": "crates/hunter-fs-core/src/children.rs",
+      "sha256": "4aec43de2ca61ca26a42a186f147aa39b3596c6aebabbce49b98f7dbaefc98d8"
+    },
+    {
+      "path": "crates/hunter-fs-core/README.md",
+      "sha256": "86bf5ecfc33cb1de15ce4b001687f86415595b91f6a094801fd4f46fd0ec40d3"
+    },
+    {
+      "path": "README.md",
+      "sha256": "2eb074ca29901926bbf269f92dfd38f5a0edd549b58f8b310df3110e79b1cd3d"
+    },
+    {
+      "path": "specpm.yaml",
+      "sha256": "4edae5deaffe94112181e379925e274b294a584a6689e1a272573a20d9eb3846"
+    },
+    {
+      "path": "specs/child-traversal.spec.yaml",
+      "sha256": "c2a0886bd988f80326cf7882d0d607f25839cf21a00ee03dc3b37006bdf45585"
+    },
+    {
+      "path": "specs/hypercode/current.hc",
+      "sha256": "149c910d98517846a03e32ab3c656d3fcc4c2c5940cfb93f3bcca8d5f3bb79ad"
+    },
+    {
+      "path": "specs/hypercode/current.hcs",
+      "sha256": "3446a584b47c458a8025b2fe4b74f5c6ccfe4161f4afb45af2065a01ea9d750b"
+    }
+  ]
+}

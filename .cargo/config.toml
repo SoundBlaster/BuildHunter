@@ -1,0 +1,16 @@
+# Preserve fresh-cache offline CLI builds with the catalog runtime.
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source."git+https://github.com/SoundBlaster/Hunter.git?rev=bfcd75f8996b5a958c81238bb6d44d9fa1f88047"]
+git = "https://github.com/SoundBlaster/Hunter.git"
+rev = "bfcd75f8996b5a958c81238bb6d44d9fa1f88047"
+replace-with = "vendored-sources"
+
+[source."git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910"]
+git = "https://github.com/SoundBlaster/Rifle.git"
+rev = "693a284123faaa1ad3192cd88b259ba97a7b5910"
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor/dependencies"
