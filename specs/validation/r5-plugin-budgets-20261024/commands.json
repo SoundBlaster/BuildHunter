@@ -1,0 +1,319 @@
+[
+  {
+    "name": "fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-fmt.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "debug",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-debug.log",
+    "log_sha256": "5d17ffbadf899ceb76b2e83ecc3fa3bb5436218c4bd963b0863e3794b248e111"
+  },
+  {
+    "name": "release",
+    "command": [
+      "cargo",
+      "test",
+      "--release",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-release.log",
+    "log_sha256": "d9ba0fe4b5f144db50d54a1dfa7f6461aca7a341cb11567b373f228e4adbd4eb"
+  },
+  {
+    "name": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-clippy.log",
+    "log_sha256": "f14cf9acf75aaef24f3965fea0439cc38b8c0debfb7418badc8223c8a177464b"
+  },
+  {
+    "name": "pilot-release",
+    "command": [
+      "cargo",
+      "test",
+      "--release",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "cwd": "/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-scanner",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-release.log",
+    "log_sha256": "86e8c318e29bff768b135628749eff3b4300f2aedfaf21c80a2ec6bccfd915d7"
+  },
+  {
+    "name": "cli",
+    "command": [
+      "python3",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-cli.log",
+    "log_sha256": "4ed91f6cc14bc0ce5bcc3516f8237958c4fe39f4f5417417cf18d8e21baf6551"
+  },
+  {
+    "name": "parity",
+    "command": [
+      "python3",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-parity.log",
+    "log_sha256": "cb502be1bf78e707fcdcf6948359da04105ef414ff4176f9eaea773470b5eb11"
+  },
+  {
+    "name": "dependencies",
+    "command": [
+      "python3",
+      "scripts/test_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-dependencies.log",
+    "log_sha256": "ee63c8f8bdfcfd18efc72c1bed7f018f7e82671cd8993e26714692ac2f75c4ec"
+  },
+  {
+    "name": "vendor",
+    "command": [
+      "python3",
+      "scripts/test_hunter_vendor.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-vendor.log",
+    "log_sha256": "98255317dbdec068621cfd1c730ebd962e38b6f8c534b73c2b3cbfc806ea738c"
+  },
+  {
+    "name": "contract",
+    "command": [
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-schema-venv/bin/python3",
+      "scripts/test_plugin_contract.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-contract.log",
+    "log_sha256": "7c0db65bd775385a687d0f5b80b957bf265ec0f017e797d67a512ee697fc43d6"
+  },
+  {
+    "name": "offline",
+    "command": [
+      "python3",
+      "scripts/test_offline_cli.py"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-offline.log",
+    "log_sha256": "15e522937d3aeea7a4f1eeea6d52dd11bd34af18a29cc289ef59fd25e0595a28"
+  },
+  {
+    "name": "pilot-fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "crates/buildhunter-plugin-scanner",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/r5-pilot-fmt.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "pilot-test",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "cwd": "crates/buildhunter-plugin-scanner",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/r5-pilot-test.log",
+    "log_sha256": "a00746334b248c0eb6d890b90f53be28fa7e3cfd7eef2a9efba035e50b54e915"
+  },
+  {
+    "name": "pilot-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "crates/buildhunter-plugin-scanner",
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/buildhunter-plugin-scanner-2fac0ed6618309c0/r5-pilot-clippy.log",
+    "log_sha256": "2cfd75708b30c4ce36cdd434529ac9fa71dfdea18ff6ced3d449f57ce906b920"
+  },
+  {
+    "name": "home-attempt",
+    "command": [
+      "python3",
+      "scripts/measure_scan_resources.py",
+      "--binary",
+      "<pinned-final-Release-CLI>",
+      "--root",
+      "<home>",
+      "--output",
+      "<external>/r5-final-tip-home",
+      "--revision",
+      "R5 layer4 source-identity.json",
+      "--timeout",
+      "120"
+    ],
+    "exit_code": 124,
+    "log_sha256": "b95aa8c232e890045591d826280a95d3b61bba867b8ad52a3703d1636cdb8755",
+    "outcome": "timeout; native open stall; no complete report"
+  },
+  {
+    "name": "traversal",
+    "command": [
+      "python3",
+      "scripts/measure_scan_resources.py",
+      "--binary",
+      "<pinned-final-Release-CLI>",
+      "--root",
+      "<fixture>/traversal",
+      "--output",
+      "<external>/r5-final-tip-traversal",
+      "--revision",
+      "R5 layer4 source-identity.json",
+      "--timeout",
+      "30"
+    ],
+    "exit_code": 0,
+    "log_sha256": "336d28bc09497825c8a6134da86c4d2505913df72bfcb7089ccd942e252ceb0c"
+  },
+  {
+    "name": "burst",
+    "command": [
+      "python3",
+      "scripts/measure_scan_resources.py",
+      "--binary",
+      "<pinned-final-Release-CLI>",
+      "--root",
+      "<fixture>/burst",
+      "--output",
+      "<external>/r5-final-tip-burst",
+      "--revision",
+      "R5 layer4 source-identity.json",
+      "--timeout",
+      "30"
+    ],
+    "exit_code": 0,
+    "log_sha256": "4a8f6f28d28347455b6ef14b125193506bb45192d9e202e3150b1c22e26e9025"
+  },
+  {
+    "name": "wide",
+    "command": [
+      "python3",
+      "scripts/measure_scan_resources.py",
+      "--binary",
+      "<pinned-final-Release-CLI>",
+      "--root",
+      "<fixture>/wide",
+      "--output",
+      "<external>/r5-final-tip-wide",
+      "--revision",
+      "R5 layer4 source-identity.json",
+      "--timeout",
+      "30"
+    ],
+    "exit_code": 0,
+    "log_sha256": "450d50fc6923b2f032ee9d62721caf7d0d8cfd2d08852b86f6c70639ed7a1c0c"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "CODE_SIGNING_ALLOWED=NO",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "-configuration",
+      "Release",
+      "build"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-xcode-release.log",
+    "log_sha256": "68d050eea5226f3492936bc325f81320b8b1d837aa35c3867c44bb5dd06bbef0"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "CODE_SIGNING_ALLOWED=NO",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "build-for-testing"
+    ],
+    "exit_code": 0,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/r5-final-pilot-xcode-test-build.log",
+    "log_sha256": "9698639bd20c48e2f6c464b4e658f3921edbe708de9b10bd669a6393996c92b5"
+  }
+]

@@ -176,3 +176,22 @@ The scoped-error review additionally removes native pathname diagnostics after
 backend errors. Original errno/kind/message are retained; an outside replacement
 object cannot relabel a failure. Post-rebase plugin execution identities are in
 `plugin-scoped-review-20261023`; the earlier plugin receipts are historical.
+
+## R5 retention update — 2026-10-24
+
+The default clients have since migrated to catalog profiles (R4); paragraphs above
+about pre-migration defaults record their historical stage. The independent scoped
+pilot keeps its stricter acquisition contract. It now uses `ScanControl` resource
+limits for traversal/findings/warnings and the shared `DiagnosticRetention` for
+count/estimated-payload admission before diagnostic clone/publication. Rejection
+requests `Incomplete` and retains the reserved resource-limit warning. Ordinary
+within-quota diagnostic-only pilot scans keep their existing `Completed` status.
+
+`PluginArtifact.target` changes from `TargetDescriptor` to
+`Arc<TargetDescriptor>` in this experimental API. Event/report artifacts share an
+owned immutable descriptor per target, which remains usable after the original
+catalog drops. Use `artifact.target.as_ref()` for a descriptor reference; use
+`artifact.target.as_ref().clone()` only when an owned copy is specifically needed.
+No serialized target identity or marker/no-follow semantics change. Quotas are
+per-scan retained payload estimates, not a process-wide RSS ceiling or catalog size
+limit. Fresh regressions/source identities: `specs/validation/r5-plugin-budgets-20261024`.

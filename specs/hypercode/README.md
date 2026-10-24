@@ -193,3 +193,9 @@ Settings, report/export identity, typed diagnostics and lossy path action safety
 folded into existing client/bridge boundaries. Current source/tool/run hashes and
 Release 200-target results are under `../validation/r4-client-cutover-20261023`;
 earlier paragraphs and receipts describe their dated stages, not current defaults.
+
+R5 adapter parity adds DiagnosticAdmission under ScanResources and
+SharedTargetOwnership under the scoped PluginScanning boundary. Current identities
+and structural checks are in `../validation/r5-plugin-budgets-20261024`. Earlier
+measurements retain their exact source snapshots; new structural success does not
+resolve the native GUI open stall or establish a process-wide memory ceiling.

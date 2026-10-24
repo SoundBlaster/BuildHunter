@@ -1,0 +1,24 @@
+{
+  "rustc": {
+    "exit_code": 0,
+    "output": "rustc 1.97.0 (2d8144b78 2026-07-07)"
+  },
+  "cargo": {
+    "exit_code": 0,
+    "output": "cargo 1.97.0 (c980f4866 2026-06-30)"
+  },
+  "xcode": {
+    "exit_code": 0,
+    "output": "Xcode 27.1\nBuild version 27A9275"
+  },
+  "hypercode": {
+    "exit_code": 1,
+    "output": "",
+    "note": "CLI does not expose --version; structural commands succeeded",
+    "executable_sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b"
+  },
+  "specpm": {
+    "exit_code": 0,
+    "output": "specpm 0.2.0"
+  }
+}

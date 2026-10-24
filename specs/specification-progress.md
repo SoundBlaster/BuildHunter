@@ -1109,3 +1109,23 @@ regressions are separate from this UI fix. Full home GUI completion remains
 unverified because native opens did not return; do not claim whole-system
 interruption, a universal RSS ceiling or owner acceptance from these measurements.
 Final ready-tip CI must run the complete native test suite.
+
+## 2026-10-24 — R5 layer 4: scoped adapter parity
+
+The final admission audit found the independent scoped plugin adapter retained
+typed diagnostics without applying the new host quota and cloned full target
+metadata for each finding. Both adapters now call one `DiagnosticRetention` gate
+before retained clone/publication. The experimental pilot exposes Arc target
+ownership, preserving descriptor lifetime after input catalog release. These roles
+are folded into ScanResources and PluginScanning; their draft contracts and source
+bindings are refreshed. Default-client diagnostics/status/ABI and no-follow scope
+are unchanged. Within-quota pilot diagnostic-only status remains Completed.
+
+Count/weight-stop and shared-ownership regressions supplement existing platform
+acquisition tests. The earlier three-run CLI and controlled GUI measurements remain
+versioned source snapshots; a fresh final-layer CLI home receipt is separate.
+Catalog/temporary allocations, global RSS and uninterruptible syscalls remain
+outside this acceptance claim. Current source/structural/execution receipts:
+`validation/r5-plugin-budgets-20261024`. Full hosted native XCTest remains a tip-CI
+gate rather than a claim inferred from local build-for-testing. C5 owner acceptance
+and the two stalled GUI native opens are not resolved by this adapter correction.

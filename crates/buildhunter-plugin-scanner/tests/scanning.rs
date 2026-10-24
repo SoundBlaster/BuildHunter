@@ -603,3 +603,100 @@ fn diagnostic_only_scan_can_cancel_before_descendants_are_processed() {
         ));
     }
 }
+
+#[test]
+fn scoped_diagnostic_count_and_weight_limits_stop_with_a_reserved_notice() {
+    use build_hunter::{ScanLimit, ScanLimits};
+    let tree = Tree::new();
+    let conflict = edited(|v| {
+        v["id"] = "example.other".into();
+        v["targets"][0]["id"] = "example.other-output".into();
+    });
+    let catalog = load_documents(&[FORGE.to_vec(), conflict], &[]);
+    for i in 0..10 {
+        tree.file(&format!("p{i}/forge.project"), b"marker");
+        tree.file(&format!("p{i}/forge-out/data"), b"payload");
+    }
+    for (limits, reason, count) in [
+        (
+            ScanLimits {
+                diagnostics: 1,
+                ..Default::default()
+            },
+            ScanLimit::Diagnostics,
+            1,
+        ),
+        (
+            ScanLimits {
+                diagnostic_weight: 1,
+                ..Default::default()
+            },
+            ScanLimit::DiagnosticWeight,
+            0,
+        ),
+    ] {
+        let control = ScanControl::with_limits(limits);
+        let mut emitted = 0;
+        let mut final_status = None;
+        let report = scan(
+            &tree.0,
+            &catalog,
+            ScanOptions::default(),
+            &control,
+            |event| match event {
+                PluginScanEvent::Diagnostic(_) => emitted += 1,
+                PluginScanEvent::Finished(status) => final_status = Some(*status),
+                _ => {}
+            },
+        )
+        .unwrap();
+        assert_eq!(report.status, ScanStatus::Incomplete);
+        assert_eq!(final_status, Some(ScanStatus::Incomplete));
+        assert_eq!(control.resource_limit(), Some(reason));
+        assert_eq!(emitted, count);
+        assert_eq!(report.diagnostics.len(), count);
+        assert_eq!(report.warnings.len(), 1);
+        assert!(
+            report.warnings[0]
+                .message
+                .starts_with("Resource limit reached")
+        );
+    }
+}
+
+#[test]
+fn findings_share_owned_descriptors_after_the_input_catalog_is_dropped() {
+    use std::sync::Arc;
+    let tree = Tree::new();
+    for name in ["one", "two"] {
+        tree.file(&format!("{name}/forge.project"), b"marker");
+        tree.file(&format!("{name}/forge-out/data"), b"payload");
+    }
+    let catalog = catalog(&[]);
+    let mut event_targets = Vec::new();
+    let report = scan(
+        &tree.0,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |event| {
+            if let PluginScanEvent::ArtifactDiscovered(artifact) = event {
+                event_targets.push(artifact.target.clone());
+            }
+        },
+    )
+    .unwrap();
+    drop(catalog);
+    assert_eq!(report.artifacts.len(), 2);
+    assert_eq!(event_targets.len(), 2);
+    assert!(Arc::ptr_eq(
+        &report.artifacts[0].target,
+        &report.artifacts[1].target
+    ));
+    assert!(
+        event_targets
+            .iter()
+            .all(|target| Arc::ptr_eq(target, &report.artifacts[0].target))
+    );
+    assert_eq!(report.artifacts[0].target.id, "example.forge-output");
+}

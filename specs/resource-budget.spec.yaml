@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.scan.resources
   title: Per-scan retention and response admission
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Bound scanner-owned pending payloads and report retention with explicit truncation instead of successful omission.
@@ -50,7 +50,7 @@ constraints:
   statement: Bound each portable/scoped listing by entry/error count and estimated payload, inspect its limit independently of visit outcome and stop on truncation. Apply count/weight limits to optional Darwin prepared metadata too. Do not add path fallback or change raw-path/no-follow scope.
 - id: retained_reports
   level: MUST
-  statement: Gate findings/progress, warnings and typed diagnostics before retained clone/event publication. Keep discovered IDs and target maps coherent. Stop on the first rejected payload and reserve one constant-sized explanatory warning after worker join, outside the normal warning quota.
+  statement: Gate findings/progress, warnings and typed diagnostics before retained clone/event publication. Default catalog and scoped plugin adapters use the same per-scan DiagnosticRetention admission gate; target descriptors are shared immutable values rather than duplicated for each finding. Keep discovered IDs and target maps coherent. Stop on the first rejected payload and reserve one constant-sized explanatory warning after worker join, outside the normal warning quota.
 - id: terminal
   level: MUST
   statement: Limit exhaustion produces Incomplete unless failure or caller cancellation takes precedence. Complete every already-discovered open finding once as partial; do not relabel already-completed independent findings. Publish one Finished last after all workers join; never claim a truncated prefix is a successful full scan.
@@ -100,4 +100,4 @@ implementationBindings:
   language: rust
   files:
     owned: [src/scan_budget.rs, src/resource_tests.rs]
-    border: [src/lib.rs, src/scan_session.rs, src/client_scan.rs, src/measurement.rs, src/profile.rs, src/profile_report.rs, src/catalog_bridge.rs, macos/Sources/BuildHunter/Scanning/ScanProfile.swift]
+    border: [crates/buildhunter-plugin-scanner/src/lib.rs, crates/buildhunter-plugin-scanner/tests/scanning.rs, src/lib.rs, src/scan_session.rs, src/client_scan.rs, src/measurement.rs, src/profile.rs, src/profile_report.rs, src/catalog_bridge.rs, macos/Sources/BuildHunter/Scanning/ScanProfile.swift]
