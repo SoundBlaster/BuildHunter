@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.catalog.scan
   title: Catalog client scanning and event ABI
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Route immutable catalog decisions into measured findings and versioned client events without a per-candidate Swift callback.
@@ -33,7 +33,7 @@ interfaces:
     summary: scan_client(root, snapshot, ScanOptions, include_environments, control, observer) -> CatalogScanReport.
   - id: catalog_event_abi
     kind: library
-    summary: bh_scan_catalog_v1 with BHCatalogScanEvent version 1; metadata event 6, target IDs on discovery, typed diagnostic event 7.
+    summary: bh_scan_catalog_v1 with BHCatalogScanEvent version 1; metadata event 6, target IDs on discovery, typed diagnostic event 7; event 5 optionally carries resource-budget/loss JSON without changing its numeric profile payload.
   outbound: []
 constraints:
 - id: dynamic_selection

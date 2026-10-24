@@ -267,7 +267,9 @@ final class RustScanBridgeContext: @unchecked Sendable {
         channel.finish()
     }
 
-    func handle(_ event: UnsafePointer<BHScanEvent>) {
+    func handle(_ event: UnsafePointer<BHScanEvent>) { handle(event, resourceUsage: nil) }
+
+    private func handle(_ event: UnsafePointer<BHScanEvent>, resourceUsage: ScanResourceUsage?) {
         let value = event.pointee
         let path = decode(value.path, length: value.path_len)
         switch value.event_type {
@@ -315,7 +317,8 @@ final class RustScanBridgeContext: @unchecked Sendable {
                     pendingTasks: sample.pending_tasks,
                     cpuUserNanoseconds: sample.resource_flags & 1 != 0 ? sample.cpu_user_ns : nil,
                     cpuSystemNanoseconds: sample.resource_flags & 1 != 0 ? sample.cpu_system_ns : nil,
-                    residentBytes: sample.resource_flags & 2 != 0 ? sample.resident_bytes : nil
+                    residentBytes: sample.resource_flags & 2 != 0 ? sample.resident_bytes : nil,
+                    resourceUsage: resourceUsage
                 )))
             }
         default:
@@ -349,6 +352,16 @@ final class RustScanBridgeContext: @unchecked Sendable {
             yield(.discovered(generation: generation, artifact: ScanArtifact(
                 id: stableID(value.base.artifact_id), relativePath: path, language: target.language,
                 kind: kind, targetID: target.id, catalogDigest: catalogMetadata.digest, unsafePathPrefix: unsafePrefix)))
+        case 5:
+            var usage: ScanResourceUsage?
+            if value.metadata_len > 0 {
+                if let bytes = value.metadata, value.metadata_len <= 16_384 {
+                    usage = try? JSONDecoder().decode(ScanResourceUsage.self,
+                        from: Data(bytes: bytes, count: value.metadata_len))
+                }
+                if usage == nil { warnAboutBridge("Invalid scan resource metadata.") }
+            }
+            withUnsafePointer(to: value.base) { handle($0, resourceUsage: usage) }
         case 7:
             guard let bytes = value.metadata, (1...4_194_304).contains(value.metadata_len),
                   let classification = try? JSONDecoder().decode(ScanDiagnostic.Classification.self,

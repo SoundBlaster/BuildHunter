@@ -204,9 +204,13 @@ struct ScanProfilePanel: View {
                 Text("CPU time: \(Double(user) / 1e9, format: .number.precision(.fractionLength(2))) s user · \(Double(system) / 1e9, format: .number.precision(.fractionLength(2))) s system")
                     .font(.caption).foregroundStyle(.secondary)
             }
+            if let omitted = profile.latest?.resourceUsage?.droppedProfileSamples, omitted > 0 {
+                Text("\(omitted) samples omitted while updates were delayed. Sampled peaks may be missed.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Text(metric.isResource
-                 ? "Entire BuildHunter process, including UI and other scans. CPU 100% = one logical core. RAM is resident memory (RSS); sampled peaks can miss brief spikes. Averages and peaks cover the entire scan."
-                 : "Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks cover the entire scan.")
+                 ? "Entire BuildHunter process, including UI and other scans. CPU 100% = one logical core. RAM is resident memory (RSS); sampled peaks can miss brief spikes. Averages and peaks use received samples across the scan."
+                 : "Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks use received samples across the scan.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }

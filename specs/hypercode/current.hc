@@ -24,6 +24,8 @@ BuildHunterRuntime
         WorkAdmission
         ResponseRetention
         ReportRetention
+        ProfileBacklog
+        ResourceDisclosure
       ResourceProfile
     ArtifactClassification
       CandidateSelection

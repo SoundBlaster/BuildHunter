@@ -19,6 +19,19 @@ struct ScanReportExportTests {
                          generatedAt: Date(timeIntervalSince1970: 1_790_000_000), appVersion: "1.0 (7)")
     }
 
+    @Test("JSON export preserves per-scan budget and profile loss metadata")
+    func resourceMetadataExport() throws {
+        let usage = ScanResourceUsage(limits: ["findings": 100_000], limitReached: "finding count",
+            peakPendingTasks: 17, peakListingEntries: 20, peakListingWeight: 1024, droppedProfileSamples: 3)
+        let report = ScanReportExport(rootName: "Demo", rootURL: nil, status: .incomplete,
+            rows: [], order: .table, tableOrder: [], warnings: ["Resource limit reached"],
+            excludedFilterIDs: [], elapsedSeconds: 1, appVersion: "test", resourceUsage: usage)
+        let object = try #require(JSONSerialization.jsonObject(with: report.json()) as? [String: Any])
+        let encoded = try #require(object["scan_budgets"] as? [String: Any])
+        #expect(encoded["limitReached"] as? String == "finding count")
+        #expect(encoded["droppedProfileSamples"] as? Int == 3)
+    }
+
     @Test("Only a finished report can be exported")
     func exportableStatus() {
         #expect(ScanReportExport.Status(phase: .completed) == .complete)

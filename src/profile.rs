@@ -44,15 +44,17 @@ pub(crate) fn bump(counter: &AtomicU64, amount: u64) {
     );
 }
 
-/// Samples waiting for the coordinator. Unbounded on purpose: dropping here would hide
-/// losses from the report's truncation count, and a stall costs only 88 bytes per interval.
+/// Bounded samples waiting for the coordinator. Omitted oldest samples are counted
+/// independently from a consumer's rolling history; omission never fails filesystem scanning.
 #[derive(Default)]
 struct Pending {
     samples: VecDeque<ScanProfileSample>,
     last_elapsed_us: Option<u64>,
+    dropped: u64,
 }
 
 pub(crate) struct ProfileState {
+    capacity: usize,
     started: Instant,
     cpu_baseline: Option<(u64, u64)>,
     pub counters: ProfileCounters,
@@ -61,10 +63,17 @@ pub(crate) struct ProfileState {
 }
 
 impl ProfileState {
+    #[cfg(test)]
     pub fn new() -> Self {
+        Self::with_capacity(crate::ScanLimits::default().profile_samples)
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        assert!(capacity > 0, "profile capacity must be positive");
         let started = Instant::now();
         let cpu_baseline = crate::process_resources::read().cpu;
         Self {
+            capacity,
             started,
             cpu_baseline,
             counters: ProfileCounters::default(),
@@ -110,8 +119,25 @@ impl ProfileState {
                 0
             },
         };
+        if pending.samples.len() == self.capacity {
+            pending.samples.pop_front();
+            pending.dropped = pending.dropped.saturating_add(1);
+        }
         pending.samples.push_back(sample);
         self.has_pending.store(true, Ordering::Release);
+    }
+
+    /// Called after sampler join, before the final sample. No producer can race it.
+    pub fn final_sample_omits(&self) -> bool {
+        let pending = self.pending.lock().unwrap_or_else(PoisonError::into_inner);
+        pending.dropped > 0 || pending.samples.len() == self.capacity
+    }
+
+    pub fn dropped(&self) -> u64 {
+        self.pending
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .dropped
     }
 
     /// Takes queued samples in time order. Cheap when nothing is queued.
@@ -175,15 +201,21 @@ mod tests {
     }
 
     #[test]
-    fn a_long_stall_loses_no_samples() {
-        let state = ProfileState::new();
+    fn a_long_stall_keeps_a_bounded_suffix_and_discloses_exact_loss() {
+        let state = ProfileState::with_capacity(2);
         for _ in 0..10_000 {
             state.record();
         }
         let samples = state.drain();
-        assert_eq!(samples.len(), 10_000);
+        assert_eq!(samples.len(), 2);
+        assert_eq!(state.dropped(), 9_998);
         state.record();
         assert!(state.drain()[0].elapsed_us > samples.back().unwrap().elapsed_us);
+        assert_eq!(
+            state.dropped(),
+            9_998,
+            "drain does not erase lifetime loss accounting"
+        );
     }
 
     #[test]

@@ -177,12 +177,13 @@ struct BuildHunterWindow: View {
         let elapsed = model.profile.latest?.elapsedSeconds
         let catalog = model.catalogMetadata
         let diagnostics = model.diagnostics
+        let resourceUsage = model.profile.latest?.resourceUsage
         let tableOrder = tableModel.sortOrder
         let version = Self.appVersion
         let panel = ScanResultsExportPanel { order in
             ScanReportExport(rootName: targetName, rootURL: rootURL, status: status, rows: rows, order: order,
                              tableOrder: tableOrder, warnings: warnings, excludedFilterIDs: excluded,
-                             elapsedSeconds: elapsed, appVersion: version, catalogMetadata: catalog, diagnostics: diagnostics)
+                             elapsedSeconds: elapsed, appVersion: version, catalogMetadata: catalog, diagnostics: diagnostics, resourceUsage: resourceUsage)
         }
         let window = NSApp.keyWindow
         Task {

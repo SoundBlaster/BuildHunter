@@ -1,5 +1,16 @@
 import Foundation
 
+/// Per-scan estimates copied from catalog-event metadata. These are payload
+/// limits and observations, never an exact process-wide memory ceiling.
+struct ScanResourceUsage: Codable, Equatable, Sendable {
+    let limits: [String: UInt64]
+    let limitReached: String?
+    let peakPendingTasks: UInt64
+    let peakListingEntries: UInt64
+    let peakListingWeight: UInt64
+    let droppedProfileSamples: UInt64
+}
+
 /// Cumulative coordinator counters, copied from the Rust callback. Bytes describe
 /// artifact sizes discovered through metadata, never physical disk I/O.
 struct ScanProfileSnapshot: Equatable, Sendable {
@@ -14,6 +25,7 @@ struct ScanProfileSnapshot: Equatable, Sendable {
     var cpuUserNanoseconds: UInt64? = nil
     var cpuSystemNanoseconds: UInt64? = nil
     var residentBytes: UInt64? = nil
+    var resourceUsage: ScanResourceUsage? = nil
 
     var elapsedSeconds: Double { Double(elapsedMicroseconds) / 1_000_000 }
 }
@@ -81,11 +93,16 @@ struct ScanProfileHistory: Sendable {
         }
         latest = sample
         guard let previous else { return }
+        let lostSamples = (sample.resourceUsage?.droppedProfileSamples ?? 0) > (previous.resourceUsage?.droppedProfileSamples ?? 0)
+        if lostSamples {
+            cpuSeries = sample.elapsedSeconds
+            memorySeries = sample.elapsedSeconds
+        }
         let seconds = Double(sample.elapsedMicroseconds - previous.elapsedMicroseconds) / 1_000_000
         let entries = Double(sample.entries - previous.entries) / seconds
         let bytes = Double(sample.measuredBytes - previous.measuredBytes) / seconds
         var cpu: Double?
-        if let user = sample.cpuUserNanoseconds, let previousUser = previous.cpuUserNanoseconds,
+        if !lostSamples, let user = sample.cpuUserNanoseconds, let previousUser = previous.cpuUserNanoseconds,
            let system = sample.cpuSystemNanoseconds, let previousSystem = previous.cpuSystemNanoseconds {
             let percent = (Double(user - previousUser) + Double(system - previousSystem)) / 1_000_000_000 / seconds * 100
             cpu = percent
@@ -93,7 +110,7 @@ struct ScanProfileHistory: Sendable {
         } else {
             cpuSeries = sample.elapsedSeconds
         }
-        if let resident = sample.residentBytes, let previousResident = previous.residentBytes {
+        if !lostSamples, let resident = sample.residentBytes, let previousResident = previous.residentBytes {
             residentIntegral += (Double(resident) / 2 + Double(previousResident) / 2) * seconds
             residentObservedSeconds += seconds
         } else {

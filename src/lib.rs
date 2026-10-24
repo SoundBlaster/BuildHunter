@@ -1180,7 +1180,12 @@ where
     /// Delivers samples the sampler thread queued; their timestamps are when they were taken.
     fn emit_profile(&mut self) {
         let Some(profile) = self.profile else { return };
-        for sample in profile.drain() {
+        let samples = profile.drain();
+        self.control
+            .usage
+            .dropped_profile_samples
+            .store(profile.dropped(), Ordering::Relaxed);
+        for sample in samples {
             self.emit(&ScanEvent::Profile(sample));
         }
     }

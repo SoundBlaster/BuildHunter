@@ -257,6 +257,7 @@ fn main() {
             eprintln!("Invalid scan catalog: {error}");
             process::exit(2);
         });
+    let mut recorded_first_finding = false;
     let report = scan_client(
         &root,
         &snapshot,
@@ -266,11 +267,19 @@ fn main() {
         environments,
         &control,
         |event| {
+            if profile_path.is_some()
+                && !recorded_first_finding
+                && matches!(event, CatalogScanEvent::ArtifactDiscovered(_))
+            {
+                recorded_first_finding = true;
+                profile.record_first_finding(start.elapsed());
+            }
             if let CatalogScanEvent::Profile(sample) = event {
                 profile.record(*sample);
             }
         },
     );
+    profile.set_resource_usage(control.resource_usage_json());
     if let Some(path) = &profile_path {
         use std::io::Write;
         // create_new also protects a report created by another process during the scan.
@@ -315,8 +324,9 @@ fn main() {
     let total: u64 = rows.iter().filter(|r| !r.nested).map(|r| r.bytes).sum();
     if json {
         println!(
-            "{{\"schema_version\":2,\"catalog\":{},\"root\":{},\"total_bytes\":{total},\"elapsed_seconds\":{:.3},\"artifacts\":[",
+            "{{\"schema_version\":2,\"catalog\":{},\"scan_budgets\":{},\"root\":{},\"total_bytes\":{total},\"elapsed_seconds\":{:.3},\"artifacts\":[",
             snapshot.metadata_json(),
+            control.resource_usage_json(),
             quoted(&root.to_string_lossy()),
             start.elapsed().as_secs_f64()
         );

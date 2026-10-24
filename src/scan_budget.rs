@@ -23,7 +23,7 @@ impl Default for ScanLimits {
         Self {
             queued_tasks: 65_536,
             queued_weight: 32 * 1024 * 1024,
-            response_capacity: 8,
+            response_capacity: 16,
             listing_entries: 65_536,
             listing_errors: 4096,
             listing_weight: 8 * 1024 * 1024,

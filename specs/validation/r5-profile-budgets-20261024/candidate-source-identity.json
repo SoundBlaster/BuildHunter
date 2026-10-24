@@ -1,0 +1,22 @@
+{
+  "sha256": "1b7d9305f52807d1aef40f8910b012023eb65230c3172c4a75ae0d5c7adae3e3",
+  "sources": {
+    "src/measurement.rs": "2a30f9612543be8e9dcb624c0303db5532389b795aedfeeee512e2f70312014d",
+    "src/scan_session.rs": "ca20cb2cba0babba2c3e98e92bdc19592f3dd71dc448a8f82708c5cff3328830",
+    "src/profile.rs": "7dc86652274e2d7bff517b341eb021afb2faac1a18ed81ffaa048893bd59e893",
+    "src/profile_report.rs": "801892507094b4d9e649c27f5f415b3a187dd106ac8aadadfbb00bcd4a0d5239",
+    "src/catalog_bridge.rs": "5e1fc5c27fe2cc33a8609c1f0e992199ad5b5c20255b8160e08a290a518f5a23",
+    "src/client_scan.rs": "5d535dc13c6dcd204b28f5f7f7082b5bf204e0ff21e1c9d03cacd2fa9d543204",
+    "src/lib.rs": "89137b0a6ad3c4d415310341a1462de54427eb635f430a43a06edf92b608fe60",
+    "src/scoped_access_tests.rs": "da60641feb5382de9b2693f1619ed2db598876d468f223c1d4801820931f5383",
+    "src/catalog.rs": "4051820f19603f137138e3b0d2491e67b8617e7564e4ef4c7a798620f4c93708",
+    "src/resource_tests.rs": "ab1e573e1d77655b12a220950143c811745c3ce65f84d83825fa136883653e49",
+    "src/client_scan_tests.rs": "466a17922bff91b430f31849af8df5f493b6ea08ec39a75de8000377a1272582",
+    "src/main.rs": "33193a8df53d530486850264adf4a12ed3a8989b10c1d7d42a7d48601fbe346b",
+    "src/scan_budget.rs": "80cac8676d81d8e3e4cfcc0b4dcdf9bf89068c633eecddc9121799ecfda1d8a5",
+    "src/policy_table.rs": "b0a9183dfd0d3e2281b6fe2599e7d8476c87019935e26578fa1b275353ad5cde",
+    "src/materialization.rs": "3714004ba4564c2c1e6627c896e53952034742e56899c37d4d5a36cf124213cd",
+    "src/resources.rs": "883824717a7476737954791f25eec015db87c3022fce23483075e6f1d511052f",
+    "src/migration_parity.rs": "de0e959e3938cdbca4c2641e8ffb582855213ce91f90f5a0690ecc79a7c0e805"
+  }
+}

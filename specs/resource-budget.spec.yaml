@@ -3,17 +3,16 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.scan.resources
   title: Per-scan retention and response admission
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Bound scanner-owned pending payloads and report retention with explicit truncation instead of successful omission.
 scope:
   boundedContext: scan_resources
   includes:
-  - Immutable ScanLimits in a single-use ScanControl; weighted nonblocking task admission, bounded responses, listing and optional batch retention, findings/progress, warnings and client diagnostics.
+  - Immutable ScanLimits in a single-use ScanControl; weighted nonblocking task admission, bounded responses, listing and optional batch retention, findings/progress, warnings, client diagnostics and pending profile samples; CLI/GUI metadata and explicit loss reporting.
   excludes:
   - A process-wide RSS ceiling, allocator/table overhead, arbitrary callbacks, opaque filesystem/provider allocations, multiple windows or hard interruption of syscalls.
-  - Profile pending/history accounting and GUI/export resource disclosure, tracked as the next R5 layer.
 provides:
   capabilities:
   - id: buildhunter.scan.resources
@@ -37,6 +36,12 @@ interfaces:
     summary: ScanControl::with_limits(ScanLimits) selects immutable limits before a single scan; new uses documented defaults. resource_limit and resource_usage_json expose first limit and observed high water.
   outbound: []
 constraints:
+- id: profile_retention
+  level: MUST
+  statement: Bound pending sampler storage by profile_samples, evict oldest samples with a saturating lifetime count and retain newest timestamps/cumulative counters. Publish an explanatory warning on loss, without failing filesystem traversal. Account pending loss separately from CLI rolling-history eviction, and expose their sum as truncated_samples. Numeric profile ABI remains 88 bytes; optional catalog-profile metadata discloses limits, observed high water and loss count. Final profile reports zero pending tasks before Finished.
+- id: consumer_scope
+  level: MUST
+  statement: Built-in GUI retention follows admitted findings/diagnostics/warnings, an existing 4096-slot event ring and 600-point profile display. CLI profile export retains at most 4096 received samples. Copy resource metadata before callback return and freeze it in JSON report exports. GUI resource series break at disclosed producer loss; do not integrate missing RAM intervals as observed data. Windows, table/diagram projections, explicit exports and in-flight cancelled generations can multiply per-scan storage; these quotas are not a global RSS ceiling.
 - id: admission
   level: MUST
   statement: Never block the serial coordinator behind work admission. Charge queued task and retained node/path/ancestry estimate. Rejected publication stops traversal; closed queue remains failure. Response producers may block, but receiver drops before queue close/join on stop or panic. Completed ledger slots release immediately; IDs are never reused.
@@ -70,6 +75,14 @@ evidence:
   kind: source
   path: src/scan_session.rs
   supports: [constraints.terminal, constraints.admission]
+- id: profile_source
+  kind: source
+  path: src/profile.rs
+  supports: [constraints.profile_retention]
+- id: client_profile
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/ScanProfile.swift
+  supports: [constraints.consumer_scope]
 - id: regressions
   kind: test
   path: src/resource_tests.rs
@@ -87,4 +100,4 @@ implementationBindings:
   language: rust
   files:
     owned: [src/scan_budget.rs, src/resource_tests.rs]
-    border: [src/lib.rs, src/scan_session.rs, src/client_scan.rs, src/measurement.rs]
+    border: [src/lib.rs, src/scan_session.rs, src/client_scan.rs, src/measurement.rs, src/profile.rs, src/profile_report.rs, src/catalog_bridge.rs, macos/Sources/BuildHunter/Scanning/ScanProfile.swift]

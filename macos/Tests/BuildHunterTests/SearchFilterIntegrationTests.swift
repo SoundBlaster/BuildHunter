@@ -5,6 +5,36 @@ import Testing
 @Suite("Rust bridge search filters")
 @MainActor
 struct SearchFilterIntegrationTests {
+    @Test("Catalog profile metadata is copied before callback return")
+    func resourceMetadataOwnership() async throws {
+        let channel = ScanEventChannel(capacity: 8)
+        let stream = channel.makeStream(onClose: {})
+        let context = RustScanBridgeContext(generation: 93, channel: channel)
+        let expected = ScanResourceUsage(limits: ["queuedTasks": 12], limitReached: nil,
+            peakPendingTasks: 9, peakListingEntries: 7, peakListingWeight: 1024, droppedProfileSamples: 17)
+        var bytes = Array(try JSONEncoder().encode(expected))
+        bytes.withUnsafeBufferPointer { metadata in
+            var sample = BHScanProfileSample()
+            sample.elapsed_us = 1_000_000
+            withUnsafePointer(to: &sample) { profile in
+                var event = BHCatalogScanEvent()
+                event.version = 1
+                event.base.event_type = 5
+                event.base.profile = profile
+                event.metadata = metadata.baseAddress
+                event.metadata_len = metadata.count
+                withUnsafePointer(to: &event, context.handleCatalog)
+            }
+        }
+        bytes = Array(repeating: 0, count: bytes.count)
+        context.finish(status: 0)
+        var copied: ScanResourceUsage?
+        for await event in stream {
+            if case .profile(_, let sample) = event { copied = sample.resourceUsage }
+        }
+        #expect(copied == expected)
+    }
+
     @Test("A running scan keeps its filter snapshot; the next scan uses changed settings")
     func immutableScanFilters() async throws {
         let fixture = try makeFixture()

@@ -46,6 +46,9 @@ interfaces:
         operations are separate adapters.
   outbound: []
 constraints:
+- id: resource_disclosure
+  level: MUST
+  statement: Preserve optional scan budget/high-water/profile-loss metadata in CLI JSON/profile output and GUI JSON exports. Producer loss is separate from rolling history eviction; GUI resource series have gaps and omit missing RAM intervals from integration. Reports and table/diagram/export projections retain bounded admitted source sets per scan, not a process-global memory guarantee. Independent windows and still-stopping generations may overlap.
 - id: generation
   level: MUST
   statement: Replacing/rescanning/stopping invalidates prior events by generation; only current scanning generation
