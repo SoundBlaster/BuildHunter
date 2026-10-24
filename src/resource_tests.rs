@@ -357,3 +357,53 @@ fn scoped_backend_uses_the_same_listing_retention_limits_without_path_fallback()
     assert!(report.artifacts.is_empty());
     terminal(&events, ScanStatus::Incomplete);
 }
+
+#[test]
+fn a_stalled_consumer_has_bounded_profile_backlog_and_an_explicit_loss_notice() {
+    let tree = tests::TempTree::new();
+    fs::create_dir(tree.0.join(".build")).unwrap();
+    let control = ScanControl::with_limits(ScanLimits {
+        profile_samples: 1,
+        ..Default::default()
+    });
+    control.set_profiling(true);
+    let mut events = Vec::new();
+    let mut stalled = false;
+    let report = scan_with_policy(
+        &tree.0,
+        ScanOptions::default(),
+        &control,
+        classify,
+        |event| {
+            if !stalled && matches!(event, ScanEvent::Profile(_)) {
+                stalled = true;
+                std::thread::sleep(PROFILE_INTERVAL * 4);
+            }
+            events.push(event.clone());
+        },
+    );
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert_eq!(control.resource_limit(), None);
+    assert!(
+        control.resource_usage_json()["droppedProfileSamples"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    assert_eq!(report.warnings.len(), 1);
+    assert!(report.warnings[0].message.starts_with("Profiling omitted"));
+    let final_sample = events
+        .iter()
+        .rev()
+        .find_map(|e| {
+            if let ScanEvent::Profile(p) = e {
+                Some(p)
+            } else {
+                None
+            }
+        })
+        .unwrap();
+    assert_eq!(final_sample.pending_tasks, 0);
+    assert_eq!(final_sample.warnings, 1);
+    terminal(&events, ScanStatus::Completed);
+}

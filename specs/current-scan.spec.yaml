@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.20
+  version: 0.1.0-draft.21
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -164,7 +164,7 @@ constraints:
     the scan with Failed. Other OS/providers do not acquire a universal no-download guarantee.
 - id: memory_scope
   level: MUST
-  statement: 'Apply buildhunter.scan.resources per-scan retention/admission limits. Completed ledger slots release immediately and worker responses are bounded. Do not infer a whole-process RSS ceiling from estimated payload quotas; reports, profile backlog, opaque allocations and multiple consumers/windows require separate accounting.'
+  statement: 'Apply buildhunter.scan.resources per-scan retention/admission limits. Completed ledger slots release immediately, worker responses and profile pending samples are bounded. Do not infer a whole-process RSS ceiling from estimated payload quotas; consumer report copies, opaque allocations and multiple consumers/windows require separate accounting.'
 - id: result_execution
   level: MUST
   statement: The result pump checks outstanding work and stop before checkpoint/receive,

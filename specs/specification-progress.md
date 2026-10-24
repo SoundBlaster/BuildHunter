@@ -1075,3 +1075,20 @@ no-follow policy change is intended. Fresh source/tests are recorded under
 Profile backlog, GUI/export disclosure and end-to-end CPU/RSS/latency measurements
 are the next layer. Per-scan estimated payloads do not establish a whole-process
 RSS ceiling or owner acceptance of C5.
+
+### R5 pending profiles and consumer disclosure — 2026-10-24
+
+Pending profile samples now retain a bounded suffix with exact omission accounting.
+The 88-byte numeric ABI is unchanged; optional catalog-profile metadata carries
+limits, high water and omission count. CLI JSON/profile and GUI JSON export retain
+that metadata. GUI CPU/RAM series break at disclosed gaps; missing RAM intervals
+are not integrated. Static Swift profile smoke and Debug/Release Xcode test builds
+are distinct from full native XCTest execution.
+
+Fresh CLI CPU/RSS/latency receipts (three runs per input and variant) are in
+`validation/r5-profile-budgets-20261024` and
+`docs/r5-resource-measurements-20261024.md`. Consumer/report/ring/projection and
+multiple-window accounting scope is documented; no absolute RSS ceiling follows.
+A GUI scan revealed popover-associated font-cache retention and two blocked native
+opens. The next stack layer investigates numeric transitions; no completed home
+GUI scan or whole-app C5 acceptance is claimed by these measurements.

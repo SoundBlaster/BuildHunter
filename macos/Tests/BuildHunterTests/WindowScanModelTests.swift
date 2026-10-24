@@ -740,6 +740,23 @@ struct ScanProfileTests {
             cpuSystemNanoseconds: system.map { $0 * 1_000_000_000 }, residentBytes: rss)
     }
 
+    @Test("Omitted producer samples break resource series and RAM integration")
+    func omittedResourceSamples() {
+        var history = ScanProfileHistory()
+        history.record(resourceSample(0, user: 0, system: 0, rss: 100))
+        history.record(resourceSample(1, user: 1, system: 0, rss: 200))
+        var after = resourceSample(4, user: 4, system: 0, rss: 800)
+        after.resourceUsage = ScanResourceUsage(limits: [:], limitReached: nil,
+            peakPendingTasks: 0, peakListingEntries: 0, peakListingWeight: 0, droppedProfileSamples: 2)
+        history.record(after)
+        #expect(history.points.last?.cpuPercent == nil)
+        #expect(history.points.first?.cpuSeries != history.points.last?.cpuSeries)
+        #expect(history.points.first?.memorySeries != history.points.last?.memorySeries)
+        #expect(history.residentObservedSeconds == 1)
+        #expect(history.averageResidentBytes == 150)
+        #expect(history.latest?.resourceUsage?.droppedProfileSamples == 2)
+    }
+
     @Test("Process CPU can exceed 100 percent; RSS average is weighted by time")
     func processResources() {
         var history = ScanProfileHistory()

@@ -494,3 +494,12 @@ ResponseRetention:
 ReportRetention:
   implementation: "findings/progress/warnings/diagnostics gated before retained clones; reserved final limit warning"
   folded_into: "buildhunter.scan.resources"
+
+ProfileBacklog:
+  source: "src/profile.rs"
+  implementation: "bounded newest sampler suffix; saturating pending-loss count, separate consumer-history eviction"
+  folded_into: "buildhunter.scan.resources"
+ResourceDisclosure:
+  source: "src/catalog_bridge.rs, src/profile_report.rs, macos/Sources/BuildHunter/Scanning/ScanProfile.swift"
+  implementation: "optional ABI-1 profile metadata, copied/exported estimates; resource-series gaps on loss"
+  folded_into: "buildhunter.scan.resources"

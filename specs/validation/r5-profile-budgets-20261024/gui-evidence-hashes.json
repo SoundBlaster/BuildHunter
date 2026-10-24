@@ -1,0 +1,12 @@
+{
+  "r5-gui-monitor.json": "e8ee4b7ccce91609fc85a2787790f606dc1730d9ded93c97f3fc562db72f6ce7",
+  "r5-gui-stack.sample": "8c0f2264ff847bc4502d8843b81610371935ae4455dad97ef3eb9930e704c32f",
+  "r5-gui-vmmap.log": "16947648d80ece293dae8cc8354cae260ab544f1b287173eef4043c0c47e6f3f",
+  "r5-gui-heap.log": "44b1948045bc2737ccc8da40da9068014f6742327f13cfac0a2138e0f1897304",
+  "r5-gui.memgraph": "97b7dbb3de3a0a3981d144df89abccbb61fa4bb5bca7d5b71c94d67baf629c4d",
+  "r5-gui-leaks.log": "7db0dce64af009c718de01e5fa1727d7618f311b63c6a0bcf620e884308c254d",
+  "r5-gui-reference-20135.log": "ed9bdb6f75ccdb816c589aa22fe60a3550a8c2f46563661ab68fd48552192c97",
+  "r5-gui-reference-40270.log": "a575c52d3e0633cdf826178ccc7eee0b9679c7b0cb2b7b6b3ab8ef4536460560",
+  "r5-gui-after-close.json": "96661cd4a45d51f5afae493a6fab5e4c0298b17f11e28e39726826d042f15f04",
+  "r5-gui-allocations.log": "cf93a184de93885787db28bda14b1bca29a503e032db632f1a8f39b91a3a31a8"
+}

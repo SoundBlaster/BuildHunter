@@ -10,9 +10,20 @@ pub struct ProfileReport {
     peak_entries: f64,
     peak_bytes: f64,
     resources: ResourceHistory,
+    resource_usage: Option<serde_json::Value>,
+    first_finding_us: Option<u64>,
 }
 
 impl ProfileReport {
+    pub fn set_resource_usage(&mut self, usage: serde_json::Value) {
+        self.resource_usage = Some(usage);
+    }
+
+    pub fn record_first_finding(&mut self, elapsed: std::time::Duration) {
+        self.first_finding_us
+            .get_or_insert(u64::try_from(elapsed.as_micros()).unwrap_or(u64::MAX));
+    }
+
     pub fn record(&mut self, sample: ScanProfileSample) {
         if let Some(previous) = self.samples.back() {
             if sample.elapsed_us <= previous.elapsed_us {
@@ -51,13 +62,26 @@ impl ProfileReport {
             "{{\"elapsed_us\":{},\"entries\":{},\"directories\":{},\"measured_bytes\":{},\"artifacts\":{},\"warnings\":{},\"pending_tasks\":{},{}}}",
             s.elapsed_us, s.entries, s.directories, s.measured_bytes, s.artifacts, s.warnings, s.pending_tasks, s.resource_json_fields()
         )).collect::<Vec<_>>().join(",");
+        let pending_dropped = self
+            .resource_usage
+            .as_ref()
+            .and_then(|usage| usage["droppedProfileSamples"].as_u64())
+            .unwrap_or(0);
+        let budget_json = self
+            .resource_usage
+            .as_ref()
+            .map_or_else(|| "null".to_owned(), serde_json::Value::to_string);
         format!(
-            "{{\"schema_version\":1,\"root\":{},\"status\":{},\"size_mode\":{},\"sample_interval_ms\":{},\"truncated_samples\":{},\"average_entries_per_second\":{},\"average_measured_bytes_per_second\":{},\"peak_entries_per_second\":{},\"peak_measured_bytes_per_second\":{},\"resources\":{},\"samples\":[{}]}}\n",
+            "{{\"schema_version\":1,\"root\":{},\"status\":{},\"size_mode\":{},\"sample_interval_ms\":{},\"first_finding_elapsed_us\":{},\"truncated_samples\":{},\"pending_truncated_samples\":{},\"scan_budgets\":{},\"average_entries_per_second\":{},\"average_measured_bytes_per_second\":{},\"peak_entries_per_second\":{},\"peak_measured_bytes_per_second\":{},\"resources\":{},\"samples\":[{}]}}\n",
             crate::quoted(root),
             crate::quoted(status),
             crate::quoted(size_mode),
             PROFILE_INTERVAL.as_millis(),
-            self.dropped,
+            self.first_finding_us
+                .map_or_else(|| "null".to_owned(), |value| value.to_string()),
+            self.dropped.saturating_add(pending_dropped),
+            pending_dropped,
+            budget_json,
             rate(last.entries),
             rate(last.measured_bytes),
             self.peak_entries,
@@ -71,6 +95,24 @@ impl ProfileReport {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pending_losses_and_display_evictions_are_accounted_separately() {
+        let mut profile = ProfileReport::default();
+        for i in 0..5000 {
+            profile.record(ScanProfileSample {
+                elapsed_us: i + 1,
+                ..Default::default()
+            });
+        }
+        profile.set_resource_usage(serde_json::json!({"droppedProfileSamples":17}));
+        let value: serde_json::Value =
+            serde_json::from_str(&profile.json("root", "completed", "apparent")).unwrap();
+        assert_eq!(value["truncated_samples"], 921);
+        assert_eq!(value["pending_truncated_samples"], 17);
+        assert_eq!(value["scan_budgets"]["droppedProfileSamples"], 17);
+        assert_eq!(value["samples"].as_array().unwrap().len(), CAPACITY);
+    }
+
     #[test]
     fn zero_elapsed_and_duplicate_samples_never_emit_nonfinite_rates() {
         let mut profile = ProfileReport::default();

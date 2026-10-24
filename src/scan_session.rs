@@ -34,7 +34,7 @@ pub(super) fn run(
             let profile_state = control
                 .profiling
                 .load(Ordering::Acquire)
-                .then(profile::ProfileState::new);
+                .then(|| profile::ProfileState::with_capacity(control.limits.profile_samples));
             let profile = profile_state.as_ref();
             let sender = channel.sender();
             let (artifacts, mut warnings, had_errors, changed) = session.run_engine(
@@ -121,8 +121,20 @@ pub(super) fn run(
             };
             if let Some(profile) = profile {
                 profile.counters.pending_tasks.store(0, Ordering::Relaxed);
+                if profile.final_sample_omits() {
+                    profile::bump(&profile.counters.warnings, 1);
+                    let warning = ScanWarning { relative_path: PathBuf::from("."), message:
+                        "Profiling omitted pending samples while updates were delayed; sampled peaks may be missed.".into() };
+                    warnings.push(warning.clone());
+                    emit(&ScanEvent::Warning(warning));
+                }
                 profile.record();
-                for sample in profile.drain() {
+                let samples = profile.drain();
+                control
+                    .usage
+                    .dropped_profile_samples
+                    .store(profile.dropped(), Ordering::Relaxed);
+                for sample in samples {
                     emit(&ScanEvent::Profile(sample));
                 }
             }
