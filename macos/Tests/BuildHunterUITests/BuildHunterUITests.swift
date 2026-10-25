@@ -152,6 +152,10 @@ final class BuildHunterUITests: XCTestCase {
         let menuItem = app.menuItems["Settings…"]
         XCTAssertTrue(menuItem.waitForExistence(timeout: 5))
         menuItem.click()
+        // SwiftUI remembers the last Settings tab across launches.
+        let search = app.toolbars.buttons["Search"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.click()
     }
 
     func testMockStatesAndCaptureScreenshots() throws {
