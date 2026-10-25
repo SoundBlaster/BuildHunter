@@ -199,3 +199,13 @@ SharedTargetOwnership under the scoped PluginScanning boundary. Current identiti
 and structural checks are in `../validation/r5-plugin-budgets-20261024`. Earlier
 measurements retain their exact source snapshots; new structural success does not
 resolve the native GUI open stall or establish a process-wide memory ceiling.
+
+### Managed device namespace — 2026-10-25
+
+StartupAdmission and Traversal now include BuildHunter's lexical CoreDevice/DeviceFS
+exclusion alongside cloud roots. The current composition is unchanged; product
+namespace policy stays outside generic Hunter. The current scan draft adds
+managed_locations and updates root admission; target maps and plugin rules remain
+unchanged. Fresh source/map identities and focused native CLI/structural checks are
+under `../validation/devicefs-exclusion-20261025`. Prior Photos/home/RSS evidence
+remains historical and is not execution evidence for the new source.

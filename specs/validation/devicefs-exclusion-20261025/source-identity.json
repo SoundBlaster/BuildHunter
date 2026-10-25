@@ -1,0 +1,24 @@
+{
+  "baseline": "ed1df23b57d7be89ef8b0ac7d29d6f0aa6e8a23c",
+  "runtime_commit": "4a022516eb8e0e6ed11c75f4b10c8d61ed4a1d0d",
+  "generated_utc": "2026-10-25T13:45:23.991927+00:00",
+  "source_state": "Runtime files committed; documentation/maps/specs captured from the working tree below before their separate documentation commit. Historical receipts remain unchanged.",
+  "files": {
+    "src/lib.rs": "48b9966ddb20c2a2a0da921df2f8bd2309509da67630b671e1448a59fb991bb0",
+    "src/scan_session.rs": "c7f1bcdf98d7d2e77d28c7bdc0c3efffc67960303afb14f4223b97b612f0b7c1",
+    "src/client_scan.rs": "1957497ac315e7152451cc33e817febd55a48a24ba42ed387cb45cee64e6d496",
+    "src/client_scan_tests.rs": "4d507a886da65d0dfed715f3ee5c18ba7187571611f946d6edc6c9d863ed4ea2",
+    "src/main.rs": "33193a8df53d530486850264adf4a12ed3a8989b10c1d7d42a7d48601fbe346b",
+    "specs/current-scan.spec.yaml": "ece27ee6d0b9febfc5895649121228ae97f59bba738ffb9d32ea045979eff722",
+    "specs/catalog-client-scan.spec.yaml": "f3145bb4d0335397309a5b3d5534176e2e496a5e3f1a9186b30e0452f4ff6b55",
+    "specs/hypercode/current.hc": "87ce144ef2e01ac7a4ac6b188aac59d18fb8df188a7a7665defbecc62817b8fd",
+    "specs/hypercode/current.hcs": "4234240d2f33f9659c5997fd642baa28a6451bd76fb691487548beaa46147ea9",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/hypercode/README.md": "49e2ffe8a6a3dc7b98dc8492080513a89ef396bc34ef7e747cc86dcca2651c17",
+    "specs/specification-progress.md": "c4ee4522323989cf1e21203ff1b4516c1998cd1e5f5b9878bd498918e9f52608",
+    "specpm.yaml": "e61f32ec684caa81b7d752d4fcba213f616da60742d3c2ce96049e2ce47fcdf7",
+    "docs/live-tree-scanning.md": "8fb82b8212e9266ce1a06b3d4f47795fc43bb97b043503102ccd8df7b3fa4a17"
+  },
+  "map_note": "Current composition unchanged; current HCS properties identify host admission policy. Target map unchanged."
+}
