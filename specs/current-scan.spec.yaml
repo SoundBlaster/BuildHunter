@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.scan
   title: Current scanner mechanics
-  version: 0.1.0-draft.21
+  version: 0.1.0-draft.22
   status: draft
 intent:
   summary: Observe policy-selected filesystem roots with streaming sizes, warnings, cancellation and optional process
@@ -12,7 +12,7 @@ scope:
   boundedContext: module_recovery_and_design
   includes:
   - scan_with_policy and current worker traversal/measurement, including optional macOS bulk metadata.
-  - Allocated/apparent sizing, terminal status, cloud guards, policy/emit callback lifecycle.
+  - Allocated/apparent sizing, terminal status, managed-location admission, cloud guards, policy/emit callback lifecycle.
   - scan_with_candidate_observer bypasses legacy name/marker gates for independent consumers; plugin I/O/routing
     is covered by buildhunter.plugin.scanner.
   excludes:
@@ -162,6 +162,20 @@ constraints:
   level: MUST
   statement: Enter the macOS non-materialization guard before traversal and on workers; guard setup failure ends
     the scan with Failed. Other OS/providers do not acquire a universal no-download guarantee.
+- id: managed_locations
+  level: MUST
+  statement: On macOS, lexically exclude each user's Library/Mobile Documents,
+    Library/CloudStorage and Library/Developer/CoreDevice/DeviceFS namespaces,
+    including their descendants and the /System/Volumes/Data/Users spelling.
+    Normalize dot/parent components without filesystem resolution; do not use HOME.
+    Do not match the Shared account; preserve exact path-component boundaries. Selected excluded
+    roots are warned before root metadata, markers or listings; recursively discovered
+    excluded paths are warned and skipped before child routing/classification.
+    A skipped namespace preserves warning/Incomplete semantics, with affected artifact
+    ancestry partial. DeviceFS is a connected-device namespace, not a local build
+    inventory. This is product path policy even when the namespace is unmounted,
+    not detection of every mount/provider or a symlink confinement guarantee.
+    Non-macOS admission is unchanged.
 - id: memory_scope
   level: MUST
   statement: 'Apply buildhunter.scan.resources per-scan retention/admission limits. Completed ledger slots release immediately, worker responses and profile pending samples are bounded. Do not infer a whole-process RSS ceiling from estimated payload quotas; consumer report copies, opaque allocations and multiple consumers/windows require separate accounting.'
@@ -179,16 +193,16 @@ constraints:
     product session publishes Finished only after actual join.
 - id: root_admission
   level: MUST
-  statement: Delegate initial cloud preflight and metadata sequencing to Hunter
+  statement: Delegate initial managed-location preflight and metadata sequencing to Hunter
     ScanEngine::run through TraversalCoordinator calling admit_root. ArtifactHandler Skipped handling
     warns and declines initialization before the result pump/finish callback;
     Unavailable warns but retains the existing pump/finalization path. Observed
     Directory/Entry uses original metadata and existing scheduling/classification.
-    Cloud guard lifetime, lexical cloud policy and product status stay local;
+    Cloud guard lifetime, lexical managed-location policy and product status stay local;
     no stop check is added before root observation.
 - id: root_backend
   level: MUST
-  statement: After existing cloud admission, observe the selected root once through
+  statement: After managed-location admission, observe the selected root once through
     the guarded Probes backend. Reuse returned metadata for directory startup or
     selected-entry measurement, even when startup was pre-cancelled. Missing selected
     roots remain warnings/Incomplete rather than ordinary child churn. Final root
@@ -305,12 +319,21 @@ evidence:
   - constraints.terminal
   - constraints.symlink_scope
   - constraints.cloud_guard
+  - constraints.managed_locations
   - constraints.memory_scope
 - id: source_1
   kind: source
   path: src/materialization.rs
   supports:
   - scope
+- id: managed_location_tests
+  kind: test
+  path: src/lib.rs
+  supports: [constraints.managed_locations, constraints.root_admission]
+- id: managed_location_client_tests
+  kind: test
+  path: src/client_scan_tests.rs
+  supports: [constraints.managed_locations]
 - id: source_2
   kind: source
   path: vendor/hunter-fs-core/src/darwin_bulk.rs
@@ -511,7 +534,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 61e091dadba0a58f011017d84cfd21f18fdae3aa
+    revision: 4a022516eb8e0e6ed11c75f4b10c8d61ed4a1d0d
   files:
     owned:
     - src/lib.rs

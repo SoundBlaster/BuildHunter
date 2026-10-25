@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/r5-plugin-budgets-20261024/source-identity.json"
+  current_evidence: "specs/validation/devicefs-exclusion-20261025/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -34,7 +34,7 @@ ScanSession:
   source: "src/scan_session.rs"
   folded_into: "buildhunter.current.scan"
 StartupAdmission:
-  implementation: "host guard/backend choice through with_scan_session + profile/QoS/channel setup"
+  implementation: "host cloud/DeviceFS namespace preflight before root probes; guarded session + profile/QoS/channel setup"
   folded_into: "buildhunter.current.scan"
 ScopedLaunch:
   implementation: "consuming Hunter ScanSession::run_engine with host worker/helpers/factory/collection callbacks"
@@ -43,7 +43,7 @@ TerminalPublication:
   implementation: "final status/profiles and Finished after join; admission failure early path"
   folded_into: "buildhunter.current.scan"
 Traversal:
-  implementation: "ArtifactHandler ScanHandler selects/schedules; Hunter ScanEngine owns serial branch routing/task mechanics"
+  implementation: "ArtifactHandler skips managed cloud/DeviceFS children before routing; Hunter ScanEngine owns serial branch/task mechanics"
   folded_into: "buildhunter.current.scan"
 Measurement:
   implementation: "worker measure_with + ScanEngine deferred/immediate selected resolution; ArtifactHandler owns aggregation"

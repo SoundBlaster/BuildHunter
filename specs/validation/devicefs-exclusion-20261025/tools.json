@@ -1,0 +1,18 @@
+{
+  "rustc": {
+    "exit_code": 0,
+    "output": "rustc 1.97.0 (2d8144b78 2026-07-07)"
+  },
+  "cargo": {
+    "exit_code": 0,
+    "output": "cargo 1.97.0 (c980f4866 2026-06-30)"
+  },
+  "specpm": {
+    "exit_code": 0,
+    "output": "specpm 0.2.0"
+  },
+  "hypercode_path": "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+  "hypercode_sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b",
+  "specpm_path": "/opt/homebrew/bin/specpm",
+  "specpm_version": "specpm 0.2.0"
+}

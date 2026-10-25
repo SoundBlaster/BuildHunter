@@ -1,0 +1,39 @@
+{
+  "binary_sha256": "93929c5edd26413c032d2683815a51eaefec237735900ac2def639e2f6589958",
+  "observed_mount_type": "devicefs",
+  "cases": [
+    {
+      "case": "mounted-root",
+      "exit_code": 1,
+      "elapsed_wall_s": 0.0093,
+      "elapsed_scan_s": 0.001,
+      "status": "incomplete",
+      "findings": 0,
+      "warning_count": 1,
+      "devicefs_warnings": 1,
+      "diagnostic_count": 0,
+      "peak_listing_entries": 0,
+      "stderr_empty": true
+    },
+    {
+      "case": "parent-traversal",
+      "exit_code": 1,
+      "elapsed_wall_s": 0.0053,
+      "elapsed_scan_s": 0.001,
+      "status": "incomplete",
+      "findings": 0,
+      "warning_count": 1,
+      "devicefs_warnings": 1,
+      "diagnostic_count": 0,
+      "peak_listing_entries": 1,
+      "stderr_empty": true
+    },
+    {
+      "case": "local-lookalike",
+      "exit_code": 0,
+      "findings": 1,
+      "warning_count": 0
+    }
+  ],
+  "scope_note": "CLI retains native selected-directory canonicalization before invoking the core; zero core probes is tested separately. No full home/GUI rerun."
+}

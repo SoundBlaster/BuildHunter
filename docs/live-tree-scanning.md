@@ -44,6 +44,43 @@ On a Mac with iCloud Desktop & Documents and Optimize Mac Storage enabled:
 Policy unit tests prove thread setup/restoration, not live File Provider behavior
 or sandbox acceptance. The exact denial errno has not been observed yet.
 
+## Connected-device namespace exclusion
+
+On macOS, BuildHunter also skips the standard per-user
+`Library/Developer/CoreDevice/DeviceFS` namespace. A home-directory scan otherwise
+enters the `devicefs` mount exposed by CoreDevice. The observed mount returned
+`EINVAL` and `ENODATA` for listings/marker metadata, producing both filesystem and
+indeterminate-classification warnings. Those errno values alone do not identify a
+cloud object or a device filesystem.
+
+The exclusion uses the same product-owned lexical admission as the cloud roots:
+`/Users/<account>/Library/Developer/CoreDevice/DeviceFS` and its
+`/System/Volumes/Data/Users` spelling, including descendants. It applies even when
+that namespace is unmounted; it is not general mount detection. It does not use
+the app's sandboxed `HOME`, resolve links, add a per-directory mount syscall, or
+skip a project directory merely named `DeviceFS`. `Shared`, lookalike suffixes
+and paths outside the standard user namespace are not matched. Relative selected
+paths are made absolute before admission; dot/parent components are normalized.
+
+A selected excluded root is warned before any root metadata, marker or listing
+probe. During recursion, admission skips the branch before classification and
+child routing. One warning explains that connected-device contents were not
+scanned. The report remains `Incomplete`, and affected artifact ancestors remain
+partial; BuildHunter does not present the omitted subtree as empty or measured.
+The shared core applies this to both catalog CLI/GUI profiles and the legacy scan
+entrypoint. The CLI still canonicalizes and validates its selected directory
+before invoking the core; the no-probe preflight guarantee is scoped to core
+admission, not every client action. Hunter remains generic; Linux/Windows behavior
+is unchanged.
+
+Regression tests cover root/descendant admission without probes, recursive
+admission, both catalog profiles without marker observations or diagnostics,
+namespace boundaries and an ordinary local lookalike containing a build artifact.
+Fresh identities and checks are in
+[`devicefs-exclusion-20261025`](../specs/validation/devicefs-exclusion-20261025/README.md).
+The existing Photos permission test and completed home traversal describe the
+previous Release binary; they do not validate this change.
+
 ## Changes during traversal (#50)
 
 An observed child that returns `NotFound` during listing/measurement produces a

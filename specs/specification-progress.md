@@ -1129,3 +1129,30 @@ outside this acceptance claim. Current source/structural/execution receipts:
 `validation/r5-plugin-budgets-20261024`. Full hosted native XCTest remains a tip-CI
 gate rather than a claim inferred from local build-for-testing. C5 owner acceptance
 and the two stalled GUI native opens are not resolved by this adapter correction.
+
+## CoreDevice/DeviceFS admission — 2026-10-25
+
+Scope: fix entry into the standard connected-device namespace while scanning
+local artifacts. The previous Release home report completed traversal but retained
+12 DeviceFS I/O/indeterminate-classification warnings; the mount was independently
+observed as `devicefs`. These errors are not relabelled as iCloud or disappearance.
+
+BuildHunter's existing cloud preflight is generalized to managed-location admission,
+adding only the per-user Library/Developer/CoreDevice/DeviceFS namespace and its
+Data-volume spelling. Exact components and lexical dot/parent normalization avoid
+skipping project lookalikes. The namespace is excluded even if unmounted. Root core
+admission and recursive child admission share one policy; warning/Incomplete and
+ancestor-partial semantics remain explicit. Hunter and the strict plugin pilot's
+separate descriptor setup/marker contract are unchanged. CLI canonicalization and
+GUI folder-picker effects remain outside the core's no-probe preflight guarantee.
+
+Affected draft claims: current.scan managed_locations/root_admission/root_backend;
+StartupAdmission and Traversal fold the policy without a new component or package.
+Catalog CLI/GUI inherit it through current.scan. Existing classification decisions,
+bridge/event ABI, cloud thread guards, non-macOS runtime and target architecture
+retain their contracts. No draft requirement is promoted to owner acceptance.
+
+Fresh source/map hashes, structural diagnostics and actual checks are recorded in
+[devicefs-exclusion-20261025](validation/devicefs-exclusion-20261025/README.md).
+Historical home/RSS/Photos receipts identify the previous binary; this change has
+focused native Release CLI evidence, not a fresh home/GUI/RSS or Store acceptance.

@@ -1,0 +1,95 @@
+[
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "evidence": "Tool execution transcript; 93 library and 5 CLI/profile tests passed; no separate file log captured."
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--release",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 11.573,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/devicefs-exclusion-20261025/rust-0.log",
+    "log_sha256": "eaaf9f6a25ccbb13cdff7609a30a38a9b66507f13671280ca2efa2a8016ef620",
+    "log_scope": "local TB5 artifact"
+  },
+  {
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release",
+      "--bin",
+      "build-hunter"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.983,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/devicefs-exclusion-20261025/rust-1.log",
+    "log_sha256": "37fc988d6a0e27d8d5b850086181e3a188e79a09797d83be92a9a89651441a84",
+    "log_scope": "local TB5 artifact"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.094,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/devicefs-exclusion-20261025/rust-2.log",
+    "log_sha256": "e866c2ba8af73bd4b6f51829767f0bc39c23cf4402c0400e63a5ff617d279bfb",
+    "log_scope": "local TB5 artifact"
+  },
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.11,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/devicefs-exclusion-20261025/rust-3.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "log_scope": "local TB5 artifact"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.248,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/devicefs-exclusion-20261025/cli-0.log",
+    "log_sha256": "49bd09ec2f6b1522c86c6ceed0da52885057a7a7be53a509181a1a338b801e4c",
+    "log_scope": "local TB5 artifact"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_migration_parity.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.565,
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/devicefs-exclusion-20261025/cli-1.log",
+    "log_sha256": "f153ce426e4beb64e31cb7832c9a1d857145f31e0b283d5065078aa7a0f1ea08",
+    "log_scope": "local TB5 artifact"
+  }
+]
