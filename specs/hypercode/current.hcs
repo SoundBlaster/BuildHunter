@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/user-templates-20261025/source-identity.json"
+  current_evidence: "specs/validation/template-export-20261026/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -35,10 +35,10 @@ TemplateRegistry:
   folded_into: "buildhunter.current.templates"
 TemplateDraft:
   source: "macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift"
-  implementation: "one bounded JSON draft, off-actor validation and explicit save/reload"
+  implementation: "one bounded JSON draft; off-actor validation; explicit import/save/reload/export; Save As switches one registration"
   folded_into: "buildhunter.current.templates"
 ScopedTemplateFiles:
-  source: "macos/Sources/BuildHunter/Domain/UserTemplates.swift"
+  source: "macos/Sources/BuildHunter/Domain/UserTemplates.swift, macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift"
   implementation: "bounded regular-file reads; coordinated observed-edit check and atomic selected writes"
   folded_into: "buildhunter.current.templates"
 UserTemplateAdmission:

@@ -244,3 +244,12 @@ retaining guard/eligibility/fallback effects/counters/error policy. Default feat
 plugin migration remain unchanged. See [integration](hunter-batch-metadata.md) and
 `specs/validation/hunter-batch-20261021`. Next extraction is QoS/process snapshots;
 resource budgets, descriptor traversal and client/catalog delivery remain separate.
+
+### Уточнение первой версии — 2026-10-26 (Москва)
+
+Обязательны **простой GUI-редактор и импорт/экспорт JSON-файлов** в бесплатной
+версии. Import подключает выбранные файлы на месте. Export сохраняет проверенную
+копию без включения второго экземпляра пакета; Save As переключает регистрацию
+текущего документа на новый файл. Исходный файл остаётся у пользователя.
+Swift SDK не является блокером этого первого релиза. Текущая спецификация и
+проверки — в user-templates.md и specs/validation/template-export-20261026.

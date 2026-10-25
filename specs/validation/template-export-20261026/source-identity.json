@@ -1,0 +1,24 @@
+{
+  "source_revision": "0d095f326e3f1ae992d5088d7140fe61b7ada08e",
+  "base_revision": "89065ce0b60976818d1e88dce55753caf4bb5780",
+  "files": {
+    "docs/plugin-delivery-plan.md": "3f30a2ac9234dacd08ce5e0f6ab4cf72961bac2a6a7d28294ec7680228825621",
+    "docs/user-templates.md": "d19feccbac3fb7755815a81ebd2dd9aafb8c535602751f9202169dc5d7a47808",
+    "macos/Sources/BuildHunter/Domain/TemplateLibrary.swift": "bdf650a49d57c7ec30818fc1f2b7095d06aee723fc3e035fbfa0c8f146f3e57c",
+    "macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift": "cfd523e3c5b354a7ba8b9e220d5f220e92b674739251fcbbe42a69fc71e523bd",
+    "macos/Sources/BuildHunter/UI/UserTemplatesWindow.swift": "0bfc6892ad26bcb939579f53a4c0fcf54683671036ffd3c06bf5bf47391a104a",
+    "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "58538ccc752da972df52478f45e29cda027663345426a8954c67f215937a137b",
+    "specpm.yaml": "1d38f1084281cc1e4b59fcbba53b275605878be3722bfac27c77783ea7474fba",
+    "specs/claim-matrix.md": "c3f46846c3245692dd25045aa84fae9792535bb273071722e7cb45833c016803",
+    "specs/current-application.spec.yaml": "73ab342a96865702e78ae4fbb3df1f5c1592c89fee1c5d62eb8f3650fd348785",
+    "specs/current-templates.spec.yaml": "6215f56f8b2b4175b4ad219e83ef4554f45cb5d2770091feaabf4698b36ec3f1",
+    "specs/hypercode/README.md": "e8cd28802172e3399aaa2e2225231b11fd1ba1e96066cb2f397fc0ffa4a22503",
+    "specs/hypercode/current.hc": "d53181325400e14a412fdfb0224723778c7a6f7bf1f98308571652cd22bf0a84",
+    "specs/hypercode/current.hcs": "125f0c8130dfe54de2b8277dd86879740731a68b5d6d2f60488cc3e28720ac22",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/specification-progress.md": "5e791238b85791999e75435d0fc5a6344fd8924beb5d88bb07e45a9802d6af31"
+  },
+  "prior_evidence": "specs/validation/user-templates-20261025/README.md",
+  "limits": "Native file/UI checks and compiled tests are distinct; final XCTest did not start test bodies."
+}

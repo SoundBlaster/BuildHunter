@@ -647,3 +647,15 @@ UserTemplateAdmission under ClientCatalog. Target module ownership is unchanged;
 user-file management belongs to BuildHunter, not generic Hunter or Rifle. These
 drafts do not establish App Store approval, release readiness or a crash-recovery
 autosave store. R7 CLI/SDK and commercial content/purchase work remain open.
+
+## First-release template import/export — 2026-10-26 (Moscow)
+
+`buildhunter.current.templates/file_exchange` adds an owner-required explicit
+Export JSON action. It preserves registrations, source identity and unsaved state.
+`scoped_writes` now makes Save As switch only the selected registration and refuse
+another registration's destination. Both validate before writing; Save As to the
+current source uses Save's observed-edit protection. Application `effects_scope`
+includes selected template exports. Detailed controls stay folded into the existing
+TemplateManagement boundary; module ownership and scan/catalog contracts are unchanged.
+Current source/test/build/native evidence: validation/template-export-20261026.
+The earlier 149-test and CI receipts are not relabeled as results for new source.

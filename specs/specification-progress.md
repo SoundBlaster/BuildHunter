@@ -1178,3 +1178,20 @@ Requirements acceptance does not promote recovered BoundarySpecs or Store approv
 Current source/map identities, native checks, test outcomes and XCTest limits:
 `validation/user-templates-20261025`. CLI file import, SDK and commercial delivery
 remain separate work. Historical receipts above retain their original scope.
+
+## First-release file exchange clarification — 2026-10-26 (Moscow)
+
+The owner explicitly requires the simple GUI editor plus file import/export for
+the first free release. Import retains external source references; Export JSON
+writes a validated copy without activating it or clearing the dirty draft. Save As
+now switches one registration (preserving enabled state and old source data),
+rather than enabling a duplicate package. Same-source Save As keeps the external
+edit check; another registered destination is rejected before writing.
+
+The new behavior is folded into existing TemplateManagement/ScopedTemplateFiles;
+no new significant boundary or target module is introduced. Affected contracts:
+`buildhunter.current.templates/file_exchange,scoped_writes` and application
+`effects_scope`. Snapshot, bridge, classification and C1–C5 contracts are unchanged.
+Fresh source/map identities and checks: `validation/template-export-20261026`.
+Previous PR #120 checks passed for 89065ce; that CI result is historical for this
+follow-up. Swift SDK remains separate and does not gate the first editor release.

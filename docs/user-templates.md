@@ -3,6 +3,8 @@
 The owner accepted this first-release scope on 2026-10-25. These requirements
 apply to the free app as well as the Store edition. Arsenal sells a maintained
 catalog; authoring and using one's own rules has no purchase requirement.
+The owner's first-release clarification (2026-10-26, Moscow) explicitly requires
+the simple GUI editor and file import/export. Swift SDK delivery is separate.
 
 - One UTF-8 JSON file is one declarative plugin package, possibly with several
   targets. The existing plugin/Rifle formats are reused; no executable hooks,
@@ -11,7 +13,7 @@ catalog; authoring and using one's own rules has no purchase requirement.
   BuildHunter stores file references, access bookmarks and enabled state, not an
   authoritative copy of the source. Disconnecting a file does not delete it.
 - The minimal editor opens the complete JSON, highlights syntax, validates and
-  saves atomically. Saving compares the loaded bytes under file coordination and
+  saves/exports atomically. Saving compares the loaded bytes under file coordination and
   refuses observed external changes until reload. This is not a filesystem
   compare-and-swap guarantee against an uncoordinated writer racing that check.
   Invalid edits stay in the editor and produce diagnostics.
@@ -39,24 +41,30 @@ watcher, Git integration and commercial purchase implementation are separate wor
 
 ## Using files
 
-1. Open **BuildHunter → Settings… → Templates**. Choose **New…**, or **Connect
+1. Open **BuildHunter → Settings… → Templates**. Choose **New…**, or **Import
    JSON…** for files already in a folder or Git checkout. Connecting a file does
    not copy it into an app-managed source library. Use **Open** to edit it.
 2. Edit the full JSON. **Check** validates this draft and the enabled connected
    packages together. A disabled draft is still checked individually but stays
    disabled. Checking never saves or changes an active scan.
-3. **Save As…** chooses a destination and connects the saved file; **Save**
+3. **Save As…** chooses a destination and switches this draft's registration to
+   the new file, keeping its previous source file intact and preserving enabled
+   state. It refuses a path registered to another template. **Save**
    validates the individual package and replaces the loaded file after checking
    it for observed external edits. Use Check to inspect cross-file conflicts.
    **Reload** reads the disk version and asks before discarding a dirty draft.
    Closing Settings retains the draft for this process; quitting asks before
    discarding it. Drafts are not an autosave or crash-recovery store.
+   **Export JSON…** writes a validated copy of the current draft for sharing or
+   versioning. It keeps the editor's source, unsaved state and registrations intact;
+   it does not enable the exported copy. A connected destination must be updated
+   with Save instead. An invalid draft cannot overwrite an export destination.
 4. Run a new scan or Rescan. It reads all enabled files before Rust starts
    traversal. Per-file switches apply immediately to the next scan; admitted
    target types also appear in Search settings after catalog metadata arrives.
 5. Commit, branch or restore these JSON files using your own Git tools. An
    external replacement at the same selected path is reread. For a moved file, disconnect the old reference and
-   connect its new path; **Disconnect** removes only the app registration.
+   import its new path; **Disconnect** removes only the app registration.
 
 One broken enabled file blocks the next catalog, with its path/error in the scan
 warnings. It does not silently revert to built-ins. Disable that file explicitly
@@ -103,7 +111,7 @@ scanner policy. There is no implicit precedence override for user files.
   coordination plus byte comparison detects observed external changes; it cannot
   arbitrate an uncoordinated writer racing between comparison and replacement.
 
-The editor and explicit template saves add user-selected file writes alongside
+The editor and explicit template saves/exports add user-selected file writes alongside
 existing report exports. Scanning remains read-only; importing data does not add
 executable plugins, networking, JIT or permission escalation. App Store acceptance
 and the future Arsenal purchase/trial flow require separate validation.
