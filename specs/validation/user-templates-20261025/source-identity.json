@@ -19,7 +19,7 @@
     "macos/Sources/BuildHunter/UI/TemplateJSONEditor.swift": "e71d77bbc064c8362977865a68e338da3b96f0c1986411609c3a8eb822d74b11",
     "macos/Sources/BuildHunter/UI/UserTemplatesWindow.swift": "db422481f6432576ad0e3deada3a8cf140c20020303fa0d0f3c0d6244d0147aa",
     "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "1b835af2c132fafec8d1253f986cdf2f257738ad05c897f80e8f7638c88b21d4",
-    "macos/Tests/BuildHunterUITests/BuildHunterUITests.swift": "d9cb8adaebc561c653a08bd9a03b759bb6cafd6bf6ac214d44f12abc725b1faf",
+    "macos/Tests/BuildHunterUITests/BuildHunterUITests.swift": "a15212029742214e0f04820c16e1ecf6d9159e3539c5363232edd2d90f9fd95b",
     "specpm.yaml": "3c248d00c3dba4257d921232a12f1741941221fe51dad293cb951d0827b0c8d7",
     "specs/buildhunter-design.spec.yaml": "aff3c9e450de75f8773725309465e3af0cd96448805cdde5e14b10701ed18737",
     "specs/catalog-snapshot.spec.yaml": "1248f1850361467b67a8c1546ac434abb5c9b9dc9a2d5225b5a1252131ae773b",
@@ -39,5 +39,6 @@
     "path": "/Users/egor/Development/GitHub/BuildHunter/macos/BuildHunter.xcodeproj/xcshareddata/xcschemes/BuildHunter.xcscheme",
     "sha256": "e59ed0ed16e05859a2cb1d7d43af461e76d782707c5b0e157386eff289879bbf",
     "changed": false
-  }
+  },
+  "test_setup_revision": "f00abf91c35504fbf826ed719a3faae943fe558e"
 }

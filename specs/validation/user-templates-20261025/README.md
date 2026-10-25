@@ -79,4 +79,8 @@ and [SpecPM output](specpm.json). Tool identities are in [tools.json](tools.json
 The unrelated primary-checkout Xcode scheme remains unchanged (digest in the
 identity record). No PR merge or Store release is part of this receipt. CLI file
 import, Swift authoring SDK, commercial catalog/StoreKit and Store approval remain
-separate work. Final XCTest/CI review remains necessary before merge.
+separate work. The UI-test Settings helper explicitly selects Search before a scenario selects
+Templates, so remembered tab state cannot invalidate unrelated Search assertions.
+This test-only follow-up (`f00abf9`) is recorded separately from the runtime source
+revision and compiled with build-for-testing. Final XCTest/CI review remains necessary
+before merge.
