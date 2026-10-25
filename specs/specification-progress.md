@@ -1,5 +1,9 @@
 # BuildHunter — architecture and specification progress
 
+Latest feature slice: [R7 file-backed user templates](../docs/user-templates.md),
+2026-10-25 feature branch. Its contracts/evidence are recorded below and in
+`validation/user-templates-20261025`; it does not close CLI/SDK/Store delivery.
+
 Latest state: [merged-main audit, 2026-10-22](../docs/modular-refactor-audit-20261022.md).
 Public baselines: BuildHunter `6dcf9ba91e67c7d5f3270369d05e03d01da1db5e`,
 Hunter `f1c9f921fed2ea04aa8e67b84075d9fd3a504e2d`, Rifle
@@ -1156,3 +1160,21 @@ Fresh source/map hashes, structural diagnostics and actual checks are recorded i
 [devicefs-exclusion-20261025](validation/devicefs-exclusion-20261025/README.md).
 Historical home/RSS/Photos receipts identify the previous binary; this change has
 focused native Release CLI evidence, not a fresh home/GUI/RSS or Store acceptance.
+
+## R7 minimal file-backed templates — 2026-10-25
+
+Owner scope is fixed in `docs/user-templates.md`: free authoring/use in both
+editions, ordinary JSON source files suitable for the user's own Git repository,
+minimal native editor/validation, explicit save/reload and no watcher/IDE/Git client.
+`buildhunter.current.templates` is a new significant boundary for registry, draft
+and file effects. UI details are folded into it; no separate spec per View.
+Current CatalogSnapshot/bridge/application drafts now describe external-origin
+admission, package versions, no partial fallback and selected template writes.
+Existing C1–C5 scan semantics, Hunter/Rifle modules and queue/target scope lifetimes
+are unchanged. C6 explicitly includes template Save/Save As as user-requested
+writes, distinct from read-only traversal.
+
+Requirements acceptance does not promote recovered BoundarySpecs or Store approval.
+Current source/map identities, native checks, test outcomes and XCTest limits:
+`validation/user-templates-20261025`. CLI file import, SDK and commercial delivery
+remain separate work. Historical receipts above retain their original scope.

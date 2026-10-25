@@ -8,6 +8,10 @@ BuildHunterRuntime
       FolderActions
       Export
       Settings
+      TemplateManagement
+        TemplateRegistry
+        TemplateDraft
+        ScopedTemplateFiles
   SharedRuntime
     Scanner
       ScanSession
@@ -43,6 +47,7 @@ BuildHunterRuntime
       BasicProfiles
       CatalogIdentity
       CatalogHandle
+      UserTemplateAdmission
     PluginPolicy
       CatalogValidation
       EffectivePlan

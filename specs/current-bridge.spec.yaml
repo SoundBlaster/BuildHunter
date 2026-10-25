@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.bridge
   title: Rust/Swift scan session bridge
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
@@ -25,6 +25,9 @@ provides:
       and target access.
 requires:
   capabilities:
+  - id: buildhunter.current.templates
+    optional: false
+    summary: Reload enabled referenced files before catalog creation, preserving explicit preparation diagnostics.
   - id: buildhunter.catalog.scan
     optional: false
     summary: Versioned catalog events and the owned immutable snapshot.
@@ -65,7 +68,7 @@ constraints:
     the Rust call returns, not immediately when cancellation is requested.
 - id: policy_table
   level: MUST
-  statement: Default GUI loads one validated GUI catalog handle from copied exclusion IDs and retains it through scan return. Metadata event precedes findings; discovery resolves only known target IDs and copies catalog identity. Typed diagnostics survive transport. No per-candidate Swift callback or finite table is used by default; legacy APIs remain available.
+  statement: Default GUI captures exclusions and template registrations, reloads enabled files off MainActor and retains one admitted GUI catalog handle through scan return. Invalid registry/files/catalog fail preparation with a warning directing the user to Settings; no built-in-only or previous-catalog fallback is allowed. Metadata with package versions precedes findings; discovery resolves only known target IDs and copies catalog identity. Typed diagnostics survive transport. No per-candidate Swift callback or finite table is used by default; legacy APIs remain available.
 - id: invalid_utf8
   level: MUST
   statement: Rust retains raw path bytes; Swift decodes displayed paths lossily and emits bridge warnings that make
@@ -120,6 +123,7 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - R7 adds file-backed catalog preparation; existing queue cancellation, target-scope and borrowed-event lifetimes remain unchanged. Current identities and execution limits are in validation/user-templates-20261025.
   - R4 cutover source/run identities are in validation/r4-client-cutover-20261023. Local compilation and test-host execution are separate evidence; no snapshot/inode action capability or Store acceptance is claimed.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
@@ -130,7 +134,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+    revision: 59508e3b7ecb6ae12458e4c2ff87dc3d645d0b16
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift

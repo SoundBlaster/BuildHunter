@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.application
   title: Current client assembly
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
@@ -25,6 +25,9 @@ provides:
       and profile differences.
 requires:
   capabilities:
+  - id: buildhunter.current.templates
+    optional: true
+    summary: GUI Settings includes free file-backed user template authoring; CLI import UX is separate.
   - id: buildhunter.current.scan
     optional: false
     summary: Shared Rust scan mechanics; CLI consumes directly, GUI through its bridge.
@@ -64,7 +67,7 @@ constraints:
   level: MUST
   statement: Built-in scanning, Finder handoff and path copying do not mutate the scanned filesystem tree.
     Settings write UserDefaults and copying changes the clipboard. User-requested report exports and CLI --profile
-    write an explicitly selected output, which may be inside the scanned tree; they are exceptions to scan read-only behavior.
+    write an explicitly selected output, which may be inside the scanned tree; explicit template Save/Save As also writes a user-selected JSON file. These are exceptions to scan read-only behavior and do not authorize cleanup or executable plugins.
 - id: finder_handoff
   level: MUST
   statement: NSWorkspace.activateFileViewerSelecting requests Finder selection; the .opened outcome describes a handoff
@@ -187,6 +190,7 @@ provenance:
     behavior: medium
   notes:
   - R4 adds catalog/diagnostic ownership and action-safety prefixes to the current report; rescan clears all three. Metadata/exclusions/rows are captured together before opening export UI. Source/run identities and execution limits are in validation/r4-client-cutover-20261023.
+  - R7 introduces the separately described buildhunter.current.templates boundary. Reports now retain optional package version metadata, and admitted target descriptors update Search settings while unknown exclusions remain persisted. Current identities/evidence are in validation/user-templates-20261025.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
     are in specs/evidence/modules-20261013/source-identity.json.
@@ -196,7 +200,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+    revision: 59508e3b7ecb6ae12458e4c2ff87dc3d645d0b16
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift

@@ -1,0 +1,105 @@
+# Approved names; target contracts remain draft, extraction is partial.
+HunterProducts:
+  status: "target-design-draft"
+  baseline: "specs/validation/plugin-alignment-20261022/source-identity.json"
+  profile: "public"
+Hunter:
+  boundary_spec: "hunter.design.scan"
+  repository: "Hunter"
+  visibility: "public"
+  implemented_as_module: true
+  implemented_scope: "Unix scoped markers; macOS/Linux descriptor acquisition API; portable and opt-in Darwin batch metadata; prepared size lookup; recursive ScanEngine and guarded launch/join. Requested QoS and process snapshots are upstream; backend selection and product error/counter policy stay host-owned."
+  filesystem_effects: true
+  artifact_vocabulary: false
+Rifle:
+  boundary_spec: "rifle.design.rules"
+  repository: "Rifle"
+  visibility: "public"
+  implemented_as_module: true
+  implemented_scope: "pure-program-generic-catalog-identity; Swift SDK pending"
+  filesystem_effects: false
+  artifact_vocabulary: false
+BuildHunter:
+  boundary_spec: "buildhunter.design.product"
+  repository: "BuildHunter"
+  visibility: "public"
+  implemented_as_target_assembly: false
+  catalog: "public-basic"
+Arsenal:
+  boundary_spec: "arsenal.design.catalog"
+  repository: "Arsenal"
+  visibility: "private"
+  implemented_as_module: false
+StoreDistribution:
+  folded_into: "buildhunter.design.product"
+  repository: "BuildHunterMAS"
+  status: "repository-created-pipeline-pending"
+Traversal:
+  folded_into: "hunter.design.scan"
+MetadataMeasurement:
+  folded_into: "hunter.design.scan"
+  status: "portable-and-Darwin-batch-implemented-host-chooses-fallback-effects"
+PlatformGuards:
+  folded_into: "hunter.design.scan"
+  status: "guard-lifetime-and-requested-QoS-implemented-host-chooses-placement"
+ScanLifecycle:
+  folded_into: "hunter.design.scan"
+  status: "generic-mechanics-implemented-product-terminal-policy-host-owned"
+Telemetry:
+  folded_into: "hunter.design.scan"
+  status: "OS-resource-reader-in-Hunter-product-profile-kept-in-BuildHunter"
+RuleModel:
+  folded_into: "rifle.design.rules"
+CatalogValidation:
+  folded_into: "rifle.design.rules"
+PlanCompilation:
+  folded_into: "rifle.design.rules"
+  status: "validated-immutable-plan-no-candidate-index"
+Evaluation:
+  folded_into: "rifle.design.rules"
+SwiftAuthoring:
+  folded_into: "rifle.design.rules"
+  status: "not-implemented"
+BasicPlugins:
+  folded_into: "buildhunter.design.product"
+  status: "public-examples-and-opt-in-pilot-default-client-migration-pending"
+ArtifactPolicy:
+  folded_into: "buildhunter.design.product"
+ScanAssembly:
+  folded_into: "buildhunter.design.product"
+CommandLine:
+  folded_into: "buildhunter.design.product"
+MacApplication:
+  folded_into: "buildhunter.design.product"
+CommercialPlugins:
+  folded_into: "arsenal.design.catalog"
+PluginFixtures:
+  folded_into: "arsenal.design.catalog"
+PinnedComposition:
+  folded_into: "buildhunter.design.product"
+SigningAndRelease:
+  folded_into: "buildhunter.design.product"
+@edition[store]:
+  HunterProducts:
+    profile: "store"
+  BuildHunter:
+    catalog: "public-basic-plus-Arsenal"
+@contract:
+  HunterProducts:
+    status: string
+    baseline: string
+  Hunter:
+    repository: string
+    implemented_as_module: bool
+  Rifle:
+    repository: string
+    implemented_as_module: bool
+  Arsenal:
+    repository: string
+    implemented_as_module: bool
+  Hunter:
+    filesystem_effects: bool
+    artifact_vocabulary: bool
+  Rifle:
+    filesystem_effects: bool
+    artifact_vocabulary: bool

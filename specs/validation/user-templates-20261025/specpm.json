@@ -1,0 +1,414 @@
+{
+  "capabilities": [
+    "arsenal.design.catalog",
+    "buildhunter.catalog.scan",
+    "buildhunter.catalog.snapshot",
+    "buildhunter.current.application",
+    "buildhunter.current.bridge",
+    "buildhunter.current.classification",
+    "buildhunter.current.scan",
+    "buildhunter.current.templates",
+    "buildhunter.delivery.ci",
+    "buildhunter.design.product",
+    "buildhunter.plugin.policy",
+    "buildhunter.plugin.scan",
+    "buildhunter.scan.resources",
+    "hunter.design.scan",
+    "rifle.design.rules"
+  ],
+  "checked_files": [
+    "specpm.yaml",
+    "specs/arsenal-design.spec.yaml",
+    "specs/buildhunter-design.spec.yaml",
+    "specs/catalog-client-scan.spec.yaml",
+    "specs/catalog-snapshot.spec.yaml",
+    "specs/ci-validation.spec.yaml",
+    "specs/current-application.spec.yaml",
+    "specs/current-bridge.spec.yaml",
+    "specs/current-classification.spec.yaml",
+    "specs/current-scan.spec.yaml",
+    "specs/current-templates.spec.yaml",
+    "specs/hunter-design.spec.yaml",
+    "specs/plugin-policy.spec.yaml",
+    "specs/plugin-scanner.spec.yaml",
+    "specs/resource-budget.spec.yaml",
+    "specs/rifle-design.spec.yaml"
+  ],
+  "error_count": 0,
+  "errors": [],
+  "intent_mappings": [],
+  "intents": [],
+  "package_identity": {
+    "name": "BuildHunter current boundaries and target module architecture",
+    "package_id": "buildhunter.module_architecture",
+    "version": "0.1.0-draft.43"
+  },
+  "status": "warning_only",
+  "warning_count": 52,
+  "warnings": [
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/ci-validation.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.github.actions",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/resource-budget.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.work",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/resource-budget.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.directory_listing",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/resource-budget.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scan_assembly",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.portable",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.work",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.directory_tasks",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.child_traversal",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.task_ledger",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.subtree_progress",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scan_execution",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.backend",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.directory_worker",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.directory_listing",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.measurement_backend",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scoped_session",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.root_admission",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scan_engine",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.entry_processing",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.traversal_coordinator",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scan_assembly",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.backend_lifetime",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.darwin_bulk_metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.prepared_directory_sizes",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.platform.requested_qos",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.platform.process_resources",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-classification.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.catalog.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-classification.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.catalog.snapshot",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-bridge.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.templates",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-bridge.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.catalog.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-bridge.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-bridge.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.classification",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.templates",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.bridge",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-application.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.classification",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/current-templates.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.catalog.snapshot",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/hunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: platform.filesystem.metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/buildhunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.design.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/buildhunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.design.rules",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/buildhunter-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: arsenal.design.catalog",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/arsenal-design.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.design.rules",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/catalog-client-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.catalog.snapshot",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/catalog-client-scan.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/catalog-snapshot.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.plugin.policy",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/plugin-policy.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.catalog.validate",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/plugin-policy.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.program.evaluate",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/plugin-scanner.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.current.scan",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/plugin-scanner.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: buildhunter.plugin.policy",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/plugin-scanner.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scoped_metadata",
+      "severity": "warning"
+    },
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/plugin-scanner.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: hunter.fs.scoped_filesystem",
+      "severity": "warning"
+    }
+  ]
+}
