@@ -30,7 +30,7 @@ final class TemplateLibrary {
     }
 
     func connect(_ reference: TemplateReference) throws {
-        try validateConnection(path: reference.path)
+        try validateConnection(path: reference.path, replacingID: reference.id)
         guard !reference.bookmark.isEmpty, reference.bookmark.count <= 65_536, reference.path.hasPrefix("/") else {
             throw TemplateProblem(code: "invalid_registry", location: reference.path, message: "Invalid template file reference.")
         }
@@ -44,11 +44,17 @@ final class TemplateLibrary {
         persist()
     }
 
-    func validateConnection(path: String) throws {
+    func validateConnection(path: String, replacingID: UUID? = nil) throws {
         guard storageProblem == nil else {
             throw TemplateProblem(code: "invalid_registry", location: "", message: "Reset the invalid template registrations before adding files.")
         }
-        guard references.contains(where: { $0.path == path }) || references.count < TemplateCatalog.maximumTemplates else {
+        if let replacingID, references.contains(where: { $0.id == replacingID }),
+           references.contains(where: { $0.path == path && $0.id != replacingID }) {
+            throw TemplateProblem(code: "file_already_connected", location: path,
+                message: "This destination belongs to another connected template. Choose another file.")
+        }
+        guard references.contains(where: { $0.path == path || $0.id == replacingID })
+                || references.count < TemplateCatalog.maximumTemplates else {
             throw TemplateProblem(code: "limit_exceeded", location: "", message: "At most 61 template files may be connected.")
         }
     }

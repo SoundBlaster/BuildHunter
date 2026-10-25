@@ -85,18 +85,39 @@ final class TemplateWorkspace {
 
     func saveAs(_ url: URL) async {
         guard !busy else { return }
+        if reference?.path == url.standardizedFileURL.path {
+            await save()
+            return
+        }
         busy = true
         defer { busy = false }
         let bytes = Data(text.utf8)
         do {
-            try library.validateConnection(path: url.standardizedFileURL.path)
-            // Save As writes the chosen destination but never changes another registration.
-            let connected = try await TemplateOperations.saveAs(url, bytes: bytes)
+            let id = reference?.id ?? UUID()
+            try library.validateConnection(path: url.standardizedFileURL.path, replacingID: id)
+            // Switch this draft's registration, leaving its old source file intact.
+            let connected = try await TemplateOperations.saveAs(url, bytes: bytes, id: id)
             try library.connect(connected)
             reference = library.references.first { $0.path == connected.path }
             original = bytes
             hasDocument = true
             message = "Saved and connected. New scans reload this file."
+            isError = false
+        } catch { fail(error) }
+    }
+
+    func exportJSON(_ url: URL) async {
+        guard !busy, hasDocument else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            let path = url.standardizedFileURL.path
+            guard reference?.path != path, !library.references.contains(where: { $0.path == path }) else {
+                throw TemplateProblem(code: "connected_destination", location: path,
+                    message: "Use Save to update a connected template, or choose another export destination.")
+            }
+            try await TemplateOperations.exportJSON(url, bytes: Data(text.utf8))
+            message = "Exported JSON to \(path)."
             isError = false
         } catch { fail(error) }
     }
@@ -157,11 +178,19 @@ enum TemplateOperations {
         return try TemplateFiles.renewed(reference)
     }
 
-    @concurrent static func saveAs(_ url: URL, bytes: Data) async throws -> TemplateReference {
+    @concurrent static func saveAs(_ url: URL, bytes: Data, id: UUID) async throws -> TemplateReference {
+        try writeCopy(url, bytes: bytes)
+        return try TemplateReference.connect(url, id: id)
+    }
+
+    @concurrent static func exportJSON(_ url: URL, bytes: Data) async throws {
+        try writeCopy(url, bytes: bytes)
+    }
+
+    private static func writeCopy(_ url: URL, bytes: Data) throws {
         _ = try TemplateCatalog.metadata(documents: [bytes])
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         try bytes.write(to: url, options: .atomic)
-        return try TemplateReference.connect(url)
     }
 }

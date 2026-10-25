@@ -11,7 +11,8 @@ struct UserTemplatesWindow: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
-                Button("Connect JSON…", action: connect)
+                Button("Import JSON…", action: connect)
+                    .help("Connect JSON files in their current folder")
                     .accessibilityIdentifier("buildhunter.templates.connect")
                 Button("New…") { request(.new) }
                     .accessibilityIdentifier("buildhunter.templates.new")
@@ -63,6 +64,8 @@ struct UserTemplatesWindow: View {
                             if let reference = workspace.reference { request(.load(reference)) }
                         }.disabled(workspace.reference == nil)
                         Spacer()
+                        Button("Export JSON…") { savePanel(exporting: true) }
+                            .accessibilityIdentifier("buildhunter.templates.export")
                         Button("Save As…", action: saveAs)
                         Button("Save") { Task { await workspace.save() } }
                             .disabled(workspace.reference == nil || !workspace.isDirty)
@@ -115,11 +118,21 @@ struct UserTemplatesWindow: View {
     }
 
     private func saveAs() {
+        savePanel(exporting: false)
+    }
+
+    private func savePanel(exporting: Bool) {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.json]
         panel.nameFieldStringValue = workspace.reference.map { URL(filePath: $0.path).lastPathComponent } ?? "Template.json"
+        if exporting { panel.prompt = "Export" }
         panel.begin { response in
-            if response == .OK, let url = panel.url { Task { await workspace.saveAs(url) } }
+            if response == .OK, let url = panel.url {
+                Task {
+                    if exporting { await workspace.exportJSON(url) }
+                    else { await workspace.saveAs(url) }
+                }
+            }
         }
     }
 }

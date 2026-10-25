@@ -190,6 +190,87 @@ struct UserTemplateTests {
         #expect(terminal == .completed)
     }
 
+    @Test("Export writes a copy without connecting it or changing the current dirty draft")
+    func exportCopy() async throws {
+        let directory = try fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let workspace = TemplateWorkspace(library: TemplateLibrary(userDefaults: defaults))
+        workspace.newDocument()
+        let source = directory.appending(path: "source.json")
+        await workspace.saveAs(source)
+        let reference = try #require(workspace.reference)
+        let original = try #require(workspace.original)
+        let registrations = workspace.library.references
+        workspace.text = workspace.text.replacingOccurrences(of: "1.0.0", with: "1.0.1")
+        let draft = workspace.text
+        let destination = directory.appending(path: "export.json")
+        await workspace.exportJSON(destination)
+        #expect(!workspace.isError && workspace.isDirty)
+        #expect(workspace.reference == reference && workspace.original == original && workspace.text == draft)
+        #expect(workspace.library.references == registrations)
+        #expect(try Data(contentsOf: destination) == Data(draft.utf8))
+        #expect(try Data(contentsOf: source) == original)
+        await workspace.exportJSON(source)
+        #expect(workspace.isError && workspace.isDirty)
+        #expect(try Data(contentsOf: source) == original)
+        workspace.text = "{"
+        await workspace.exportJSON(destination)
+        #expect(workspace.isError && workspace.text == "{")
+        #expect(try Data(contentsOf: destination) == Data(draft.utf8))
+    }
+
+    @Test("Save As switches one registration and preserves its enabled state and old source file")
+    func saveAsSwitchesRegistration() async throws {
+        let directory = try fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let workspace = TemplateWorkspace(library: TemplateLibrary(userDefaults: defaults))
+        workspace.newDocument()
+        let source = directory.appending(path: "source.json")
+        await workspace.saveAs(source)
+        let id = try #require(workspace.reference?.id)
+        workspace.library.setEnabled(false, id: id)
+        let destination = directory.appending(path: "new-source.json")
+        await workspace.saveAs(destination)
+        #expect(!workspace.isError && !workspace.isDirty)
+        #expect(workspace.library.references.count == 1)
+        #expect(workspace.reference?.id == id && workspace.reference?.path == destination.path)
+        #expect(workspace.reference?.enabled == false)
+        #expect(try Data(contentsOf: source) == Data(contentsOf: destination))
+        let external = Data(workspace.text.replacingOccurrences(of: "1.0.0", with: "1.0.2").utf8)
+        try external.write(to: destination, options: .atomic)
+        workspace.text = workspace.text.replacingOccurrences(of: "1.0.0", with: "1.0.3")
+        await workspace.saveAs(destination)
+        #expect(workspace.isError && workspace.isDirty)
+        #expect(try Data(contentsOf: destination) == external, "Save As to the current path must retain Save's external-edit protection")
+    }
+
+    @Test("Save As refuses a destination registered to another template before writing")
+    func saveAsProtectsOtherRegistration() async throws {
+        let directory = try fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let workspace = TemplateWorkspace(library: TemplateLibrary(userDefaults: defaults))
+        workspace.newDocument()
+        await workspace.saveAs(directory.appending(path: "source.json"))
+        let other = directory.appending(path: "other.json")
+        let otherBytes = Data(TemplateCatalog.example().utf8)
+        try otherBytes.write(to: other)
+        try workspace.library.connect(TemplateReference.connect(other))
+        let registrations = workspace.library.references
+        await workspace.saveAs(other)
+        #expect(workspace.isError)
+        #expect(workspace.library.references == registrations)
+        #expect(try Data(contentsOf: other) == otherBytes)
+    }
+
     private func captureProblem(_ operation: () throws -> Void) -> TemplateProblem? {
         do { try operation(); Issue.record("Expected a template diagnostic"); return nil }
         catch let problem as TemplateProblem { return problem }
