@@ -42,7 +42,7 @@ pub(super) fn run(
                     backend: probes,
                     root,
                     channel,
-                    preflight: crate::cloud_skip_reason,
+                    preflight: crate::scan_skip_reason,
                     wake_interval: profile.map(|_| profile::PROFILE_INTERVAL),
                 },
                 move |queue| {

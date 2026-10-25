@@ -486,11 +486,18 @@ impl Default for ScanControl {
     }
 }
 
-/// Recognize macOS managed cloud roots lexically, before any directory enumeration.
-/// HOME is deliberately not used: a sandboxed app's HOME points at its container.
-/// Legacy sync folders outside these locations cannot be identified by path alone.
 #[cfg(any(target_os = "macos", all(test, unix)))]
-fn managed_cloud_location(path: &Path) -> Option<&'static str> {
+#[derive(Debug, PartialEq, Eq)]
+enum ExcludedScanLocation {
+    Cloud(&'static str),
+    CoreDevice,
+}
+
+/// Recognize known macOS managed roots lexically, before filesystem probes.
+/// HOME is deliberately not used: a sandboxed app's HOME points at its container.
+/// This is a product namespace policy, not general mount or provider detection.
+#[cfg(any(target_os = "macos", all(test, unix)))]
+fn excluded_scan_location(path: &Path) -> Option<ExcludedScanLocation> {
     use std::path::Component;
     if !path.is_absolute() {
         return None;
@@ -524,13 +531,16 @@ fn managed_cloud_location(path: &Path) -> Option<&'static str> {
         return None;
     }
     match components.next()?.as_os_str().to_str()? {
-        "Mobile Documents" => Some("iCloud"),
-        "CloudStorage" => Some("File Provider"),
+        "Mobile Documents" => Some(ExcludedScanLocation::Cloud("iCloud")),
+        "CloudStorage" => Some(ExcludedScanLocation::Cloud("File Provider")),
+        "Developer" if components.as_path().starts_with("CoreDevice/DeviceFS") => {
+            Some(ExcludedScanLocation::CoreDevice)
+        }
         _ => None,
     }
 }
 
-fn cloud_skip_reason(path: &Path) -> Option<String> {
+fn scan_skip_reason(path: &Path) -> Option<String> {
     #[cfg(target_os = "macos")]
     {
         let absolute;
@@ -540,8 +550,14 @@ fn cloud_skip_reason(path: &Path) -> Option<String> {
             absolute = std::path::absolute(path).ok()?;
             absolute.as_path()
         };
-        managed_cloud_location(path).map(|provider| {
-            format!("Skipped cloud-managed location ({provider}); contents were not scanned")
+        excluded_scan_location(path).map(|location| match location {
+            ExcludedScanLocation::Cloud(provider) => {
+                format!("Skipped cloud-managed location ({provider}); contents were not scanned")
+            }
+            ExcludedScanLocation::CoreDevice => {
+                "Skipped connected-device filesystem (CoreDevice/DeviceFS); contents were not scanned"
+                    .into()
+            }
         })
     }
     #[cfg(not(target_os = "macos"))]
@@ -1094,7 +1110,7 @@ where
         if self.control.should_stop() {
             return ChildDecision::Stop;
         }
-        if let Some(reason) = cloud_skip_reason(path) {
+        if let Some(reason) = scan_skip_reason(path) {
             self.warn(path, reason, &branch.chain);
             return ChildDecision::Skip;
         }
@@ -1296,7 +1312,7 @@ where
         ScanEngine::new(self, ProductTasks::new(queue)).run(
             probes,
             root,
-            cloud_skip_reason,
+            scan_skip_reason,
             receiver,
             wake_interval,
         )
@@ -3205,10 +3221,14 @@ mod tests {
             "/Users/developer/Library/CloudStorage",
             "/System/Volumes/Data/Users/developer/Library/CloudStorage",
         ] {
-            assert!(managed_cloud_location(Path::new(root)).is_some());
-            assert!(
-                managed_cloud_location(&Path::new(root).join("provider/project/target")).is_some()
-            );
+            assert!(matches!(
+                excluded_scan_location(Path::new(root)),
+                Some(ExcludedScanLocation::Cloud(_))
+            ));
+            assert!(matches!(
+                excluded_scan_location(&Path::new(root).join("provider/project/target")),
+                Some(ExcludedScanLocation::Cloud(_))
+            ));
         }
         for local in [
             "/Users/Shared/Library/Mobile Documents/project/target",
@@ -3222,10 +3242,130 @@ mod tests {
             "Library/CloudStorage",
         ] {
             assert!(
-                managed_cloud_location(Path::new(local)).is_none(),
+                excluded_scan_location(Path::new(local)).is_none(),
                 "{local}"
             );
         }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn devicefs_exclusion_matches_only_its_managed_namespace() {
+        for root in [
+            "/Users/developer/Library/Developer/CoreDevice/DeviceFS",
+            "/System/Volumes/Data/Users/developer/Library/Developer/CoreDevice/DeviceFS",
+            "/Users/разработчик/Library/Developer/CoreDevice/DeviceFS",
+            "/Users/developer/Library/Developer/./CoreDevice/DeviceFS",
+            "/Users/developer/Library/Developer/CoreDevice/other/../DeviceFS",
+        ] {
+            for path in [PathBuf::from(root), Path::new(root).join("device/target")] {
+                assert_eq!(
+                    excluded_scan_location(&path),
+                    Some(ExcludedScanLocation::CoreDevice),
+                    "{}",
+                    path.display()
+                );
+            }
+        }
+        for local in [
+            "/Users/Shared/Library/Developer/CoreDevice/DeviceFS",
+            "/System/Volumes/Data/Users/Shared/Library/Developer/CoreDevice/DeviceFS",
+            "/Users/developer/project/Library/Developer/CoreDevice/DeviceFS",
+            "/Users/developer/Library/Developer/CoreDevice/DeviceFS-backup",
+            "/Users/developer/Library/Developer/CoreDevice-backup/DeviceFS",
+            "/Users/developer/Library/Developer/CoreDevice",
+            "/Users/developer/Library/Developer/CoreDevice/DeviceFS/../Caches",
+            "Library/Developer/CoreDevice/DeviceFS",
+        ] {
+            assert_eq!(excluded_scan_location(Path::new(local)), None, "{local}");
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn selected_devicefs_root_and_descendant_skip_all_filesystem_probes() {
+        for root in [
+            "/Users/buildhunter-devicefs-test/Library/Developer/CoreDevice/DeviceFS",
+            "/System/Volumes/Data/Users/buildhunter-devicefs-test/Library/Developer/CoreDevice/DeviceFS/device/target",
+        ] {
+            let mut events = Vec::new();
+            let report = scan_with_policy(
+                Path::new(root),
+                ScanOptions::default(),
+                &ScanControl::new(),
+                |_| panic!("DeviceFS must not reach artifact policy"),
+                |event| events.push(event.clone()),
+            );
+            assert_eq!(report.status, ScanStatus::Incomplete);
+            assert!(report.artifacts.is_empty());
+            assert_eq!(report.warnings.len(), 1);
+            assert_eq!(report.warnings[0].relative_path, Path::new("."));
+            assert!(report.warnings[0].message.contains("CoreDevice/DeviceFS"));
+            assert_eq!(report.probes.metadata, 0);
+            assert_eq!(report.probes.marker_probes, 0);
+            assert!(report.probes.listing_threads.is_empty());
+            assert!(matches!(events.first(), Some(ScanEvent::Warning(_))));
+            assert_eq!(
+                events.last(),
+                Some(&ScanEvent::Finished(ScanStatus::Incomplete))
+            );
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn discovered_devicefs_is_skipped_before_child_routing() {
+        let root = Path::new("/Users/buildhunter-devicefs-test");
+        let path = root.join("Library/Developer/CoreDevice/DeviceFS");
+        let control = ScanControl::new();
+        let probes = Probes::default();
+        let mut policy = |_: &Path, _: &CandidateFacts, _: CandidateNodeKind| {
+            panic!("admission must precede artifact policy")
+        };
+        let mut events = Vec::new();
+        let mut emit = |event: &ScanEvent| events.push(event.clone());
+        let mut scanner = ArtifactHandler {
+            root,
+            options: ScanOptions::default(),
+            control: &control,
+            policy: &mut policy,
+            legacy_policy: false,
+            emit: &mut emit,
+            probes: &probes,
+            artifacts: Vec::new(),
+            progress: Vec::new(),
+            warnings: Vec::new(),
+            finding_budget: scan_budget::Retention::default(),
+            warning_budget: scan_budget::Retention::default(),
+            had_errors: false,
+            changed: false,
+            profile: None,
+        };
+        let branch = ArtifactBranch {
+            chain: Vec::new(),
+            parent_len: 0,
+        };
+        assert!(matches!(
+            scanner.select(&branch, 0, &path, hunter_fs_core::EntryType::Directory),
+            ChildDecision::Skip
+        ));
+        assert!(scanner.had_errors);
+        assert_eq!(scanner.warnings.len(), 1);
+        assert_eq!(
+            scanner.warnings[0].relative_path,
+            Path::new("Library/Developer/CoreDevice/DeviceFS")
+        );
+        assert!(matches!(
+            scanner.select(
+                &branch,
+                1,
+                &path.with_file_name("DeviceFS-backup"),
+                hunter_fs_core::EntryType::Directory
+            ),
+            ChildDecision::Visit
+        ));
+        assert_eq!(probes.counts().metadata, 0);
+        assert!(probes.counts().listing_threads.is_empty());
     }
 
     #[cfg(target_os = "macos")]

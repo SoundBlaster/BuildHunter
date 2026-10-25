@@ -10,6 +10,59 @@ use std::collections::BTreeSet;
 #[path = "../tests/support/catalog_fixture.rs"]
 mod catalog_fixture;
 
+#[cfg(target_os = "macos")]
+#[test]
+fn catalog_clients_skip_devicefs_without_marker_facts_or_diagnostics() {
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::basic(profile, &[]).unwrap();
+        for root in [
+            "/Users/buildhunter-devicefs-test/Library/Developer/CoreDevice/DeviceFS",
+            "/Users/buildhunter-devicefs-test/Library/Developer/CoreDevice/DeviceFS/device/AppDataContainers",
+        ] {
+            let mut events = Vec::new();
+            let report = scan_client(
+                Path::new(root),
+                &snapshot,
+                ScanOptions::default(),
+                true,
+                &ScanControl::new(),
+                |event| events.push(event.clone()),
+            );
+            assert_eq!(report.status, ScanStatus::Incomplete);
+            assert!(report.artifacts.is_empty() && report.diagnostics.is_empty());
+            assert_eq!(report.marker_observations, 0);
+            assert_eq!(report.warnings.len(), 1);
+            assert!(report.warnings[0].message.contains("CoreDevice/DeviceFS"));
+            assert!(matches!(
+                events.last(),
+                Some(CatalogScanEvent::Finished(ScanStatus::Incomplete))
+            ));
+        }
+    }
+}
+
+#[test]
+fn similarly_named_local_devicefs_directory_is_still_scanned() {
+    let tree = tests::TempTree::new();
+    let local = Path::new("project/Library/Developer/CoreDevice/DeviceFS/.build");
+    fs::create_dir_all(tree.0.join(local)).unwrap();
+    fs::write(tree.0.join(local).join("object.o"), b"local fixture").unwrap();
+    let snapshot = CatalogSnapshot::basic(ClientProfile::GuiV1, &[]).unwrap();
+    let report = scan_client(
+        &tree.0,
+        &snapshot,
+        ScanOptions::default(),
+        true,
+        &ScanControl::new(),
+        |_| {},
+    );
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(report.artifacts[0].relative_path, local);
+    assert!(report.artifacts[0].bytes > 0);
+}
+
 #[test]
 fn two_hundred_targets_scan_dynamic_names_and_only_probe_relevant_markers() {
     let tree = tests::TempTree::new();
