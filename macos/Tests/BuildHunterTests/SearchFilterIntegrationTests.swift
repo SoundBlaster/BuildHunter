@@ -192,7 +192,7 @@ struct SearchFilterIntegrationTests {
         var profiles: [ScanProfileSnapshot] = []
         for await event in stream {
             switch event {
-            case .warning(_, let message) where message.contains("not valid UTF-8"):
+            case .warning(_, let message, _) where message.contains("not valid UTF-8"):
                 bridgeWarningCount += 1
             case .profile(_, let sample): profiles.append(sample)
             default: break
