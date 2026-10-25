@@ -107,6 +107,7 @@ final class WindowScanModel {
         switch event {
         case .catalog(_, let metadata, let rootPathIsExact):
             catalogMetadata = metadata
+            filterSettings.useCatalog(metadata)
             excludedFilterIDs = Set(metadata.excludedTargetIDs)
             if !rootPathIsExact { unsafePathPrefixes.insert("") }
             reportRevision &+= 1
