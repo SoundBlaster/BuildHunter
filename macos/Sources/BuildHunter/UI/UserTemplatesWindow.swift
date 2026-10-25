@@ -24,25 +24,28 @@ struct UserTemplatesWindow: View {
                 Button("Reset registrations") { workspace.library.resetInvalidRegistrations() }
             }
             HSplitView {
-                List {
-                    ForEach(workspace.library.references) { reference in
-                        VStack(alignment: .leading) {
-                            Toggle(isOn: Binding(get: { reference.enabled }, set: { workspace.library.setEnabled($0, id: reference.id) })) {
-                                Text(URL(filePath: reference.path).lastPathComponent).lineLimit(1)
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(workspace.library.references) { reference in
+                            VStack(alignment: .leading) {
+                                Toggle(isOn: Binding(get: { reference.enabled }, set: { workspace.library.setEnabled($0, id: reference.id) })) {
+                                    Text(URL(filePath: reference.path).lastPathComponent).lineLimit(1)
+                                }
+                                Text(reference.path)
+                                    .font(.caption).lineLimit(2).truncationMode(.middle)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .textSelection(.enabled)
+                                HStack {
+                                    Button("Open") { request(.load(reference)) }
+                                    Button("Disconnect") { workspace.library.disconnect(id: reference.id) }
+                                }.controlSize(.small)
                             }
-                            Button(reference.path) { request(.load(reference)) }
-                                .font(.caption).lineLimit(2).truncationMode(.middle)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .buttonStyle(.link)
-                            HStack {
-                                Button("Open") { request(.load(reference)) }
-                                Button("Disconnect") { workspace.library.disconnect(id: reference.id) }
-                            }.controlSize(.small)
+                            .padding(.vertical, 4)
+                            .accessibilityElement(children: .contain)
                         }
-                        .padding(.vertical, 4)
-                        .accessibilityElement(children: .contain)
                     }
+                    .padding(8)
                 }
                 .frame(minWidth: 200, idealWidth: 250, maxWidth: 350)
                 .disabled(workspace.busy)
