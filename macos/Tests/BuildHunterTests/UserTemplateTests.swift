@@ -126,7 +126,12 @@ struct UserTemplateTests {
         let file = directory.appending(path: "draft.json")
         await workspace.saveAs(file)
         #expect(!workspace.isError && !workspace.isDirty)
+        let previousReference = try #require(workspace.reference)
+        workspace.library.disconnect(id: previousReference.id)
+        await workspace.connect([file])
         let reference = try #require(workspace.reference)
+        #expect(reference.id != previousReference.id && reference.id == workspace.library.references.first?.id,
+                "Reconnect must rebind an open draft so Check substitutes it into the effective catalog")
         workspace.text = "{"
         await workspace.save()
         #expect(workspace.isError && workspace.isDirty && workspace.text == "{")

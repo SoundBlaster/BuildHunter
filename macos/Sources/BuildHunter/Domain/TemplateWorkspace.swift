@@ -109,6 +109,9 @@ final class TemplateWorkspace {
             for url in urls {
                 let reference = try await TemplateOperations.connect(url)
                 try library.connect(reference)
+                if self.reference?.path == reference.path {
+                    self.reference = library.references.first { $0.path == reference.path }
+                }
             }
             message = "Files connected. Check the catalog before scanning; disable invalid files explicitly."
             isError = false
