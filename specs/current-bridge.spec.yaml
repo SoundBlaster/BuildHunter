@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.bridge
   title: Rust/Swift scan session bridge
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
@@ -38,11 +38,11 @@ interfaces:
   inbound:
   - id: consumer_interface
     kind: library
-    summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only during
+    summary: Existing events(for:target:) returns ScanEventStream of owned ScanEvents; C payloads are borrowed only during
       callbacks.
     operations:
     - name: events
-      summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only
+      summary: Existing events(for:target:) returns ScanEventStream of owned ScanEvents; C payloads are borrowed only
         during callbacks.
   outbound: []
 constraints:
@@ -69,7 +69,13 @@ constraints:
 - id: invalid_utf8
   level: MUST
   statement: Rust retains raw path bytes; Swift decodes displayed paths lossily and emits bridge warnings that make
-    a completed result incomplete. Disable Finder/Copy actions for the first lossy component and descendants; safe ancestors remain usable. A lossy selected root disables every path action. Raw root bytes are copied from filesystem representation before scanning; display Strings never authorize reconstruction of lossy paths.
+    a completed result incomplete. Disable Finder/Copy Path actions for the first lossy component and descendants; safe ancestors remain usable. Warning text remains copyable. A lossy selected root disables every path action. Raw root bytes are copied from filesystem representation before scanning; display Strings never authorize reconstruction of lossy paths.
+- id: warning_locations
+  level: MUST
+  statement: Copy a non-empty exact UTF-8 relative path separately from warning or diagnostic display text
+    before the C callback returns. A lossy selected root, invalid UTF-8 or absent path yields no warning
+    action path. General bridge/terminal messages have no inferred location. The Swift-only optional
+    location does not change the Rust C event ABI or exported diagnostic/message schemas.
 effects:
   sideEffects:
   - id: session_access
@@ -93,6 +99,7 @@ evidence:
   - constraints.access_lifetime
   - constraints.policy_table
   - constraints.invalid_utf8
+  - constraints.warning_locations
 - id: source_1
   kind: source
   path: src/policy_table.rs
@@ -114,12 +121,14 @@ evidence:
   path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
   supports:
   - scope
+  - constraints.warning_locations
 provenance:
   sourceConfidence:
     intent: high
     boundary: medium
     behavior: medium
   notes:
+  - Warning action source and runtime evidence are recorded in validation/warning-actions-20261025; draft constraints remain descriptive and do not imply owner acceptance.
   - R4 cutover source/run identities are in validation/r4-client-cutover-20261023. Local compilation and test-host execution are separate evidence; no snapshot/inode action capability or Store acceptance is claimed.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
@@ -130,10 +139,11 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+    revision: dba474b5a829a2bd6b4d0a01158fb1bd688a02df
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+    - macos/Sources/BuildHunter/Scanning/ScanEvent.swift
     - src/policy_table.rs
     - src/catalog_bridge.rs
     - src/catalog.rs

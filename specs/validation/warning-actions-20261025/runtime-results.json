@@ -1,0 +1,50 @@
+{
+  "generated_utc": "2026-10-25T15:48:15.157042+00:00",
+  "unit_tests": {
+    "passed": 146,
+    "suites": 14,
+    "duration_s": 2.959,
+    "run": "targeted-tests",
+    "combined_command_exit_code": 65,
+    "note": "Units passed; UI runner launch failed. This is not a passing combined test run."
+  },
+  "ui_tests": {
+    "status": "blocked_before_test_actions",
+    "attempts": [
+      "signed-ui-tests",
+      "development-ui-tests",
+      "single-binary-ui-tests"
+    ],
+    "failure": "Application dev.buildhunter.app does not have a process ID at launchWindow.",
+    "samples": [
+      "signed-ui-app-sample.txt",
+      "development-ui-app-sample.txt"
+    ],
+    "sample_scope": "loader open before application code; exact file not identified"
+  },
+  "manual": {
+    "status": "passed_bounded_Release_fixture",
+    "scan": "One unreadable directory named blocked: folder; three warnings including a classification diagnostic and terminal summary.",
+    "copy": {
+      "expected": "blocked: folder: Permission denied (os error 13)",
+      "exact_match": true
+    },
+    "menu": "Copy and Open in Finder visible and enabled on real path warning; screenshot observed via native CUA.",
+    "keyboard_multi_copy_exact": true,
+    "finder": "Native Finder AX showed the exact blocked: folder URL selected inside Warning Menu Fixture.",
+    "locationless_summary": "Copy enabled; Open in Finder disabled, observed in AX and screenshot.",
+    "fixture_permissions_restored": "0700",
+    "release_build_exit_code": 0,
+    "observed_via": "Native CUA AX and screenshots; clipboard comparisons through pbpaste"
+  },
+  "security": {
+    "system_protections_changed": false,
+    "quarantine_attributes_removed": false,
+    "project_signing_modified": false
+  },
+  "limitations": [
+    "Automated Debug UI test did not reach menu assertions.",
+    "No claim of exact loader-stall root cause.",
+    "No broad performance, full-home or Store validation."
+  ]
+}

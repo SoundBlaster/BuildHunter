@@ -209,3 +209,11 @@ managed_locations and updates root admission; target maps and plugin rules remai
 unchanged. Fresh source/map identities and focused native CLI/structural checks are
 under `../validation/devicefs-exclusion-20261025`. Prior Photos/home/RSS evidence
 remains historical and is not execution evidence for the new source.
+
+### Warning actions — 2026-10-25
+
+RustSwiftBridge now copies exact optional warning locations independently of
+display text. ReportPresentation owns warning cell/row menus; FolderActions reuses
+the scoped Finder handoff. No new composition node, package or target architecture
+is implied. Current source/map identities and runtime/structural evidence are in
+`../validation/warning-actions-20261025`; historical receipts remain unchanged.

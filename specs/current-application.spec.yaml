@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.application
   title: Current client assembly
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
@@ -69,6 +69,16 @@ constraints:
   level: MUST
   statement: NSWorkspace.activateFileViewerSelecting requests Finder selection; the .opened outcome describes a handoff
     request, not observed Finder completion. Fallback stays within the specified accessRoot check.
+- id: warning_actions
+  level: MUST
+  statement: Warning table cells and row backgrounds offer Copy for the context selection and Open in Finder
+    for one warning with an exact event-provided relative path under the current real target. Right-clicking
+    an unselected cell targets that row; clicking a selected cell retains multi-row Copy in report order.
+    Never derive a path by parsing warning text. Reject absolute, parent-traversal, embedded-NUL and unsafe
+    lossy-prefix paths. Mocks and locationless/general warnings have no Finder action. Deduplicated display
+    messages with conflicting or missing origins permanently lose their action until report reset. Rescan
+    clears locations and selection; menu callbacks from another report do nothing. Finder handling retains
+    its existing bounded parent fallback and notice. Copy text, keyboard Copy and export strings remain intact.
 - id: view_projection
   level: MUST
   statement: Sorting is a presentation projection; the native table data source owns current row objects. The known
@@ -118,6 +128,22 @@ evidence:
   path: macos/Sources/BuildHunter/Scanning/ScanEvent.swift
   supports:
   - scope
+- id: warning_actions_source
+  kind: source
+  path: macos/Sources/BuildHunter/UI/ScanWarningsWindow.swift
+  supports: [constraints.warning_actions, constraints.finder_handoff, constraints.effects_scope]
+- id: warning_location_source
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/WindowScanModel.swift
+  supports: [constraints.warning_actions, constraints.generation]
+- id: warning_action_tests
+  kind: test
+  path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
+  supports: [constraints.warning_actions]
+- id: warning_menu_ui_tests
+  kind: test
+  path: macos/Tests/BuildHunterUITests/BuildHunterUITests.swift
+  supports: [constraints.warning_actions]
 - id: source_3
   kind: source
   path: macos/Sources/BuildHunter/UI/BuildHunterApp.swift
@@ -186,6 +212,7 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
+  - Warning action source and runtime evidence are recorded in validation/warning-actions-20261025; draft constraints remain descriptive and do not imply owner acceptance.
   - R4 adds catalog/diagnostic ownership and action-safety prefixes to the current report; rescan clears all three. Metadata/exclusions/rows are captured together before opening export UI. Source/run identities and execution limits are in validation/r4-client-cutover-20261023.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
   - Source baseline 48badf9e097783505151dd47fbafe290f0af25e2; per-file hashes, dirty exclusion and map identities
@@ -196,7 +223,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 48badf9e097783505151dd47fbafe290f0af25e2
+    revision: dba474b5a829a2bd6b4d0a01158fb1bd688a02df
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift
@@ -204,6 +231,7 @@ implementationBindings:
     - macos/Sources/BuildHunter/Scanning/ScanEvent.swift
     - macos/Sources/BuildHunter/UI/BuildHunterApp.swift
     - macos/Sources/BuildHunter/UI/BuildHunterWindow.swift
+    - macos/Sources/BuildHunter/UI/ScanWarningsWindow.swift
     - macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift
     - macos/Sources/BuildHunter/Scanning/ScanReportExport.swift
     - macos/Sources/BuildHunter/UI/ScanResultsExportPanel.swift

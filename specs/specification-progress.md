@@ -1156,3 +1156,20 @@ Fresh source/map hashes, structural diagnostics and actual checks are recorded i
 [devicefs-exclusion-20261025](validation/devicefs-exclusion-20261025/README.md).
 Historical home/RSS/Photos receipts identify the previous binary; this change has
 focused native Release CLI evidence, not a fresh home/GUI/RSS or Store acceptance.
+
+## Warning row actions — 2026-10-25
+
+The warning window now owns cell and row context menus for complete-message Copy
+and a single exact-location Finder handoff. The bridge copies an optional exact
+relative path separately from display strings; the model clears locations with
+the report and disables ambiguous deduplicated origins. No text parsing, new C ABI
+or export schema is introduced. Existing scoped Finder fallback is reused.
+
+Affected draft claims: current.bridge warning_locations/payload_ownership and
+current.application warning_actions/generation/finder_handoff/effects_scope. These
+details remain folded into RustSwiftBridge, ReportPresentation and FolderActions;
+composition, generic Hunter/Rifle responsibilities and target maps are unchanged.
+The bridge interface description is also corrected from AsyncStream to the actual
+ScanEventStream. No draft is promoted to owner acceptance. Source identities,
+tests, native observations and structural checks are recorded separately in
+[warning-actions-20261025](validation/warning-actions-20261025/README.md).
