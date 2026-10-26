@@ -180,3 +180,12 @@ CLI file import and commercial composition remain separate work.
 [progress record](specs/specification-progress.md) separate requirements, source
 observations and execution evidence. Maintain affected maps/contracts with code
 changes according to [AGENTS.md](AGENTS.md).
+
+### Template syntax and rule profiling
+
+See the [template language reference](docs/template-language.md) for bindings,
+conditions, unknown semantics, examples and fixtures. Free, opt-in
+[per-rule profiling](docs/rule-profiling.md) works in GUI Search settings and via
+`build-hunter PATH --profile-rules rules.json`. JSON metrics retain rule/target/
+package identity and separate preliminary/resolved evaluations. Timings exclude
+marker I/O and add instrumentation overhead; normal scans use no per-rule timers.

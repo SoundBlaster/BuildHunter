@@ -126,7 +126,7 @@ dependencies = [
 [[package]]
 name = "rifle-rules"
 version = "0.1.0"
-source = "git+https://github.com/SoundBlaster/Rifle.git?rev=693a284123faaa1ad3192cd88b259ba97a7b5910#693a284123faaa1ad3192cd88b259ba97a7b5910"
+source = "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#af35dedf46d8c9978af1e30985f9c157a3f266c2"
 dependencies = [
  "serde",
  "serde_json",

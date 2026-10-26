@@ -73,6 +73,10 @@ registrations** action; this does not delete source files.
 
 ## Writing a template, including with an agent
 
+The [language reference](template-language.md) explains every binding/operator,
+truth/unknown semantics, limits and fixtures. [Rule profiling](rule-profiling.md)
+shows how to measure and compare individual rules.
+
 Start with [the complete example](contracts/plugin-v1/examples/synthetic.json),
 [plugin contract](plugin-contract-v1.md) and its linked schemas. The New command
 uses that example with a fresh package/target namespace. Replace the demonstration

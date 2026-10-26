@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.plugin.policy
   title: Pure plugin policy adapter and basic client profiles
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Validate BuildHunter plugin semantics and classify supplied facts with exclusions and explicit conflict/unknown
@@ -25,7 +25,7 @@ requires:
   capabilities:
   - id: rifle.catalog.validate
     optional: false
-    summary: Validate generic packages and full-document identities through pinned Rifle 693a284.
+    summary: Validate generic packages and full-document identities through pinned Rifle af35dedf.
   - id: rifle.program.evaluate
     optional: false
     summary: Compile enabled pure programs and evaluate typed observations. Required only when this opt-in boundary
@@ -35,7 +35,7 @@ interfaces:
   - id: plugin_policy_api
     kind: library
     summary: PluginCatalog::load(host-origin inputs, exclusions) -> immutable snapshot; marker_requests(kind) describes
-      probes; classify(CandidateFacts) -> Classification or Error.
+      probes; classify(CandidateFacts) -> Classification or Error. Optional scan-owned rule_profile/classify_profiled is described by buildhunter.rules.profile.
   outbound: []
 constraints:
 - id: closed_validation
@@ -136,6 +136,7 @@ implementationBindings:
   files:
     owned:
     - crates/buildhunter-plugin-policy/src/dispatch.rs
+    - crates/buildhunter-plugin-policy/src/profiling.rs
     - crates/buildhunter-plugin-policy/src/builtin.rs
     - crates/buildhunter-plugin-policy/src/lib.rs
     - crates/buildhunter-plugin-policy/src/validation.rs

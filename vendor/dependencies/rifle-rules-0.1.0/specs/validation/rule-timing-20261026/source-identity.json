@@ -1,0 +1,12 @@
+{
+  "baseline": "693a284123faaa1ad3192cd88b259ba97a7b5910",
+  "files": {
+    "src/lib.rs": "633c5f3f65f39eaaf112e0040aa9e4253e72d27f3fcc1209ae21f2e788fbd1c0",
+    "tests/contract.rs": "cf25d068896ba1c536c9f09d2c4850cac432f378c8b9f1a514cb9be93bf73ba5",
+    "specs/program.spec.yaml": "560eb52306f1743653a8006fcad43ca226bb1675b59cb72ea2d3452135838daa",
+    "specs/hypercode/architecture.hc": "d3b5fd6d70cadd9f0f5b87e7fea052ab966a608ff9a7aedc2adbc16d19a345c3",
+    "specs/hypercode/architecture.hcs": "b5287faf0bf6e0391292560d3db685254f3baad34e2333e5698092d9abf06e03",
+    "specpm.yaml": "7cb1cdb30648ea79b3181ec13d5d8b614ea8b18a573c2ea709f9a7a037a59416",
+    "README.md": "be7b0800202c9b7767c7c53b6eabd88e87c8e0a913005d3b08a91048c71e18a2"
+  }
+}

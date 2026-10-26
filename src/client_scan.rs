@@ -6,8 +6,8 @@ use crate::{
     catalog::{CatalogSnapshot, ClientProfile},
 };
 use buildhunter_plugin_policy::{
-    CandidateFacts, Classification, Decision, MarkerFact, MarkerProbe, NodeKind, Scope,
-    TargetDescriptor,
+    CandidateFacts, Classification, Decision, MarkerFact, MarkerProbe, NodeKind, RulePhase,
+    RuleProfile, Scope, TargetDescriptor,
 };
 use std::{
     cell::RefCell,
@@ -35,10 +35,16 @@ pub struct CatalogDiagnostic {
 #[derive(Clone, Debug)]
 pub enum CatalogScanEvent {
     ArtifactDiscovered(CatalogArtifact),
-    ArtifactCompleted { id: u64, bytes: u64, partial: bool },
+    ArtifactCompleted {
+        id: u64,
+        bytes: u64,
+        partial: bool,
+    },
     Diagnostic(CatalogDiagnostic),
     Warning(ScanWarning),
     Profile(ScanProfileSample),
+    /// One bounded aggregate, emitted before Finished; never a per-candidate stream.
+    RuleProfile(serde_json::Value),
     Finished(ScanStatus),
 }
 
@@ -51,6 +57,7 @@ pub struct CatalogScanReport {
     pub diagnostics: Vec<CatalogDiagnostic>,
     pub status: ScanStatus,
     pub marker_observations: u64,
+    pub rule_profile: Option<serde_json::Value>,
 }
 
 impl CatalogScanReport {
@@ -81,6 +88,7 @@ pub fn scan_client(
         diagnostics: Vec<CatalogDiagnostic>,
         observations: u64,
         diagnostic_budget: crate::DiagnosticRetention,
+        rule_profile: Option<RuleProfile>,
     }
     impl State {
         fn retain_diagnostic(
@@ -105,6 +113,10 @@ pub fn scan_client(
         diagnostics: Vec::new(),
         observations: 0,
         diagnostic_budget: crate::DiagnosticRetention::default(),
+        rule_profile: control
+            .rule_profiling
+            .load(std::sync::atomic::Ordering::Acquire)
+            .then(|| snapshot.catalog().rule_profile()),
     });
     let emit = RefCell::new(emit);
     let catalog = snapshot.catalog();
@@ -181,39 +193,60 @@ pub fn scan_client(
                 .iter()
                 .map(|p| ((*p).clone(), MarkerFact::Unavailable("not_observed")))
                 .collect();
-            let result = catalog
-                .classify(CandidateFacts {
+            let mut classify = |facts, phase| {
+                if let Some(profile) = state.rule_profile.as_mut() {
+                    catalog.classify_profiled(facts, profile, phase)
+                } else {
+                    catalog.classify(facts)
+                }
+            };
+            let result = classify(
+                CandidateFacts {
                     name: legacy.name(),
                     kind,
                     markers: &placeholders,
-                })
-                .and_then(|preliminary| {
-                    if preliminary.unknown.is_empty() {
-                        return Ok(preliminary);
+                },
+                RulePhase::Preliminary,
+            )
+            .and_then(|preliminary| {
+                if preliminary.unknown.is_empty() {
+                    return Ok(preliminary);
+                }
+                for probe in requests {
+                    if !observed.contains_key(probe) {
+                        observed.insert(
+                            probe.clone(),
+                            if control.is_cancelled() {
+                                Observation::Unavailable("cancelled".into())
+                            } else {
+                                state.observations = state.observations.saturating_add(1);
+                                observe_marker(path, probe)
+                            },
+                        );
                     }
-                    for probe in requests {
-                        if !observed.contains_key(probe) {
-                            observed.insert(
-                                probe.clone(),
-                                if control.is_cancelled() {
-                                    Observation::Unavailable("cancelled".into())
-                                } else {
-                                    state.observations = state.observations.saturating_add(1);
-                                    observe_marker(path, probe)
-                                },
-                            );
-                        }
-                    }
-                    let markers = observed
-                        .iter()
-                        .map(|(probe, value)| (probe.clone(), value.fact()))
-                        .collect();
+                }
+                let markers = observed
+                    .iter()
+                    .map(|(probe, value)| (probe.clone(), value.fact()))
+                    .collect();
+                if let Some(profile) = state.rule_profile.as_mut() {
+                    catalog.classify_profiled(
+                        CandidateFacts {
+                            name: legacy.name(),
+                            kind,
+                            markers: &markers,
+                        },
+                        profile,
+                        RulePhase::Resolved,
+                    )
+                } else {
                     catalog.classify(CandidateFacts {
                         name: legacy.name(),
                         kind,
                         markers: &markers,
                     })
-                });
+                }
+            });
             match result {
                 Err(error) => {
                     control.fail();
@@ -254,6 +287,15 @@ pub fn scan_client(
             }
         },
         |event| {
+            if let ScanEvent::Finished(status) = event
+                && let Some(profile) = &state_cell.borrow().rule_profile
+            {
+                let status =
+                    diagnostic_status(*status, !state_cell.borrow().diagnostics.is_empty());
+                (emit.borrow_mut())(&CatalogScanEvent::RuleProfile(rule_profile_json(
+                    profile, status,
+                )));
+            }
             let event = {
                 let mut state = state_cell.borrow_mut();
                 match event {
@@ -297,6 +339,10 @@ pub fn scan_client(
         },
     );
     let mut state = state_cell.into_inner();
+    let status = diagnostic_status(report.status, !state.diagnostics.is_empty());
+    let rule_profile = state
+        .rule_profile
+        .map(|profile| rule_profile_json(&profile, status));
     CatalogScanReport {
         catalog_digest: catalog.catalog_digest().to_string(),
         profile: snapshot.profile(),
@@ -317,10 +363,23 @@ pub fn scan_client(
             })
             .collect(),
         warnings: report.warnings,
-        status: diagnostic_status(report.status, !state.diagnostics.is_empty()),
+        status,
         diagnostics: state.diagnostics,
         marker_observations: state.observations,
+        rule_profile,
     }
+}
+
+fn rule_profile_json(profile: &RuleProfile, status: ScanStatus) -> serde_json::Value {
+    let mut value = profile.json();
+    value["scan_status"] = serde_json::json!(match status {
+        ScanStatus::Completed => "completed",
+        ScanStatus::CompletedWithChanges => "completed_with_changes",
+        ScanStatus::Cancelled => "cancelled",
+        ScanStatus::Incomplete => "incomplete",
+        ScanStatus::Failed => "failed",
+    });
+    value
 }
 
 fn diagnostic_status(status: ScanStatus, diagnostics: bool) -> ScanStatus {

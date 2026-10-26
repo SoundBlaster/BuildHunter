@@ -74,6 +74,9 @@ typedef void (*BHEventCallback)(void *context, const BHScanEvent *event);
 const char *bh_search_filter_catalog_json(void);
 
 /* Catalog ABI 1: profile 1 buildhunter.cli/1, profile 2 buildhunter.gui/1.
+ * Optional event 8 carries buildhunter.rule-profile/1 JSON before Finished only
+ * when bh_scan_control_set_rule_profiling is enabled before the scan. Metadata is
+ * borrowed through callback return; its bounded payload is at most 16 MiB.
  * exclusions is a UTF-8 JSON array of stable target IDs (null/0 means []).
  * Creation copies data, validates all bundled plugins and applies exclusions.
  * The immutable snapshot retains unknown valid IDs. Malformed input returns null.
@@ -117,6 +120,7 @@ void *bh_scan_control_create(void);
 /* Opt-in before starting a scan. Emits cumulative snapshots every ~100 ms,
  * plus initial and terminal snapshots. Default disabled. */
 void bh_scan_control_set_profiling(void *control, uint8_t enabled);
+void bh_scan_control_set_rule_profiling(void *control, uint8_t enabled);
 void bh_scan_control_cancel(void *control);
 void bh_scan_control_destroy(void *control);
 int32_t bh_scan(void *control, const uint8_t *root, size_t root_len,

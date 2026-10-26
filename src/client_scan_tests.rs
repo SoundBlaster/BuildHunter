@@ -452,3 +452,75 @@ fn catalog_diagnostics_remain_typed_and_do_not_hide_valid_descendants() {
         );
     }
 }
+
+#[test]
+fn opt_in_rule_profile_is_bounded_and_emitted_once_before_terminal_without_changing_scan() {
+    let tree = tests::TempTree::new();
+    catalog_fixture::prepare_synthetic(&tree.0, 20, 100);
+    let snapshot = catalog_fixture::snapshot(ClientProfile::GuiV1, 20, false, &[]);
+    let plain = scan_client(
+        &tree.0,
+        &snapshot,
+        ScanOptions::default(),
+        true,
+        &ScanControl::new(),
+        |_| {},
+    );
+    assert!(plain.rule_profile.is_none());
+    let control = ScanControl::new();
+    control.set_rule_profiling(true);
+    let mut events = Vec::new();
+    let report = scan_client(
+        &tree.0,
+        &snapshot,
+        ScanOptions::default(),
+        true,
+        &control,
+        |event| events.push(event.clone()),
+    );
+    assert_eq!(report.status, plain.status);
+    assert_eq!(report.total_bytes(), plain.total_bytes());
+    assert_eq!(report.marker_observations, plain.marker_observations);
+    let paths = |r: &crate::client_scan::CatalogScanReport| {
+        r.artifacts
+            .iter()
+            .map(|a| (a.relative_path.clone(), a.target.id.clone()))
+            .collect::<BTreeSet<_>>()
+    };
+    assert_eq!(paths(&report), paths(&plain));
+    let profile = report.rule_profile.unwrap();
+    assert_eq!(profile["catalog_digest"], report.catalog_digest);
+    assert_eq!(profile["classification_errors"], 0);
+    assert_eq!(profile["scan_status"], "completed");
+    assert_eq!(profile["rules"].as_array().unwrap().len(), 40);
+    assert_eq!(
+        events
+            .iter()
+            .filter(|e| matches!(e, CatalogScanEvent::RuleProfile(_)))
+            .count(),
+        1
+    );
+    assert!(matches!(
+        events[events.len() - 2],
+        CatalogScanEvent::RuleProfile(_)
+    ));
+    assert!(matches!(events.last(), Some(CatalogScanEvent::Finished(_))));
+    assert!(profile["preliminary_calls"].as_u64().unwrap() > 0);
+    assert!(profile["resolved_calls"].as_u64().unwrap() > 0);
+    let cancelled = ScanControl::new();
+    cancelled.set_rule_profiling(true);
+    let report = scan_client(
+        &tree.0,
+        &snapshot,
+        ScanOptions::default(),
+        true,
+        &cancelled,
+        |event| {
+            if matches!(event, CatalogScanEvent::ArtifactDiscovered(_)) {
+                cancelled.cancel();
+            }
+        },
+    );
+    assert_eq!(report.status, ScanStatus::Cancelled);
+    assert_eq!(report.rule_profile.unwrap()["scan_status"], "cancelled");
+}

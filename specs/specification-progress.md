@@ -1195,3 +1195,17 @@ no new significant boundary or target module is introduced. Affected contracts:
 Fresh source/map identities and checks: `validation/template-export-20261026`.
 Previous PR #120 checks passed for 89065ce; that CI result is historical for this
 follow-up. Swift SDK remains separate and does not gate the first editor release.
+
+## Rule documentation and profiling — 2026-10-26
+
+Owner asked for author documentation and per-rule metrics. New draft boundary
+`buildhunter.rules.profile` covers PluginPolicy.RuleProfiling, client
+RuleProfileCollection and RuleProfilePresentation. It composes pinned Rifle
+`af35dedf46d8c9978af1e30985f9c157a3f266c2` timed outcomes with host phases/identity,
+bounded counters, optional event 8 and JSON export. Ordinary classification and
+filesystem/marker policy requirements are unchanged; equivalence tests exercise
+outcomes/bytes/status/probes. Hunter and target topology have no change.
+Current source/map identities and actual checks: validation/rule-profiling-20261026.
+Prior receipts remain historical. New recovered specs stay draft; source, native
+UI, local test-host limitations and GitHub CI are reported separately. Timing
+scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.

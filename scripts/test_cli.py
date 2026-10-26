@@ -13,6 +13,29 @@ BINARY = Path(sys.argv.pop(1)).resolve()
 
 
 class CLIIntegrationTests(unittest.TestCase):
+    def test_rule_profile_is_opt_in_preserves_results_and_protects_existing_file(self):
+        self.write("Cargo.toml")
+        self.write("target/object.o")
+        normal = self.scan("--apparent")
+        destination = self.root / "rule-profile.json"
+        profiled = self.scan("--apparent", "--profile-rules", str(destination))
+        self.assertEqual(normal["artifacts"], profiled["artifacts"])
+        report = json.loads(destination.read_text())
+        self.assertEqual(report["format"], "buildhunter.rule-profile-report/1")
+        profile = report["rule_profile"]
+        self.assertEqual(profile["catalog_digest"], normal["catalog"]["digest"])
+        self.assertEqual(profile["classification_errors"], 0)
+        self.assertTrue(any(row["rule_id"] and row["evaluations"] > 0 for row in profile["rules"]))
+        for row in profile["rules"]:
+            self.assertEqual(row["true"] + row["false"] + row["unknown"], row["evaluations"])
+            self.assertLessEqual(row["max_ns"], row["total_ns"])
+        before = destination.read_bytes()
+        result = subprocess.run([str(BINARY), str(self.root), "--profile-rules", str(destination)], capture_output=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(destination.read_bytes(), before)
+        for args in [["--profile-rules"], ["--profile-rules", "--json"]]:
+            self.assertEqual(subprocess.run([str(BINARY), *args], capture_output=True).returncode, 2)
+
     def test_report_and_filters_share_catalog_identity_and_target_ids(self):
         self.write(".build/object.o")
         report = self.scan("--exclude", "python.pytest-cache")

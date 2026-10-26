@@ -130,6 +130,8 @@ final class WindowScanModel {
             reportRevision &+= 1
         case .profile(_, let sample):
             profile.record(sample)
+        case .ruleProfile(_, let value):
+            if value.catalogDigest == catalogMetadata?.digest { profile.ruleProfile = value }
         case .warning(_, let message):
             appendWarning(message)
         case .finished(_, let result):

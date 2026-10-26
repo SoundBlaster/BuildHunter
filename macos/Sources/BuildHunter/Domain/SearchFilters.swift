@@ -191,6 +191,10 @@ final class SearchFilterSettings {
         return .standard
     }
     static let persistenceKey = "searchFilterExcludedIDs"
+    static let ruleProfilingKey = "profileIndividualRules"
+    var ruleProfilingEnabled: Bool {
+        didSet { defaults.set(ruleProfilingEnabled, forKey: Self.ruleProfilingKey) }
+    }
 
     private(set) var excludedFilterIDs: Set<String>
 
@@ -203,6 +207,7 @@ final class SearchFilterSettings {
     ) {
         self.catalog = catalog
         defaults = userDefaults
+        ruleProfilingEnabled = userDefaults.bool(forKey: Self.ruleProfilingKey)
         excludedFilterIDs = Set(userDefaults.stringArray(forKey: Self.persistenceKey) ?? [])
     }
 

@@ -5,6 +5,7 @@ BuildHunterRuntime
       WindowSession
       ReportPresentation
         LiveMetricRendering
+        RuleProfilePresentation
       FolderActions
       Export
       Settings
@@ -43,6 +44,7 @@ BuildHunterRuntime
       ClientAdmission
       ClientMarkerAcquisition
       CatalogEventTransport
+      RuleProfileCollection
     ClientCatalog
       BasicProfiles
       CatalogIdentity
@@ -53,6 +55,7 @@ BuildHunterRuntime
       EffectivePlan
       CandidateDispatch
       CandidateClassification
+      RuleProfiling
     HunterProcessPlatform
       RequestedThreadQos
       ProcessResourceSnapshot

@@ -34,6 +34,23 @@ It bounds input bytes and JSON nesting before recursive decoding. See
 [architecture](specs/hypercode/architecture.hc) and
 [verification progress](specs/specification-progress.md).
 
+## Optional per-rule profiling
+
+Use `plan.evaluate_timed(&values)` instead of `evaluate` to return a
+`Vec<TimedOutcome>`. Each item has the ordinary `outcome` (including rule ID) and
+an `elapsed: Duration`. Errors and outcome order match the ordinary API; no rule
+is replayed for measurement. `rule_ids()` also exposes IDs before evaluation.
+
+Durations measure monotonic **wall time**, including expression evaluation and
+owned outcome construction. They exclude input count/type checks, program loading,
+host facts/marker I/O and host aggregation. Timer overhead and scheduling noise
+can dominate tiny rules. The normal API reads no clocks; no history is stored in
+the immutable Plan. Compare optimized builds, repeated representative fixtures
+and semantic outcomes; do not treat a single maximum as a stable cost or CPU time.
+
+Package/target identity, dispatch skips, scan phases, counters, JSON/UI and
+comparison tooling are host responsibilities. This API changes no wire format.
+
 ## Scope and provenance
 
 The program schema is copied unchanged from BuildHunter commit

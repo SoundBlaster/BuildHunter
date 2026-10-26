@@ -31,6 +31,7 @@ pub fn diagnostic_json(diagnostic: &CatalogDiagnostic) -> serde_json::Value {
 /// Synchronous catalog scan. Event 6 publishes snapshot metadata before any scan
 /// event, 1 carries a target ID, 7 carries a typed diagnostic JSON object. Base
 /// event types 2/3/4/5 and status codes retain the original ABI meanings. Profile
+/// event 8 optionally publishes a bounded rule-profile aggregate before Finished;
 /// event 5 optionally carries resource-budget/loss JSON in metadata; the 88-byte
 /// numeric profile payload is unchanged.
 ///
@@ -132,6 +133,10 @@ pub unsafe extern "C" fn bh_scan_catalog_v1(
                         ffi.base.event_type = 5;
                         ffi.base.profile = sample;
                         details = control.resource_usage_json().to_string();
+                    }
+                    CatalogScanEvent::RuleProfile(profile) => {
+                        ffi.base.event_type = 8;
+                        details = profile.to_string();
                     }
                     CatalogScanEvent::Finished(status) => {
                         ffi.base.event_type = 4;

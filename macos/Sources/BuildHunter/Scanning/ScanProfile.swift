@@ -1,5 +1,81 @@
 import Foundation
 
+struct ScanRuleProfile: Codable, Hashable, Sendable {
+    struct Rule: Codable, Hashable, Identifiable, Sendable {
+        let packageID: String
+        let targetID: String
+        let ruleID: String
+        let phase: String
+        let evaluations: UInt64
+        let skippedByDispatch: UInt64
+        let matched: UInt64
+        let noMatch: UInt64
+        let unknown: UInt64
+        let totalNanoseconds: UInt64
+        let maxNanoseconds: UInt64
+        let averageNanoseconds: Double?
+        var id: String { "\(packageID)/\(targetID)/\(ruleID)/\(phase)" }
+        enum CodingKeys: String, CodingKey {
+            case packageID = "package_id", targetID = "target_id", ruleID = "rule_id", phase, evaluations
+            case skippedByDispatch = "skipped_by_dispatch", matched = "true", noMatch = "false", unknown
+            case totalNanoseconds = "total_ns", maxNanoseconds = "max_ns", averageNanoseconds = "average_ns"
+        }
+        func encode(to encoder: Encoder) throws {
+            var values = encoder.container(keyedBy: CodingKeys.self)
+            try values.encode(packageID, forKey: .packageID)
+            try values.encode(targetID, forKey: .targetID)
+            try values.encode(ruleID, forKey: .ruleID)
+            try values.encode(phase, forKey: .phase)
+            try values.encode(evaluations, forKey: .evaluations)
+            try values.encode(skippedByDispatch, forKey: .skippedByDispatch)
+            try values.encode(matched, forKey: .matched)
+            try values.encode(noMatch, forKey: .noMatch)
+            try values.encode(unknown, forKey: .unknown)
+            try values.encode(totalNanoseconds, forKey: .totalNanoseconds)
+            try values.encode(maxNanoseconds, forKey: .maxNanoseconds)
+            // Retain the shared wire shape: never-evaluated mean is explicit null.
+            try values.encode(averageNanoseconds, forKey: .averageNanoseconds)
+        }
+    }
+    let format: String
+    let catalogDigest: String
+    let excludedTargetIDs: [String]
+    let timingScope: String
+    let preliminaryCalls: UInt64
+    let resolvedCalls: UInt64
+    let classificationErrors: UInt64
+    let scanStatus: String?
+    let rules: [Rule]
+    enum CodingKeys: String, CodingKey {
+        case format, catalogDigest = "catalog_digest", timingScope = "timing_scope", excludedTargetIDs = "excluded_target_ids"
+        case preliminaryCalls = "preliminary_calls", resolvedCalls = "resolved_calls"
+        case classificationErrors = "classification_errors", scanStatus = "scan_status", rules
+    }
+    var statusTitle: String {
+        switch scanStatus {
+        case "completed": "Completed"
+        case "completed_with_changes": "Completed with changes"
+        case "cancelled": "Cancelled · partial metrics"
+        case "incomplete": "Incomplete · partial metrics"
+        case "failed": "Failed · partial metrics"
+        default: "Status unavailable"
+        }
+    }
+    var isSupported: Bool {
+        format == "buildhunter.rule-profile/1" && timingScope == "rule_evaluation_and_outcome_wall_time"
+            && catalogDigest.utf8.count == 64 && catalogDigest.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+            && excludedTargetIDs.count <= 2_048 && Set(excludedTargetIDs).count == excludedTargetIDs.count
+            && (scanStatus.map { ["completed", "completed_with_changes", "cancelled", "incomplete", "failed"].contains($0) } ?? true)
+            && rules.count <= 8_192 && Set(rules.map(\.id)).count == rules.count
+            && rules.allSatisfy { ["preliminary", "resolved"].contains($0.phase)
+                && [$0.packageID, $0.targetID, $0.ruleID].allSatisfy { !$0.isEmpty && $0.utf8.count <= 128 }
+                && $0.matched <= $0.evaluations && $0.noMatch <= $0.evaluations - $0.matched
+                && $0.unknown == $0.evaluations - $0.matched - $0.noMatch
+                && $0.maxNanoseconds <= $0.totalNanoseconds
+                && ($0.averageNanoseconds.map { $0.isFinite && $0 >= 0 } ?? true) }
+    }
+}
+
 /// Per-scan estimates copied from catalog-event metadata. These are payload
 /// limits and observations, never an exact process-wide memory ceiling.
 struct ScanResourceUsage: Codable, Equatable, Sendable {
@@ -51,6 +127,7 @@ struct ScanProfileHistory: Sendable {
     static let capacity = 600
     private(set) var points: [ScanProfilePoint] = []
     private(set) var latest: ScanProfileSnapshot?
+    var ruleProfile: ScanRuleProfile?
     private(set) var peakEntriesPerSecond: Double = 0
     private(set) var peakBytesPerSecond: Double = 0
     private(set) var peakCPUPercent: Double?

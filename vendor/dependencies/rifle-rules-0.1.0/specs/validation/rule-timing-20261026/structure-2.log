@@ -1,0 +1,32 @@
+{
+  "capabilities": [
+    "rifle.catalog.validate",
+    "rifle.json.identity",
+    "rifle.program.evaluate"
+  ],
+  "checked_files": [
+    "specpm.yaml",
+    "specs/catalog.spec.yaml",
+    "specs/program.spec.yaml"
+  ],
+  "error_count": 0,
+  "errors": [],
+  "intent_mappings": [],
+  "intents": [],
+  "package_identity": {
+    "name": "Rifle rule engine",
+    "package_id": "rifle",
+    "version": "0.1.0-draft.3"
+  },
+  "status": "warning_only",
+  "warning_count": 1,
+  "warnings": [
+    {
+      "code": "required_capability_unresolved",
+      "field": "requires.capabilities",
+      "file": "specs/catalog.spec.yaml",
+      "message": "Required capability is not resolved by MVP validation: rifle.program.evaluate",
+      "severity": "warning"
+    }
+  ]
+}

@@ -626,3 +626,96 @@ fn indexed_dispatch_agrees_with_rifle_for_boolean_and_unavailable_facts() {
         }
     }
 }
+
+#[test]
+fn rule_profile_preserves_decisions_and_separates_dispatch_phase_and_unknowns() {
+    use buildhunter_plugin_policy::RulePhase;
+    let catalog = load(RUST).unwrap();
+    let mut profile = catalog.rule_profile();
+    for (phase, name, marker) in [
+        (
+            RulePhase::Preliminary,
+            "unrelated",
+            MarkerFact::Known(false),
+        ),
+        (
+            RulePhase::Preliminary,
+            "target",
+            MarkerFact::Unavailable("not_observed"),
+        ),
+        (RulePhase::Resolved, "target", MarkerFact::Known(true)),
+        (RulePhase::Resolved, "target", MarkerFact::Known(false)),
+    ] {
+        let markers = BTreeMap::from([(rust_marker(), marker)]);
+        assert_eq!(
+            catalog
+                .classify(facts(Some(name), NodeKind::Directory, &markers))
+                .unwrap(),
+            catalog
+                .classify_profiled(
+                    facts(Some(name), NodeKind::Directory, &markers),
+                    &mut profile,
+                    phase
+                )
+                .unwrap()
+        );
+    }
+    let value = profile.json();
+    assert_eq!(value["preliminary_calls"], 2);
+    assert_eq!(value["resolved_calls"], 2);
+    let rows = value["rules"].as_array().unwrap();
+    assert_eq!(rows.len(), 2);
+    let preliminary = rows.iter().find(|r| r["phase"] == "preliminary").unwrap();
+    let resolved = rows.iter().find(|r| r["phase"] == "resolved").unwrap();
+    assert_eq!(preliminary["evaluations"], 1);
+    assert_eq!(preliminary["skipped_by_dispatch"], 1);
+    assert_eq!(preliminary["unknown"], 1);
+    assert_eq!(resolved["evaluations"], 2);
+    assert_eq!(resolved["true"], 1);
+    assert_eq!(resolved["false"], 1);
+    for row in rows {
+        assert!(row["total_ns"].as_u64().unwrap() >= row["max_ns"].as_u64().unwrap());
+    }
+    // Histories do not grow with candidate count. Disabled rules have no rows.
+    for _ in 0..1000 {
+        catalog
+            .classify_profiled(
+                facts(Some("unrelated"), NodeKind::Directory, &BTreeMap::new()),
+                &mut profile,
+                RulePhase::Preliminary,
+            )
+            .unwrap();
+    }
+    assert_eq!(profile.json()["rules"].as_array().unwrap().len(), 2);
+    let excluded = PluginCatalog::load(&[input(RUST, Origin::Builtin)], &["rust.target"]).unwrap();
+    assert!(
+        excluded.rule_profile().json()["rules"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    let mut disabled_profile = excluded.rule_profile();
+    assert_eq!(
+        catalog
+            .classify_profiled(
+                facts(Some("target"), NodeKind::Directory, &BTreeMap::new()),
+                &mut disabled_profile,
+                RulePhase::Preliminary
+            )
+            .unwrap_err()
+            .code,
+        "catalog_mismatch"
+    );
+    let other = PluginCatalog::load(&[input(FORGE, Origin::External)], &[]).unwrap();
+    assert_eq!(
+        other
+            .classify_profiled(
+                facts(Some("x"), NodeKind::Directory, &BTreeMap::new()),
+                &mut profile,
+                RulePhase::Preliminary
+            )
+            .unwrap_err()
+            .code,
+        "catalog_mismatch"
+    );
+}

@@ -29,6 +29,7 @@ final class RustScanEventSource: ScanEventSource {
         }
 
         bh_scan_control_set_profiling(control, 1)
+        bh_scan_control_set_rule_profiling(control, settings.ruleProfilingEnabled ? 1 : 0)
         let job = RustScanJob(control: control, channel: channel)
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
@@ -245,6 +246,7 @@ final class RustScanBridgeContext: @unchecked Sendable {
     let channel: ScanEventChannel
     let policy: BuildHunterScanPolicy?
     private let rootPathIsExact: Bool
+    private var receivedRuleProfile = false
     private var catalogMetadata: ScanCatalogMetadata?
     private var catalogTargets: [String: ScanCatalogMetadata.Target] = [:]
     private let lock = NSLock()
@@ -371,6 +373,18 @@ final class RustScanBridgeContext: @unchecked Sendable {
                 if usage == nil { warnAboutBridge("Invalid scan resource metadata.") }
             }
             withUnsafePointer(to: value.base) { handle($0, resourceUsage: usage) }
+        case 8:
+            guard !receivedRuleProfile, let catalogMetadata,
+                  let bytes = value.metadata, (1...16_777_216).contains(value.metadata_len),
+                  let profile = try? JSONDecoder().decode(ScanRuleProfile.self,
+                    from: Data(bytes: bytes, count: value.metadata_len)), profile.isSupported,
+                  profile.catalogDigest == catalogMetadata.digest,
+                  profile.excludedTargetIDs.sorted() == catalogMetadata.excludedTargetIDs.sorted(),
+                  profile.rules.allSatisfy({ catalogTargets[$0.targetID] != nil }) else {
+                warnAboutBridge("Invalid or repeated rule profile."); return
+            }
+            receivedRuleProfile = true
+            yield(.ruleProfile(generation: generation, profile: profile))
         case 7:
             guard let bytes = value.metadata, (1...4_194_304).contains(value.metadata_len),
                   let classification = try? JSONDecoder().decode(ScanDiagnostic.Classification.self,

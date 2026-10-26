@@ -45,6 +45,15 @@ struct BuildHunterApp: App {
         .restorationBehavior(.disabled)
         .commandsRemoved()
 
+        WindowGroup("Rule Profile", id: "rule-profile", for: ScanRuleProfile.self) { $profile in
+            if let profile {
+                RuleProfileWindow(profile: profile)
+            }
+        }
+        .defaultSize(width: 960, height: 520)
+        .restorationBehavior(.disabled)
+        .commandsRemoved()
+
         WindowGroup("Scan Warnings", id: "scan-warnings", for: UUID.self) { $scanID in
             if let scanID, let model = windows.model(for: scanID) {
                 ScanWarningsWindow(scan: model)

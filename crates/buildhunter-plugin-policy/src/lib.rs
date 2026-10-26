@@ -1,7 +1,9 @@
 //! Opt-in pure BuildHunter plugin policy. This does not acquire filesystem facts.
 pub mod builtin;
 mod dispatch;
+mod profiling;
 mod validation;
+pub use profiling::{RulePhase, RuleProfile};
 
 use rifle_rules::{Catalog, Error, Plan, Sha256Digest};
 use serde_json::Value;
@@ -214,7 +216,32 @@ impl PluginCatalog {
     }
     /// Pure classification; an index may exclude only targets proven unable to match.
     pub fn classify(&self, facts: CandidateFacts<'_>) -> Result<Classification, Error> {
-        self.dispatch.classify(facts)
+        self.dispatch.classify(facts, None, RulePhase::Preliminary)
+    }
+    /// One bounded accumulator per scan; never stores candidate names or paths.
+    pub fn rule_profile(&self) -> RuleProfile {
+        self.dispatch
+            .rule_profile(self.digest, self.exclusions.clone())
+    }
+    /// Explicit instrumentation; outcomes are identical to `classify`.
+    pub fn classify_profiled(
+        &self,
+        facts: CandidateFacts<'_>,
+        profile: &mut RuleProfile,
+        phase: RulePhase,
+    ) -> Result<Classification, Error> {
+        if !profile.matches_catalog(&self.digest, &self.exclusions) {
+            return Err(error(
+                "catalog_mismatch",
+                "/rule_profile",
+                "profile belongs to another catalog",
+            ));
+        }
+        let result = self.dispatch.classify(facts, Some(profile), phase);
+        if result.is_err() {
+            profile.record_error();
+        }
+        result
     }
 }
 

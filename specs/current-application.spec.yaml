@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.application
   title: Current client assembly
-  version: 0.1.0-draft.5
+  version: 0.1.0-draft.6
   status: draft
 intent:
   summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
@@ -66,7 +66,7 @@ constraints:
 - id: effects_scope
   level: MUST
   statement: Built-in scanning, Finder handoff and path copying do not mutate the scanned filesystem tree.
-    Settings write UserDefaults and copying changes the clipboard. User-requested report exports and CLI --profile
+    Rule profile windows hold finished value snapshots, never start scans and do not share mutable counters. Settings write UserDefaults and copying changes the clipboard. User-requested report exports and CLI --profile/--profile-rules
     write an explicitly selected output, which may be inside the scanned tree; explicit template Save/Save As/Export also writes a user-selected JSON file. These are exceptions to scan read-only behavior and do not authorize cleanup or executable plugins.
 - id: finder_handoff
   level: MUST
