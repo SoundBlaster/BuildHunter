@@ -131,6 +131,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.uitests
         TEST_TARGET_NAME: BuildHunter
+        # Keep the generated runner's TCC identity stable across local rebuilds.
+        CODE_SIGN_IDENTITY: Apple Development
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: P8T2366K8X
         MACOSX_DEPLOYMENT_TARGET: "26.0"
         ARCHS: arm64
         SWIFT_VERSION: "6.0"

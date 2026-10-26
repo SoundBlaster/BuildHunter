@@ -20,8 +20,15 @@ final class BuildHunterUITests: XCTestCase {
         let editor = app.textViews["buildhunter.templates.editor"]
         let editorViewport = app.scrollViews.containing(.textView, identifier: "buildhunter.templates.editor").firstMatch
         editorViewport.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).click()
-        editor.typeKey("a", modifierFlags: .command)
-        editor.typeText("{")
+        // Use the native action rather than a layout-dependent keyboard shortcut.
+        app.menuBars.menuBarItems["Edit"].click()
+        let selectAll = app.menuItems["Select All"]
+        XCTAssertTrue(selectAll.isEnabled)
+        selectAll.click()
+        // Target the current responder: refocusing the large text-view element
+        // can move the insertion point and discard the selection.
+        app.typeText("{")
+        XCTAssertEqual(editor.value as? String, "{", "The fixture must replace the entire JSON before validation")
         check.click()
         let invalid = NSPredicate(format: "NOT (value CONTAINS %@ OR label CONTAINS %@)", "Valid catalog", "Valid catalog")
         expectation(for: invalid, evaluatedWith: status)
@@ -536,7 +543,8 @@ final class BuildHunterUITests: XCTestCase {
         let selectedRoot = root.resolvingSymlinksInPath()
         let app = launchWindow()
         defer { app.terminate() }
-        app.buttons["buildhunter.empty.openFolder"].click()
+        let emptyWindow = app.windows.containing(.button, identifier: "buildhunter.empty.openFolder").firstMatch
+        emptyWindow.buttons["buildhunter.empty.openFolder"].click()
         let open = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch
         XCTAssertTrue(open.waitForExistence(timeout: 5))
         app.typeKey("g", modifierFlags: [.command, .shift])
