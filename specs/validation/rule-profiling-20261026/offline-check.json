@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/homebrew/opt/python@3.10/bin/python3.10",
+    "scripts/test_offline_cli.py"
+  ],
+  "environment": "CARGO_TARGET_DIR and CARGO_BUILD_BUILD_DIR at verified TB5 checkout cargo; TMPDIR at TB5 checkout temporary",
+  "exit_code": 0,
+  "observation": "Fresh Cargo home: offline CLI check, install and launch passed",
+  "evidence_scope": "observed tool result; no raw output file claimed",
+  "source_revision": "6da2ce553f598be4d74494953cf8dcf8bf907c61"
+}

@@ -104,7 +104,7 @@ implementationBindings:
   scope: component
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 0d095f326e3f1ae992d5088d7140fe61b7ada08e
+    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
   files:
     owned:
     - macos/Sources/BuildHunter/Domain/TemplateLibrary.swift

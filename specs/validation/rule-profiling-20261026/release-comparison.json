@@ -1,0 +1,87 @@
+{
+  "source_revision": "6da2ce553f598be4d74494953cf8dcf8bf907c61",
+  "fixture": "200 projects, Cargo.toml + target/object.o (128B payload) + other directory; directory apparent bytes included in totals",
+  "order": "alternating; first pair includes warmup; timings too short for an overhead guarantee",
+  "results": [
+    {
+      "round": 0,
+      "rule_profiling": false,
+      "process_wall_s": 0.03268633300467627,
+      "cli_elapsed_s": 0.013,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc"
+    },
+    {
+      "round": 0,
+      "rule_profiling": true,
+      "process_wall_s": 0.010522042000957299,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc",
+      "phase_rows": 26,
+      "summed_rule_ns": 76406
+    },
+    {
+      "round": 1,
+      "rule_profiling": true,
+      "process_wall_s": 0.010927541996352375,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc",
+      "phase_rows": 26,
+      "summed_rule_ns": 114698
+    },
+    {
+      "round": 1,
+      "rule_profiling": false,
+      "process_wall_s": 0.010155083997233305,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc"
+    },
+    {
+      "round": 2,
+      "rule_profiling": false,
+      "process_wall_s": 0.010049666998384055,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc"
+    },
+    {
+      "round": 2,
+      "rule_profiling": true,
+      "process_wall_s": 0.0102240839987644,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc",
+      "phase_rows": 26,
+      "summed_rule_ns": 68194
+    },
+    {
+      "round": 3,
+      "rule_profiling": true,
+      "process_wall_s": 0.010658541999873705,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc",
+      "phase_rows": 26,
+      "summed_rule_ns": 82801
+    },
+    {
+      "round": 3,
+      "rule_profiling": false,
+      "process_wall_s": 0.01014825000311248,
+      "cli_elapsed_s": 0.006,
+      "artifacts": 200,
+      "total_bytes": 44800,
+      "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc"
+    }
+  ]
+}

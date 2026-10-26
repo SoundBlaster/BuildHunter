@@ -1,0 +1,122 @@
+   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.64s
+     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/build_hunter-4c0e997936c5c2ae)
+
+running 97 tests
+test catalog::tests::malformed_templates_never_escape_a_partial_catalog ... ok
+test materialization::scoped_errors_never_probe_or_relabel_a_replaced_native_path ... ok
+test client_scan_tests::catalog_diagnostics_remain_typed_and_do_not_hide_valid_descendants ... ok
+test materialization::tests::every_filesystem_probe_has_downloads_disabled ... ok
+test catalog::tests::catalog_abi_refuses_invalid_input_and_owns_its_snapshot ... ok
+test catalog::tests::template_ffi_owns_source_and_reports_bounded_failures ... ok
+test measurement::tests::cached_entry_error_is_decorated_without_stat_fallback_or_counter_increment ... ok
+test measurement::tests::omitted_file_slots_do_not_acquire_a_batch ... ok
+test measurement::tests::precancelled_pass_still_prepares_after_directory_failure ... ok
+test materialization::tests::scan_protects_coordinator_and_restores_it_after_cancel ... ok
+test measurement::tests::prepared_batch_preserves_consumption_fallbacks_and_error_provenance ... ok
+test policy_table::tests::projection_uses_actual_names_exact_precedence_suffixes_and_invalid_cell ... ok
+test materialization::tests::scan_restores_coordinator_after_callback_panics ... ok
+test client_scan_tests::catalog_clients_skip_devicefs_without_marker_facts_or_diagnostics ... ok
+test client_scan_tests::similarly_named_local_devicefs_directory_is_still_scanned ... ok
+test catalog::tests::exclusions_are_copied_and_identity_belongs_to_the_full_profile ... ok
+test policy_table::tests::table_ffi_rejects_invalid_arguments_without_calling_events ... ok
+test policy_table::tests::all_projection_cells_round_trip_and_ignore_unknown_marker_bits ... ok
+test policy_table::tests::table_scan_preserves_cancellation_and_partial_completion_events ... ok
+test client_scan_tests::catalog_event_abi_copies_identity_before_scan_and_preserves_cancel_completion ... ok
+test profile::tests::records_from_any_thread_stay_strictly_ordered ... ok
+test policy_table::tests::table_scan_matches_callback_events_and_uses_an_owned_table_copy ... ok
+test resource_tests::finding_count_and_payload_limits_preserve_prefix_and_terminal_order ... ok
+test resource_tests::catalog_diagnostics_stop_before_cloning_or_emitting_over_budget_payloads ... ok
+test migration_parity::golden_lifecycle_preserves_status_partial_and_terminal_order ... ok
+test catalog::tests::user_templates_extend_builtins_and_keep_immutable_identity ... ok
+test resource_tests::warning_overflow_keeps_a_reserved_limit_summary_and_partial_completion ... ok
+test profile::tests::a_long_stall_keeps_a_bounded_suffix_and_discloses_exact_loss ... ok
+test resources::tests::cpu_is_not_clamped_to_one_core_and_ram_is_time_weighted ... ok
+test resources::tests::decreasing_cpu_counters_are_unavailable_not_an_underflow ... ok
+test resource_tests::scoped_backend_uses_the_same_listing_retention_limits_without_path_fallback ... ok
+test resources::tests::unavailable_readings_are_gaps_and_not_zeroes ... ok
+test scan_budget::tests::first_limit_reason_is_stable_across_workers ... ok
+test scan_budget::tests::rejected_retention_never_consumes_or_overflows_budget ... ok
+test scan_session::tests::failed_admission_warns_then_finishes_without_starting_work ... ok
+test scoped_access_tests::custom_access_failure_cannot_be_repaired_by_readable_native_paths ... ok
+test scan_session::tests::final_profile_is_drained_before_one_caller_thread_terminal_event ... ok
+test scoped_access_tests::custom_access_serves_worker_and_coordinator_measurements_and_releases_before_finished ... ok
+test resource_tests::rejected_work_never_waits_for_a_full_response_channel ... ok
+test tests::cancelled_profile_still_emits_a_terminal_snapshot ... ok
+test tests::callback_unwind_closes_scoped_workers_and_allows_a_followup_scan ... ok
+test tests::candidate_observer_bypasses_name_gate_and_legacy_marker_probes ... ok
+test tests::cancellation_emits_a_partial_completion_and_terminal_state ... ok
+test tests::devicefs_exclusion_matches_only_its_managed_namespace ... ok
+test tests::coordinator_consumes_ignored_speculative_measurement_before_finishing ... ok
+test tests::coordinator_profile_cancellation_preserves_receipt_and_dispatch_boundaries ... ok
+test tests::disappearance_of_selected_root_remains_an_error ... ok
+test tests::discovered_devicefs_is_skipped_before_child_routing ... ok
+test tests::disconnected_worker_recipient_skips_measurement_and_leaves_next_task_queued ... ok
+test tests::excluding_roots_traverses_them_and_keeps_subtree_measurement_whole ... ok
+test resource_tests::ordinary_scan_within_budgets_has_no_truncation_or_false_partial ... ok
+test resource_tests::one_large_directory_stops_at_an_explicit_listing_limit ... ok
+test tests::ffi_policy_failure_marks_an_open_artifact_measurement_partial ... ok
+test tests::ffi_profile_payload_can_be_copied_during_callback ... ok
+test tests::filter_catalog_is_generated_from_public_descriptors_and_has_stable_ffi_storage ... ok
+test tests::filter_ids_are_individual_and_keep_existing_classification_eligibility ... ok
+test tests::identified_cloud_skip_is_not_mistaken_for_temporary_file_churn ... ok
+test tests::listing_marker_observer_preserves_links_errors_and_policy_disabled_mode ... ok
+test tests::managed_cloud_paths_match_only_standard_user_locations ... ok
+test tests::missing_selected_root_remains_incomplete_instead_of_child_churn ... ok
+test tests::ffi_policy_failure_stops_before_visiting_other_candidates ... ok
+test resource_tests::cancellation_while_bounded_producers_are_busy_finishes_and_joins ... ok
+test tests::nested_subtrees_propagate_partial_sizes_and_complete_innermost_once ... ok
+test tests::new_files_before_listing_are_included_and_after_listing_wait_for_rescan ... ok
+test tests::planned_children_preserve_nested_sizes_and_host_pruning ... ok
+test tests::profiling_preserves_results_and_counts_nested_measurements_once ... ok
+test tests::real_errors_still_make_a_changing_scan_incomplete ... ok
+test tests::markers_come_from_directory_listings_without_extra_probes ... ok
+test tests::rust_cli_profile_preserves_environment_opt_in_and_marker_rules ... ok
+test tests::selected_artifact_root_uses_dot_as_its_relative_path ... ok
+test tests::renamed_file_is_reported_as_changed_without_counting_its_new_name_twice ... ok
+test tests::selected_cloud_location_is_marked_without_filesystem_probes ... ok
+test tests::selected_devicefs_root_and_descendant_skip_all_filesystem_probes ... ok
+test tests::selected_file_reuses_root_metadata_even_with_precancelled_startup ... ok
+test tests::selected_root_vanishing_after_listing_is_not_ordinary_child_churn ... ok
+test tests::nodes_outside_artifacts_are_typed_without_metadata_calls ... ok
+test tests::selected_symlink_roots_never_follow_file_directory_or_dangling_targets ... ok
+test tests::swift_policy_events_measure_outer_roots_and_keep_path_bytes ... ok
+test client_scan_tests::opt_in_rule_profile_is_bounded_and_emitted_once_before_terminal_without_changing_scan ... ok
+test tests::symlinked_markers_count_when_they_resolve_to_files ... ok
+test tests::unreadable_symlinked_marker_is_visible_for_parent_and_selected_artifact ... ok
+test tests::worker_backend_panic_releases_same_thread_guard ... ok
+test tests::worker_guard_failure_publishes_setup_error_without_backend_work ... ok
+test tests::vanished_file_marks_its_artifact_partial_without_failing_the_scan ... ok
+test tests::vanished_directory_marks_ancestors_but_not_other_artifacts ... ok
+test tests::worker_phase_timings_are_opt_in_and_preserve_the_report ... ok
+test tests::worker_probe_panic_propagates_without_stranding_scanner ... ok
+test tests::worker_publishes_listing_before_metadata_and_cancelled_measurement_response ... ok
+test tests::directories_are_listed_off_the_calling_thread_and_callbacks_stay_on_it ... ok
+test tests::temporary_trees_have_independent_paths_and_cleanup ... ok
+test profile::tests::sampler_ticks_on_interval_boundaries_until_stopped ... ok
+test resource_tests::a_stalled_consumer_has_bounded_profile_backlog_and_an_explicit_loss_notice ... ok
+test client_scan_tests::catalog_clients_match_both_frozen_profiles_and_exclusions ... ok
+test client_scan_tests::two_hundred_targets_scan_dynamic_names_and_only_probe_relevant_markers ... ok
+test tests::external_cancel_while_a_worker_measures_still_returns ... ok
+test tests::profile_updates_inside_a_large_directory_response ... ok
+test tests::blocked_event_consumer_does_not_thin_the_profile_timeline ... ok
+
+test result: ok. 97 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.07s
+
+     Running unittests src/main.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/build_hunter-29489b9ee258d77b)
+
+running 5 tests
+test tests::escapes_json ... ok
+test profile_report::tests::zero_elapsed_and_duplicate_samples_never_emit_nonfinite_rates ... ok
+test tests::shared_scanner_preserves_nested_and_language_filter_behavior ... ok
+test profile_report::tests::bounded_history_keeps_whole_scan_mean_and_peak ... ok
+test profile_report::tests::pending_losses_and_display_evictions_are_accounted_separately ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+   Doc-tests build_hunter
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

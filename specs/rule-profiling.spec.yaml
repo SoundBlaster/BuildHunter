@@ -52,7 +52,7 @@ constraints:
   statement: Retain two fixed counter groups per enabled rule, at most 8192 serialized rows, with saturating UInt64 totals. No per-path events/history and no mutable state in the shared catalog. Serialize one aggregate before Finished, including partial completed work on cancellation/failure; normal scans emit no rule-profile event.
 - id: ownership
   level: MUST
-  statement: Copy optional event-8 metadata within 16 MiB, validate shape/count/identities and retain only owned generation-tagged Swift data. Export the finished scan identity and all metrics in JSON. Rule windows hold value snapshots independent of later rescans; raw metric rows contain no candidate paths. CLI creates a previously absent selected output after traversal and refuses existing destinations.
+  statement: Copy optional event-8 metadata within 16 MiB, validate shape/count/identities and retain only owned generation-tagged Swift data. Export the finished scan identity and all metrics in JSON. Rule windows hold scan-status-labelled value snapshots independent of later rescans; raw metric rows contain no candidate paths. CLI creates a previously absent selected output after traversal and refuses existing destinations.
 - id: author_docs
   level: MUST
   statement: Document supported syntax/bindings/operators/unknowns, full importable example, admission diagnostics/limits, positive/negative fixtures and profiling commands/units/limitations. Keep implemented marker policy separate from proposed stricter descriptor policy. Agent-generated JSON must pass admission and semantic fixture scans.
@@ -104,6 +104,9 @@ provenance:
 implementationBindings:
 - id: profile_sources
   scope: component
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
   files:
     owned:
     - crates/buildhunter-plugin-policy/src/profiling.rs

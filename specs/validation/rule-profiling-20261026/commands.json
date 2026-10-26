@@ -1,0 +1,353 @@
+[
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 7.097,
+    "log": "specs/validation/rule-profiling-20261026/checks-check-2.log",
+    "sha256": "8ba44ef7f5dafdb763393138319d5799657fe9fca6b1f32bcd07c0a6c57a3d53",
+    "stage": "initial integration; policy/scanner/graph checks"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.021,
+    "log": "specs/validation/rule-profiling-20261026/checks-check-3.log",
+    "sha256": "5be4244fdf3ef64dbd50941d431f04ee78c8ae3e5aca909d6adea54f7f6ecb9e",
+    "stage": "initial integration; policy/scanner/graph checks"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "crates/buildhunter-plugin-policy/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 5.312,
+    "log": "specs/validation/rule-profiling-20261026/checks-check-4.log",
+    "sha256": "83a1265aac3a496a2cfb1d97b8b860fb2743a88767d69ba7bfce3ba6a9493e23",
+    "stage": "initial integration; policy/scanner/graph checks"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "crates/buildhunter-plugin-policy/Cargo.toml",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.021,
+    "log": "specs/validation/rule-profiling-20261026/checks-check-5.log",
+    "sha256": "52270a580f69c271bf1ee55ada9446e1d44d17958b7be39f4450c7a0c7fa581b",
+    "stage": "initial integration; policy/scanner/graph checks"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "crates/buildhunter-plugin-scanner/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 4.374,
+    "log": "specs/validation/rule-profiling-20261026/checks-check-6.log",
+    "sha256": "f3ff034cbbd3bb214a423c191eef3fc8486f253fbe103006d638585533898ec7",
+    "stage": "initial integration; policy/scanner/graph checks"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/verify_plugin_dependencies.py"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.227,
+    "log": "specs/validation/rule-profiling-20261026/checks-check-7.log",
+    "sha256": "b88aa73c3f99fd858716a2d4aa2790eb5c640b681f06c84f07f438f1bf4cb25d",
+    "stage": "initial integration; policy/scanner/graph checks"
+  },
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.17,
+    "log": "specs/validation/rule-profiling-20261026/complete-checks-complete-0.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stage": "status/cancellation follow-up"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 5.823,
+    "log": "specs/validation/rule-profiling-20261026/complete-checks-complete-1.log",
+    "sha256": "c209f954999e41e7197d7004a5e5c8e28cf04b0c8e1b56e67710eec537ef3dac",
+    "stage": "status/cancellation follow-up"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.588,
+    "log": "specs/validation/rule-profiling-20261026/complete-checks-complete-2.log",
+    "sha256": "404e3a18c2cf85b4c9b979b02c082203dec906956f705686056a8ec7b37d32e0",
+    "stage": "status/cancellation follow-up"
+  },
+  {
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--offline",
+      "--release",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.9,
+    "log": "specs/validation/rule-profiling-20261026/complete-checks-complete-3.log",
+    "sha256": "b6d749020e8d86958cc3d9f2f2f6ea5cb173e2ae866e4068708fddb0647ce396",
+    "stage": "status/cancellation follow-up"
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.10/bin/python3.10",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.675,
+    "log": "specs/validation/rule-profiling-20261026/complete-checks-complete-4.log",
+    "sha256": "2c55e8928d0e4022765bc0e129dd214b56bfa8d5828a4ace60dd80742fe1ec75",
+    "stage": "status/cancellation follow-up"
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.10/bin/python3.10",
+      "scripts/test_plugin_contract.py"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.527,
+    "log": "specs/validation/rule-profiling-20261026/complete-checks-complete-5.log",
+    "sha256": "85cb3c03f4f5665ac38ab97161ab456d83813273f180a318c3237cef5f70a772",
+    "stage": "status/cancellation follow-up"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.824,
+    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-0.log",
+    "sha256": "35454b960ec07f0f817889b99450c63cfa81e980b9242e6d546b620d59311a60",
+    "stage": "final package-metadata source"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "crates/buildhunter-plugin-policy/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 3.69,
+    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-1.log",
+    "sha256": "eac53c5589859c6b7a83f97dc1c732e57078cc0a104d345df3f690b10f75f2dd",
+    "stage": "final package-metadata source"
+  },
+  {
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--offline",
+      "--release",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 2.604,
+    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-2.log",
+    "sha256": "3b743cf651a4c2a19a3e4596375c44526954f6852147cb928c67e784a66e9b6a",
+    "stage": "final package-metadata source"
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.10/bin/python3.10",
+      "scripts/test_cli.py",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/release/build-hunter"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.875,
+    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-3.log",
+    "sha256": "416da1f04376139b13cde79022aa13662147d1a57f1e301f10b368844bb90c48",
+    "stage": "final package-metadata source"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "-configuration",
+      "Debug",
+      "CODE_SIGNING_ALLOWED=YES",
+      "ENABLE_DEBUG_DYLIB=NO",
+      "build-for-testing"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 11.856,
+    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-4.log",
+    "sha256": "29159cba0b9d3b35b0b3339afd0a454be8822ed312c0c4fc026d70436333aa59",
+    "stage": "final package-metadata source"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "-configuration",
+      "Release",
+      "CODE_SIGNING_ALLOWED=YES",
+      "build"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 135.823,
+    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-5.log",
+    "sha256": "fb19ebe512546b4af4f9285feb3ae957b9e49d987e3017f9d56773df66663099",
+    "stage": "final package-metadata source"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 2.555034875,
+    "source_revision": "6da2ce553f598be4d74494953cf8dcf8bf907c61",
+    "sha256": "5d6cc6df6c755ef0d8a58473a622823fac1e8862094455a668dcdc08279eef0b",
+    "log": "specs/validation/rule-profiling-20261026/root-tests.log"
+  },
+  {
+    "name": "unit-tests",
+    "command": [
+      "xcodebuild",
+      "-project",
+      "macos/BuildHunter.xcodeproj",
+      "-scheme",
+      "BuildHunter",
+      "-destination",
+      "platform=macOS,arch=arm64",
+      "-derivedDataPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData",
+      "-clonedSourcePackagesDirPath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages",
+      "-packageCachePath",
+      "/Volumes/TB5/Developer/Caches/swiftpm",
+      "-skipMacroValidation",
+      "-disableAutomaticPackageResolution",
+      "ONLY_ACTIVE_ARCH=YES",
+      "SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products",
+      "OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex",
+      "LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release",
+      "-configuration",
+      "Debug",
+      "CODE_SIGNING_ALLOWED=YES",
+      "ENABLE_DEBUG_DYLIB=NO",
+      "test-without-building",
+      "-only-testing:BuildHunterTests",
+      "-resultBundlePath",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/rule-profiling-20261026/unit-tests.xcresult"
+    ],
+    "exit_code": -15,
+    "timed_out": true,
+    "elapsed_s": 90.014,
+    "log": "specs/validation/rule-profiling-20261026/unit-attempt.log",
+    "sha256": "7bc7c08b1e5aa8bf3b1b1f4b43a8b2f2c0693b75b3b8d4d1af876b9db8a20ca9",
+    "stage": "90s bounded attempt before final status/package additions; no test body confirmed"
+  }
+]

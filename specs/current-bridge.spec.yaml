@@ -134,7 +134,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 59508e3b7ecb6ae12458e4c2ff87dc3d645d0b16
+    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift

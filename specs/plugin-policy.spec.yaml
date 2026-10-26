@@ -133,6 +133,9 @@ provenance:
 implementationBindings:
 - id: plugin_policy_sources
   scope: component
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
   files:
     owned:
     - crates/buildhunter-plugin-policy/src/dispatch.rs
