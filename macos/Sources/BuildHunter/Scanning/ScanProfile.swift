@@ -1,5 +1,12 @@
 import Foundation
 
+/// Owned terminal handoff, including identity when Stop discarded the catalog event.
+struct ScanRuleProfileSnapshot: Sendable {
+    let catalog: ScanCatalogMetadata
+    let rootPathIsExact: Bool
+    let profile: ScanRuleProfile
+}
+
 struct ScanRuleProfile: Codable, Hashable, Sendable {
     struct Rule: Codable, Hashable, Identifiable, Sendable {
         let packageID: String

@@ -543,6 +543,8 @@ final class BuildHunterUITests: XCTestCase {
         let selectedRoot = root.resolvingSymlinksInPath()
         let app = launchWindow()
         defer { app.terminate() }
+        // A restored diagram can cover the chooser's owner window on a developer Mac.
+        activateWindow(titled: "BuildHunter", in: app)
         let emptyWindow = app.windows.containing(.button, identifier: "buildhunter.empty.openFolder").firstMatch
         emptyWindow.buttons["buildhunter.empty.openFolder"].click()
         let open = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch

@@ -5,6 +5,61 @@ import Testing
 @Suite("Rust bridge search filters")
 @MainActor
 struct SearchFilterIntegrationTests {
+    @Test("A completed scan retains its terminal profile until the original stream is released")
+    func completedRuleProfileSurvivesStopRace() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture) }
+        let suite = "BuildHunter.CompletedRuleProfiling.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SearchFilterSettings(userDefaults: defaults)
+        settings.ruleProfilingEnabled = true
+        let source = RustScanEventSource(settings: settings, templates: TemplateLibrary(userDefaults: defaults))
+        let stream = source.events(for: 904, target: fixture)
+        var expected: ScanRuleProfile?
+        for await event in stream {
+            if case .ruleProfile(_, let profile) = event { expected = profile }
+        }
+        let terminal = source.stop(generation: 904)
+        var snapshots: [ScanRuleProfileSnapshot] = []
+        for await snapshot in terminal { snapshots.append(snapshot) }
+        withExtendedLifetime(stream) {}
+        let snapshot = try #require(snapshots.first)
+        #expect(snapshots.count == 1 && snapshot.profile == expected)
+        #expect(snapshot.profile.scanStatus == "completed")
+        #expect(snapshot.profile.catalogDigest == snapshot.catalog.digest)
+    }
+
+    @Test("Stop releases a backpressured Rust scan and delivers its cancelled rule metrics")
+    func stopDeliversRuleProfileOutsideClosedQueue() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture) }
+        let suite = "BuildHunter.StopRuleProfiling.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SearchFilterSettings(userDefaults: defaults)
+        settings.ruleProfilingEnabled = true
+        let source = RustScanEventSource(settings: settings, templates: TemplateLibrary(userDefaults: defaults),
+                                         eventCapacity: 1)
+        let stream = source.events(for: 903, target: fixture)
+        var iterator = stream.makeAsyncIterator()
+        var catalog: ScanCatalogMetadata?
+        var found = false
+        while let event = await iterator.next() {
+            if case .catalog(_, let metadata, _) = event { catalog = metadata }
+            if case .discovered = event { found = true; break }
+        }
+        #expect(found)
+        let terminalProfiles = source.stop(generation: 903)
+        #expect(await iterator.next() == nil, "Stop must discard queued ordinary events immediately")
+        var profiles: [ScanRuleProfile] = []
+        for await snapshot in terminalProfiles { profiles.append(snapshot.profile) }
+        let profile = try #require(profiles.first)
+        #expect(profiles.count == 1 && profile.isSupported)
+        #expect(profile.catalogDigest == catalog?.digest && profile.scanStatus == "cancelled")
+        #expect(profile.rules.contains { $0.evaluations > 0 })
+    }
+
     @Test("Rule profiling is opt-in and a finished profile survives JSON export")
     func ruleProfiling() async throws {
         let fixture = try makeFixture()
