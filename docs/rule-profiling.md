@@ -21,6 +21,15 @@ or failed scans can carry partial metrics; report status remains significant.
 A setup failure before classification has no measured work. No partial run should
 be compared with a successful full scan as if their workloads were identical.
 
+In the GUI, **Stop** freezes artifact rows immediately. The final rule profile
+arrives asynchronously when the Rust worker returns; wait for **Rule profile…**
+to become available before exporting JSON with those metrics. A blocked OS read
+can delay that snapshot. It includes the scan's captured catalog even if Stop
+discarded the queued catalog event. Starting another scan discards the old
+pending snapshot, so it cannot attach to the new report. The profile preserves
+the engine's terminal status; if the engine had already completed when Stop was
+pressed, its metrics can say Completed while the GUI report remains Stopped.
+
 ## CLI
 
 ```sh

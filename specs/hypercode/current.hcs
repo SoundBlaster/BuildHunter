@@ -543,7 +543,7 @@ RuleProfilePresentation:
   boundary_spec: "buildhunter.rules.profile"
 RuleProfileCollection:
   source: "src/client_scan.rs"
-  implementation: "one optional scan-owned accumulator; preliminary/resolved phases; terminal event 8"
+  implementation: "one optional scan-owned accumulator; preliminary/resolved phases; terminal event 8; Swift Stop retains one owned catalog/profile snapshot outside the closed ordinary queue, bound to stopped report/generation"
   folded_into: "buildhunter.rules.profile"
 RuleProfiling:
   source: "crates/buildhunter-plugin-policy/src/profiling.rs"

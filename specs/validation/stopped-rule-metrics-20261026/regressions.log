@@ -1,0 +1,16 @@
+􀟈 Test "A completed scan retains its terminal profile until the original stream is released" started.
+􁁛 Test "A completed scan retains its terminal profile until the original stream is released" passed after 0.007 seconds.
+􀟈 Test "Stop releases a backpressured Rust scan and delivers its cancelled rule metrics" started.
+􁁛 Test "Stop releases a backpressured Rust scan and delivers its cancelled rule metrics" passed after 0.006 seconds.
+􀟈 Test "Stop retains final rule metrics and export even before catalog delivery" started.
+􀟈 Test case passing 1 argument catalogArrived → false to "Stop retains final rule metrics and export even before catalog delivery" started.
+​􀟈 Test case passing 1 argument catalogArrived → true to "Stop retains final rule metrics and export even before catalog delivery" started.
+​􁁛 Test "Stop retains final rule metrics and export even before catalog delivery" with 2 test cases passed after 0.002 seconds.
+􀟈 Test "A stopped scan's late rule metrics cannot attach to a rescan or replacement" started.
+􀟈 Test case passing 1 argument replaceTarget → false to "A stopped scan's late rule metrics cannot attach to a rescan or replacement" started.
+​􀟈 Test case passing 1 argument replaceTarget → true to "A stopped scan's late rule metrics cannot attach to a rescan or replacement" started.
+​􁁛 Test "A stopped scan's late rule metrics cannot attach to a rescan or replacement" with 2 test cases passed after 0.002 seconds.
+􀟈 Test "Stopped rule metrics reject mismatched catalog or exclusions" started.
+􀟈 Test case passing 1 argument wrongExclusions → false to "Stopped rule metrics reject mismatched catalog or exclusions" started.
+​􀟈 Test case passing 1 argument wrongExclusions → true to "Stopped rule metrics reject mismatched catalog or exclusions" started.
+​􁁛 Test "Stopped rule metrics reject mismatched catalog or exclusions" with 2 test cases passed after 0.001 seconds.

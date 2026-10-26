@@ -239,6 +239,10 @@ Local XCTest follow-up: `validation/test-approval-20261026` pins fresh test/buil
 and map identities. Native Select All and a window-scoped test query change
 automation only; stable UI-runner development signing is an application assembly
 detail. Current/target topology and runtime policy contracts remain unchanged.
+The PR #121 Stop fix updates RuleProfileCollection's current HCS binding:
+one terminal catalog/profile handoff is folded into bridge/application ownership,
+with stopped-report freshness guards. Current/target topology remains unchanged;
+fresh identities and checks are in `validation/stopped-rule-metrics-20261026`.
 Prior receipts remain historical. New recovered specs stay draft; source, native
 UI, local test-host limitations and GitHub CI are reported separately. Timing
 scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.

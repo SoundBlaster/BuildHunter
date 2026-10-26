@@ -1234,3 +1234,29 @@ source/map identities, signatures and actual checks are recorded in
 [test-approval-20261026](validation/test-approval-20261026/README.md). Historical
 timeouts retain their original status; these results do not prove all UI flows
 or permission persistence for every future signing identity/macOS version.
+
+## PR #121 — stopped rule metrics, 2026-10-26
+
+Review found an implementation conflict with the existing partial-metrics
+requirement: GUI Stop discarded event 8 with the ordinary event queue. Stop now
+returns one owned catalog/profile snapshot through a separate bounded stream
+after Rust returns. Rows/warnings remain frozen immediately. The stopped
+consumer checks generation, report ID, catalog and exclusions; replacement or
+Rescan cancels it. Early Stop can restore only captured catalog metadata needed
+by the snapshot, preserving the root-path safety flag. Source registrations last
+through event-stream ownership so a completed worker/buffered-event race retains
+the final snapshot; native control and target-scope lifetimes remain tied to Rust
+return. The engine's terminal status is preserved, including a completion race.
+
+Affected roles: RustSwiftBridge event ownership/cancellation, MacApplication
+generation reduction and RuleProfileCollection/Presentation. The handoff is folded
+into these existing roles; no new module or independent capability is introduced.
+Current HCS and current.bridge/cancellation, current.application/generation and
+rules.profile/stopped_delivery describe that assembly. The owner-requested
+partial-metrics behavior is unchanged; recovered specs remain draft. Target
+topology, Rust/Rifle APIs, ordinary queue bounds and classification are unchanged.
+
+Fresh source/map identities and actual checks:
+[stopped-rule-metrics-20261026](validation/stopped-rule-metrics-20261026/README.md).
+Earlier profiling/test-host receipts remain historical; build, native test and
+GitHub CI results are separate evidence.

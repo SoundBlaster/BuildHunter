@@ -58,7 +58,7 @@ constraints:
 - id: generation
   level: MUST
   statement: Replacing/rescanning/stopping invalidates prior events by generation; only current scanning generation
-    mutates rows. Terminal reduction preserves stopped/partial or incomplete semantics.
+    mutates rows. Terminal reduction preserves stopped/partial or incomplete semantics. Stop may later attach one owned catalog/rule-profile snapshot only to the same stopped report, matching its stopped generation, report ID and catalog/exclusions. This exception never admits ordinary artifact, size or warning events and cannot mutate a replacement/rescan report.
 - id: shared_report
   level: MUST
   statement: Diagram and warning windows resolve the same scan model via ScanWindowStore and never initiate another
@@ -200,7 +200,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
+    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift

@@ -53,6 +53,9 @@ constraints:
 - id: ownership
   level: MUST
   statement: Copy optional event-8 metadata within 16 MiB, validate shape/count/identities and retain only owned generation-tagged Swift data. Export the finished scan identity and all metrics in JSON. Rule windows hold scan-status-labelled value snapshots independent of later rescans; raw metric rows contain no candidate paths. CLI creates a previously absent selected output after traversal and refuses existing destinations.
+- id: stopped_delivery
+  level: MUST
+  statement: GUI Stop immediately freezes ordinary report events and cancels traversal, then asynchronously accepts at most one validated terminal rule-profile snapshot for that stopped report. Include its captured catalog when Stop discarded the queued catalog event. Check report identity, stopped generation, catalog digest and exclusions; rescan/replacement cancels the terminal consumer and rejects late snapshots. No synchronous worker wait is added to Stop. If catalog preparation failed before metrics existed, the terminal stream ends without a profile.
 - id: author_docs
   level: MUST
   statement: Document supported syntax/bindings/operators/unknowns, full importable example, admission diagnostics/limits, positive/negative fixtures and profiling commands/units/limitations. Keep implemented marker policy separate from proposed stricter descriptor policy. Agent-generated JSON must pass admission and semantic fixture scans.
@@ -85,6 +88,14 @@ evidence:
   kind: test
   path: src/client_scan_tests.rs
   supports: [constraints.opt_in, constraints.bounded_collection]
+- id: stopped_tests
+  kind: test
+  path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
+  supports: [constraints.stopped_delivery, constraints.ownership]
+- id: stopped_bridge_tests
+  kind: test
+  path: macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift
+  supports: [constraints.stopped_delivery, constraints.bounded_collection]
 - id: documentation
   kind: documentation
   path: docs/template-language.md
@@ -101,12 +112,13 @@ provenance:
   notes:
   - Owner requested author documentation and per-rule metrics on 2026-10-26. Requirement direction is accepted; this recovered implementation contract remains draft.
   - Current source/map identities and executed checks are in validation/rule-profiling-20261026. Structural validity, local native checks and CI are separate evidence.
+  - PR 121 follow-up restores terminal GUI Stop delivery. The desired partial-metrics requirement is unchanged; implementation and fresh validation are recorded in validation/stopped-rule-metrics-20261026. Earlier receipts retain their original source scope.
 implementationBindings:
 - id: profile_sources
   scope: component
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
+    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
   files:
     owned:
     - crates/buildhunter-plugin-policy/src/profiling.rs
