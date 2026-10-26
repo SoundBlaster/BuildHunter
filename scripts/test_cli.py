@@ -24,6 +24,10 @@ class CLIIntegrationTests(unittest.TestCase):
         self.assertEqual(report["format"], "buildhunter.rule-profile-report/1")
         profile = report["rule_profile"]
         self.assertEqual(profile["catalog_digest"], normal["catalog"]["digest"])
+        self.assertEqual(report["catalog"]["packages"], normal["catalog"]["packages"])
+        self.assertEqual({p["id"] for p in report["catalog"]["packages"]},
+                         {"org.buildhunter.swift", "org.buildhunter.rust", "org.buildhunter.python"})
+        self.assertTrue(all(p["version"] for p in report["catalog"]["packages"]))
         self.assertEqual(profile["classification_errors"], 0)
         self.assertTrue(any(row["rule_id"] and row["evaluations"] > 0 for row in profile["rules"]))
         for row in profile["rules"]:

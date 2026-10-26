@@ -106,6 +106,9 @@ impl CatalogSnapshot {
             .collect();
         let metadata = serde_json::json!({
             "format": "buildhunter.catalog/1", "profile": profile.id(),
+            "packages": catalog.packages().iter().map(|package| serde_json::json!({
+                "id":package.id, "version":package.version,
+            })).collect::<Vec<_>>(),
             "markerPolicy": "legacy-file-markers/1",
             "digest": catalog.catalog_digest().to_string(),
             "excludedTargetIDs": catalog.exclusions(), "targets": targets,

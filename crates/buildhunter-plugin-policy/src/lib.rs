@@ -79,6 +79,11 @@ pub struct TargetDescriptor {
     pub ecosystem: String,
     pub kind: TargetKind,
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PackageDescriptor {
+    pub id: String,
+    pub version: String,
+}
 #[derive(Debug)]
 struct Target {
     descriptor: TargetDescriptor,
@@ -127,6 +132,7 @@ pub struct PluginCatalog {
     exclusions: BTreeSet<String>,
     dispatch: dispatch::Dispatch,
     targets: Vec<TargetDescriptor>,
+    packages: Vec<PackageDescriptor>,
     markers: BTreeSet<MarkerProbe>,
 }
 impl PluginCatalog {
@@ -135,6 +141,14 @@ impl PluginCatalog {
     pub fn load(inputs: &[PluginInput<'_>], excluded: &[&str]) -> Result<Self, Error> {
         let documents: Vec<_> = inputs.iter().map(|x| x.bytes).collect();
         let catalog = Catalog::from_json_documents(&documents)?;
+        let packages = catalog
+            .packages()
+            .iter()
+            .map(|package| PackageDescriptor {
+                id: package.id().to_owned(),
+                version: package.version().to_owned(),
+            })
+            .collect();
         let mut exclusions = BTreeSet::new();
         for id in excluded {
             validation::id(id, "/exclusions")?;
@@ -183,6 +197,7 @@ impl PluginCatalog {
             exclusions,
             dispatch,
             targets,
+            packages,
             markers,
         })
     }
@@ -195,6 +210,9 @@ impl PluginCatalog {
     /// Includes disabled targets for Settings presentation.
     pub fn targets(&self) -> &[TargetDescriptor] {
         &self.targets
+    }
+    pub fn packages(&self) -> &[PackageDescriptor] {
+        &self.packages
     }
     pub fn marker_requests(&self, kind: NodeKind) -> Vec<&MarkerProbe> {
         if kind == NodeKind::Symlink {
