@@ -1209,3 +1209,28 @@ Current source/map identities and actual checks: validation/rule-profiling-20261
 Prior receipts remain historical. New recovered specs stay draft; source, native
 UI, local test-host limitations and GitHub CI are reported separately. Timing
 scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.
+
+## Local XCTest identity and smoke verification — 2026-10-26
+
+The local retry exposed a test-input error: Select All followed by typing into
+the text-view element had inserted `{` into valid JSON rather than replacing it.
+The test now invokes native Select All, types into the current responder and
+asserts the replacement before checking validation. A separate real-folder test
+scopes its Open Folder query to one empty window to avoid ambiguous multiwindow
+matches. No application validation, window lifecycle or scan policy is changed.
+
+macOS TCC logs identify repeated removable-volume prompts for the generated
+ad hoc UI runner after a code-hash requirement mismatch. The UI test target now
+uses the app's existing development team/signing style; CI's explicit unsigned
+override remains supported. Local test execution uses the normal runtime TMPDIR,
+while build outputs, caches and result bundles remain on verified TB5. Permission
+approvals, TCC resets and Full Disk Access are not automated.
+
+Affected roles/claims: MacApplication presentation, TemplateManagement and
+`buildhunter.current.templates/draft_validation`; test-host setup is folded into
+application assembly, not a new runtime component or capability. Current/target
+HC topology, template contracts and runtime bindings remain unchanged. Fresh
+source/map identities, signatures and actual checks are recorded in
+[test-approval-20261026](validation/test-approval-20261026/README.md). Historical
+timeouts retain their original status; these results do not prove all UI flows
+or permission persistence for every future signing identity/macOS version.

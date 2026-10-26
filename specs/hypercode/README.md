@@ -235,6 +235,10 @@ bounded counters, optional event 8 and JSON export. Ordinary classification and
 filesystem/marker policy requirements are unchanged; equivalence tests exercise
 outcomes/bytes/status/probes. Hunter and target topology have no change.
 Current source/map identities and actual checks: validation/rule-profiling-20261026.
+Local XCTest follow-up: `validation/test-approval-20261026` pins fresh test/build
+and map identities. Native Select All and a window-scoped test query change
+automation only; stable UI-runner development signing is an application assembly
+detail. Current/target topology and runtime policy contracts remain unchanged.
 Prior receipts remain historical. New recovered specs stay draft; source, native
 UI, local test-host limitations and GitHub CI are reported separately. Timing
 scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.

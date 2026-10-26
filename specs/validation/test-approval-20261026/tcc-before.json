@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2026-10-26 10:09:35.975680+0300",
+    "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"3e623761ee346f5ac74fb3f4b4ee5f8110f42459\"\n\tcdhash H\"b6f66bbaa5a0af6718bcc3a882a71993193353d1\""
+  },
+  {
+    "timestamp": "2026-10-26 10:09:35.987043+0300",
+    "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"3e623761ee346f5ac74fb3f4b4ee5f8110f42459\"\n\tcdhash H\"b6f66bbaa5a0af6718bcc3a882a71993193353d1\""
+  },
+  {
+    "timestamp": "2026-10-26 10:09:35.992477+0300",
+    "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"3e623761ee346f5ac74fb3f4b4ee5f8110f42459\"\n\tcdhash H\"b6f66bbaa5a0af6718bcc3a882a71993193353d1\""
+  },
+  {
+    "timestamp": "2026-10-26 10:09:35.993452+0300",
+    "message": "AUTHREQ_PROMPTING: msgID=427.2534, service=kTCCServiceSystemPolicyRemovableVolumes, subject=Sub:{dev.buildhunter.uitests.xctrunner}Resp:{TCCDProcess: identifier=dev.buildhunter.uitests.xctrunner, pid=12538, auid=501, euid=501, binary_path=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/MacOS/BuildHunterUITests-Runner},"
+  },
+  {
+    "timestamp": "2026-10-26 10:24:47.919192+0300",
+    "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"b6f66bbaa5a0af6718bcc3a882a71993193353d1\"\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\""
+  },
+  {
+    "timestamp": "2026-10-26 10:24:47.932536+0300",
+    "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"b6f66bbaa5a0af6718bcc3a882a71993193353d1\"\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\""
+  },
+  {
+    "timestamp": "2026-10-26 10:24:47.936109+0300",
+    "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"b6f66bbaa5a0af6718bcc3a882a71993193353d1\"\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\""
+  },
+  {
+    "timestamp": "2026-10-26 10:24:47.936590+0300",
+    "message": "AUTHREQ_PROMPTING: msgID=427.2604, service=kTCCServiceSystemPolicyRemovableVolumes, subject=Sub:{dev.buildhunter.uitests.xctrunner}Resp:{TCCDProcess: identifier=dev.buildhunter.uitests.xctrunner, pid=20768, auid=501, euid=501, binary_path=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/MacOS/BuildHunterUITests-Runner},"
+  }
+]

@@ -89,6 +89,10 @@ evidence:
   kind: test
   path: macos/Tests/BuildHunterTests/UserTemplateTests.swift
   supports: [constraints.free_files, constraints.bounded_admission, constraints.scoped_writes, constraints.scan_isolation, constraints.draft_validation, constraints.file_exchange]
+- id: native_draft_smoke
+  kind: test
+  path: specs/validation/test-approval-20261026/README.md
+  supports: [constraints.draft_validation]
 provenance:
   sourceConfidence:
     intent: high
@@ -99,12 +103,13 @@ provenance:
   - Current source/map hashes, executed checks and native-vs-XCTest limits are recorded in validation/user-templates-20261025.
   - Owner additionally requested syntax/fixture documentation and free per-rule profiling; their implementation is described by buildhunter.rules.profile, not editor Check timing.
   - The 2026-10-26 first-release clarification adds explicit file exchange; follow-up source and checks are in validation/template-export-20261026. Earlier receipts remain historical.
+  - validation/test-approval-20261026 records focused native draft validation, test-host signing and local suite results. This is partial evidence for draft_validation, not proof of every clause or Store acceptance. Runtime implementation and contracts are unchanged.
 implementationBindings:
 - id: implementation
   scope: component
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
+    revision: c80aeee967ccb295c4e3bacb55050d1b8d9f9710
   files:
     owned:
     - macos/Sources/BuildHunter/Domain/TemplateLibrary.swift
@@ -118,3 +123,4 @@ implementationBindings:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
     - src/catalog.rs
     - macos/Tests/BuildHunterTests/UserTemplateTests.swift
+    - macos/Tests/BuildHunterUITests/BuildHunterUITests.swift
