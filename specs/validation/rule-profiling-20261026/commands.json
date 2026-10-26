@@ -262,9 +262,10 @@
     ],
     "exit_code": 0,
     "elapsed_s": 11.856,
-    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-4.log",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/rule-profiling-20261026/package-final-4.log",
     "sha256": "29159cba0b9d3b35b0b3339afd0a454be8822ed312c0c4fc026d70436333aa59",
-    "stage": "final package-metadata source"
+    "stage": "final package-metadata source",
+    "artifact_scope": "local TB5 full build output; checksum retained, raw log omitted from review diff"
   },
   {
     "command": [
@@ -294,9 +295,10 @@
     ],
     "exit_code": 0,
     "elapsed_s": 135.823,
-    "log": "specs/validation/rule-profiling-20261026/package-final-checks-package-final-5.log",
+    "log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/rule-profiling-20261026/package-final-5.log",
     "sha256": "fb19ebe512546b4af4f9285feb3ae957b9e49d987e3017f9d56773df66663099",
-    "stage": "final package-metadata source"
+    "stage": "final package-metadata source",
+    "artifact_scope": "local TB5 full build output; checksum retained, raw log omitted from review diff"
   },
   {
     "command": [
