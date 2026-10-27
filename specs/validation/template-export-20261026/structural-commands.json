@@ -1,0 +1,89 @@
+[
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-0.log",
+    "sha256": "d53181325400e14a412fdfb0224723778c7a6f7bf1f98308571652cd22bf0a84"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-1.log",
+    "sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-2.log",
+    "sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-3.log",
+    "sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-4.log",
+    "sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-5.log",
+    "sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563"
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "log": "specs/validation/template-export-20261026/structure-6.log",
+    "sha256": "093b4dcd22bce3358e0bd1a484a65eaf734ec74ef5f50c8d4f3fd6da541e9798"
+  }
+]

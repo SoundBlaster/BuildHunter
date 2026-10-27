@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/devicefs-exclusion-20261025/source-identity.json"
+  current_evidence: "specs/validation/template-export-20261026/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -26,6 +26,25 @@ Export:
 Settings:
   source: "macos/Sources/BuildHunter/Domain/SearchFilters.swift"
   folded_into: "buildhunter.current.classification"
+TemplateManagement:
+  source: "macos/Sources/BuildHunter/UI/UserTemplatesWindow.swift"
+  boundary_spec: "buildhunter.current.templates"
+TemplateRegistry:
+  source: "macos/Sources/BuildHunter/Domain/TemplateLibrary.swift"
+  implementation: "paths, scoped bookmarks and enabled flags; source files remain user owned"
+  folded_into: "buildhunter.current.templates"
+TemplateDraft:
+  source: "macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift"
+  implementation: "one bounded JSON draft; off-actor validation; explicit import/save/reload/export; Save As switches one registration"
+  folded_into: "buildhunter.current.templates"
+ScopedTemplateFiles:
+  source: "macos/Sources/BuildHunter/Domain/UserTemplates.swift, macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift"
+  implementation: "bounded regular-file reads; coordinated observed-edit check and atomic selected writes"
+  folded_into: "buildhunter.current.templates"
+UserTemplateAdmission:
+  source: "src/catalog.rs"
+  implementation: "trusted built-ins plus bounded external JSON; atomic snapshot or copied diagnostic"
+  folded_into: "buildhunter.catalog.snapshot"
 Scanner:
   source: "src/lib.rs"
   implementation: "ArtifactHandler ScanHandler plus Hunter ScanEngine/coordinator"

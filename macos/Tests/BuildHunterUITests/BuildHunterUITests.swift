@@ -3,6 +3,33 @@ import AppKit
 
 @MainActor
 final class BuildHunterUITests: XCTestCase {
+    func testTemplateEditorValidatesAndKeepsInvalidDraft() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        openSettings(app)
+        app.toolbars.buttons["Templates"].click()
+        let new = app.buttons["buildhunter.templates.new"]
+        XCTAssertTrue(new.waitForExistence(timeout: 5))
+        new.click()
+        let check = app.buttons["buildhunter.templates.check"]
+        check.click()
+        let status = app.staticTexts["buildhunter.templates.status"]
+        let valid = NSPredicate(format: "value CONTAINS %@ OR label CONTAINS %@", "Valid catalog", "Valid catalog")
+        expectation(for: valid, evaluatedWith: status)
+        waitForExpectations(timeout: 10)
+        let editor = app.textViews["buildhunter.templates.editor"]
+        let editorViewport = app.scrollViews.containing(.textView, identifier: "buildhunter.templates.editor").firstMatch
+        editorViewport.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).click()
+        editor.typeKey("a", modifierFlags: .command)
+        editor.typeText("{")
+        check.click()
+        let invalid = NSPredicate(format: "NOT (value CONTAINS %@ OR label CONTAINS %@)", "Valid catalog", "Valid catalog")
+        expectation(for: invalid, evaluatedWith: status)
+        waitForExpectations(timeout: 10)
+        XCTAssertEqual(editor.value as? String, "{")
+        attachScreenshot(named: "templates-invalid-draft", from: app)
+    }
+
     func testSettingsWindowPersistsSearchSelection() {
         let suite = "BuildHunter.SettingsUITests.\(UUID().uuidString)"
         var app = launchWindow(settingsSuite: suite)
@@ -125,6 +152,10 @@ final class BuildHunterUITests: XCTestCase {
         let menuItem = app.menuItems["Settings…"]
         XCTAssertTrue(menuItem.waitForExistence(timeout: 5))
         menuItem.click()
+        // SwiftUI remembers the last Settings tab across launches.
+        let search = app.toolbars.buttons["Search"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.click()
     }
 
     func testMockStatesAndCaptureScreenshots() throws {

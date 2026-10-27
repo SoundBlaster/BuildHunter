@@ -85,6 +85,10 @@ struct SearchFilterSnapshot: Sendable {
 
 /// Versioned scanner metadata; decoded once per scan before target IDs are used.
 struct ScanCatalogMetadata: Codable, Equatable, Sendable {
+    struct Package: Codable, Equatable, Sendable {
+        let id: String
+        let version: String
+    }
     struct Target: Codable, Equatable, Sendable {
         let id: String
         let title: String
@@ -109,6 +113,7 @@ struct ScanCatalogMetadata: Codable, Equatable, Sendable {
     let markerPolicy: String
     let excludedTargetIDs: [String]
     let targets: [Target]
+    let packages: [Package]?
 
     var isSupported: Bool {
         format == "buildhunter.catalog/1" && profile == "buildhunter.gui/1"
@@ -116,6 +121,8 @@ struct ScanCatalogMetadata: Codable, Equatable, Sendable {
             && digest.utf8.count == 64 && digest.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
             && targets.count <= 2_048 && Set(targets.map(\.id)).count == targets.count
             && targets.allSatisfy { !$0.id.isEmpty && $0.artifactKind != nil }
+            && (packages.map { $0.count <= 64 && Set($0.map(\.id)).count == $0.count
+                && $0.allSatisfy { !$0.id.isEmpty && !$0.version.isEmpty } } ?? true)
     }
 
     static func basic() -> Self? {
@@ -144,6 +151,10 @@ struct ScanDiagnostic: Codable, Equatable, Sendable {
 enum SearchFilterCatalog {
     static func load() -> [SearchFilterDescriptor] {
         guard let metadata = ScanCatalogMetadata.basic() else { return [] }
+        return descriptors(for: metadata)
+    }
+
+    static func descriptors(for metadata: ScanCatalogMetadata) -> [SearchFilterDescriptor] {
         // Hints support the retained legacy policy/table APIs. Runtime membership,
         // titles and scan decisions now come from the plugin catalog.
         let legacy: [SearchFilterDescriptor]
@@ -184,7 +195,7 @@ final class SearchFilterSettings {
     private(set) var excludedFilterIDs: Set<String>
 
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored private let catalog: [SearchFilterDescriptor]
+    private var catalog: [SearchFilterDescriptor]
 
     init(
         catalog: [SearchFilterDescriptor] = SearchFilterCatalog.load(),
@@ -206,6 +217,13 @@ final class SearchFilterSettings {
 
     var snapshot: SearchFilterSnapshot {
         SearchFilterSnapshot(excludedFilterIDs: excludedFilterIDs, catalog: catalog)
+    }
+
+    /// Metadata describes the catalog actually admitted for this scan. Unknown
+    /// exclusions remain persisted when packages are disconnected and reconnected.
+    func useCatalog(_ metadata: ScanCatalogMetadata) {
+        guard metadata.isSupported else { return }
+        catalog = SearchFilterCatalog.descriptors(for: metadata)
     }
 
     func isEnabled(for filterID: String) -> Bool {

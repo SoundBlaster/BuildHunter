@@ -82,6 +82,12 @@ const char *bh_search_filter_catalog_json(void);
  * every scan/reader; destroy exactly once after they have finished. */
 uint32_t bh_catalog_abi_version(void);
 void *bh_catalog_create(uint32_t profile, const uint8_t *exclusions, size_t len);
+typedef struct { const uint8_t *bytes; size_t len; } BHPluginDocument;
+typedef void (*BHCatalogErrorCallback)(void *context, const uint8_t *json, size_t len);
+// Synchronous borrowed buffers; a callback diagnostic is copied before return.
+void *bh_catalog_create_with_templates_v1(uint32_t profile, const uint8_t *exclusions, size_t exclusions_len,
+    const BHPluginDocument *documents, size_t count, BHCatalogErrorCallback error_callback, void *context);
+const char *bh_template_example_json(void);
 const char *bh_catalog_json(const void *catalog);
 void bh_catalog_destroy(void *catalog);
 

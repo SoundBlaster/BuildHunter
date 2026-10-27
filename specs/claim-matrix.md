@@ -632,3 +632,30 @@ Requested QoS is not effective priority; apply is best-effort and has no restore
 behavior. CPU/RSS availability remains independent; no new budget or performance
 claim follows. Historical extraction evidence and outstanding C1–C5 requirements
 are unchanged. Fresh source hashes and checks: `specs/validation/hunter-process-20261022`.
+
+## R7 user templates — 2026-10-25
+
+| Consumer obligation | Current boundary / source | Evidence and limits |
+|---|---|---|
+| Source stays user-owned, free, versionable outside the app | `buildhunter.current.templates/free_files`; TemplateLibrary | References/bookmarks/enabled flags only; disconnect never deletes JSON. No Git integration or paid gate. |
+| Bad input cannot silently change the effective rules | `bounded_admission`; TemplateFiles + CatalogSnapshot::with_templates | Bounded regular-file reads, External origin, full-catalog validation; enabled invalid/missing files fail preparation. |
+| Draft and active scan are separate | `draft_validation`, `scan_isolation`; TemplateWorkspace / RustScanEventSource | Check does not save; a running scan retains an admitted immutable catalog. Tests and source identities in validation/user-templates-20261025. |
+| Explicit write exceptions remain honest (C6) | `scoped_writes`; application/effects_scope | Coordinated comparison and atomic selected-file save; no CAS guarantee for racing uncoordinated writers. |
+
+The current map adds TemplateManagement with registry/draft/scoped-file roles and
+UserTemplateAdmission under ClientCatalog. Target module ownership is unchanged;
+user-file management belongs to BuildHunter, not generic Hunter or Rifle. These
+drafts do not establish App Store approval, release readiness or a crash-recovery
+autosave store. R7 CLI/SDK and commercial content/purchase work remain open.
+
+## First-release template import/export — 2026-10-26 (Moscow)
+
+`buildhunter.current.templates/file_exchange` adds an owner-required explicit
+Export JSON action. It preserves registrations, source identity and unsaved state.
+`scoped_writes` now makes Save As switch only the selected registration and refuse
+another registration's destination. Both validate before writing; Save As to the
+current source uses Save's observed-edit protection. Application `effects_scope`
+includes selected template exports. Detailed controls stay folded into the existing
+TemplateManagement boundary; module ownership and scan/catalog contracts are unchanged.
+Current source/test/build/native evidence: validation/template-export-20261026.
+The earlier 149-test and CI receipts are not relabeled as results for new source.

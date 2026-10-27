@@ -3,6 +3,7 @@ import SwiftUI
 
 @main
 struct BuildHunterApp: App {
+    @NSApplicationDelegateAdaptor(TemplateApplicationDelegate.self) private var templateDelegate
     @State private var windows = ScanWindowStore()
 
     var body: some Scene {
@@ -21,7 +22,10 @@ struct BuildHunterApp: App {
         }
 
         Settings {
-            SearchSettingsWindow()
+            TabView {
+                SearchSettingsWindow().tabItem { Text("Search") }
+                UserTemplatesWindow(workspace: .shared).tabItem { Text("Templates") }
+            }
         }
 
         WindowGroup("Artifact Diagram", id: "artifact-diagram", for: UUID.self) { $scanID in

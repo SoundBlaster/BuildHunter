@@ -209,3 +209,18 @@ managed_locations and updates root admission; target maps and plugin rules remai
 unchanged. Fresh source/map identities and focused native CLI/structural checks are
 under `../validation/devicefs-exclusion-20261025`. Prior Photos/home/RSS evidence
 remains historical and is not execution evidence for the new source.
+
+### R7 user templates — 2026-10-25
+
+Current MacApplication now contains TemplateManagement with TemplateRegistry,
+TemplateDraft and ScopedTemplateFiles; detailed editor Views are folded into that
+boundary. ClientCatalog adds UserTemplateAdmission for bounded external-origin
+JSON admission. Current source/map identities and validation are in
+`../validation/user-templates-20261025`. Target ownership remains unchanged:
+BuildHunter manages user files, Rifle evaluates pure data, Hunter acquires scan
+facts. Free user authoring does not imply a Store release or paid catalog.
+
+R7 file-exchange clarification (2026-10-26, Moscow) keeps the same topology.
+TemplateDraft/ScopedTemplateFiles now describe explicit import/export and a Save As
+registration switch. Current identities/checks: `../validation/template-export-20261026`.
+This does not add a Git client, SDK, Store purchase flow or another boundary.

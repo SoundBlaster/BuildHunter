@@ -4,9 +4,11 @@ import Foundation
 final class RustScanEventSource: ScanEventSource {
     private var jobs: [UInt64: RustScanJob] = [:]
     private let settings: SearchFilterSettings
+    private let templates: TemplateLibrary
 
-    init(settings: SearchFilterSettings = .shared) {
+    init(settings: SearchFilterSettings = .shared, templates: TemplateLibrary = .shared) {
         self.settings = settings
+        self.templates = templates
     }
 
     /// Undelivered events held for the model. When it is full the scan thread waits instead
@@ -31,13 +33,14 @@ final class RustScanEventSource: ScanEventSource {
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
         let filters = settings.snapshot
+        let templateFiles = templates.references
+        let templateStorageProblem = templates.storageProblem
         let rootBytes = target.withUnsafeFileSystemRepresentation { pointer -> Data in
             guard let pointer else { return Data() }
             var count = 0
             while pointer[count] != 0 { count += 1 }
             return Data(bytes: pointer, count: count)
         }
-        let excludedBytes = (try? JSONEncoder().encode(filters.excludedFilterIDs.sorted())) ?? Data()
         let context = RustScanBridgeContext(generation: generation, channel: channel,
             rootPathIsExact: String(data: rootBytes, encoding: .utf8) != nil)
         let retainedContext = Unmanaged.passRetained(context).toOpaque()
@@ -45,10 +48,16 @@ final class RustScanEventSource: ScanEventSource {
         let stream = channel.makeStream(onClose: { job.cancel() })
 
         Task.detached(priority: .userInitiated) {
-            let result: Int32 = excludedBytes.withUnsafeBytes { exclusions in
-                guard bh_catalog_abi_version() == 1,
-                      let catalog = bh_catalog_create(2, exclusions.baseAddress?.assumingMemoryBound(to: UInt8.self), exclusions.count) else {
-                    context.yield(.warning(generation: generation, message: "Could not load the scan catalog or exclusion settings."))
+            let result: Int32 = {
+                let catalog: UnsafeMutableRawPointer
+                do {
+                    if let templateStorageProblem {
+                        throw TemplateProblem(code: "invalid_registry", location: "", message: templateStorageProblem)
+                    }
+                    catalog = try TemplateFiles.createCatalog(templateFiles, excluded: filters.excludedFilterIDs)
+                } catch {
+                    context.yield(.warning(generation: generation, message: "Template catalog: \(error.localizedDescription) Fix or disable the template in Settings → Templates."))
+                    context.finish(status: 3)
                     return 3
                 }
                 defer { bh_catalog_destroy(catalog) }
@@ -56,7 +65,7 @@ final class RustScanEventSource: ScanEventSource {
                     bh_scan_catalog_v1(control, catalog, root.baseAddress?.assumingMemoryBound(to: UInt8.self), root.count,
                         0, 0, buildHunterCatalogEventCallback, retainedContext)
                 }
-            }
+            }()
             job.finish()
             if startedSecurityScope {
                 target.stopAccessingSecurityScopedResource()
