@@ -224,3 +224,25 @@ R7 file-exchange clarification (2026-10-26, Moscow) keeps the same topology.
 TemplateDraft/ScopedTemplateFiles now describe explicit import/export and a Save As
 registration switch. Current identities/checks: `../validation/template-export-20261026`.
 This does not add a Git client, SDK, Store purchase flow or another boundary.
+
+## Rule documentation and profiling — 2026-10-26
+
+Owner asked for author documentation and per-rule metrics. New draft boundary
+`buildhunter.rules.profile` covers PluginPolicy.RuleProfiling, client
+RuleProfileCollection and RuleProfilePresentation. It composes pinned Rifle
+`af35dedf46d8c9978af1e30985f9c157a3f266c2` timed outcomes with host phases/identity,
+bounded counters, optional event 8 and JSON export. Ordinary classification and
+filesystem/marker policy requirements are unchanged; equivalence tests exercise
+outcomes/bytes/status/probes. Hunter and target topology have no change.
+Current source/map identities and actual checks: validation/rule-profiling-20261026.
+Local XCTest follow-up: `validation/test-approval-20261026` pins fresh test/build
+and map identities. Native Select All and a window-scoped test query change
+automation only; stable UI-runner development signing is an application assembly
+detail. Current/target topology and runtime policy contracts remain unchanged.
+The PR #121 Stop fix updates RuleProfileCollection's current HCS binding:
+one terminal catalog/profile handoff is folded into bridge/application ownership,
+with stopped-report freshness guards. Current/target topology remains unchanged;
+fresh identities and checks are in `validation/stopped-rule-metrics-20261026`.
+Prior receipts remain historical. New recovered specs stay draft; source, native
+UI, local test-host limitations and GitHub CI are reported separately. Timing
+scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.

@@ -48,3 +48,14 @@ validation claimed. Fresh evidence: [catalog validation](validation/catalog-2026
 Next boundary: BuildHunter plugin adapter validation (facts/bindings/target links,
 reserved IDs/exclusions) using these immutable programs and full-package identities;
 Swift SDK and Hunter extraction remain subsequent stages.
+
+## Optional rule profiling — 2026-10-26
+
+Owner requirement: BuildHunter and template authors must be able to profile and
+improve individual rules. `Evaluation.OptionalRuleTiming` folds into the existing
+`rifle.program` boundary (`timing` claim); host aggregation, target/package IDs,
+name dispatch and file I/O attribution remain outside Rifle. No schema change.
+`evaluate_timed` runs the same immutable expression once and returns its owned
+outcome plus monotonic wall duration. Normal evaluation has no clock calls.
+Current source/map hashes and executed checks: validation/rule-timing-20261026.
+New API/contract remains draft; no speed or measurement-overhead claim.

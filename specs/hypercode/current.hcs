@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/template-export-20261026/source-identity.json"
+  current_evidence: "specs/validation/rule-profiling-20261026/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -122,7 +122,7 @@ PluginPolicy:
   source: "crates/buildhunter-plugin-policy/src/lib.rs"
   boundary_spec: "buildhunter.plugin.policy"
   enabled_by: "host dependency plus independently testable pure crate"
-  connected_to_clients: false
+  connected_to_clients: true
 CatalogValidation:
   source: "crates/buildhunter-plugin-policy/src/validation.rs"
   folded_into: "buildhunter.plugin.policy"
@@ -536,3 +536,17 @@ SharedTargetOwnership:
   source: "crates/buildhunter-plugin-scanner/src/lib.rs"
   implementation: "Arc descriptors shared by discoveries, completions and reports; owned beyond input catalog lifetime"
   folded_into: "buildhunter.plugin.scanner"
+
+RuleProfilePresentation:
+  source: "macos/Sources/BuildHunter/UI/ScanProfilePanel.swift"
+  implementation: "independent value-snapshot window plus finished report JSON export"
+  boundary_spec: "buildhunter.rules.profile"
+RuleProfileCollection:
+  source: "src/client_scan.rs"
+  implementation: "one optional scan-owned accumulator; preliminary/resolved phases; terminal event 8; Swift Stop retains one owned catalog/profile snapshot outside the closed ordinary queue, bound to stopped report/generation"
+  folded_into: "buildhunter.rules.profile"
+RuleProfiling:
+  source: "crates/buildhunter-plugin-policy/src/profiling.rs"
+  upstream_revision: "af35dedf46d8c9978af1e30985f9c157a3f266c2"
+  implementation: "optional bounded counters with Rifle evaluate_timed; default path no rule clocks"
+  folded_into: "buildhunter.rules.profile"

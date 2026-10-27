@@ -13,7 +13,10 @@ ValidatedPlan:
   implementation: "Plan + indexed Expression"
 Evaluation:
   source: "src/lib.rs"
-  implementation: "Plan::evaluate + Expression::evaluate"
+  implementation: "Plan::evaluate/evaluate_timed + Expression::evaluate"
+OptionalRuleTiming:
+  source: "src/lib.rs"
+  implementation: "TimedOutcome; explicit monotonic wall timing, no default clocks"
 ContractTests:
   source: "tests/contract.rs"
 ContentIdentity:

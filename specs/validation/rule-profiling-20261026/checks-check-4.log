@@ -1,0 +1,44 @@
+   Compiling libc v0.2.190
+   Compiling cpufeatures v0.2.17
+   Compiling sha2 v0.10.9
+   Compiling rifle-rules v0.1.0 (https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#af35dedf)
+   Compiling buildhunter-plugin-policy v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-policy)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.43s
+     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/buildhunter_plugin_policy-fdf39788df3d646d)
+
+running 2 tests
+test builtin::tests::gui_environment_precedence_is_retained_even_when_the_environment_is_excluded ... ok
+test builtin::tests::profiles_keep_the_thirteen_stable_ids_and_have_distinct_identities ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/plugin_adapter.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/plugin_adapter-49225f4e44707c21)
+
+running 18 tests
+test own_marker_on_files_is_false_without_a_probe ... ok
+test new_ecosystem_rule_is_evaluated_without_fixed_marker_vocabulary ... ok
+test partial_exclusion_removes_only_the_disabled_fact_bindings ... ok
+test duplicate_target_ids_across_packages_fail_even_if_excluded ... ok
+test exclusions_remove_rules_and_marker_requests_and_preserve_unknown_ids ... ok
+test marker_requests_are_deduplicated_and_symlinks_never_classify ... ok
+test one_true_and_one_unknown_is_indeterminate_not_a_confirmed_finding ... ok
+test rules_for_one_target_use_or_and_true_suppresses_irrelevant_unknowns ... ok
+test current_examples_validate_and_reserve_builtin_ids_by_host_origin ... ok
+test true_false_unknown_and_invalid_name_follow_policy ... ok
+test rule_profile_preserves_decisions_and_separates_dispatch_phase_and_unknowns ... ok
+test multiple_true_targets_are_ambiguous_and_exclusions_can_remove_overlap ... ok
+test input_order_does_not_change_catalog_identity_or_classification ... ok
+test targets_cover_rules_once_with_no_dangling_or_duplicate_ids ... ok
+test indexed_dispatch_agrees_with_rifle_for_boolean_and_unavailable_facts ... ok
+test plugin_shape_bindings_and_fact_types_are_strict ... ok
+test two_hundred_targets_request_only_the_relevant_marker ... ok
+test aggregate_target_and_marker_budgets_cannot_be_bypassed_by_exclusions ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.60s
+
+   Doc-tests buildhunter_plugin_policy
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

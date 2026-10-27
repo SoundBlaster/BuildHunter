@@ -60,12 +60,13 @@ struct ScanReportExport: Sendable {
     let catalogMetadata: ScanCatalogMetadata?
     let diagnostics: [ScanDiagnostic]
     let resourceUsage: ScanResourceUsage?
+    let ruleProfile: ScanRuleProfile?
 
     init(rootName: String, rootURL: URL?, status: Status, rows: [ScanRow], order: Order,
          tableOrder: [ScanRowComparator], warnings: [String], excludedFilterIDs: Set<String>,
          elapsedSeconds: Double?, generatedAt: Date = Date(), appVersion: String,
          catalogMetadata: ScanCatalogMetadata? = nil, diagnostics: [ScanDiagnostic] = [],
-         resourceUsage: ScanResourceUsage? = nil) {
+         resourceUsage: ScanResourceUsage? = nil, ruleProfile: ScanRuleProfile? = nil) {
         self.rootName = rootName
         self.rootURL = rootURL
         self.status = status
@@ -78,6 +79,7 @@ struct ScanReportExport: Sendable {
         self.catalogMetadata = catalogMetadata
         self.diagnostics = diagnostics
         self.resourceUsage = resourceUsage
+        self.ruleProfile = ruleProfile
     }
 
     static func ordered(_ rows: [ScanRow], order: Order, tableOrder: [ScanRowComparator]) -> [ScanRow] {
@@ -159,7 +161,7 @@ struct ScanReportExport: Sendable {
         enum CodingKeys: String, CodingKey {
             case schemaVersion = "schema_version", generatedAt = "generated_at", appVersion = "app_version"
             case root, status, totalBytes = "total_bytes", elapsedSeconds = "elapsed_seconds"
-            case excludedFilters = "excluded_filters", artifacts, errors, catalog, diagnostics, resourceUsage = "scan_budgets"
+            case excludedFilters = "excluded_filters", artifacts, errors, catalog, diagnostics, resourceUsage = "scan_budgets", ruleProfile = "rule_profile"
         }
 
         func encode(to encoder: Encoder) throws {
@@ -177,6 +179,7 @@ struct ScanReportExport: Sendable {
             try container.encode(report.rows.map { JSONArtifact(row: $0, report: report) }, forKey: .artifacts)
             try container.encode(report.warnings, forKey: .errors)
             try container.encodeIfPresent(report.resourceUsage, forKey: .resourceUsage)
+            try container.encodeIfPresent(report.ruleProfile, forKey: .ruleProfile)
             try container.encodeIfPresent(report.catalogMetadata, forKey: .catalog)
             if report.catalogMetadata != nil { try container.encode(report.diagnostics, forKey: .diagnostics) }
         }

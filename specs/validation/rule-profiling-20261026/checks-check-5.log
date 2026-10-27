@@ -1,0 +1,6 @@
+    Checking libc v0.2.190
+    Checking cpufeatures v0.2.17
+    Checking sha2 v0.10.9
+    Checking rifle-rules v0.1.0 (https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#af35dedf)
+    Checking buildhunter-plugin-policy v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-policy)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.97s

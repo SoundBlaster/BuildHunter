@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.bridge
   title: Rust/Swift scan session bridge
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
@@ -47,11 +47,13 @@ interfaces:
     - name: events
       summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only
         during callbacks.
+    - name: stop
+      summary: stop(generation:) cancels ordinary events and returns an independent at-most-one terminal catalog/rule-profile snapshot stream. Completion is asynchronous and does not wait on MainActor.
   outbound: []
 constraints:
 - id: payload_ownership
   level: MUST
-  statement: Copy borrowed path, message, profile and optional resource-budget metadata before returning from C callbacks. Decode profile metadata only within its length bound; absent metadata retains numeric-ABI compatibility and malformed metadata emits a warning. Keep control and retained
+  statement: Copy borrowed path, message, profile and optional resource-budget metadata and event-8 rule aggregates before returning from C callbacks. Decode profile metadata only within its length bound; optional rule profiles are bounded to 16 MiB and 8192 rows, match the captured catalog and are copied before callback return; absent metadata retains numeric-ABI compatibility and malformed metadata emits a warning. Keep control and retained
     context alive until the Rust call returns; destroy control exactly through RustScanJob.finish. Existing GUI completion
     bytes clamp UInt64 to Int64; IDs use a generation-scoped low-48-bit UUID mapping, not a universal filesystem identity.
 - id: backpressure
@@ -61,7 +63,7 @@ constraints:
 - id: cancellation
   level: MUST
   statement: Cancel the Rust control and close the stream channel without synchronously waiting for scan completion
-    on MainActor. Blocking OS reads may still delay the worker return.
+    on MainActor. Blocking OS reads may still delay the worker return. Explicit Stop additionally returns an independent stream with at most one owned catalog/rule-profile snapshot, published after the Rust call returns even when the ordinary queue is closed. Keep a completed job discoverable until its event stream closes so Stop can race with buffered terminal delivery. Discarded/replaced streams release their source registration; the worker retains its own control/context lifetime.
 - id: access_lifetime
   level: MUST
   statement: Start security-scoped target access before detached scanning and stop a successfully acquired scope after
@@ -134,7 +136,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 59508e3b7ecb6ae12458e4c2ff87dc3d645d0b16
+    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift

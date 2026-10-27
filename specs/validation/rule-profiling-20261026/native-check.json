@@ -1,0 +1,15 @@
+{
+  "source_revision": "6da2ce553f598be4d74494953cf8dcf8bf907c61",
+  "configuration": "Debug",
+  "settings_suite": "BuildHunter.TemplateManual.20261025",
+  "fixture": "50 valid Forge projects plus one forge-out without marker",
+  "artifacts": 50,
+  "warnings": 0,
+  "package_count": 4,
+  "phase_rows": 28,
+  "schema_validation": "passed",
+  "zero_average": "explicit null",
+  "native_window": "separate resizable Rule Profile window, explicit Phase column and Completed status verified via cua_repl",
+  "raw_report_sha256": "f3d47496b24d87ee304e5c2cab53783d3bf19adcb0d57456ead6e2559278749a",
+  "screenshot_scope": "inline tool observations, no saved screenshot artifact"
+}

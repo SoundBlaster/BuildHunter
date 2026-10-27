@@ -82,6 +82,7 @@ struct ScanProfilePanel: View {
     let isScanning: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var metric = Metric.entries
+    @Environment(\.openWindow) private var openWindow
 
     private enum Metric: String, CaseIterable {
         case entries = "Entries/s"
@@ -209,6 +210,16 @@ struct ScanProfilePanel: View {
                 Text("\(omitted) samples omitted while updates were delayed. Sampled peaks may be missed.")
                     .font(.caption).foregroundStyle(.secondary)
             }
+            if let rules = profile.ruleProfile {
+                Button("Rule profile… · \(rules.rules.count) phase rows") {
+                    openWindow(id: "rule-profile", value: rules)
+                }
+                .nestedAccessibilityIdentifier("rules")
+            } else {
+                Text(isScanning ? "Rule metrics appear after the scan when enabled in Search settings."
+                     : "Enable Profile individual rules in Search settings, then Rescan.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Text(metric.isResource
                  ? "Entire BuildHunter process, including UI and other scans. CPU 100% = one logical core. RAM is resident memory (RSS); sampled peaks can miss brief spikes. Averages and peaks use received samples across the scan."
                  : "Measured bytes are artifact sizes from metadata, not disk read speed. Chart shows recent samples; averages and peaks use received samples across the scan.")
@@ -326,5 +337,57 @@ struct ScanProfilePanel: View {
             let unit = formatter.string(fromByteCount: bytes)
             return (amount, unit + (metric == .bytes ? "/s" : ""))
         }
+    }
+}
+
+
+struct RuleProfileWindow: View {
+    let profile: ScanRuleProfile
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Rule profile").font(.title2)
+                Spacer()
+                Text(profile.statusTitle).foregroundStyle(.secondary)
+            }
+            Text("Catalog \(profile.catalogDigest) · \(profile.preliminaryCalls) preliminary / \(profile.resolvedCalls) resolved calls")
+                .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+            Table(profile.rules.sorted {
+                $0.totalNanoseconds == $1.totalNanoseconds ? $0.id < $1.id : $0.totalNanoseconds > $1.totalNanoseconds
+            }) {
+                TableColumn("Rule / target") { rule in
+                    VStack(alignment: .leading) {
+                        Text(rule.ruleID).lineLimit(1)
+                        Text(rule.targetID).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    .help("\(rule.packageID) / \(rule.targetID) / \(rule.ruleID) / \(rule.phase)")
+                }.width(min: 140, ideal: 190)
+                TableColumn("Phase") { rule in Text(rule.phase) }.width(85)
+                TableColumn("Checks / skips") { rule in
+                    Text("\(rule.evaluations) / \(rule.skippedByDispatch)").monospacedDigit()
+                }.width(min: 80, ideal: 100)
+                TableColumn("True / false / ?") { rule in
+                    Text("\(rule.matched) / \(rule.noMatch) / \(rule.unknown)").monospacedDigit()
+                }.width(min: 95, ideal: 120)
+                TableColumn("Total / mean / max") { rule in
+                    VStack(alignment: .leading) {
+                        Text("\(Double(rule.totalNanoseconds) / 1e6, format: .number.precision(.fractionLength(3))) ms")
+                        Text("\(rule.averageNanoseconds.map { String(format: "%.3f", $0 / 1e3) } ?? "—") / \(Double(rule.maxNanoseconds) / 1e3, format: .number.precision(.fractionLength(3))) µs")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }.monospacedDigit()
+                }.width(min: 120, ideal: 140)
+            }
+            .textSelection(.enabled)
+            Text("Instrumented wall time, excluding marker I/O. Preliminary unknowns include unread markers. JSON report export includes all rule metrics.")
+                .font(.caption).foregroundStyle(.secondary)
+            if profile.classificationErrors > 0 {
+                Text("\(profile.classificationErrors) classification errors; skips also include aborted evaluations.")
+                    .font(.caption).foregroundStyle(.orange)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 720, minHeight: 360)
+        .a11yRoot("buildhunter.rules")
     }
 }

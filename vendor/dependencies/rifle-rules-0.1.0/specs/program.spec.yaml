@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: rifle.program
   title: Validated pure Rifle program
-  version: 0.1.0-draft.1
+  version: 0.1.0-draft.2
   status: draft
 intent:
   summary: Validate a bounded declarative program and evaluate it over host-supplied typed facts with explicit unknown
@@ -27,7 +27,7 @@ interfaces:
   - id: rust_api
     kind: library
     summary: Plan::from_json validates bytes; facts exposes ordered descriptors; evaluate accepts positional FactValue
-      and returns owned Outcome or Error.
+      and returns owned Outcome or Error. evaluate_timed returns identical ordered outcomes with advisory per-rule Duration; rule_ids exposes stable identities.
   outbound: []
 constraints:
 - id: pure
@@ -49,6 +49,9 @@ constraints:
   level: MUST
   statement: Enforce the byte, defensive parser-depth, fact/rule/operand and expression limits in docs/contract.md.
     These do not establish a whole-process memory or latency budget.
+- id: timing
+  level: MUST
+  statement: Only explicit evaluate_timed reads a monotonic clock around each rule evaluation and owned outcome construction. Preserve ordinary outcomes, order, validation errors and immutable concurrent use. Exclude host I/O, input validation and catalog compilation; durations are advisory wall time including instrumentation/scheduling effects, not CPU attribution or a performance guarantee. No raw event history or mutable Plan state is retained.
 effects:
   sideEffects: []
 evidence:
@@ -61,6 +64,7 @@ evidence:
   - constraints.pure
   - constraints.three_valued
   - constraints.input_contract
+  - constraints.timing
 - id: validation_source
   kind: source
   path: src/validate.rs
@@ -80,6 +84,7 @@ evidence:
   - constraints.validation
   - constraints.three_valued
   - constraints.input_contract
+  - constraints.timing
   - constraints.limits
 - id: contract
   kind: documentation

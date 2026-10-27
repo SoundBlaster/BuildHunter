@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SoundBlaster/BuildHunter/blob/main/docs/contracts/rule-profile-v1.schema.json",
+  "title": "BuildHunter rule profile aggregate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "catalog_digest",
+    "excluded_target_ids",
+    "timing_scope",
+    "preliminary_calls",
+    "resolved_calls",
+    "classification_errors",
+    "rules"
+  ],
+  "properties": {
+    "format": {
+      "const": "buildhunter.rule-profile/1"
+    },
+    "catalog_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "excluded_target_ids": {
+      "type": "array",
+      "maxItems": 2048,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "timing_scope": {
+      "const": "rule_evaluation_and_outcome_wall_time"
+    },
+    "preliminary_calls": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "resolved_calls": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "classification_errors": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "package_id",
+          "target_id",
+          "rule_id",
+          "phase",
+          "evaluations",
+          "skipped_by_dispatch",
+          "true",
+          "false",
+          "unknown",
+          "total_ns",
+          "max_ns",
+          "average_ns"
+        ],
+        "properties": {
+          "package_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "target_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "rule_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "phase": {
+            "enum": [
+              "preliminary",
+              "resolved"
+            ]
+          },
+          "evaluations": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "skipped_by_dispatch": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "true": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "false": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "unknown": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "total_ns": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "max_ns": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "average_ns": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "scan_status": {
+      "enum": [
+        "completed",
+        "completed_with_changes",
+        "cancelled",
+        "incomplete",
+        "failed"
+      ]
+    }
+  }
+}

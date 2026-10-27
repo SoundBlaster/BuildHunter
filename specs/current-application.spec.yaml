@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.application
   title: Current client assembly
-  version: 0.1.0-draft.5
+  version: 0.1.0-draft.6
   status: draft
 intent:
   summary: Assemble CLI reports and independent macOS scan windows from scanner events with explicit user actions
@@ -58,7 +58,7 @@ constraints:
 - id: generation
   level: MUST
   statement: Replacing/rescanning/stopping invalidates prior events by generation; only current scanning generation
-    mutates rows. Terminal reduction preserves stopped/partial or incomplete semantics.
+    mutates rows. Terminal reduction preserves stopped/partial or incomplete semantics. Stop may later attach one owned catalog/rule-profile snapshot only to the same stopped report, matching its stopped generation, report ID and catalog/exclusions. This exception never admits ordinary artifact, size or warning events and cannot mutate a replacement/rescan report.
 - id: shared_report
   level: MUST
   statement: Diagram and warning windows resolve the same scan model via ScanWindowStore and never initiate another
@@ -66,7 +66,7 @@ constraints:
 - id: effects_scope
   level: MUST
   statement: Built-in scanning, Finder handoff and path copying do not mutate the scanned filesystem tree.
-    Settings write UserDefaults and copying changes the clipboard. User-requested report exports and CLI --profile
+    Rule profile windows hold finished value snapshots, never start scans and do not share mutable counters. Settings write UserDefaults and copying changes the clipboard. User-requested report exports and CLI --profile/--profile-rules
     write an explicitly selected output, which may be inside the scanned tree; explicit template Save/Save As/Export also writes a user-selected JSON file. These are exceptions to scan read-only behavior and do not authorize cleanup or executable plugins.
 - id: finder_handoff
   level: MUST
@@ -200,7 +200,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 0d095f326e3f1ae992d5088d7140fe61b7ada08e
+    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift

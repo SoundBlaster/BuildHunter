@@ -43,6 +43,9 @@ struct SearchSettingsWindow: View {
             }
 
             Section {
+                Toggle("Profile individual rules", isOn: $settings.ruleProfilingEnabled)
+                    .help("Adds per-rule counters and wall timings to the next scan. Instrumentation adds overhead.")
+                    .nestedAccessibilityIdentifier("ruleProfiling")
                 Picker("Show scan warnings in", selection: $warningsPresentation) {
                     ForEach(ScanWarningsPresentation.allCases) { Text($0.title).tag($0) }
                 }
@@ -50,7 +53,7 @@ struct SearchSettingsWindow: View {
             } header: {
                 Text("Experiments")
             } footer: {
-                Text("Applies to the warnings button in report windows.")
+                Text("Rule profiling applies to new scans and adds measurement overhead. Warning presentation applies to report windows.")
             }
         }
         .formStyle(.grouped)

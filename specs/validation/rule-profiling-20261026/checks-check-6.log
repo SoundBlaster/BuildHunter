@@ -1,0 +1,48 @@
+   Compiling hunter-fs-core v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core)
+   Compiling buildhunter-plugin-policy v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-policy)
+   Compiling hunter-fs v0.1.0 (https://github.com/SoundBlaster/Hunter.git?rev=286cebffdac7f1396a8d3dffed8a7d54b2ea34eb#286cebff)
+   Compiling build-hunter v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers)
+   Compiling buildhunter-plugin-scanner v0.1.0 (/Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/crates/buildhunter-plugin-scanner)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.43s
+     Running unittests src/lib.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/buildhunter_plugin_scanner-0ecf1ab73434478d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/scanning.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/scanning-5808a4957562d587)
+
+running 18 tests
+test parent_of_selected_root_is_unknown_and_not_read ... ok
+test file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names ... ok
+test arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata ... ok
+test git_is_a_host_prune_even_when_children_match_plugins ... ok
+test cancellation_from_discovery_keeps_partial_result_and_finishes_once ... ok
+test findings_share_owned_descriptors_after_the_input_catalog_is_dropped ... ok
+test file_replaced_by_link_after_listing_counts_neither_link_nor_target_bytes ... ok
+test report_pins_catalog_identity_and_unknown_exclusions ... ok
+test excluding_outer_target_preserves_distinct_enabled_inner_target ... ok
+test ambiguous_parent_emits_diagnostic_and_still_finds_child ... ok
+test nested_totals_are_counted_once_and_match_legacy_rust_sizing ... ok
+test excluded_parent_keeps_traversing_descendants ... ok
+test symlink_marker_is_false_and_linked_candidate_is_never_followed ... ok
+test unreadable_file_contents_do_not_prevent_metadata_sizing ... ok
+test replacing_selected_root_during_discovery_keeps_original_tree_and_bytes ... ok
+test replaced_intermediate_directory_cannot_redirect_later_measurement ... ok
+test scoped_diagnostic_count_and_weight_limits_stop_with_a_reserved_notice ... ok
+test diagnostic_only_scan_can_cancel_before_descendants_are_processed ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/unsupported.rs (/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/debug/deps/unsupported-9302e2c48645e277)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests buildhunter_plugin_scanner
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

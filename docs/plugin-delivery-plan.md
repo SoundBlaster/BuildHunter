@@ -253,3 +253,12 @@ resource budgets, descriptor traversal and client/catalog delivery remain separa
 текущего документа на новый файл. Исходный файл остаётся у пользователя.
 Swift SDK не является блокером этого первого релиза. Текущая спецификация и
 проверки — в user-templates.md и specs/validation/template-export-20261026.
+
+### Документация и профилирование правил — 2026-10-26
+
+Owner requirement: авторы бесплатных шаблонов и мы должны иметь документацию и
+метрики на каждое правило. Справочник синтаксиса/fixtures: template-language.md;
+опциональные counters, фазы, wall timings и JSON/UI: rule-profiling.md. Обычный
+скан не включает таймер на каждое правило. Метрики не являются атрибуцией CPU/RAM
+или shared marker I/O. Первый slice включает отдельное окно снимка метрик; IDE,
+percentiles, история сравнений и tracing отдельных выражений остаются отдельно.

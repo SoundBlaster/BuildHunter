@@ -1,0 +1,28 @@
+{
+  "override_build": {
+    "BuildHunter.app": {
+      "display": "Executable=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunter.app/Contents/MacOS/BuildHunter\nIdentifier=dev.buildhunter.app\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20400 size=18935 flags=0x0(none) hashes=581+7 location=embedded\nSignature size=4785\nAuthority=Apple Development: Egor Merkushev (R629M26C36)\nAuthority=Apple Worldwide Developer Relations Certification Authority\nAuthority=Apple Root CA\nSigned Time=Oct 26, 2026 at 10:36:33\u202fAM\nInfo.plist entries=21\nTeamIdentifier=P8T2366K8X\nSealed Resources version=2 rules=13 files=5\nTotal signatures=1\nChosen signature=1\ndesignated => identifier \"dev.buildhunter.app\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */\n",
+      "verify_exit": 0,
+      "verify": ""
+    },
+    "BuildHunterUITests-Runner.app": {
+      "display": "Executable=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/MacOS/BuildHunterUITests-Runner\nIdentifier=dev.buildhunter.uitests.xctrunner\nFormat=app bundle with Mach-O universal (arm64)\nCodeDirectory v=20400 size=485 flags=0x0(none) hashes=4+7 location=embedded\nSignature size=4785\nAuthority=Apple Development: Egor Merkushev (R629M26C36)\nAuthority=Apple Worldwide Developer Relations Certification Authority\nAuthority=Apple Root CA\nSigned Time=Oct 26, 2026 at 10:36:33\u202fAM\nInfo.plist entries=83\nTeamIdentifier=P8T2366K8X\nSealed Resources version=2 rules=13 files=1\nTotal signatures=1\nChosen signature=1\ndesignated => identifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */\n",
+      "verify_exit": 0,
+      "verify": ""
+    }
+  },
+  "configured_build": {
+    "BuildHunter.app": {
+      "display": "designated => identifier \"dev.buildhunter.app\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */\nExecutable=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunter.app/Contents/MacOS/BuildHunter\nIdentifier=dev.buildhunter.app\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20400 size=18935 flags=0x0(none) hashes=581+7 location=embedded\nHash type=sha256 size=32\nCandidateCDHash sha256=11e4ff5fd80241fda85e5b6fdbf2499121b6f00e\nCandidateCDHashFull sha256=11e4ff5fd80241fda85e5b6fdbf2499121b6f00eb888429dbed896a8cb123f67\nHash choices=sha256\nCMSDigest=11e4ff5fd80241fda85e5b6fdbf2499121b6f00eb888429dbed896a8cb123f67\nCMSDigestType=2\nCDHash=11e4ff5fd80241fda85e5b6fdbf2499121b6f00e\nSignature size=4785\nAuthority=Apple Development: Egor Merkushev (R629M26C36)\nAuthority=Apple Worldwide Developer Relations Certification Authority\nAuthority=Apple Root CA\nSigned Time=Oct 26, 2026 at 10:45:50\u202fAM\nInfo.plist entries=21\nTeamIdentifier=P8T2366K8X\nSealed Resources version=2 rules=13 files=5\nTotal signatures=1\nChosen signature=1\n",
+      "verify_exit": 0,
+      "verify": "",
+      "same_designated_requirement_as_override_build": true
+    },
+    "BuildHunterUITests-Runner.app": {
+      "display": "designated => identifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */\nExecutable=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/MacOS/BuildHunterUITests-Runner\nIdentifier=dev.buildhunter.uitests.xctrunner\nFormat=app bundle with Mach-O universal (arm64)\nCodeDirectory v=20400 size=485 flags=0x0(none) hashes=4+7 location=embedded\nHash type=sha256 size=32\nCandidateCDHash sha256=daf9132fd74d341c8d46bba4c79d8e581d3ba5f4\nCandidateCDHashFull sha256=daf9132fd74d341c8d46bba4c79d8e581d3ba5f433f15e03f9ed6825fc2e281b\nHash choices=sha256\nCMSDigest=daf9132fd74d341c8d46bba4c79d8e581d3ba5f433f15e03f9ed6825fc2e281b\nCMSDigestType=2\nCDHash=daf9132fd74d341c8d46bba4c79d8e581d3ba5f4\nSignature size=4785\nAuthority=Apple Development: Egor Merkushev (R629M26C36)\nAuthority=Apple Worldwide Developer Relations Certification Authority\nAuthority=Apple Root CA\nSigned Time=Oct 26, 2026 at 10:50:37\u202fAM\nInfo.plist entries=83\nTeamIdentifier=P8T2366K8X\nSealed Resources version=2 rules=13 files=1\nTotal signatures=1\nChosen signature=1\n",
+      "verify_exit": 0,
+      "verify": "",
+      "same_designated_requirement_as_override_build": true
+    }
+  }
+}

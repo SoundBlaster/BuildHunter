@@ -2,7 +2,8 @@
 
 Run: python -m pip install -r scripts/plugin-contract-requirements.txt
      python scripts/test_plugin_contract.py
-Semantic references, budgets, matching and JCS are pending runtime-pilot tests.
+Semantic references, matching, budgets and JCS have separate Rust runtime tests.
+This file also validates the bounded rule-profile wire shape.
 """
 import copy
 import json
@@ -132,6 +133,31 @@ class PluginWireShapeTests(unittest.TestCase):
             candidate[field] = value
             with self.subTest(field=field, value=value):
                 self.reject(candidate)
+
+
+class RuleProfileWireShapeTests(unittest.TestCase):
+    def test_explicit_null_units_identity_and_bounds(self):
+        schema = json.loads((ROOT / "docs/contracts/rule-profile-v1.schema.json").read_text())
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+        row = dict(package_id="local.demo", target_id="local.output", rule_id="output", phase="preliminary",
+                   evaluations=0, skipped_by_dispatch=1, total_ns=0, max_ns=0, average_ns=None, unknown=0)
+        row.update({"true": 0, "false": 0})
+        profile = dict(format="buildhunter.rule-profile/1", catalog_digest="0" * 64, excluded_target_ids=[],
+                       timing_scope="rule_evaluation_and_outcome_wall_time", preliminary_calls=1,
+                       resolved_calls=0, classification_errors=0, rules=[row])
+        validator.validate(profile)
+        for field, bad in [("phase", "future"), ("evaluations", -1), ("total_ns", 2**64),
+                           ("average_ns", -0.5), ("rule_id", "")]:
+            value = copy.deepcopy(profile)
+            value["rules"][0][field] = bad
+            self.assertTrue(list(validator.iter_errors(value)), field)
+        value = copy.deepcopy(profile)
+        del value["rules"][0]["average_ns"]
+        self.assertTrue(list(validator.iter_errors(value)))
+        value = copy.deepcopy(profile)
+        value["rules"] *= 8193
+        self.assertTrue(list(validator.iter_errors(value)))
 
 
 if __name__ == "__main__":

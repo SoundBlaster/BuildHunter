@@ -41,6 +41,7 @@ enum ScanEvent: Sendable {
     case discovered(generation: UInt64, artifact: ScanArtifact)
     case completed(generation: UInt64, artifactID: UUID, bytes: Int64, partial: Bool = false)
     case profile(generation: UInt64, sample: ScanProfileSnapshot)
+    case ruleProfile(generation: UInt64, profile: ScanRuleProfile)
     case warning(generation: UInt64, message: String)
     case finished(generation: UInt64, result: ScanTerminalResult)
 
@@ -48,7 +49,7 @@ enum ScanEvent: Sendable {
         switch self {
         case .catalog(let generation, _, _), .diagnostic(let generation, _),
              .discovered(let generation, _), .completed(let generation, _, _, _),
-             .warning(let generation, _), .profile(let generation, _), .finished(let generation, _): generation
+             .warning(let generation, _), .profile(let generation, _), .ruleProfile(let generation, _), .finished(let generation, _): generation
         }
     }
 }

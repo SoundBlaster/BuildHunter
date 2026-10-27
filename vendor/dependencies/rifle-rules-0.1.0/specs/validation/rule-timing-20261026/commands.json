@@ -1,0 +1,29 @@
+[
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/architecture.hc"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/architecture.hc",
+      "--hcs",
+      "specs/hypercode/architecture.hcs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0
+  }
+]

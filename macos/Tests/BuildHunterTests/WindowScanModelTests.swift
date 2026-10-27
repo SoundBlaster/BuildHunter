@@ -5,6 +5,89 @@ import Testing
 @Suite("Window scan lifecycle")
 @MainActor
 struct WindowScanModelTests {
+    @Test("Stop retains final rule metrics and export even before catalog delivery", arguments: [false, true])
+    func stopRetainsRuleProfile(catalogArrived: Bool) async throws {
+        let source = ControlledScanSource(captureStoppedProfiles: true)
+        let model = WindowScanModel(source: source)
+        model.accept(target: URL(filePath: "/tmp/Alpha", directoryHint: .isDirectory))
+        let generation = model.generation
+        let catalog = try #require(ScanCatalogMetadata.basic())
+        let artifact = makeArtifact()
+        if catalogArrived { model.apply(.catalog(generation: generation, metadata: catalog, rootPathIsExact: true)) }
+        model.apply(.discovered(generation: generation, artifact: artifact))
+        model.stop()
+        #expect(model.generation != generation && model.phase == .stopped)
+
+        model.apply(.completed(generation: generation, artifactID: artifact.id, bytes: 99))
+        model.apply(.warning(generation: generation, message: "late warning"))
+        model.apply(.discovered(generation: generation, artifact: ScanArtifact(
+            id: UUID(), relativePath: "late/target", language: "Rust", kind: .buildOutput)))
+        model.apply(.finished(generation: generation, result: .completed))
+        let expected = stoppedRuleProfile(catalog: catalog)
+        source.finishStoppedProfile(generation: generation, profile: expected, catalog: catalog,
+                                    rootPathIsExact: catalogArrived)
+        await model.waitForCurrentScan()
+
+        #expect(model.phase == .stopped && model.rows.count == 1 && model.rows[0].size == .partial(nil))
+        #expect(model.warnings.isEmpty && model.profile.ruleProfile == expected)
+        #expect(model.catalogMetadata == catalog)
+        #expect(model.unsafePathPrefixes.contains("") == !catalogArrived)
+        #expect((model.actionURL(for: ".") != nil) == catalogArrived)
+        let report = ScanReportExport(rootName: "Alpha", rootURL: nil, status: .stopped,
+            rows: model.rows, order: .table, tableOrder: [], warnings: model.warnings,
+            excludedFilterIDs: model.excludedFilterIDs, elapsedSeconds: nil, appVersion: "test",
+            catalogMetadata: model.catalogMetadata, ruleProfile: model.profile.ruleProfile)
+        let json = try #require(JSONSerialization.jsonObject(with: report.data(as: .json)) as? [String: Any])
+        let profile = try #require(json["rule_profile"] as? [String: Any])
+        #expect(profile["scan_status"] as? String == "cancelled")
+        #expect(profile["resolved_calls"] as? Int == 1)
+    }
+
+    @Test("A stopped scan's late rule metrics cannot attach to a rescan or replacement", arguments: [false, true])
+    func stoppedRuleProfileCannotCrossReports(replaceTarget: Bool) async throws {
+        let source = ControlledScanSource(captureStoppedProfiles: true)
+        let model = WindowScanModel(source: source)
+        let catalog = try #require(ScanCatalogMetadata.basic())
+        model.acceptDemoTarget(named: "Alpha")
+        let stoppedGeneration = model.generation
+        model.apply(.catalog(generation: stoppedGeneration, metadata: catalog, rootPathIsExact: true))
+        model.stop()
+        if replaceTarget { model.acceptDemoTarget(named: "Beta") } else { model.rescan() }
+        let activeGeneration = model.generation
+        // Deliberately reuse catalog identity: freshness must also bind to the report.
+        source.yield(.catalog(generation: activeGeneration, metadata: catalog, rootPathIsExact: true))
+        source.yield(.finished(generation: activeGeneration, result: .completed))
+        source.finish(generation: activeGeneration)
+        await model.waitForCurrentScan()
+        #expect(await source.nextStoppedProfileTermination() == stoppedGeneration)
+        source.finishStoppedProfile(generation: stoppedGeneration, profile: stoppedRuleProfile(catalog: catalog), catalog: catalog)
+        #expect(model.phase == .completed && model.profile.ruleProfile == nil)
+    }
+
+    @Test("Stopped rule metrics reject mismatched catalog or exclusions", arguments: [false, true])
+    func stoppedRuleProfileChecksIdentity(wrongExclusions: Bool) async throws {
+        let source = ControlledScanSource(captureStoppedProfiles: true)
+        let model = WindowScanModel(source: source)
+        model.acceptDemoTarget(named: "Alpha")
+        let generation = model.generation
+        let catalog = try #require(ScanCatalogMetadata.basic())
+        model.apply(.catalog(generation: generation, metadata: catalog, rootPathIsExact: true))
+        model.stop()
+        source.finishStoppedProfile(generation: generation, profile: stoppedRuleProfile(catalog: catalog,
+            digest: wrongExclusions ? catalog.digest : String(repeating: "0", count: 64),
+            exclusions: wrongExclusions ? ["swift.build"] : catalog.excludedTargetIDs), catalog: catalog)
+        await model.waitForCurrentScan()
+        #expect(model.phase == .stopped && model.profile.ruleProfile == nil)
+    }
+
+    private func stoppedRuleProfile(catalog: ScanCatalogMetadata, digest: String? = nil,
+                                    exclusions: [String]? = nil) -> ScanRuleProfile {
+        ScanRuleProfile(format: "buildhunter.rule-profile/1", catalogDigest: digest ?? catalog.digest,
+            excludedTargetIDs: exclusions ?? catalog.excludedTargetIDs,
+            timingScope: "rule_evaluation_and_outcome_wall_time", preliminaryCalls: 1, resolvedCalls: 1,
+            classificationErrors: 0, scanStatus: "cancelled", rules: [])
+    }
+
     @Test("Report freezes catalog identity, diagnostics and export fields, then resets them on rescan")
     func catalogReportLifecycle() async throws {
         let source = ControlledScanSource()
@@ -575,9 +658,15 @@ private final class ControlledScanSource: ScanEventSource {
     private var continuations: [UInt64: AsyncStream<ScanEvent>.Continuation] = [:]
     private let terminationEvents: AsyncStream<UInt64>
     private let terminationContinuation: AsyncStream<UInt64>.Continuation
+    private let captureStoppedProfiles: Bool
+    private var stoppedProfiles: [UInt64: AsyncStream<ScanRuleProfileSnapshot>.Continuation] = [:]
+    private let stoppedProfileTerminations: AsyncStream<UInt64>
+    private let stoppedProfileTerminationContinuation: AsyncStream<UInt64>.Continuation
 
-    init() {
+    init(captureStoppedProfiles: Bool = false) {
+        self.captureStoppedProfiles = captureStoppedProfiles
         (terminationEvents, terminationContinuation) = AsyncStream.makeStream(of: UInt64.self)
+        (stoppedProfileTerminations, stoppedProfileTerminationContinuation) = AsyncStream.makeStream(of: UInt64.self)
     }
 
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
@@ -592,6 +681,27 @@ private final class ControlledScanSource: ScanEventSource {
     }
 
     func cancel(generation: UInt64) {}
+
+    func stop(generation: UInt64) -> AsyncStream<ScanRuleProfileSnapshot> {
+        cancel(generation: generation)
+        guard captureStoppedProfiles else { return AsyncStream { $0.finish() } }
+        let (stream, continuation) = AsyncStream.makeStream(of: ScanRuleProfileSnapshot.self, bufferingPolicy: .bufferingNewest(1))
+        let termination = stoppedProfileTerminationContinuation
+        continuation.onTermination = { @Sendable _ in termination.yield(generation) }
+        stoppedProfiles[generation] = continuation
+        return stream
+    }
+
+    func nextStoppedProfileTermination() async -> UInt64? {
+        var iterator = stoppedProfileTerminations.makeAsyncIterator()
+        return await iterator.next()
+    }
+
+    func finishStoppedProfile(generation: UInt64, profile: ScanRuleProfile, catalog: ScanCatalogMetadata,
+                              rootPathIsExact: Bool = true) {
+        stoppedProfiles[generation]?.yield(ScanRuleProfileSnapshot(catalog: catalog, rootPathIsExact: rootPathIsExact, profile: profile))
+        stoppedProfiles.removeValue(forKey: generation)?.finish()
+    }
 
     func yield(_ event: ScanEvent) {
         continuations[event.generation]?.yield(event)

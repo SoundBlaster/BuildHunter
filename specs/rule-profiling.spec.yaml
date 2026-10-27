@@ -1,0 +1,138 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.rules.profile
+  title: Opt-in rule profiling and author documentation
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Let maintainers and free user-template authors identify costly rules and compare semantically equivalent scans using bounded counters and explicit timing scope.
+scope:
+  boundedContext: rule_observability
+  includes:
+  - Per-scan host aggregation, rule identity and phases, opt-in CLI/GUI settings, terminal transport, snapshot table and JSON export.
+  - Implemented template syntax, fixture guidance and reproducible profiling documentation.
+  excludes:
+  - Per-rule filesystem I/O, CPU/RAM attribution, percentiles, expression traces, historical comparison UI and calibrated latency guarantees.
+  - CLI template import, Swift SDK, Store delivery, subscriptions or paid authoring.
+provides:
+  capabilities:
+  - id: buildhunter.rules.profile
+    role: primary
+    summary: Report bounded per-rule evaluation counters and advisory instrumented wall time without changing decisions.
+requires:
+  capabilities:
+  - id: rifle.program.evaluate
+    optional: false
+    summary: Pinned Rifle evaluate_timed returns the same owned outcomes/errors/order with one duration per rule.
+  - id: buildhunter.catalog.scan
+    optional: false
+    summary: Client supplies preliminary and resolved marker phases, catalog identity and one final event before Finished.
+interfaces:
+  inbound:
+  - id: enable
+    kind: library
+    summary: ScanControl.set_rule_profiling/bh_scan_control_set_rule_profiling before scan; Settings Search toggle captured at scan creation; CLI --profile-rules FILE.
+  outbound:
+  - id: report
+    kind: library
+    summary: buildhunter.rule-profile/1 aggregate; catalog event 8; GUI JSON rule_profile and standalone CLI buildhunter.rule-profile-report/1.
+constraints:
+- id: opt_in
+  level: MUST
+  statement: Profiling is free, default off and independent of throughput/CPU/RAM sampling. Capture preference per scan. Ordinary rule evaluation reads no per-rule clocks. Preserve classification, artifact IDs/bytes/status, marker observations, cancellation and terminal ordering; never replay a rule only for timing.
+- id: identity_phases
+  level: MUST
+  statement: Key metrics by package, target, local rule ID and preliminary/resolved phase. Bind accumulators to catalog digest and exclusions. Count actual calls/evaluations/results, including intentional preliminary unknowns; do not present checks or true results as artifact counts. Disabled rules are absent, unexecuted enabled rules have zero counters. Errors are separate from false; aborted calls can contribute unevaluated skips.
+- id: timing_scope
+  level: MUST
+  statement: Sum and maximize Rifle monotonic wall duration for expression and owned outcome construction; derive mean or null for zero evaluations. Exclude parsing/compilation, type checks, bindings, dispatch, acquisition, sizing, aggregation and UI. Explain timer/scheduling overhead and repeated representative Release comparisons; no per-rule CPU/RAM or shared-marker I/O attribution.
+- id: bounded_collection
+  level: MUST
+  statement: Retain two fixed counter groups per enabled rule, at most 8192 serialized rows, with saturating UInt64 totals. No per-path events/history and no mutable state in the shared catalog. Serialize one aggregate before Finished, including partial completed work on cancellation/failure; normal scans emit no rule-profile event.
+- id: ownership
+  level: MUST
+  statement: Copy optional event-8 metadata within 16 MiB, validate shape/count/identities and retain only owned generation-tagged Swift data. Export the finished scan identity and all metrics in JSON. Rule windows hold scan-status-labelled value snapshots independent of later rescans; raw metric rows contain no candidate paths. CLI creates a previously absent selected output after traversal and refuses existing destinations.
+- id: stopped_delivery
+  level: MUST
+  statement: GUI Stop immediately freezes ordinary report events and cancels traversal, then asynchronously accepts at most one validated terminal rule-profile snapshot for that stopped report. Include its captured catalog when Stop discarded the queued catalog event. Check report identity, stopped generation, catalog digest and exclusions; rescan/replacement cancels the terminal consumer and rejects late snapshots. No synchronous worker wait is added to Stop. If catalog preparation failed before metrics existed, the terminal stream ends without a profile.
+- id: author_docs
+  level: MUST
+  statement: Document supported syntax/bindings/operators/unknowns, full importable example, admission diagnostics/limits, positive/negative fixtures and profiling commands/units/limitations. Keep implemented marker policy separate from proposed stricter descriptor policy. Agent-generated JSON must pass admission and semantic fixture scans.
+effects:
+  sideEffects:
+  - id: instrument
+    kind: state_mutation
+    summary: Read monotonic clock and update caller-owned counters only in explicit profiling mode.
+  - id: selected_export
+    kind: filesystem_write
+    summary: Write explicitly selected CLI/GUI JSON metrics output; scanning itself remains read-only.
+evidence:
+- id: policy
+  kind: source
+  path: crates/buildhunter-plugin-policy/src/profiling.rs
+  supports: [constraints.identity_phases, constraints.timing_scope, constraints.bounded_collection]
+- id: client
+  kind: source
+  path: src/client_scan.rs
+  supports: [constraints.opt_in, constraints.bounded_collection]
+- id: bridge
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+  supports: [constraints.ownership]
+- id: presentation
+  kind: source
+  path: macos/Sources/BuildHunter/UI/ScanProfilePanel.swift
+  supports: [constraints.ownership, constraints.timing_scope]
+- id: tests
+  kind: test
+  path: src/client_scan_tests.rs
+  supports: [constraints.opt_in, constraints.bounded_collection]
+- id: stopped_tests
+  kind: test
+  path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
+  supports: [constraints.stopped_delivery, constraints.ownership]
+- id: stopped_bridge_tests
+  kind: test
+  path: macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift
+  supports: [constraints.stopped_delivery, constraints.bounded_collection]
+- id: documentation
+  kind: documentation
+  path: docs/template-language.md
+  supports: [constraints.author_docs]
+- id: profile_docs
+  kind: documentation
+  path: docs/rule-profiling.md
+  supports: [constraints.author_docs, constraints.identity_phases, constraints.timing_scope]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Owner requested author documentation and per-rule metrics on 2026-10-26. Requirement direction is accepted; this recovered implementation contract remains draft.
+  - Current source/map identities and executed checks are in validation/rule-profiling-20261026. Structural validity, local native checks and CI are separate evidence.
+  - PR 121 follow-up restores terminal GUI Stop delivery. The desired partial-metrics requirement is unchanged; implementation and fresh validation are recorded in validation/stopped-rule-metrics-20261026. Earlier receipts retain their original source scope.
+implementationBindings:
+- id: profile_sources
+  scope: component
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
+  files:
+    owned:
+    - crates/buildhunter-plugin-policy/src/profiling.rs
+    - crates/buildhunter-plugin-policy/src/dispatch.rs
+    - macos/Sources/BuildHunter/Scanning/ScanProfile.swift
+    - macos/Sources/BuildHunter/UI/ScanProfilePanel.swift
+    border:
+    - src/client_scan.rs
+    - src/catalog_bridge.rs
+    - src/lib.rs
+    - src/main.rs
+    - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+    - macos/Sources/BuildHunter/Scanning/ScanReportExport.swift
+    - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift
+    - macos/Sources/BuildHunter/Domain/SearchFilters.swift
+    - macos/Sources/BuildHunter/UI/BuildHunterApp.swift
+    - macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift

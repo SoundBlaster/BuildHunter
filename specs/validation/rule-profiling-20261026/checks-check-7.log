@@ -1,0 +1,39 @@
+{
+  "target": "aarch64-apple-darwin",
+  "graphs": {
+    "default": {
+      "hunter-fs": {
+        "id": "git+https://github.com/SoundBlaster/Hunter.git?rev=286cebffdac7f1396a8d3dffed8a7d54b2ea34eb#hunter-fs@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Hunter.git?rev=286cebffdac7f1396a8d3dffed8a7d54b2ea34eb#286cebffdac7f1396a8d3dffed8a7d54b2ea34eb"
+      },
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#af35dedf46d8c9978af1e30985f9c157a3f266c2"
+      },
+      "hunter-fs-core": {
+        "id": "path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0",
+        "source": null
+      }
+    },
+    "policy": {
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#af35dedf46d8c9978af1e30985f9c157a3f266c2"
+      }
+    },
+    "scanner": {
+      "hunter-fs": {
+        "id": "git+https://github.com/SoundBlaster/Hunter.git?rev=286cebffdac7f1396a8d3dffed8a7d54b2ea34eb#hunter-fs@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Hunter.git?rev=286cebffdac7f1396a8d3dffed8a7d54b2ea34eb#286cebffdac7f1396a8d3dffed8a7d54b2ea34eb"
+      },
+      "rifle-rules": {
+        "id": "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#rifle-rules@0.1.0",
+        "source": "git+https://github.com/SoundBlaster/Rifle.git?rev=af35dedf46d8c9978af1e30985f9c157a3f266c2#af35dedf46d8c9978af1e30985f9c157a3f266c2"
+      },
+      "hunter-fs-core": {
+        "id": "path+file:///Users/egor/Development/GitHub/.worktrees/BuildHunter-hunter-workers/vendor/hunter-fs-core#0.1.0",
+        "source": null
+      }
+    }
+  }
+}

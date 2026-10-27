@@ -1195,3 +1195,68 @@ no new significant boundary or target module is introduced. Affected contracts:
 Fresh source/map identities and checks: `validation/template-export-20261026`.
 Previous PR #120 checks passed for 89065ce; that CI result is historical for this
 follow-up. Swift SDK remains separate and does not gate the first editor release.
+
+## Rule documentation and profiling — 2026-10-26
+
+Owner asked for author documentation and per-rule metrics. New draft boundary
+`buildhunter.rules.profile` covers PluginPolicy.RuleProfiling, client
+RuleProfileCollection and RuleProfilePresentation. It composes pinned Rifle
+`af35dedf46d8c9978af1e30985f9c157a3f266c2` timed outcomes with host phases/identity,
+bounded counters, optional event 8 and JSON export. Ordinary classification and
+filesystem/marker policy requirements are unchanged; equivalence tests exercise
+outcomes/bytes/status/probes. Hunter and target topology have no change.
+Current source/map identities and actual checks: validation/rule-profiling-20261026.
+Prior receipts remain historical. New recovered specs stay draft; source, native
+UI, local test-host limitations and GitHub CI are reported separately. Timing
+scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.
+
+## Local XCTest identity and smoke verification — 2026-10-26
+
+The local retry exposed a test-input error: Select All followed by typing into
+the text-view element had inserted `{` into valid JSON rather than replacing it.
+The test now invokes native Select All, types into the current responder and
+asserts the replacement before checking validation. A separate real-folder test
+scopes its Open Folder query to one empty window to avoid ambiguous multiwindow
+matches. No application validation, window lifecycle or scan policy is changed.
+
+macOS TCC logs identify repeated removable-volume prompts for the generated
+ad hoc UI runner after a code-hash requirement mismatch. The UI test target now
+uses the app's existing development team/signing style; CI's explicit unsigned
+override remains supported. Local test execution uses the normal runtime TMPDIR,
+while build outputs, caches and result bundles remain on verified TB5. Permission
+approvals, TCC resets and Full Disk Access are not automated.
+
+Affected roles/claims: MacApplication presentation, TemplateManagement and
+`buildhunter.current.templates/draft_validation`; test-host setup is folded into
+application assembly, not a new runtime component or capability. Current/target
+HC topology, template contracts and runtime bindings remain unchanged. Fresh
+source/map identities, signatures and actual checks are recorded in
+[test-approval-20261026](validation/test-approval-20261026/README.md). Historical
+timeouts retain their original status; these results do not prove all UI flows
+or permission persistence for every future signing identity/macOS version.
+
+## PR #121 — stopped rule metrics, 2026-10-26
+
+Review found an implementation conflict with the existing partial-metrics
+requirement: GUI Stop discarded event 8 with the ordinary event queue. Stop now
+returns one owned catalog/profile snapshot through a separate bounded stream
+after Rust returns. Rows/warnings remain frozen immediately. The stopped
+consumer checks generation, report ID, catalog and exclusions; replacement or
+Rescan cancels it. Early Stop can restore only captured catalog metadata needed
+by the snapshot, preserving the root-path safety flag. Source registrations last
+through event-stream ownership so a completed worker/buffered-event race retains
+the final snapshot; native control and target-scope lifetimes remain tied to Rust
+return. The engine's terminal status is preserved, including a completion race.
+
+Affected roles: RustSwiftBridge event ownership/cancellation, MacApplication
+generation reduction and RuleProfileCollection/Presentation. The handoff is folded
+into these existing roles; no new module or independent capability is introduced.
+Current HCS and current.bridge/cancellation, current.application/generation and
+rules.profile/stopped_delivery describe that assembly. The owner-requested
+partial-metrics behavior is unchanged; recovered specs remain draft. Target
+topology, Rust/Rifle APIs, ordinary queue bounds and classification are unchanged.
+
+Fresh source/map identities and actual checks:
+[stopped-rule-metrics-20261026](validation/stopped-rule-metrics-20261026/README.md).
+Earlier profiling/test-host receipts remain historical; build, native test and
+GitHub CI results are separate evidence.

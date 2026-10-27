@@ -478,6 +478,8 @@
 						ProvisioningStyle = Automatic;
 					};
 					97498C516133ADCE5F6328DA = {
+						DevelopmentTeam = P8T2366K8X;
+						ProvisioningStyle = Automatic;
 						TestTargetID = 10FAEFF9C9AA195A9F0B6C04;
 					};
 				};
@@ -754,7 +756,10 @@
 			buildSettings = {
 				ARCHS = arm64;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = P8T2366K8X;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -775,7 +780,10 @@
 			buildSettings = {
 				ARCHS = arm64;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = P8T2366K8X;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

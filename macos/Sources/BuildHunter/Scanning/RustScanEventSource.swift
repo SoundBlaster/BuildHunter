@@ -5,10 +5,13 @@ final class RustScanEventSource: ScanEventSource {
     private var jobs: [UInt64: RustScanJob] = [:]
     private let settings: SearchFilterSettings
     private let templates: TemplateLibrary
+    private let capacity: Int
 
-    init(settings: SearchFilterSettings = .shared, templates: TemplateLibrary = .shared) {
+    init(settings: SearchFilterSettings = .shared, templates: TemplateLibrary = .shared,
+         eventCapacity: Int = RustScanEventSource.eventCapacity) {
         self.settings = settings
         self.templates = templates
+        self.capacity = eventCapacity
     }
 
     /// Undelivered events held for the model. When it is full the scan thread waits instead
@@ -16,7 +19,7 @@ final class RustScanEventSource: ScanEventSource {
     nonisolated static let eventCapacity = 4_096
 
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent> {
-        let channel = ScanEventChannel(capacity: Self.eventCapacity)
+        let channel = ScanEventChannel(capacity: capacity)
         guard let target else {
             channel.send(.finished(generation: generation, result: .failed("No folder is selected.")))
             channel.finish()
@@ -29,6 +32,7 @@ final class RustScanEventSource: ScanEventSource {
         }
 
         bh_scan_control_set_profiling(control, 1)
+        bh_scan_control_set_rule_profiling(control, settings.ruleProfilingEnabled ? 1 : 0)
         let job = RustScanJob(control: control, channel: channel)
         jobs[generation] = job
         // Settings changes affect the next scan, never a running report.
@@ -45,7 +49,14 @@ final class RustScanEventSource: ScanEventSource {
             rootPathIsExact: String(data: rootBytes, encoding: .utf8) != nil)
         let retainedContext = Unmanaged.passRetained(context).toOpaque()
         let startedSecurityScope = target.startAccessingSecurityScopedResource()
-        let stream = channel.makeStream(onClose: { job.cancel() })
+        let stream = channel.makeStream(onClose: { [weak self] in
+            job.cancel()
+            Task { @MainActor in
+                // Keep a completed job available until its buffered events are consumed
+                // or discarded: Stop can race with delivery of the final aggregate.
+                if self?.jobs[generation] === job { self?.jobs.removeValue(forKey: generation) }
+            }
+        })
 
         Task.detached(priority: .userInitiated) {
             let result: Int32 = {
@@ -66,15 +77,12 @@ final class RustScanEventSource: ScanEventSource {
                         0, 0, buildHunterCatalogEventCallback, retainedContext)
                 }
             }()
-            job.finish()
+            job.finish(ruleProfile: context.terminalRuleProfile)
             if startedSecurityScope {
                 target.stopAccessingSecurityScopedResource()
             }
             let bridgeContext = Unmanaged<RustScanBridgeContext>.fromOpaque(retainedContext).takeRetainedValue()
             bridgeContext.finishIfRustReturnedUnexpectedly(status: result)
-            _ = await MainActor.run {
-                self.jobs.removeValue(forKey: generation)
-            }
         }
         return stream
     }
@@ -82,16 +90,25 @@ final class RustScanEventSource: ScanEventSource {
     func cancel(generation: UInt64) {
         jobs[generation]?.cancel()
     }
+
+    func stop(generation: UInt64) -> AsyncStream<ScanRuleProfileSnapshot> {
+        guard let job = jobs[generation] else { return AsyncStream { $0.finish() } }
+        job.cancel()
+        return job.terminalRuleProfile
+    }
 }
 
 private final class RustScanJob: @unchecked Sendable {
     private let lock = NSLock()
     private var control: UnsafeMutableRawPointer?
     private let channel: ScanEventChannel
+    let terminalRuleProfile: AsyncStream<ScanRuleProfileSnapshot>
+    private let terminalContinuation: AsyncStream<ScanRuleProfileSnapshot>.Continuation
 
     init(control: UnsafeMutableRawPointer, channel: ScanEventChannel) {
         self.control = control
         self.channel = channel
+        (terminalRuleProfile, terminalContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
     }
 
     /// Stops the scan and wakes its thread if it is waiting for buffer space.
@@ -104,13 +121,17 @@ private final class RustScanJob: @unchecked Sendable {
         channel.close()
     }
 
-    func finish() {
+    func finish(ruleProfile: ScanRuleProfileSnapshot?) {
         lock.lock()
-        defer { lock.unlock() }
         if let control {
             self.control = nil
             bh_scan_control_destroy(control)
         }
+        lock.unlock()
+        // Independent of the closed event queue; callbacks have returned and the
+        // profile has already been copied/validated on this worker thread.
+        if let ruleProfile { terminalContinuation.yield(ruleProfile) }
+        terminalContinuation.finish()
     }
 }
 
@@ -245,6 +266,12 @@ final class RustScanBridgeContext: @unchecked Sendable {
     let channel: ScanEventChannel
     let policy: BuildHunterScanPolicy?
     private let rootPathIsExact: Bool
+    private var receivedRuleProfile = false
+    private var ruleProfile: ScanRuleProfile?
+    var terminalRuleProfile: ScanRuleProfileSnapshot? {
+        guard let catalogMetadata, let ruleProfile else { return nil }
+        return ScanRuleProfileSnapshot(catalog: catalogMetadata, rootPathIsExact: rootPathIsExact, profile: ruleProfile)
+    }
     private var catalogMetadata: ScanCatalogMetadata?
     private var catalogTargets: [String: ScanCatalogMetadata.Target] = [:]
     private let lock = NSLock()
@@ -371,6 +398,19 @@ final class RustScanBridgeContext: @unchecked Sendable {
                 if usage == nil { warnAboutBridge("Invalid scan resource metadata.") }
             }
             withUnsafePointer(to: value.base) { handle($0, resourceUsage: usage) }
+        case 8:
+            guard !receivedRuleProfile, let catalogMetadata,
+                  let bytes = value.metadata, (1...16_777_216).contains(value.metadata_len),
+                  let profile = try? JSONDecoder().decode(ScanRuleProfile.self,
+                    from: Data(bytes: bytes, count: value.metadata_len)), profile.isSupported,
+                  profile.catalogDigest == catalogMetadata.digest,
+                  profile.excludedTargetIDs.sorted() == catalogMetadata.excludedTargetIDs.sorted(),
+                  profile.rules.allSatisfy({ catalogTargets[$0.targetID] != nil }) else {
+                warnAboutBridge("Invalid or repeated rule profile."); return
+            }
+            receivedRuleProfile = true
+            ruleProfile = profile
+            yield(.ruleProfile(generation: generation, profile: profile))
         case 7:
             guard let bytes = value.metadata, (1...4_194_304).contains(value.metadata_len),
                   let classification = try? JSONDecoder().decode(ScanDiagnostic.Classification.self,

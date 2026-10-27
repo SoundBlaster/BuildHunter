@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.catalog.snapshot
   title: Versioned client catalog snapshot
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Give CLI and the application one immutable catalog identity, target metadata and exclusion snapshot.
@@ -11,7 +11,7 @@ scope:
   boundedContext: client_catalog
   includes:
   - Versioned CLI/GUI basic plugin documents, stable target descriptors, catalog metadata and owned C handles.
-  - Bounded externally originated user JSON documents and package version metadata in the GUI catalog.
+  - Bounded externally originated user JSON documents and package version metadata in CLI and GUI catalogs.
   excludes:
   - User-file persistence/editor UX, filesystem acquisition, Store composition and performance acceptance.
 provides:
@@ -48,7 +48,7 @@ constraints:
   statement: Resolve the exact Hunter/Rifle revisions with one verified core; preserve fresh-cache locked offline CLI build/install through Cargo source replacement and unmodified vendored dependency sources.
 - id: external_admission
   level: MUST
-  statement: Preserve trusted built-in origin and admit user documents only as External. Reject malformed, incompatible, oversized, reserved-namespace or conflicting packages without returning a partial handle. Limit to 61 user documents at 1 MiB each and the effective catalog's 16 MiB byte budget. The synchronous optional error callback borrows UTF-8 JSON for the call only; catch Rust preparation unwinding and return null on failure. Successful metadata retains package IDs/versions and the validated full-catalog digest. Source buffers may be released after construction.
+  statement: Preserve trusted built-in origin and admit user documents only as External. Reject malformed, incompatible, oversized, reserved-namespace or conflicting packages without returning a partial handle. Limit to 61 user documents at 1 MiB each and the effective catalog's 16 MiB byte budget. The synchronous optional error callback borrows UTF-8 JSON for the call only; catch Rust preparation unwinding and return null on failure. Every composed snapshot, including basic CLI profiles, retains actual catalog package IDs/versions and the validated full-catalog digest. Source buffers may be released after construction.
 effects:
   sideEffects: []
 evidence:

@@ -27,12 +27,43 @@ launched from Finder, which does not inherit your shell's Cargo path.
 cd macos
 xcodegen generate
 xcodebuild -resolvePackageDependencies -project BuildHunter.xcodeproj -scheme BuildHunter
-xcodebuild test -project BuildHunter.xcodeproj -scheme BuildHunter -destination 'platform=macOS,arch=arm64' -skipMacroValidation CODE_SIGNING_ALLOWED=NO
+xcodebuild test -project BuildHunter.xcodeproj -scheme BuildHunter -destination 'platform=macOS,arch=arm64' -skipMacroValidation CODE_SIGNING_ALLOWED=YES
 ```
 
 `-skipMacroValidation` is the user-authorized invocation-scoped bypass for the pinned macro dependency. It skips every macro's validation in that invocation and does not change global trust settings. [Verification instructions](../docs/verification.md) describe the Rust, CLI, Swift unit, UI, and Release checks.
 
 Unsigned build/unit-test evidence does not establish signed sandbox behavior. Open/drop grants, window replacement/close, Finder integration, clipboard actions, and App Store readiness remain separate runtime/delivery gates. Finder and Copy Path actions have not been implemented yet.
+
+### Local UI automation and removable volumes
+
+For local UI tests, keep code signing enabled. Both the app and the generated
+`BuildHunterUITests-Runner` use Apple Development signing; select your development
+team when building a fork. CI can continue to override `CODE_SIGNING_ALLOWED=NO`.
+An ad hoc runner's designated requirement uses its code hash. A rebuild can
+invalidate the saved macOS removable-volume permission even with the same bundle
+ID, causing another TB5/external-disk prompt.
+
+Keep Derived Data, package caches and result bundles in their configured build
+locations. For `test-without-building`, use the normal runtime `TMPDIR` rather
+than inheriting a compiler temporary directory on an external disk. Test fixtures
+then use the runner's temporary directory; this does not relocate build outputs.
+For example, after a signed `build-for-testing` using the same paths:
+
+```sh
+env -u TMPDIR xcodebuild test-without-building \
+  -project BuildHunter.xcodeproj -scheme BuildHunter \
+  -destination 'platform=macOS,arch=arm64' \
+  -derivedDataPath "$BUILDHUNTER_DERIVED_DATA" \
+  -resultBundlePath "$BUILDHUNTER_TEST_RESULTS" \
+  CODE_SIGNING_ALLOWED=YES
+```
+
+Set the two paths to the existing build location and a new result-bundle path.
+The initial UI Automation/removable-volume approval still belongs to the user;
+stable signing preserves identity across rebuilds rather than granting access.
+Do not reset TCC or grant Full Disk Access to make a test pass. See Apple's
+[removable-volume permission contract](https://developer.apple.com/documentation/bundleresources/information-property-list/nsremovablevolumesusagedescription)
+and [code requirements](https://developer.apple.com/library/archive/technotes/tn2206/).
 
 ### Scan profile
 

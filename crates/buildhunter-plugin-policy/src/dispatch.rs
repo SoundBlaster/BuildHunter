@@ -2,7 +2,7 @@
 //! negation/unknown projections retain a fallback. Rifle remains the decision engine.
 use crate::{
     ActivePlugin, Binding, CandidateFacts, Classification, Decision, FactNotice, MarkerFact,
-    MarkerProbe, NodeKind, Scope, error,
+    MarkerProbe, NodeKind, RulePhase, RuleProfile, Scope, error,
 };
 use rifle_rules::{Error, FactValue, Plan, Truth};
 use serde_json::Value;
@@ -19,6 +19,7 @@ struct CompiledTarget {
     package: String,
     id: String,
     plan: Plan,
+    profile_offset: usize,
     bindings: Vec<Binding>,
 }
 
@@ -28,6 +29,7 @@ pub(super) struct Dispatch {
     exact: BTreeMap<String, Vec<usize>>,
     suffix: BTreeMap<String, Vec<usize>>,
     fallback: Vec<usize>,
+    profile_rules: usize,
 }
 
 impl Dispatch {
@@ -91,9 +93,12 @@ impl Dispatch {
                     }
                 }
             }
+            let profile_offset = self.profile_rules;
+            self.profile_rules += plan.rule_count();
             self.targets.push(CompiledTarget {
                 package: plugin.id.clone(),
                 id: target.descriptor.id.clone(),
+                profile_offset,
                 plan,
                 bindings,
             });
@@ -136,10 +141,32 @@ impl Dispatch {
         markers.into_iter().collect()
     }
 
-    pub(super) fn classify(&self, facts: CandidateFacts<'_>) -> Result<Classification, Error> {
+    pub(super) fn rule_profile(
+        &self,
+        digest: rifle_rules::Sha256Digest,
+        exclusions: BTreeSet<String>,
+    ) -> RuleProfile {
+        let mut profile = RuleProfile::new(digest, exclusions);
+        for target in &self.targets {
+            for rule in target.plan.rule_ids() {
+                profile.register(&target.package, &target.id, rule);
+            }
+        }
+        profile
+    }
+
+    pub(super) fn classify(
+        &self,
+        facts: CandidateFacts<'_>,
+        mut profile: Option<&mut RuleProfile>,
+        phase: RulePhase,
+    ) -> Result<Classification, Error> {
         let mut result = Classification::empty();
         if facts.kind == NodeKind::Symlink {
             return Ok(result);
+        }
+        if let Some(profile) = profile.as_deref_mut() {
+            profile.record_call(phase);
         }
         let mut notices = BTreeSet::new();
         for index in self.candidates(facts.name) {
@@ -175,7 +202,25 @@ impl Dispatch {
                 };
                 values.push(value);
             }
-            let outcomes = target.plan.evaluate(&values)?;
+            let outcomes = if let Some(profile) = profile.as_deref_mut() {
+                target
+                    .plan
+                    .evaluate_timed(&values)?
+                    .into_iter()
+                    .enumerate()
+                    .map(|(rule_index, timed)| {
+                        profile.record(
+                            target.profile_offset + rule_index,
+                            phase,
+                            timed.outcome.truth,
+                            timed.elapsed,
+                        );
+                        timed.outcome
+                    })
+                    .collect()
+            } else {
+                target.plan.evaluate(&values)?
+            };
             if outcomes.iter().any(|outcome| outcome.truth == Truth::True) {
                 result.matched.push(target.id.clone());
             } else if outcomes
