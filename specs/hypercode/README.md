@@ -254,3 +254,7 @@ fresh identities and checks are in `validation/stopped-rule-metrics-20261026`.
 Prior receipts remain historical. New recovered specs stay draft; source, native
 UI, local test-host limitations and GitHub CI are reported separately. Timing
 scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.
+
+Warning actions and stopped profiling are composed after their integration; current
+topology is unchanged. Updated source/map identities and validation scope are in
+`../validation/warning-rule-profile-merge-20261028`; prior evidence remains historical.

@@ -227,7 +227,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
+    revision: 7ccc42d9b75b7ce686cddc9045a5eddb4b1e9019
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift

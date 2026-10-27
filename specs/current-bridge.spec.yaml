@@ -41,11 +41,11 @@ interfaces:
   inbound:
   - id: consumer_interface
     kind: library
-    summary: Existing events(for:target:) returns ScanEventStream of owned ScanEvents; C payloads are borrowed only during
+    summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only during
       callbacks.
     operations:
     - name: events
-      summary: Existing events(for:target:) returns ScanEventStream of owned ScanEvents; C payloads are borrowed only
+      summary: Existing events(for:target:) returns AsyncStream of owned ScanEvents; C payloads are borrowed only
         during callbacks.
     - name: stop
       summary: stop(generation:) cancels ordinary events and returns an independent at-most-one terminal catalog/rule-profile snapshot stream. Completion is asynchronous and does not wait on MainActor.
@@ -145,7 +145,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
+    revision: 7ccc42d9b75b7ce686cddc9045a5eddb4b1e9019
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift

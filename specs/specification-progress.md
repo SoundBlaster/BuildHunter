@@ -1277,3 +1277,19 @@ Fresh source/map identities and actual checks:
 [stopped-rule-metrics-20261026](validation/stopped-rule-metrics-20261026/README.md).
 Earlier profiling/test-host receipts remain historical; build, native test and
 GitHub CI results are separate evidence.
+
+## Warning actions and rule-profile merge — 2026-10-28
+
+Reconciled PR #119 with merged templates and rule profiling. Warning events retain
+their separately copied exact path while rule-profile events and the stopped-scan
+terminal handoff remain present. A combined regression checks that a retained
+warning's Finder location survives the stopped profile and late warnings are
+ignored. Existing UI, scanner and cancellation requirements are unchanged.
+
+Affected draft claims: current.application warning_actions/generation,
+current.bridge warning_locations/payload_ownership/cancellation and
+rules.profile stopped_delivery. Current HCS composition remains unchanged; the
+bridge interface names the actual AsyncStream return type. Bindings pin the merge
+implementation and source/map identities are recorded separately in
+[warning-rule-profile-merge-20261028](validation/warning-rule-profile-merge-20261028/README.md).
+Prior receipts describe their original revisions; no owner acceptance is implied.
