@@ -374,6 +374,7 @@ pub struct ScanControl {
     limits: ScanLimits,
     usage: scan_budget::Usage,
     profiling: AtomicBool,
+    rule_profiling: AtomicBool,
     cancelled: AtomicBool,
     failed: AtomicBool,
     listing_ns: std::sync::atomic::AtomicU64,
@@ -404,6 +405,7 @@ impl ScanControl {
             limits,
             usage: scan_budget::Usage::default(),
             profiling: AtomicBool::new(false),
+            rule_profiling: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
             failed: AtomicBool::new(false),
             listing_ns: std::sync::atomic::AtomicU64::new(0),
@@ -432,6 +434,11 @@ impl ScanControl {
     /// Enable before starting a scan. Disabled scans emit no profile events.
     pub fn set_profiling(&self, enabled: bool) {
         self.profiling.store(enabled, Ordering::Release);
+    }
+
+    /// Select before starting the scan. Independent of throughput/CPU/RAM sampling.
+    pub fn set_rule_profiling(&self, enabled: bool) {
+        self.rule_profiling.store(enabled, Ordering::Release);
     }
 
     pub fn cancel(&self) {
@@ -1877,6 +1884,19 @@ pub extern "C" fn bh_scan_control_create() -> *mut ScanControl {
 pub unsafe extern "C" fn bh_scan_control_set_profiling(control: *mut ScanControl, enabled: u8) {
     if let Some(control) = unsafe { control.as_ref() } {
         control.set_profiling(enabled != 0);
+    }
+}
+
+/// Select per-rule instrumentation before invoking a catalog scan.
+/// # Safety
+/// `control` is null or a live, exclusively configured scan control.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn bh_scan_control_set_rule_profiling(
+    control: *mut ScanControl,
+    enabled: u8,
+) {
+    if let Some(control) = unsafe { control.as_ref() } {
+        control.set_rule_profiling(enabled != 0);
     }
 }
 

@@ -1,0 +1,13 @@
+{
+  "result": "Passed",
+  "totalTestCount": 3,
+  "passedTests": 3,
+  "failedTests": 0,
+  "skippedTests": 0,
+  "expectedFailures": 0,
+  "finishTime": 1793039212.273,
+  "startTime": 1793039101.335,
+  "testFailures": [],
+  "raw_summary": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/stopped-rule-metrics-20261026T1807/ui-unlocked-summary.json",
+  "raw_sha256": "14ff95a1bfa9f0dc48c1ce74182efd6c5ff28cba6923b7a41ed008faa409162c"
+}

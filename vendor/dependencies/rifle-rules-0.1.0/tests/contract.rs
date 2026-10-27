@@ -38,6 +38,42 @@ fn known_and_unknown_are_distinct() {
 }
 
 #[test]
+fn timed_evaluation_preserves_results_errors_order_and_concurrency() {
+    let mut source = program(leaf());
+    source["rules"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"id":"inverse","when":{"not":leaf()}}));
+    let plan = compile(&source).unwrap();
+    assert_eq!(plan.rule_ids().collect::<Vec<_>>(), ["result", "inverse"]);
+    for values in [
+        vec![FactValue::Boolean(true)],
+        vec![FactValue::Boolean(false)],
+        vec![FactValue::Unavailable("denied")],
+        vec![],
+        vec![FactValue::String("wrong")],
+        vec![FactValue::Boolean(true); 2],
+    ] {
+        assert_eq!(
+            plan.evaluate_timed(&values)
+                .map(|results| results.into_iter().map(|r| r.outcome).collect::<Vec<_>>()),
+            plan.evaluate(&values),
+        );
+    }
+    std::thread::scope(|scope| {
+        for _ in 0..8 {
+            scope.spawn(|| {
+                let results = plan
+                    .evaluate_timed(&[FactValue::Unavailable("denied")])
+                    .unwrap();
+                assert_eq!(results.len(), 2);
+                assert!(results.iter().all(|r| r.outcome.truth == Truth::Unknown));
+            });
+        }
+    });
+}
+
+#[test]
 fn complete_three_valued_truth_tables_and_permutations() {
     for operator in ["all", "any"] {
         for a in [Truth::True, Truth::False, Truth::Unknown] {

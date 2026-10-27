@@ -1,0 +1,493 @@
+{
+  "catalog": {
+    "digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc",
+    "excludedTargetIDs": [],
+    "format": "buildhunter.catalog/1",
+    "markerPolicy": "legacy-file-markers/1",
+    "packages": [
+      {
+        "id": "org.buildhunter.python",
+        "version": "1.0.0"
+      },
+      {
+        "id": "org.buildhunter.rust",
+        "version": "1.0.0"
+      },
+      {
+        "id": "org.buildhunter.swift",
+        "version": "1.0.0"
+      }
+    ],
+    "profile": "buildhunter.cli/1",
+    "targets": [
+      {
+        "ecosystem": "python",
+        "id": "python.build",
+        "kind": "build_output",
+        "presentationKind": "build",
+        "title": "Python build directory"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.bytecode",
+        "kind": "bytecode",
+        "presentationKind": "bytecode",
+        "title": "Python bytecode"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.dist",
+        "kind": "build_output",
+        "presentationKind": "build",
+        "title": "Python distribution directory"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.egg-info",
+        "kind": "metadata",
+        "presentationKind": "metadata",
+        "title": "Python package metadata"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.environment",
+        "kind": "environment",
+        "presentationKind": "environment",
+        "title": "Python virtual environment"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.mypy-cache",
+        "kind": "cache",
+        "presentationKind": "cache",
+        "title": "mypy cache"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.nox",
+        "kind": "cache",
+        "presentationKind": "cache",
+        "title": "nox environment"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.pytest-cache",
+        "kind": "cache",
+        "presentationKind": "cache",
+        "title": "pytest cache"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.pytype-cache",
+        "kind": "cache",
+        "presentationKind": "cache",
+        "title": "pytype cache"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.ruff-cache",
+        "kind": "cache",
+        "presentationKind": "cache",
+        "title": "Ruff cache"
+      },
+      {
+        "ecosystem": "python",
+        "id": "python.tox",
+        "kind": "cache",
+        "presentationKind": "cache",
+        "title": "tox environment"
+      },
+      {
+        "ecosystem": "rust",
+        "id": "rust.target",
+        "kind": "build_output",
+        "presentationKind": "build",
+        "title": "Rust target directory"
+      },
+      {
+        "ecosystem": "swift",
+        "id": "swift.build",
+        "kind": "build_output",
+        "presentationKind": "build",
+        "title": "Swift build output"
+      }
+    ]
+  },
+  "rule_profile": {
+    "catalog_digest": "4690e3869238fdd5283c7a4cdced8db79b088ac5f90671b00516e639f5062fbc",
+    "classification_errors": 0,
+    "excluded_target_ids": [],
+    "format": "buildhunter.rule-profile/1",
+    "preliminary_calls": 1001,
+    "resolved_calls": 200,
+    "rules": [
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-bytecode",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.bytecode",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-bytecode",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.bytecode",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-pytest-cache",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.pytest-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-pytest-cache",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.pytest-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-mypy-cache",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.mypy-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-mypy-cache",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.mypy-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-ruff-cache",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.ruff-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-ruff-cache",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.ruff-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-pytype-cache",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.pytype-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-pytype-cache",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.pytype-cache",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-tox",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.tox",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-tox",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.tox",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-nox",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.nox",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-nox",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.nox",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-build",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.build",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-build",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.build",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-dist",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.dist",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-dist",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.dist",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-egg-info",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.egg-info",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-egg-info",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.egg-info",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "preliminary",
+        "rule_id": "python-environment",
+        "skipped_by_dispatch": 1001,
+        "target_id": "python.environment",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.python",
+        "phase": "resolved",
+        "rule_id": "python-environment",
+        "skipped_by_dispatch": 200,
+        "target_id": "python.environment",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": 338.325,
+        "evaluations": 200,
+        "false": 0,
+        "max_ns": 2542,
+        "package_id": "org.buildhunter.rust",
+        "phase": "preliminary",
+        "rule_id": "rust-target",
+        "skipped_by_dispatch": 801,
+        "target_id": "rust.target",
+        "total_ns": 67665,
+        "true": 0,
+        "unknown": 200
+      },
+      {
+        "average_ns": 75.68,
+        "evaluations": 200,
+        "false": 0,
+        "max_ns": 500,
+        "package_id": "org.buildhunter.rust",
+        "phase": "resolved",
+        "rule_id": "rust-target",
+        "skipped_by_dispatch": 0,
+        "target_id": "rust.target",
+        "total_ns": 15136,
+        "true": 200,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.swift",
+        "phase": "preliminary",
+        "rule_id": "swift-build",
+        "skipped_by_dispatch": 1001,
+        "target_id": "swift.build",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      },
+      {
+        "average_ns": null,
+        "evaluations": 0,
+        "false": 0,
+        "max_ns": 0,
+        "package_id": "org.buildhunter.swift",
+        "phase": "resolved",
+        "rule_id": "swift-build",
+        "skipped_by_dispatch": 200,
+        "target_id": "swift.build",
+        "total_ns": 0,
+        "true": 0,
+        "unknown": 0
+      }
+    ],
+    "scan_status": "completed",
+    "timing_scope": "rule_evaluation_and_outcome_wall_time"
+  },
+  "status": "completed"
+}

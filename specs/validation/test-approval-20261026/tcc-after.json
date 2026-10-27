@@ -1,0 +1,33 @@
+{
+  "start_local": "2026-10-26 10:37:20 +0300",
+  "log_command_exit": 0,
+  "raw_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/test-approval-20261026-1008/tcc-after.ndjson",
+  "raw_sha256": "c1e61895d51e501aca885f3855eefd5e9835f5f6d96a217937b0cbb9b148c03b",
+  "removable_volume_prompt_or_mismatch_records": [
+    {
+      "timestamp": "2026-10-26 10:41:43.184955+0300",
+      "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\"\n\tidentifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */"
+    },
+    {
+      "timestamp": "2026-10-26 10:41:43.192212+0300",
+      "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\"\n\tidentifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */"
+    },
+    {
+      "timestamp": "2026-10-26 10:41:43.195109+0300",
+      "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\"\n\tidentifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */"
+    },
+    {
+      "timestamp": "2026-10-26 10:41:43.195419+0300",
+      "message": "AUTHREQ_PROMPTING: msgID=427.2759, service=kTCCServiceSystemPolicyRemovableVolumes, subject=Sub:{dev.buildhunter.uitests.xctrunner}Resp:{TCCDProcess: identifier=dev.buildhunter.uitests.xctrunner, pid=27494, auid=501, euid=501, binary_path=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/MacOS/BuildHunterUITests-Runner},"
+    },
+    {
+      "timestamp": "2026-10-26 10:47:25.406355+0300",
+      "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\"\n\tidentifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */"
+    },
+    {
+      "timestamp": "2026-10-26 10:47:25.415671+0300",
+      "message": "Failed to match existing code requirement for subject dev.buildhunter.uitests.xctrunner and service kTCCServiceSystemPolicyRemovableVolumes\n\tcdhash H\"13aa6ea6cf9324c67885f44520d7e21ac641e1db\"\n\tidentifier \"dev.buildhunter.uitests.xctrunner\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Egor Merkushev (R629M26C36)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */"
+    }
+  ],
+  "scope": "BuildHunter app and UI runner only; empty observed record set does not grant permission or prove persistence for all identities"
+}

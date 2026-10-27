@@ -1,0 +1,126 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.current.templates
+  title: File-backed user template management
+  version: 0.1.0-draft.3
+  status: draft
+intent:
+  summary: Connect user-owned declarative JSON files and prepare a bounded immutable catalog for each new GUI scan.
+scope:
+  boundedContext: user_template_delivery
+  includes:
+  - Settings Templates tab, bounded text editor, explicit file reads/writes, bookmarks and enabled registrations.
+  - Draft validation, external-edit detection and all-or-nothing next-scan catalog admission.
+  excludes:
+  - Git integration, file watchers, crash-recovery autosave and an IDE or visual rule builder.
+  - CLI import UX, executable plugins, Swift authoring SDK and StoreKit/commercial delivery.
+provides:
+  capabilities:
+  - id: buildhunter.current.templates
+    role: primary
+    summary: Manage file references and bounded declarative drafts independently of running scan catalogs.
+requires:
+  capabilities:
+  - id: buildhunter.catalog.snapshot
+    optional: false
+    summary: Trusted built-ins plus externally originated user documents are admitted into an owned immutable handle.
+interfaces:
+  inbound:
+  - id: settings
+    kind: library
+    summary: TemplateWorkspace new/load/check/save/saveAs/exportJSON/connect and TemplateLibrary enable/disconnect actions in native Settings.
+  outbound:
+  - id: prepare_scan
+    kind: library
+    summary: TemplateFiles.createCatalog reads enabled referenced files before traversal and returns an owned Rust catalog or a diagnostic.
+constraints:
+- id: free_files
+  level: MUST
+  statement: User template authoring and use have no purchase gate. Store only paths, scoped bookmarks and enabled state; source JSON remains at its user-selected path. Disconnect/reset never deletes it. No Git client is embedded.
+- id: bounded_admission
+  level: MUST
+  statement: Accept regular files with bounded nonblocking reads, at most 61 connected user packages and 1 MiB per file. Preserve the effective catalog byte/depth/count/cost bounds enforced by Rust/Rifle. Reject invalid enabled files, corrupt registrations and catalog conflicts explicitly; never silently activate a partial or stale catalog.
+- id: draft_validation
+  level: MUST
+  statement: Read and validate off MainActor. Check validates the selected draft individually and with enabled files without saving or activating it. Invalid edits and failed reloads retain the draft. Large documents use plain text rather than per-keystroke whole-document syntax analysis. Explicit reload/open/new asks before discarding dirty edits; quit also asks. Closing Settings retains the draft in this process only.
+- id: scoped_writes
+  level: MUST
+  statement: Use balanced user-selected file scopes/bookmarks. Save validates the package, compares loaded bytes under file coordination and atomically replaces the destination. Refuse observed external changes until reload. This is not compare-and-swap protection against racing uncoordinated writers. Save As switches only this draft's registration to an explicitly chosen destination while preserving its enabled state and old source file; reject another registration's destination before writing. Save As to the current source retains Save's conflict check. Refresh bookmarks on successful load/save. No scan artifact is deleted or rewritten.
+- id: file_exchange
+  level: MUST
+  statement: First-release free authoring includes a simple GUI editor and JSON import/export. Import connects files at their chosen paths. Export validates and atomically writes a selected copy without changing registrations, the source reference or unsaved-draft state; reject connected/current-source destinations and preserve an existing export when validation fails. Export never enables a duplicate package. Swift SDK is separate scope.
+- id: scan_isolation
+  level: MUST
+  statement: Capture registrations and exclusions at scan creation, reload enabled files before traversal, and keep the admitted Rust catalog through scan return. Later file changes, disablement or disconnection affect subsequent scans. Reports retain package versions and digest, not live source references.
+effects:
+  sideEffects:
+  - id: template_read
+    kind: filesystem_read
+    summary: Read selected source files with byte bounds and scoped access before preparation or explicit reload.
+  - id: template_save
+    kind: filesystem_write
+    summary: Replace only the explicitly selected template save/export destination; no automatic file maintenance.
+  - id: registry
+    kind: state_mutation
+    summary: Persist file references/bookmarks/enabled state; own one in-process draft.
+evidence:
+- id: requirements
+  kind: documentation
+  path: docs/user-templates.md
+  supports: [intent.summary, constraints.free_files, constraints.scoped_writes]
+- id: library
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/TemplateLibrary.swift
+  supports: [constraints.free_files, constraints.bounded_admission]
+- id: files
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/UserTemplates.swift
+  supports: [constraints.bounded_admission, constraints.scoped_writes]
+- id: workspace
+  kind: source
+  path: macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift
+  supports: [interfaces, constraints.draft_validation, constraints.scoped_writes, constraints.file_exchange]
+- id: scan
+  kind: source
+  path: macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+  supports: [constraints.scan_isolation]
+- id: tests
+  kind: test
+  path: macos/Tests/BuildHunterTests/UserTemplateTests.swift
+  supports: [constraints.free_files, constraints.bounded_admission, constraints.scoped_writes, constraints.scan_isolation, constraints.draft_validation, constraints.file_exchange]
+- id: native_draft_smoke
+  kind: test
+  path: specs/validation/test-approval-20261026/README.md
+  supports: [constraints.draft_validation]
+provenance:
+  sourceConfidence:
+    intent: high
+    boundary: high
+    behavior: medium
+  notes:
+  - Owner accepted the minimal file-backed free authoring scope on 2026-10-25; this recovered BoundarySpec remains draft, not blanket architecture or Store acceptance.
+  - Current source/map hashes, executed checks and native-vs-XCTest limits are recorded in validation/user-templates-20261025.
+  - Owner additionally requested syntax/fixture documentation and free per-rule profiling; their implementation is described by buildhunter.rules.profile, not editor Check timing.
+  - The 2026-10-26 first-release clarification adds explicit file exchange; follow-up source and checks are in validation/template-export-20261026. Earlier receipts remain historical.
+  - validation/test-approval-20261026 records focused native draft validation, test-host signing and local suite results. This is partial evidence for draft_validation, not proof of every clause or Store acceptance. Runtime implementation and contracts are unchanged.
+implementationBindings:
+- id: implementation
+  scope: component
+  source:
+    repository: https://github.com/SoundBlaster/BuildHunter
+    revision: c80aeee967ccb295c4e3bacb55050d1b8d9f9710
+  files:
+    owned:
+    - macos/Sources/BuildHunter/Domain/TemplateLibrary.swift
+    - macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift
+    - macos/Sources/BuildHunter/Domain/UserTemplates.swift
+    - macos/Sources/BuildHunter/UI/TemplateJSONEditor.swift
+    - macos/Sources/BuildHunter/UI/UserTemplatesWindow.swift
+    border:
+    - macos/Sources/BuildHunter/UI/BuildHunterApp.swift
+    - macos/Sources/BuildHunter/BuildHunter.entitlements
+    - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+    - src/catalog.rs
+    - macos/Tests/BuildHunterTests/UserTemplateTests.swift
+    - macos/Tests/BuildHunterUITests/BuildHunterUITests.swift

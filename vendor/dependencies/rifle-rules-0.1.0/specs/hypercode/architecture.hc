@@ -4,6 +4,7 @@ Rifle
     SemanticValidation
   ValidatedPlan
   Evaluation
+    OptionalRuleTiming
   ContentIdentity
     CanonicalJson
     Sha256Digest

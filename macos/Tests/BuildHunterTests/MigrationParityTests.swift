@@ -109,7 +109,7 @@ struct MigrationParityTests {
                 completed[id] = (bytes, partial)
             case .warning(_, let message, _): warnings.append(message)
             case .finished(_, let result): terminal.append(tag(result))
-            case .profile: break
+            case .profile, .ruleProfile: break
             }
         }
         let expected = try run.expected.map { try #require(tree.rows[$0]) }

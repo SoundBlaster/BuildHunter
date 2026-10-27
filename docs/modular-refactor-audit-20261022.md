@@ -140,3 +140,14 @@ explicit; Windows/other Unix acquisition remains pending. R3's Unix acquisition
 portion is implemented for review, not owner-accepted or a snapshot/budget proof.
 R4/R5 and C2/C3/C4 decisions are unchanged. See hunter-scoped-acquisition.md and
 validation/plugin-scoped-scan-20261023 for current source and execution identities.
+
+## R7 GUI file-backed delivery — 2026-10-25
+
+The minimal GUI slice now connects user-owned JSON files, persists scoped references
+and enabled state, edits/checks/saves the whole JSON and reloads it before each new
+scan. Free authoring is independent of Arsenal. Invalid enabled input prevents a
+new catalog; current reports retain package versions/digest. See
+[user templates](user-templates.md) and
+[the scoped receipt](../specs/validation/user-templates-20261025/README.md).
+CLI import UX, Swift SDK and StoreKit/catalog delivery remain open. This closes
+only the named GUI slice of R7, not all R7/Store acceptance or other R1–R8 work.

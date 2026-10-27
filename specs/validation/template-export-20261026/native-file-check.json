@@ -1,0 +1,29 @@
+{
+  "original": {
+    "path": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/file-backed-templates-20261025/Template.json",
+    "sha256": "c1f3b1ef935962ad9de152e57ae2a18f0e9988e28eaef9e983532b6f593889b8",
+    "version": "1.0.3"
+  },
+  "exported": {
+    "path": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/template-export-20261026/ExportedTemplate.json",
+    "sha256": "d8fb5858811f46ad8ad40a007fc271e8d8c219e8546263bcba41e186633c8d65",
+    "version": "1.0.4"
+  },
+  "switched_source": {
+    "path": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/template-export-20261026/SwitchedTemplate.json",
+    "sha256": "d8fb5858811f46ad8ad40a007fc271e8d8c219e8546263bcba41e186633c8d65",
+    "version": "1.0.4"
+  },
+  "registered_sources": [
+    {
+      "id": "BE705C08-010D-42A4-8374-5622FDAD0FC6",
+      "path": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/template-export-20261026/SwitchedTemplate.json",
+      "enabled": true
+    }
+  ],
+  "observed_ui": {
+    "after_export": "Unsaved changes; draft version 1.0.4; one connected original source",
+    "after_save_as": "one SwitchedTemplate.json checkbox; no unsaved marker",
+    "after_check": "Valid catalog · 14 targets · 9873d59efb06"
+  }
+}

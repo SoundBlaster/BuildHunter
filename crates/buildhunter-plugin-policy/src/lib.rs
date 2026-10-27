@@ -1,7 +1,9 @@
 //! Opt-in pure BuildHunter plugin policy. This does not acquire filesystem facts.
 pub mod builtin;
 mod dispatch;
+mod profiling;
 mod validation;
+pub use profiling::{RulePhase, RuleProfile};
 
 use rifle_rules::{Catalog, Error, Plan, Sha256Digest};
 use serde_json::Value;
@@ -77,6 +79,11 @@ pub struct TargetDescriptor {
     pub ecosystem: String,
     pub kind: TargetKind,
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PackageDescriptor {
+    pub id: String,
+    pub version: String,
+}
 #[derive(Debug)]
 struct Target {
     descriptor: TargetDescriptor,
@@ -125,6 +132,7 @@ pub struct PluginCatalog {
     exclusions: BTreeSet<String>,
     dispatch: dispatch::Dispatch,
     targets: Vec<TargetDescriptor>,
+    packages: Vec<PackageDescriptor>,
     markers: BTreeSet<MarkerProbe>,
 }
 impl PluginCatalog {
@@ -133,6 +141,14 @@ impl PluginCatalog {
     pub fn load(inputs: &[PluginInput<'_>], excluded: &[&str]) -> Result<Self, Error> {
         let documents: Vec<_> = inputs.iter().map(|x| x.bytes).collect();
         let catalog = Catalog::from_json_documents(&documents)?;
+        let packages = catalog
+            .packages()
+            .iter()
+            .map(|package| PackageDescriptor {
+                id: package.id().to_owned(),
+                version: package.version().to_owned(),
+            })
+            .collect();
         let mut exclusions = BTreeSet::new();
         for id in excluded {
             validation::id(id, "/exclusions")?;
@@ -181,6 +197,7 @@ impl PluginCatalog {
             exclusions,
             dispatch,
             targets,
+            packages,
             markers,
         })
     }
@@ -193,6 +210,9 @@ impl PluginCatalog {
     /// Includes disabled targets for Settings presentation.
     pub fn targets(&self) -> &[TargetDescriptor] {
         &self.targets
+    }
+    pub fn packages(&self) -> &[PackageDescriptor] {
+        &self.packages
     }
     pub fn marker_requests(&self, kind: NodeKind) -> Vec<&MarkerProbe> {
         if kind == NodeKind::Symlink {
@@ -214,7 +234,32 @@ impl PluginCatalog {
     }
     /// Pure classification; an index may exclude only targets proven unable to match.
     pub fn classify(&self, facts: CandidateFacts<'_>) -> Result<Classification, Error> {
-        self.dispatch.classify(facts)
+        self.dispatch.classify(facts, None, RulePhase::Preliminary)
+    }
+    /// One bounded accumulator per scan; never stores candidate names or paths.
+    pub fn rule_profile(&self) -> RuleProfile {
+        self.dispatch
+            .rule_profile(self.digest, self.exclusions.clone())
+    }
+    /// Explicit instrumentation; outcomes are identical to `classify`.
+    pub fn classify_profiled(
+        &self,
+        facts: CandidateFacts<'_>,
+        profile: &mut RuleProfile,
+        phase: RulePhase,
+    ) -> Result<Classification, Error> {
+        if !profile.matches_catalog(&self.digest, &self.exclusions) {
+            return Err(error(
+                "catalog_mismatch",
+                "/rule_profile",
+                "profile belongs to another catalog",
+            ));
+        }
+        let result = self.dispatch.classify(facts, Some(profile), phase);
+        if result.is_err() {
+            profile.record_error();
+        }
+        result
     }
 }
 

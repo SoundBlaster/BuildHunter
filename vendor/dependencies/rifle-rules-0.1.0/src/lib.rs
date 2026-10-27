@@ -75,6 +75,15 @@ pub struct Outcome {
     pub unavailable: Vec<UnavailableFact>,
 }
 
+/// Advisory wall time for one rule, including construction of its owned outcome.
+/// Excludes input validation, catalog loading and host fact acquisition. Clock
+/// overhead and scheduling affect the measurement; it is not CPU attribution.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimedOutcome {
+    pub outcome: Outcome,
+    pub elapsed: std::time::Duration,
+}
+
 #[derive(Debug, PartialEq)]
 pub(crate) enum Scalar {
     String(String),
@@ -133,9 +142,41 @@ impl Plan {
         self.facts.iter().map(|x| x.id.as_str())
     }
 
+    pub fn rule_ids(&self) -> impl Iterator<Item = &str> {
+        self.rules.iter().map(|rule| rule.id.as_str())
+    }
+
     /// Inputs correspond to `facts()` order. Missing values are integration errors.
     /// Unavailable values carry a host-owned reason and propagate as unknown.
     pub fn evaluate(&self, values: &[FactValue<'_>]) -> Result<Vec<Outcome>, Error> {
+        self.validate_values(values)?;
+        Ok(self
+            .rules
+            .iter()
+            .map(|rule| self.outcome(rule, values))
+            .collect())
+    }
+
+    /// Explicit instrumentation mode. Evaluate the same rules once, in the same
+    /// order, with the same outcomes and errors as `evaluate`. No timers run on
+    /// the ordinary path. Retains one timing per rule, never an event history.
+    pub fn evaluate_timed(&self, values: &[FactValue<'_>]) -> Result<Vec<TimedOutcome>, Error> {
+        self.validate_values(values)?;
+        Ok(self
+            .rules
+            .iter()
+            .map(|rule| {
+                let start = std::time::Instant::now();
+                let outcome = self.outcome(rule, values);
+                TimedOutcome {
+                    outcome,
+                    elapsed: start.elapsed(),
+                }
+            })
+            .collect())
+    }
+
+    fn validate_values(&self, values: &[FactValue<'_>]) -> Result<(), Error> {
         if values.len() < self.facts.len() {
             return Err(Error::new(
                 "missing_fact",
@@ -164,31 +205,29 @@ impl Plan {
                 ));
             }
         }
-        Ok(self
-            .rules
-            .iter()
-            .map(|rule| {
-                let (truth, missing) = rule.expression.evaluate(values);
-                let mut unavailable: Vec<_> = missing
-                    .into_iter()
-                    .map(|index| {
-                        let FactValue::Unavailable(reason) = values[index] else {
-                            unreachable!()
-                        };
-                        UnavailableFact {
-                            fact_id: self.facts[index].id.clone(),
-                            reason: reason.into(),
-                        }
-                    })
-                    .collect();
-                unavailable.sort_by(|a, b| a.fact_id.cmp(&b.fact_id));
-                Outcome {
-                    rule_id: rule.id.clone(),
-                    truth,
-                    unavailable,
+        Ok(())
+    }
+
+    fn outcome(&self, rule: &Rule, values: &[FactValue<'_>]) -> Outcome {
+        let (truth, missing) = rule.expression.evaluate(values);
+        let mut unavailable: Vec<_> = missing
+            .into_iter()
+            .map(|index| {
+                let FactValue::Unavailable(reason) = values[index] else {
+                    unreachable!()
+                };
+                UnavailableFact {
+                    fact_id: self.facts[index].id.clone(),
+                    reason: reason.into(),
                 }
             })
-            .collect())
+            .collect();
+        unavailable.sort_by(|a, b| a.fact_id.cmp(&b.fact_id));
+        Outcome {
+            rule_id: rule.id.clone(),
+            truth,
+            unavailable,
+        }
     }
 }
 impl Expression {

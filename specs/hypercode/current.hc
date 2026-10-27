@@ -5,9 +5,14 @@ BuildHunterRuntime
       WindowSession
       ReportPresentation
         LiveMetricRendering
+        RuleProfilePresentation
       FolderActions
       Export
       Settings
+      TemplateManagement
+        TemplateRegistry
+        TemplateDraft
+        ScopedTemplateFiles
   SharedRuntime
     Scanner
       ScanSession
@@ -39,15 +44,18 @@ BuildHunterRuntime
       ClientAdmission
       ClientMarkerAcquisition
       CatalogEventTransport
+      RuleProfileCollection
     ClientCatalog
       BasicProfiles
       CatalogIdentity
       CatalogHandle
+      UserTemplateAdmission
     PluginPolicy
       CatalogValidation
       EffectivePlan
       CandidateDispatch
       CandidateClassification
+      RuleProfiling
     HunterProcessPlatform
       RequestedThreadQos
       ProcessResourceSnapshot

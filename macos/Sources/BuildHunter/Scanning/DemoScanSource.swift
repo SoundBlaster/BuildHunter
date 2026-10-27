@@ -4,6 +4,15 @@ import Foundation
 protocol ScanEventSource: Sendable {
     func events(for generation: UInt64, target: URL?) -> AsyncStream<ScanEvent>
     func cancel(generation: UInt64)
+    /// Cancels ordinary events while retaining at most one final rule-profile snapshot.
+    func stop(generation: UInt64) -> AsyncStream<ScanRuleProfileSnapshot>
+}
+
+extension ScanEventSource {
+    func stop(generation: UInt64) -> AsyncStream<ScanRuleProfileSnapshot> {
+        cancel(generation: generation)
+        return AsyncStream { $0.finish() }
+    }
 }
 
 /// Emits fabricated fixture data. It never inspects the selected folder.

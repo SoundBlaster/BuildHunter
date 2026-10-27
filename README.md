@@ -169,11 +169,23 @@ the Rust static library and Swift bridge from matching sources together.
 [Module architecture](docs/modular-architecture.md) defines the intended public
 Hunter filesystem core, abstract Rifle rule engine/Swift authoring SDK, artifact
 product BuildHunter and private Arsenal catalog. Hunter extraction is integrated;
-default clients use the public basic plugin catalogs. Swift authoring SDK, user
-plugin installation and commercial composition remain separate work.
+default clients use the public basic plugin catalogs. Native Settings → Templates
+also connects user-owned JSON files with a minimal editor, validation and per-file
+enablement; see the [template guide](docs/user-templates.md). Files can live in
+your own Git repository, and authoring has no purchase gate. Swift authoring SDK,
+CLI file import and commercial composition remain separate work.
 
 [Current/target Hypercode maps](specs/hypercode/README.md), the descriptive
 [SpecPM package](specpm.yaml), [claim matrix](specs/claim-matrix.md) and
 [progress record](specs/specification-progress.md) separate requirements, source
 observations and execution evidence. Maintain affected maps/contracts with code
 changes according to [AGENTS.md](AGENTS.md).
+
+### Template syntax and rule profiling
+
+See the [template language reference](docs/template-language.md) for bindings,
+conditions, unknown semantics, examples and fixtures. Free, opt-in
+[per-rule profiling](docs/rule-profiling.md) works in GUI Search settings and via
+`build-hunter PATH --profile-rules rules.json`. JSON metrics retain rule/target/
+package identity and separate preliminary/resolved evaluations. Timings exclude
+marker I/O and add instrumentation overhead; normal scans use no per-rule timers.

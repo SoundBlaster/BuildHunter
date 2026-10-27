@@ -5,6 +5,107 @@ import Testing
 @Suite("Rust bridge search filters")
 @MainActor
 struct SearchFilterIntegrationTests {
+    @Test("A completed scan retains its terminal profile until the original stream is released")
+    func completedRuleProfileSurvivesStopRace() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture) }
+        let suite = "BuildHunter.CompletedRuleProfiling.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SearchFilterSettings(userDefaults: defaults)
+        settings.ruleProfilingEnabled = true
+        let source = RustScanEventSource(settings: settings, templates: TemplateLibrary(userDefaults: defaults))
+        let stream = source.events(for: 904, target: fixture)
+        var expected: ScanRuleProfile?
+        for await event in stream {
+            if case .ruleProfile(_, let profile) = event { expected = profile }
+        }
+        let terminal = source.stop(generation: 904)
+        var snapshots: [ScanRuleProfileSnapshot] = []
+        for await snapshot in terminal { snapshots.append(snapshot) }
+        withExtendedLifetime(stream) {}
+        let snapshot = try #require(snapshots.first)
+        #expect(snapshots.count == 1 && snapshot.profile == expected)
+        #expect(snapshot.profile.scanStatus == "completed")
+        #expect(snapshot.profile.catalogDigest == snapshot.catalog.digest)
+    }
+
+    @Test("Stop releases a backpressured Rust scan and delivers its cancelled rule metrics")
+    func stopDeliversRuleProfileOutsideClosedQueue() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture) }
+        let suite = "BuildHunter.StopRuleProfiling.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SearchFilterSettings(userDefaults: defaults)
+        settings.ruleProfilingEnabled = true
+        let source = RustScanEventSource(settings: settings, templates: TemplateLibrary(userDefaults: defaults),
+                                         eventCapacity: 1)
+        let stream = source.events(for: 903, target: fixture)
+        var iterator = stream.makeAsyncIterator()
+        var catalog: ScanCatalogMetadata?
+        var found = false
+        while let event = await iterator.next() {
+            if case .catalog(_, let metadata, _) = event { catalog = metadata }
+            if case .discovered = event { found = true; break }
+        }
+        #expect(found)
+        let terminalProfiles = source.stop(generation: 903)
+        #expect(await iterator.next() == nil, "Stop must discard queued ordinary events immediately")
+        var profiles: [ScanRuleProfile] = []
+        for await snapshot in terminalProfiles { profiles.append(snapshot.profile) }
+        let profile = try #require(profiles.first)
+        #expect(profiles.count == 1 && profile.isSupported)
+        #expect(profile.catalogDigest == catalog?.digest && profile.scanStatus == "cancelled")
+        #expect(profile.rules.contains { $0.evaluations > 0 })
+    }
+
+    @Test("Rule profiling is opt-in and a finished profile survives JSON export")
+    func ruleProfiling() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture) }
+        let suite = "BuildHunter.RuleProfiling.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SearchFilterSettings(userDefaults: defaults)
+        #expect(!settings.ruleProfilingEnabled)
+        settings.ruleProfilingEnabled = true
+        #expect(SearchFilterSettings(userDefaults: defaults).ruleProfilingEnabled)
+        let templates = TemplateLibrary(userDefaults: defaults)
+        let source = RustScanEventSource(settings: settings, templates: templates)
+        var copied: ScanRuleProfile?
+        var catalog: ScanCatalogMetadata?
+        var order: [String] = []
+        for await event in source.events(for: 901, target: fixture) {
+            switch event {
+            case .catalog(_, let value, _): catalog = value
+            case .ruleProfile(_, let profile): copied = profile; order.append("rules")
+            case .finished: order.append("finished")
+            default: break
+            }
+        }
+        let profile = try #require(copied)
+        #expect(profile.isSupported && profile.catalogDigest == catalog?.digest)
+        #expect(profile.scanStatus == "completed")
+        #expect(profile.rules.contains { $0.evaluations > 0 })
+        #expect(order == ["rules", "finished"])
+        let report = ScanReportExport(rootName: "Fixture", rootURL: fixture, status: .complete,
+            rows: [], order: .table, tableOrder: [], warnings: [], excludedFilterIDs: [],
+            elapsedSeconds: nil, appVersion: "test", catalogMetadata: catalog, ruleProfile: profile)
+        let json = try #require(JSONSerialization.jsonObject(with: report.data(as: .json)) as? [String: Any])
+        let exported = try #require(json["rule_profile"] as? [String: Any])
+        #expect(exported["catalog_digest"] as? String == profile.catalogDigest)
+        let ruleRows = try #require(exported["rules"] as? [[String: Any]])
+        #expect(ruleRows.allSatisfy { $0.keys.contains("average_ns") })
+        #expect(ruleRows.filter { ($0["evaluations"] as? Int) == 0 }.allSatisfy { $0["average_ns"] is NSNull })
+        settings.ruleProfilingEnabled = false
+        var unexpected = false
+        for await event in source.events(for: 902, target: fixture) {
+            if case .ruleProfile = event { unexpected = true }
+        }
+        #expect(!unexpected)
+    }
+
     @Test("Catalog profile metadata is copied before callback return")
     func resourceMetadataOwnership() async throws {
         let channel = ScanEventChannel(capacity: 8)

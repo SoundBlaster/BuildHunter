@@ -3,6 +3,40 @@ import AppKit
 
 @MainActor
 final class BuildHunterUITests: XCTestCase {
+    func testTemplateEditorValidatesAndKeepsInvalidDraft() {
+        let app = launchWindow()
+        defer { app.terminate() }
+        openSettings(app)
+        app.toolbars.buttons["Templates"].click()
+        let new = app.buttons["buildhunter.templates.new"]
+        XCTAssertTrue(new.waitForExistence(timeout: 5))
+        new.click()
+        let check = app.buttons["buildhunter.templates.check"]
+        check.click()
+        let status = app.staticTexts["buildhunter.templates.status"]
+        let valid = NSPredicate(format: "value CONTAINS %@ OR label CONTAINS %@", "Valid catalog", "Valid catalog")
+        expectation(for: valid, evaluatedWith: status)
+        waitForExpectations(timeout: 10)
+        let editor = app.textViews["buildhunter.templates.editor"]
+        let editorViewport = app.scrollViews.containing(.textView, identifier: "buildhunter.templates.editor").firstMatch
+        editorViewport.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).click()
+        // Use the native action rather than a layout-dependent keyboard shortcut.
+        app.menuBars.menuBarItems["Edit"].click()
+        let selectAll = app.menuItems["Select All"]
+        XCTAssertTrue(selectAll.isEnabled)
+        selectAll.click()
+        // Target the current responder: refocusing the large text-view element
+        // can move the insertion point and discard the selection.
+        app.typeText("{")
+        XCTAssertEqual(editor.value as? String, "{", "The fixture must replace the entire JSON before validation")
+        check.click()
+        let invalid = NSPredicate(format: "NOT (value CONTAINS %@ OR label CONTAINS %@)", "Valid catalog", "Valid catalog")
+        expectation(for: invalid, evaluatedWith: status)
+        waitForExpectations(timeout: 10)
+        XCTAssertEqual(editor.value as? String, "{")
+        attachScreenshot(named: "templates-invalid-draft", from: app)
+    }
+
     func testSettingsWindowPersistsSearchSelection() {
         let suite = "BuildHunter.SettingsUITests.\(UUID().uuidString)"
         var app = launchWindow(settingsSuite: suite)
@@ -128,6 +162,10 @@ final class BuildHunterUITests: XCTestCase {
         let menuItem = app.menuItems["Settings…"]
         XCTAssertTrue(menuItem.waitForExistence(timeout: 5))
         menuItem.click()
+        // SwiftUI remembers the last Settings tab across launches.
+        let search = app.toolbars.buttons["Search"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.click()
     }
 
     func testMockStatesAndCaptureScreenshots() throws {
@@ -508,7 +546,10 @@ final class BuildHunterUITests: XCTestCase {
         let selectedRoot = root.resolvingSymlinksInPath()
         let app = launchWindow()
         defer { app.terminate() }
-        app.buttons["buildhunter.empty.openFolder"].click()
+        // A restored diagram can cover the chooser's owner window on a developer Mac.
+        activateWindow(titled: "BuildHunter", in: app)
+        let emptyWindow = app.windows.containing(.button, identifier: "buildhunter.empty.openFolder").firstMatch
+        emptyWindow.buttons["buildhunter.empty.openFolder"].click()
         let open = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch
         XCTAssertTrue(open.waitForExistence(timeout: 5))
         app.typeKey("g", modifierFlags: [.command, .shift])

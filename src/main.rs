@@ -130,12 +130,13 @@ fn main() {
     let mut exclusions = BTreeSet::new();
     let mut root = None;
     let mut profile_path = None;
+    let mut rule_profile_path = None;
     let mut args = env::args_os().skip(1);
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
                 println!(
-                    "build-hunter [PATH] [--language all|swift|rust|python] [--exclude ID[,ID...]] [--list-filters] [--json] [--apparent] [--include-envs] [--profile FILE]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\n--profile FILE saves throughput counters and rates as JSON; FILE must not exist.\nMeasured bytes/s describes metadata sizing, not disk reads.\nExclusions select recognized roots; nested artifacts remain discoverable.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
+                    "build-hunter [PATH] [--language all|swift|rust|python] [--exclude ID[,ID...]] [--list-filters] [--json] [--apparent] [--include-envs] [--profile FILE] [--profile-rules FILE]\n\nRead-only recursive scan. Default PATH: current directory.\nSizes: allocated bytes on Unix; apparent bytes on other platforms.\nSymlinks, .git and virtual environments are skipped by default.\nNested artifacts are listed but counted once in total.\n--profile FILE saves throughput counters and rates as JSON; FILE must not exist.\n--profile-rules FILE saves opt-in per-rule counters and wall timings as JSON; FILE must not exist.\nMeasured bytes/s describes metadata sizing, not disk reads.\nExclusions select recognized roots; nested artifacts remain discoverable.\nHard links are counted per pathname; sizes are not guaranteed reclaimable space.\nRust custom target directories and global caches are not auto-discovered."
                 );
                 return;
             }
@@ -177,6 +178,16 @@ fn main() {
                     process::exit(2);
                 };
                 profile_path = Some(PathBuf::from(path));
+            }
+            Some("--profile-rules") => {
+                let Some(path) = args
+                    .next()
+                    .filter(|value| !value.is_empty() && !value.to_string_lossy().starts_with('-'))
+                else {
+                    eprintln!("--profile-rules requires an output file path");
+                    process::exit(2);
+                };
+                rule_profile_path = Some(PathBuf::from(path));
             }
             Some("--json") => json = true,
             Some("--apparent") => apparent = true,
@@ -231,16 +242,21 @@ fn main() {
     };
     // Fail fast for existing paths, but create only after scanning so the output
     // cannot affect artifact sizes when it is saved inside the selected tree.
-    if let Some(path) = &profile_path
-        && fs::symlink_metadata(path).is_ok()
-    {
-        eprintln!("Profile output already exists: {}", path.display());
+    for path in [&profile_path, &rule_profile_path].into_iter().flatten() {
+        if fs::symlink_metadata(path).is_ok() {
+            eprintln!("Profile output already exists: {}", path.display());
+            process::exit(2);
+        }
+    }
+    if profile_path.is_some() && profile_path == rule_profile_path {
+        eprintln!("--profile and --profile-rules require different output files");
         process::exit(2);
     }
     let mut profile = profile_report::ProfileReport::default();
     let start = Instant::now();
     let control = ScanControl::new();
     control.set_profiling(profile_path.is_some());
+    control.set_rule_profiling(rule_profile_path.is_some());
     if language != "all" {
         exclusions.extend(
             available
@@ -280,6 +296,32 @@ fn main() {
         },
     );
     profile.set_resource_usage(control.resource_usage_json());
+    let status = match report.status {
+        build_hunter::ScanStatus::Completed => "completed",
+        build_hunter::ScanStatus::CompletedWithChanges => "completed_with_changes",
+        build_hunter::ScanStatus::Cancelled => "cancelled",
+        build_hunter::ScanStatus::Incomplete => "incomplete",
+        build_hunter::ScanStatus::Failed => "failed",
+    };
+    if let Some(path) = &rule_profile_path {
+        use std::io::Write;
+        let output = serde_json::json!({"format":"buildhunter.rule-profile-report/1",
+            "catalog":serde_json::from_str::<serde_json::Value>(snapshot.metadata_json()).unwrap(),
+            "root":root.to_string_lossy(), "status":status,
+            "rule_profile":report.rule_profile});
+        if let Err(error) = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)
+            .and_then(|mut file| {
+                file.write_all(output.to_string().as_bytes())
+                    .and_then(|_| file.flush())
+            })
+        {
+            eprintln!("Could not write rule profile {}: {error}", path.display());
+            process::exit(2);
+        }
+    }
     if let Some(path) = &profile_path {
         use std::io::Write;
         // create_new also protects a report created by another process during the scan.
@@ -291,13 +333,6 @@ fn main() {
                 eprintln!("Could not create profile {}: {error}", path.display());
                 process::exit(2);
             });
-        let status = match report.status {
-            build_hunter::ScanStatus::Completed => "completed",
-            build_hunter::ScanStatus::CompletedWithChanges => "completed_with_changes",
-            build_hunter::ScanStatus::Cancelled => "cancelled",
-            build_hunter::ScanStatus::Incomplete => "incomplete",
-            build_hunter::ScanStatus::Failed => "failed",
-        };
         let size_mode = if apparent || !cfg!(unix) {
             "apparent"
         } else {

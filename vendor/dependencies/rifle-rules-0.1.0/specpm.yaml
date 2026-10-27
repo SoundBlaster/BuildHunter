@@ -3,7 +3,7 @@ kind: SpecPackage
 metadata:
   id: rifle
   name: Rifle rule engine
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   summary: Pure program evaluator plus generic program catalogs and canonical content identity; no host filesystem
     or plugin-semantic validation.
   license: MIT

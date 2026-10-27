@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.design.product
   title: BuildHunter target assembly
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   status: draft
 intent:
   summary: Compose Hunter and Rifle into an artifact-focused public CLI/macOS product and a paid Store bundle with
@@ -61,7 +61,7 @@ constraints:
 - id: edition
   level: MUST
   statement: Public build works with basic plugins without private credentials. Store composition pins public modules
-    and Arsenal and fails on a missing required catalog; it ships the same GUI/engine code.
+    and Arsenal and fails on a missing required catalog; it ships the same GUI/engine code. User-file template authoring/use remains free in both editions; buying Arsenal is distinct from creating one's own rules.
 - id: product_scope
   level: MUST
   statement: No index, LLM, universal query UI, executable plugin loading or deletion is added by this modularization.

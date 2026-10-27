@@ -1,0 +1,31 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project macos/BuildHunter.xcodeproj -scheme BuildHunter -destination platform=macOS,arch=arm64 -derivedDataPath /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData -clonedSourcePackagesDirPath /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/SourcePackages -packageCachePath /Volumes/TB5/Developer/Caches/swiftpm -skipMacroValidation -disableAutomaticPackageResolution ONLY_ACTIVE_ARCH=YES SYMROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products OBJROOT=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex LIBRARY_SEARCH_PATHS=/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release -configuration Debug CODE_SIGNING_ALLOWED=YES ENABLE_DEBUG_DYLIB=NO test-without-building "-only-testing:BuildHunterTests" -resultBundlePath /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/rule-profiling-20261026/unit-tests.xcresult
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = YES
+    ENABLE_DEBUG_DYLIB = NO
+    LIBRARY_SEARCH_PATHS = /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/cargo/aarch64-apple-darwin/release
+    OBJROOT = /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Intermediates.noindex
+    ONLY_ACTIVE_ARCH = YES
+    SYMROOT = /Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-nio: https://github.com/apple/swift-nio.git @ 2.103.0
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.7.1
+  swift-atomics: https://github.com/apple/swift-atomics.git @ 1.3.1
+  Screener: https://github.com/SoundBlaster/Screener.git @ e447751
+  swift-syntax: https://github.com/swiftlang/swift-syntax @ 601.0.1
+  NestedA11yIDs: https://github.com/SoundBlaster/NestedA11yIDs.git @ 1.0.0
+  EventSource: https://github.com/mattt/eventsource.git @ 1.5.1
+  SpecificationCore: https://github.com/SoundBlaster/SpecificationCore.git @ 3a672ea
+  swift-system: https://github.com/apple/swift-system.git @ 1.8.1
+  mcp-swift-sdk: https://github.com/modelcontextprotocol/swift-sdk.git @ 0.12.1
+  swift-log: https://github.com/apple/swift-log.git @ 1.15.1
+
+Writing result bundle at path:
+	/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/rule-profiling-20261026/unit-tests.xcresult
+
+** BUILD INTERRUPTED **

@@ -1,10 +1,10 @@
 # План доставки plugins и коммерческого каталога
 
-Исходный план: 2026-10-13; сверка статуса: 2026-10-22 (merged main). Этапы ниже не завершены
+Исходный план: 2026-10-13; актуализация R7: 2026-10-25 (feature branch). Этапы ниже не завершены
 end-to-end; отдельные runtime части уже реализованы. Имена Hunter/Rifle/BuildHunter/Arsenal
 утверждены; [модульные контракты](modular-architecture.md) остаются draft. Согласовано архитектурное
 направление в [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md),
-Swift Plugin SDK и подключение к default clients ещё не реализованы. Schema,
+Swift Plugin SDK ещё не реализован; default clients уже используют basic catalogs. Schema,
 чистый Rifle catalog runtime и opt-in scanner integration имеют отдельные
 implementation/validation records; это не завершённая end-to-end доставка plugins.
 
@@ -12,14 +12,16 @@ implementation/validation records; это не завершённая end-to-end
 [сверка модулей и backlog](modular-refactor-audit-20261022.md). Общие ScanEngine,
 workers, session launch, batch backend и OS QoS/CPU/RSS уже выделены в Hunter;
 Rifle evaluator/catalog и opt-in
-adapter/scanner существуют. Default clients, Swift authoring, user import и
-коммерческая поставка ещё не подключены. Checkbox этапа остаётся открытым до
+adapter/scanner существуют. GUI user templates теперь подключаются файлами через
+[минимальный редактор в Settings](user-templates.md); CLI import, Swift authoring и
+коммерческая поставка остаются отдельно. Checkbox этапа остаётся открытым до
 всей его приёмки, даже если часть реализации уже существует.
 
 Этот план уточняет Phases 0–5 из [#25](https://github.com/SoundBlaster/BuildHunter/issues/25).
 Performance hypotheses и их доказательства остаются в
 [отдельном ledger](policy-performance-plan.md). Наличие нынешнего filter catalog
-не означает наличие plugins.
+сам по себе не доказывает доставку пользовательских plugins. Текущий GUI R7
+имеет отдельные source/test/native receipts, указанные в user-templates.md.
 
 Каждый этап доставляется отдельным PR или небольшим стеком зависимых PRs;
 после каждого merge `main` должен оставаться зелёным.
@@ -28,8 +30,9 @@ Performance hypotheses и их доказательства остаются в
 
 - Public BuildHunter: полноценная самостоятельная сборка, открытый SDK,
   базовые Swift/Rust/Python plugins, возможность собственных правил.
-- Paid Mac App Store edition: тот же application/engine плюс готовый расширенный
-  private catalog. Установка и обновления без сборки или LLM-аккаунта.
+- Mac App Store: бесплатные собственные JSON-шаблоны и тот же application/engine;
+  готовый расширенный Arsenal планируется как отдельная разовая покупка с trial,
+  без подписки. StoreKit, условия trial и фактическая Store-поставка ещё не реализованы.
 - Не удалять уже открытый базовый набор ради искусственной эксклюзивности.
 - Не обещать секретность правил, поставленных покупателю в app bundle.
 - Универсальный поиск под другим именем, индекс и LLM — отдельный будущий
@@ -106,9 +109,10 @@ semantic/performance gates. Не публикуются private definitions, sec
 
 ## Этап 5: пользовательские пакеты и документация
 
-- [ ] Подключение правил без пересборки public/self-build приложения.
-- [ ] Enable/disable, compatibility и понятные invalid-package diagnostics.
-- [ ] Authoring guide для человека и агента, Swift DSL examples, schema reference.
+- [x] GUI: подключение JSON-файлов без пересборки, минимальный редактор и сохранение в выбранную папку/Git checkout.
+- [x] GUI: enable/disable файлов, compatibility/conflict diagnostics и отказ нового скана при невалидном включённом файле.
+- [x] JSON authoring guide для человека и агента, пример и ссылки на contract/schema.
+- [ ] CLI import UX и Swift DSL examples/SDK (за рамками первой версии редактора).
 - [ ] Проверить Store import UX отдельно, прежде чем обещать его покупателям.
 
 **Приёмка:** пользовательский пакет работает на том же runtime; malformed
@@ -117,9 +121,12 @@ semantic/performance gates. Не публикуются private definitions, sec
 
 ## Открытые решения перед реализацией
 
-Точные schema/API и cost limits; итоговый private plugin bundle; цена и условия
-покупки; pipeline BuildHunterMAS; правила лицензирования contributions; location/import
-UX пользовательских пакетов; правила разрешения конфликтов между пакетами.
+Финализация draft schema/API; итоговый private plugin bundle; цена и условия
+покупки/trial; pipeline BuildHunterMAS; правила лицензирования contributions;
+CLI import UX. Для первой GUI-версии location/import UX зафиксирован в
+user-templates.md: пользовательский файл с bookmark, явные save/reload, без Git
+клиента и watcher. Существующий runtime отвергает дублирующиеся IDs, а конфликты
+matching диагностирует; автоматического override нет.
 Чтение содержимого файлов и global/known-location caches требуют отдельного
 scope и не включаются автоматически в первую версию.
 
@@ -237,3 +244,21 @@ retaining guard/eligibility/fallback effects/counters/error policy. Default feat
 plugin migration remain unchanged. See [integration](hunter-batch-metadata.md) and
 `specs/validation/hunter-batch-20261021`. Next extraction is QoS/process snapshots;
 resource budgets, descriptor traversal and client/catalog delivery remain separate.
+
+### Уточнение первой версии — 2026-10-26 (Москва)
+
+Обязательны **простой GUI-редактор и импорт/экспорт JSON-файлов** в бесплатной
+версии. Import подключает выбранные файлы на месте. Export сохраняет проверенную
+копию без включения второго экземпляра пакета; Save As переключает регистрацию
+текущего документа на новый файл. Исходный файл остаётся у пользователя.
+Swift SDK не является блокером этого первого релиза. Текущая спецификация и
+проверки — в user-templates.md и specs/validation/template-export-20261026.
+
+### Документация и профилирование правил — 2026-10-26
+
+Owner requirement: авторы бесплатных шаблонов и мы должны иметь документацию и
+метрики на каждое правило. Справочник синтаксиса/fixtures: template-language.md;
+опциональные counters, фазы, wall timings и JSON/UI: rule-profiling.md. Обычный
+скан не включает таймер на каждое правило. Метрики не являются атрибуцией CPU/RAM
+или shared marker I/O. Первый slice включает отдельное окно снимка метрик; IDE,
+percentiles, история сравнений и tracing отдельных выражений остаются отдельно.

@@ -98,10 +98,30 @@ final class WindowScanModel {
         guard phase == .scanning else { return }
         let cancelledGeneration = generation
         generation &+= 1
+        let stoppedGeneration = generation
+        let stoppedReportID = reportID
         phase = .stopped
         markMeasuringRowsPartial()
-        source.cancel(generation: cancelledGeneration)
+        let terminalProfiles = source.stop(generation: cancelledGeneration)
         scanTask?.cancel()
+        scanTask = Task { [weak self] in
+            var iterator = terminalProfiles.makeAsyncIterator()
+            guard let snapshot = await iterator.next(), !Task.isCancelled, let self,
+                  self.generation == stoppedGeneration, self.reportID == stoppedReportID,
+                  self.phase == .stopped,
+                  snapshot.profile.catalogDigest == snapshot.catalog.digest,
+                  Set(snapshot.profile.excludedTargetIDs) == Set(snapshot.catalog.excludedTargetIDs),
+                  self.catalogMetadata == nil || (snapshot.catalog.digest == self.catalogMetadata?.digest
+                    && Set(snapshot.catalog.excludedTargetIDs) == self.excludedFilterIDs) else { return }
+            if self.catalogMetadata == nil {
+                self.catalogMetadata = snapshot.catalog
+                self.filterSettings.useCatalog(snapshot.catalog)
+                self.excludedFilterIDs = Set(snapshot.catalog.excludedTargetIDs)
+                if !snapshot.rootPathIsExact { self.unsafePathPrefixes.insert("") }
+                self.reportRevision &+= 1
+            }
+            self.profile.ruleProfile = snapshot.profile
+        }
     }
 
     func apply(_ event: ScanEvent) {
@@ -109,6 +129,7 @@ final class WindowScanModel {
         switch event {
         case .catalog(_, let metadata, let rootPathIsExact):
             catalogMetadata = metadata
+            filterSettings.useCatalog(metadata)
             excludedFilterIDs = Set(metadata.excludedTargetIDs)
             if !rootPathIsExact { unsafePathPrefixes.insert("") }
             reportRevision &+= 1
@@ -131,6 +152,8 @@ final class WindowScanModel {
             reportRevision &+= 1
         case .profile(_, let sample):
             profile.record(sample)
+        case .ruleProfile(_, let value):
+            if value.catalogDigest == catalogMetadata?.digest { profile.ruleProfile = value }
         case .warning(_, let message, let relativePath):
             appendWarning(message, relativePath: relativePath)
         case .finished(_, let result):
