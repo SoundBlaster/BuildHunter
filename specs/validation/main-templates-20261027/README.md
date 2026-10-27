@@ -71,8 +71,3 @@ assembly. No runtime code, module, capability, map topology, API, acceptance sta
 or implementation binding changed. Existing maps/contracts are hashed without
 relabelling older receipts. Current/target HC parse and four profile validations
 pass; SpecPM reports no errors with its existing unresolved-capability warnings.
-
-This receipt records the original `c9040bb` runtime and the test source at
-`3d7ae1180828625b51fb60a633530ee50b8c6726`. After stacking on the warning-actions
-integration, the combined test file has a new hash; these historical observations
-do not establish that the stacked revision was executed.

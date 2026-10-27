@@ -1312,3 +1312,13 @@ owner acceptance are unchanged; chooser setup stays folded into app assembly.
 No new recovered requirement is accepted. Historical receipts remain historical;
 current hashes, commands and limitations are in
 [main-templates-20261027](validation/main-templates-20261027/README.md).
+
+## Warning actions and folder chooser stack — 2026-10-28
+
+PR #123 is stacked on the warning-action integration. Its prior GUI receipt
+remains bound to `c9040bb` and UI test source `3d7ae11`; neither it nor the
+separate lower-branch build proves that this combined revision ran. Application
+runtime, current and target maps, claims and accepted requirements are unchanged
+by the upper UI-test-only layer. Combined source/map identities and fresh
+structural validation: `validation/stack-119-123-20261028`. Hosted macOS UI and
+unit tests are required for the combined tip.

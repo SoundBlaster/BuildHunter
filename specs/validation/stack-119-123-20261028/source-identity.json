@@ -1,0 +1,21 @@
+{
+  "source_revision": "d69a97a4429fa722ed5b19cd3b4e3d7d3cce2408",
+  "lower_runtime_revision": "7ccc42d9b75b7ce686cddc9045a5eddb4b1e9019",
+  "historical_ui_test_revision": "3d7ae1180828625b51fb60a633530ee50b8c6726",
+  "files": {
+    "macos/Sources/BuildHunter/Scanning/ScanEvent.swift": "23f6e29fd59ba28182d7ef26d16f7c17bf8ce93586c2df92abdf126a1df84c65",
+    "macos/Sources/BuildHunter/Scanning/WindowScanModel.swift": "ab2b8ef3c441e2a187012b07b6df1ee389366124aad28ef1412b67d3858adab4",
+    "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift": "4a69c696edb712fd2c71096a72757b8a182b66b4d5dbcba812fb8995d5c8b776",
+    "macos/Sources/BuildHunter/UI/ScanWarningsWindow.swift": "ebd1d81f1a00ff903e57c43514f84e3f6bb3eced6ea589a665a328b732a77f73",
+    "macos/Tests/BuildHunterTests/WindowScanModelTests.swift": "09fd6a8ac9290da4f79434dfa72273c08b5d32b1df7f92e5733cf8f2db306ae8",
+    "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "3836535f2e7e6901c0759c65376555d5dff1c42a29045b33b008fe4f257982cf",
+    "macos/Tests/BuildHunterUITests/BuildHunterUITests.swift": "b374cbccfaddc39105809a9fd894300488ef5236fd8e423c2691c5eca57ce1b9",
+    "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
+    "specs/hypercode/current.hcs": "b0c97abc16a83a7cc82c08f29cb138900f43c7bcea611d5d9d81ffd3c2ae1a2d",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/current-application.spec.yaml": "621babd4771536a8813f98ca9d1d07fb694f47efe92f16aee8bd54cbdcd8e72c",
+    "specs/current-bridge.spec.yaml": "e6dc252ff0453a43e329a40feac14db72fecb03d9805337905dbe21d8b55b3f8",
+    "specs/rule-profiling.spec.yaml": "a450335c0458bd35379dd9b7c17e3684c849e078bfcfb2ffeee5445acd072880"
+  }
+}
