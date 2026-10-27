@@ -116,6 +116,9 @@ final class BuildHunterUITests: XCTestCase {
         let copy = window.menuItems["Copy"]
         XCTAssertTrue(copy.waitForExistence(timeout: 5))
         XCTAssertTrue(copy.isEnabled)
+        let open = window.menuItems["Open in Finder"]
+        XCTAssertTrue(open.waitForExistence(timeout: 5))
+        XCTAssertFalse(open.isEnabled, "Mock warnings have no actionable filesystem path")
         copy.click()
         XCTAssertEqual(NSPasteboard.general.string(forType: .string), expected)
         attachScreenshot(named: "warnings-table", from: app)

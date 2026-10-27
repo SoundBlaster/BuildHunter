@@ -1161,6 +1161,23 @@ Fresh source/map hashes, structural diagnostics and actual checks are recorded i
 Historical home/RSS/Photos receipts identify the previous binary; this change has
 focused native Release CLI evidence, not a fresh home/GUI/RSS or Store acceptance.
 
+## Warning row actions — 2026-10-25
+
+The warning window now owns cell and row context menus for complete-message Copy
+and a single exact-location Finder handoff. The bridge copies an optional exact
+relative path separately from display strings; the model clears locations with
+the report and disables ambiguous deduplicated origins. No text parsing, new C ABI
+or export schema is introduced. Existing scoped Finder fallback is reused.
+
+Affected draft claims: current.bridge warning_locations/payload_ownership and
+current.application warning_actions/generation/finder_handoff/effects_scope. These
+details remain folded into RustSwiftBridge, ReportPresentation and FolderActions;
+composition, generic Hunter/Rifle responsibilities and target maps are unchanged.
+The bridge interface description is also corrected from AsyncStream to the actual
+ScanEventStream. No draft is promoted to owner acceptance. Source identities,
+tests, native observations and structural checks are recorded separately in
+[warning-actions-20261025](validation/warning-actions-20261025/README.md).
+
 ## R7 minimal file-backed templates — 2026-10-25
 
 Owner scope is fixed in `docs/user-templates.md`: free authoring/use in both
@@ -1260,3 +1277,19 @@ Fresh source/map identities and actual checks:
 [stopped-rule-metrics-20261026](validation/stopped-rule-metrics-20261026/README.md).
 Earlier profiling/test-host receipts remain historical; build, native test and
 GitHub CI results are separate evidence.
+
+## Warning actions and rule-profile merge — 2026-10-28
+
+Reconciled PR #119 with merged templates and rule profiling. Warning events retain
+their separately copied exact path while rule-profile events and the stopped-scan
+terminal handoff remain present. A combined regression checks that a retained
+warning's Finder location survives the stopped profile and late warnings are
+ignored. Existing UI, scanner and cancellation requirements are unchanged.
+
+Affected draft claims: current.application warning_actions/generation,
+current.bridge warning_locations/payload_ownership/cancellation and
+rules.profile stopped_delivery. Current HCS composition remains unchanged; the
+bridge interface names the actual AsyncStream return type. Bindings pin the merge
+implementation and source/map identities are recorded separately in
+[warning-rule-profile-merge-20261028](validation/warning-rule-profile-merge-20261028/README.md).
+Prior receipts describe their original revisions; no owner acceptance is implied.

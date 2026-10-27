@@ -23,7 +23,7 @@ enum ArtifactFolderLocation {
     /// A displayed replacement character never becomes an action capability.
     /// Safe ancestors before the first invalid component remain usable.
     static func actionURL(root: URL?, relativePath: String, unsafePrefixes: Set<String>) -> URL? {
-        guard let root, root.isFileURL, !relativePath.hasPrefix("/"),
+        guard let root, root.isFileURL, !relativePath.hasPrefix("/"), !relativePath.utf8.contains(0),
               !relativePath.split(separator: "/").contains("..") else { return nil }
         let path = relativePath == "." ? "" : relativePath
         guard !unsafePrefixes.contains(where: { $0.isEmpty || path == $0 || path.hasPrefix($0 + "/") }) else { return nil }

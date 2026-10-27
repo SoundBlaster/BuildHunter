@@ -1,0 +1,38 @@
+{
+  "xcode": {
+    "command": [
+      "xcodebuild",
+      "-version"
+    ],
+    "exit_code": 0,
+    "output": "Xcode 27.1\nBuild version 27A9275"
+  },
+  "swift": {
+    "command": [
+      "swift",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\nswift-driver version: 1.168.6"
+  },
+  "specpm": {
+    "command": [
+      "specpm",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "specpm 0.2.0"
+  },
+  "os": {
+    "command": [
+      "sw_vers"
+    ],
+    "exit_code": 0,
+    "output": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0\nBuildVersion:\t\t26A428"
+  },
+  "hypercode": {
+    "path": "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+    "sha256": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b",
+    "version_note": "CLI has no supported --version; binary identity retained."
+  }
+}

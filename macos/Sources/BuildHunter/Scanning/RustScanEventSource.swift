@@ -337,7 +337,8 @@ final class RustScanBridgeContext: @unchecked Sendable {
             let detail = decode(value.message, length: value.message_len)
             yield(.warning(
                 generation: generation,
-                message: path.isEmpty ? detail : "\(path): \(detail)"
+                message: path.isEmpty ? detail : "\(path): \(detail)",
+                relativePath: exactWarningPath(value.path, length: value.path_len)
             ))
         case 4:
             finish(status: value.status)
@@ -421,10 +422,16 @@ final class RustScanBridgeContext: @unchecked Sendable {
             let path = decode(value.base.path, length: value.base.path_len)
             let message = decode(value.base.message, length: value.base.message_len)
             yield(.diagnostic(generation: generation, diagnostic: ScanDiagnostic(relativePath: path,
-                classification: classification, message: path.isEmpty ? message : "\(path): \(message)")))
+                classification: classification, message: path.isEmpty ? message : "\(path): \(message)"),
+                relativePath: exactWarningPath(value.base.path, length: value.base.path_len)))
         default:
             withUnsafePointer(to: value.base) { handle($0) }
         }
+    }
+
+    private func exactWarningPath(_ bytes: UnsafePointer<UInt8>?, length: Int) -> String? {
+        guard rootPathIsExact, let path = decodeUTF8(bytes, length: length), !path.isEmpty else { return nil }
+        return path
     }
 
     private func warnAboutBridge(_ message: String) {

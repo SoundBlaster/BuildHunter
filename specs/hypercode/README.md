@@ -210,6 +210,14 @@ unchanged. Fresh source/map identities and focused native CLI/structural checks 
 under `../validation/devicefs-exclusion-20261025`. Prior Photos/home/RSS evidence
 remains historical and is not execution evidence for the new source.
 
+### Warning actions — 2026-10-25
+
+RustSwiftBridge now copies exact optional warning locations independently of
+display text. ReportPresentation owns warning cell/row menus; FolderActions reuses
+the scoped Finder handoff. No new composition node, package or target architecture
+is implied. Current source/map identities and runtime/structural evidence are in
+`../validation/warning-actions-20261025`; historical receipts remain unchanged.
+
 ### R7 user templates — 2026-10-25
 
 Current MacApplication now contains TemplateManagement with TemplateRegistry,
@@ -246,3 +254,7 @@ fresh identities and checks are in `validation/stopped-rule-metrics-20261026`.
 Prior receipts remain historical. New recovered specs stay draft; source, native
 UI, local test-host limitations and GitHub CI are reported separately. Timing
 scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.
+
+Warning actions and stopped profiling are composed after their integration; current
+topology is unchanged. Updated source/map identities and validation scope are in
+`../validation/warning-rule-profile-merge-20261028`; prior evidence remains historical.

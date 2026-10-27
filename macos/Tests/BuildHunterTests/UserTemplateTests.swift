@@ -176,7 +176,7 @@ struct UserTemplateTests {
         for await event in source.events(for: 2, target: scanRoot) {
             switch event {
             case .catalog, .discovered: Issue.record("Invalid template must not activate a partial catalog")
-            case .warning(_, let message): warnings.append(message)
+            case .warning(_, let message, _): warnings.append(message)
             case .finished(_, let result): terminal = result
             default: break
             }

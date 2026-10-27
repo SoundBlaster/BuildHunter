@@ -1,0 +1,89 @@
+[
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/current.hc"
+    ],
+    "exit_code": 0,
+    "log_sha256": "87ce144ef2e01ac7a4ac6b188aac59d18fb8df188a7a7665defbecc62817b8fd",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-0.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=cli"
+    ],
+    "exit_code": 0,
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-1.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/current.hc",
+      "--hcs",
+      "specs/hypercode/current.hcs",
+      "--ctx",
+      "client=gui"
+    ],
+    "exit_code": 0,
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-2.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "parse",
+      "specs/hypercode/target.hc"
+    ],
+    "exit_code": 0,
+    "log_sha256": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-3.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=public"
+    ],
+    "exit_code": 0,
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-4.log"
+  },
+  {
+    "command": [
+      "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+      "validate",
+      "specs/hypercode/target.hc",
+      "--hcs",
+      "specs/hypercode/target.hcs",
+      "--ctx",
+      "edition=store"
+    ],
+    "exit_code": 0,
+    "log_sha256": "3968d4e37d6d25ffcd1cd9f3b7bb9b42eab62801c1bcc643cf81009d98b4a563",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-5.log"
+  },
+  {
+    "command": [
+      "specpm",
+      "validate",
+      ".",
+      "--json"
+    ],
+    "exit_code": 0,
+    "log_sha256": "62e1bc7e56dd74f79b847a17ba8706573a6696436dc8462938f3777a3a8f9386",
+    "local_log": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/warning-row-actions-20261025/structural-6.log"
+  }
+]

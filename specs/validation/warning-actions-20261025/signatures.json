@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "--verbose=2",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Release/BuildHunter.app"
+    ],
+    "exit_code": 0,
+    "output": "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Release/BuildHunter.app: valid on disk\n/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Release/BuildHunter.app: satisfies its Designated Requirement\n"
+  },
+  {
+    "command": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "--verbose=2",
+      "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app"
+    ],
+    "exit_code": 0,
+    "output": "--prepared:/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/PlugIns/BuildHunterUITests.xctest\n--validated:/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app/Contents/PlugIns/BuildHunterUITests.xctest\n/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app: valid on disk\n/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/xcode/DerivedData/Build/Products/Debug/BuildHunterUITests-Runner.app: satisfies its Designated Requirement\n"
+  }
+]

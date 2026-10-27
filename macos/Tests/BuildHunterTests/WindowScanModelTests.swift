@@ -5,6 +5,128 @@ import Testing
 @Suite("Window scan lifecycle")
 @MainActor
 struct WindowScanModelTests {
+    @Test("Warning actions use exact event paths, reject unsafe paths and reset with the report")
+    func warningActionLocations() async {
+        let source = ControlledScanSource()
+        let model = WindowScanModel(source: source)
+        let root = URL(filePath: "/tmp/warning-root", directoryHint: .isDirectory)
+        model.accept(target: root)
+        let generation = model.generation
+        source.yield(.warning(generation: generation, message: "Unrelated display text: details",
+                              relativePath: "folder: with colon/subfolder"))
+        source.yield(.warning(generation: generation, message: "fake/path: text alone is not a location"))
+        source.yield(.warning(generation: generation, message: "Parent escape", relativePath: "../outside"))
+        source.yield(.warning(generation: generation, message: "Absolute path", relativePath: "/outside"))
+        source.yield(.warning(generation: generation, message: "Embedded null", relativePath: "bad\0name"))
+        source.yield(.warning(generation: generation, message: "Selected root warning", relativePath: "."))
+        source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
+        await model.waitForCurrentScan()
+        #expect(model.warningActionURL(at: 0)?.path == root.appending(path: "folder: with colon/subfolder").path)
+        for index in [1, 2, 3, 4, -1, 99] { #expect(model.warningActionURL(at: index) == nil) }
+        #expect(model.warningActionURL(at: 5) == root)
+        #expect(model.warnings[0] == "Unrelated display text: details")
+        model.rescan()
+        #expect(model.warningActionURL(at: 0) == nil)
+        model.apply(.warning(generation: generation, message: "Late", relativePath: "old/path"))
+        #expect(model.warnings.isEmpty)
+        model.stop()
+    }
+
+    @Test("Deduplicated warnings with conflicting origins permanently lose their path action")
+    func duplicateWarningLocations() async {
+        let source = ControlledScanSource()
+        let model = WindowScanModel(source: source)
+        model.accept(target: URL(filePath: "/tmp/warning-root", directoryHint: .isDirectory))
+        let generation = model.generation
+        for path in ["first", "second", "first"] {
+            source.yield(.warning(generation: generation, message: "Same formatted warning", relativePath: path))
+        }
+        for _ in 0..<2 {
+            source.yield(.warning(generation: generation, message: "Same origin", relativePath: "stable"))
+        }
+        source.yield(.warning(generation: generation, message: "Summary collision", relativePath: "real"))
+        source.yield(.warning(generation: generation, message: "Summary collision"))
+        source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
+        await model.waitForCurrentScan()
+        #expect(model.warnings.count == 3)
+        #expect(model.warningActionURL(at: 0) == nil)
+        #expect(model.warningActionURL(at: 1)?.lastPathComponent == "stable")
+        #expect(model.warningActionURL(at: 2) == nil)
+    }
+
+    @Test("Diagnostic warning actions retain exact paths and respect lossy root disabling")
+    func diagnosticWarningLocation() async throws {
+        let source = ControlledScanSource()
+        let model = WindowScanModel(source: source)
+        model.accept(target: URL(filePath: "/tmp/warning-root", directoryHint: .isDirectory))
+        let generation = model.generation
+        let diagnostic = ScanDiagnostic(relativePath: "display-only", classification: .init(
+            kind: "indeterminate", matchedTargetIDs: [], unknownTargetIDs: ["a.cache"], unavailable: []),
+            message: "Diagnostic details")
+        source.yield(.diagnostic(generation: generation, diagnostic: diagnostic, relativePath: "exact"))
+        source.yield(.finished(generation: generation, result: .completed))
+        source.finish(generation: generation)
+        await model.waitForCurrentScan()
+        #expect(model.warningActionURL(at: 0)?.lastPathComponent == "exact")
+        model.rescan()
+        let next = model.generation
+        model.apply(.catalog(generation: next, metadata: try #require(ScanCatalogMetadata.basic()), rootPathIsExact: false))
+        model.apply(.diagnostic(generation: next, diagnostic: diagnostic, relativePath: "exact"))
+        #expect(model.warningActionURL(at: 0) == nil)
+        model.stop()
+    }
+
+    @Test("Warning bridge copies exact paths and rejects lossy or empty paths", arguments: [true, false])
+    func bridgeWarningLocations(rootPathIsExact: Bool) async {
+        let channel = ScanEventChannel(capacity: 8)
+        let bridge = RustScanBridgeContext(generation: 1, channel: channel, rootPathIsExact: rootPathIsExact)
+        let paths: [[UInt8]] = [Array("folder: name".utf8), [0xFF], []]
+        for bytes in paths {
+            bytes.withUnsafeBufferPointer { path in
+                Array("Permission denied".utf8).withUnsafeBufferPointer { message in
+                    var event = BHScanEvent()
+                    event.event_type = 3
+                    event.path = path.baseAddress
+                    event.path_len = path.count
+                    event.message = message.baseAddress
+                    event.message_len = message.count
+                    withUnsafePointer(to: &event) { bridge.handle($0) }
+                }
+            }
+        }
+        channel.finish()
+        var locations: [String?] = []
+        while let event = await channel.next() {
+            if case .warning(_, _, let path) = event { locations.append(path) }
+        }
+        #expect(locations.count == 3)
+        #expect(locations[0] == (rootPathIsExact ? "folder: name" : nil))
+        #expect(locations[1] == nil && locations[2] == nil)
+    }
+
+    @Test("Stop retains warning locations alongside the final rule profile")
+    func stoppedProfileKeepsWarningLocations() async throws {
+        let source = ControlledScanSource(captureStoppedProfiles: true)
+        let model = WindowScanModel(source: source)
+        let root = URL(filePath: "/tmp/warning-root", directoryHint: .isDirectory)
+        model.accept(target: root)
+        let generation = model.generation
+        let catalog = try #require(ScanCatalogMetadata.basic())
+        model.apply(.catalog(generation: generation, metadata: catalog, rootPathIsExact: true))
+        model.apply(.warning(generation: generation, message: "Unreadable", relativePath: "folder: name"))
+        model.stop()
+        model.apply(.warning(generation: generation, message: "Late", relativePath: "late"))
+        let expected = stoppedRuleProfile(catalog: catalog)
+        source.finishStoppedProfile(generation: generation, profile: expected, catalog: catalog)
+        await model.waitForCurrentScan()
+        #expect(model.phase == .stopped && model.profile.ruleProfile == expected)
+        #expect(model.warnings == ["Unreadable"])
+        #expect(model.warningActionURL(at: 0)?.path == root.appending(path: "folder: name").path)
+        #expect(model.warningActionURL(at: 1) == nil)
+    }
+
     @Test("Stop retains final rule metrics and export even before catalog delivery", arguments: [false, true])
     func stopRetainsRuleProfile(catalogArrived: Bool) async throws {
         let source = ControlledScanSource(captureStoppedProfiles: true)
@@ -213,7 +335,7 @@ struct WindowScanModelTests {
         }
         for index in 0..<10_000 {
             let event = try #require(await channel.next())
-            guard case .warning(_, let message) = event else {
+            guard case .warning(_, let message, _) = event else {
                 Issue.record("Expected a warning event")
                 return
             }
@@ -229,7 +351,7 @@ struct WindowScanModelTests {
         channel.finish()
         for index in 10_000..<(10_000 + capacity) {
             let event = try #require(await channel.next())
-            guard case .warning(_, let message) = event else {
+            guard case .warning(_, let message, _) = event else {
                 Issue.record("Expected a buffered warning event")
                 return
             }

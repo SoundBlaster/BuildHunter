@@ -97,7 +97,7 @@ struct MigrationParityTests {
                 #expect(rootPathIsExact && metadata.isSupported)
                 #expect(Set(metadata.excludedTargetIDs) == Set(run.excluded))
                 catalog = metadata
-            case .diagnostic(_, let diagnostic):
+            case .diagnostic(_, let diagnostic, _):
                 Issue.record("Unexpected classification diagnostic: \(diagnostic)")
             case .discovered(_, let artifact):
                 #expect(catalog != nil)
@@ -107,7 +107,7 @@ struct MigrationParityTests {
                 #expect(discovered[id] != nil)
                 #expect(completed[id] == nil)
                 completed[id] = (bytes, partial)
-            case .warning(_, let message): warnings.append(message)
+            case .warning(_, let message, _): warnings.append(message)
             case .finished(_, let result): terminal.append(tag(result))
             case .profile, .ruleProfile: break
             }

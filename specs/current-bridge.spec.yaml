@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.bridge
   title: Rust/Swift scan session bridge
-  version: 0.1.0-draft.4
+  version: 0.1.0-draft.5
   status: draft
 intent:
   summary: Carry borrowed Rust scan events into a cancellable Swift stream while owning control handles, settings
@@ -74,7 +74,13 @@ constraints:
 - id: invalid_utf8
   level: MUST
   statement: Rust retains raw path bytes; Swift decodes displayed paths lossily and emits bridge warnings that make
-    a completed result incomplete. Disable Finder/Copy actions for the first lossy component and descendants; safe ancestors remain usable. A lossy selected root disables every path action. Raw root bytes are copied from filesystem representation before scanning; display Strings never authorize reconstruction of lossy paths.
+    a completed result incomplete. Disable Finder/Copy Path actions for the first lossy component and descendants; safe ancestors remain usable. Warning text remains copyable. A lossy selected root disables every path action. Raw root bytes are copied from filesystem representation before scanning; display Strings never authorize reconstruction of lossy paths.
+- id: warning_locations
+  level: MUST
+  statement: Copy a non-empty exact UTF-8 relative path separately from warning or diagnostic display text
+    before the C callback returns. A lossy selected root, invalid UTF-8 or absent path yields no warning
+    action path. General bridge/terminal messages have no inferred location. The Swift-only optional
+    location does not change the Rust C event ABI or exported diagnostic/message schemas.
 effects:
   sideEffects:
   - id: session_access
@@ -98,6 +104,7 @@ evidence:
   - constraints.access_lifetime
   - constraints.policy_table
   - constraints.invalid_utf8
+  - constraints.warning_locations
 - id: source_1
   kind: source
   path: src/policy_table.rs
@@ -119,12 +126,14 @@ evidence:
   path: macos/Tests/BuildHunterTests/WindowScanModelTests.swift
   supports:
   - scope
+  - constraints.warning_locations
 provenance:
   sourceConfidence:
     intent: high
     boundary: medium
     behavior: medium
   notes:
+  - Warning action source and runtime evidence are recorded in validation/warning-actions-20261025; draft constraints remain descriptive and do not imply owner acceptance.
   - R7 adds file-backed catalog preparation; existing queue cancellation, target-scope and borrowed-event lifetimes remain unchanged. Current identities and execution limits are in validation/user-templates-20261025.
   - R4 cutover source/run identities are in validation/r4-client-cutover-20261023. Local compilation and test-host execution are separate evidence; no snapshot/inode action capability or Store acceptance is claimed.
   - Recovered descriptive constraints from pinned source, not runtime conformance or owner acceptance.
@@ -136,10 +145,11 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 00609364edd5168c9f8653a3d86147d2e11bdba4
+    revision: 7ccc42d9b75b7ce686cddc9045a5eddb4b1e9019
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift
+    - macos/Sources/BuildHunter/Scanning/ScanEvent.swift
     - src/policy_table.rs
     - src/catalog_bridge.rs
     - src/catalog.rs

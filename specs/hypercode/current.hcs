@@ -1,6 +1,6 @@
 # Composition only. Context selects the inspected client, not runtime behavior.
 BuildHunterRuntime:
-  current_evidence: "specs/validation/rule-profiling-20261026/source-identity.json"
+  current_evidence: "specs/validation/warning-rule-profile-merge-20261028/source-identity.json"
   status: "observed-source"
   baseline: "specs/validation/hunter-engine-launch-20261020/source-identity.json"
   entrypoint: "src/main.rs"
@@ -16,9 +16,11 @@ WindowSession:
   boundary_spec: "buildhunter.current.application"
 ReportPresentation:
   source: "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift"
+  implementation: "table/diagram/warnings; warning cells expose context Copy and Finder actions"
   folded_into: "buildhunter.current.application"
 FolderActions:
   source: "macos/Sources/BuildHunter/UI/BuildHunterWindow.swift"
+  implementation: "explicit user Finder/copy effects; warning actions use exact event paths, not parsed display messages"
   folded_into: "buildhunter.current.application"
 Export:
   source: "macos/Sources/BuildHunter/Scanning/ScanReportExport.swift"
@@ -104,7 +106,7 @@ FilterCatalog:
   implementation: "validated plugin target descriptors; legacy JSON supplies ordering/matching hints only"
   folded_into: "buildhunter.current.classification"
 RustSwiftBridge:
-  implementation: "catalog handle through scan return; copied metadata/target IDs/diagnostics; lossy path action guard"
+  implementation: "catalog handle through return; copied metadata/diagnostics and separate exact warning paths; lossy action guard"
   source: "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift"
   boundary_spec: "buildhunter.current.bridge"
 PolicyTable:

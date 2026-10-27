@@ -28,6 +28,8 @@ final class WindowScanModel {
     @ObservationIgnored private var rowIndices: [UUID: Int] = [:]
     /// Mirrors `warnings` so deduplication stays O(1) for scans with many unreadable paths.
     @ObservationIgnored private var warningSet: Set<String> = []
+    /// Exact paths travel separately from display text. Ambiguous duplicate messages lose their action.
+    private var warningPaths: [String: String] = [:]
 
     init(source: any ScanEventSource = RustScanEventSource(), filterSettings: SearchFilterSettings = .shared) {
         self.source = source
@@ -131,9 +133,9 @@ final class WindowScanModel {
             excludedFilterIDs = Set(metadata.excludedTargetIDs)
             if !rootPathIsExact { unsafePathPrefixes.insert("") }
             reportRevision &+= 1
-        case .diagnostic(_, let diagnostic):
+        case .diagnostic(_, let diagnostic, let relativePath):
             diagnostics.append(diagnostic)
-            appendWarning(diagnostic.message)
+            appendWarning(diagnostic.message, relativePath: relativePath)
         case .discovered(_, let artifact):
             guard rowIndices[artifact.id] == nil else { return }
             if let prefix = artifact.unsafePathPrefix { unsafePathPrefixes.insert(prefix) }
@@ -152,8 +154,8 @@ final class WindowScanModel {
             profile.record(sample)
         case .ruleProfile(_, let value):
             if value.catalogDigest == catalogMetadata?.digest { profile.ruleProfile = value }
-        case .warning(_, let message):
-            appendWarning(message)
+        case .warning(_, let message, let relativePath):
+            appendWarning(message, relativePath: relativePath)
         case .finished(_, let result):
             switch result {
             case .completed:
@@ -180,6 +182,11 @@ final class WindowScanModel {
         ArtifactFolderLocation.actionURL(root: targetURL, relativePath: relativePath, unsafePrefixes: unsafePathPrefixes)
     }
 
+    func warningActionURL(at index: Int) -> URL? {
+        guard warnings.indices.contains(index), let path = warningPaths[warnings[index]] else { return nil }
+        return actionURL(for: path)
+    }
+
     func waitForCurrentScan() async {
         await scanTask?.value
     }
@@ -194,11 +201,19 @@ final class WindowScanModel {
         diagnostics = []
         unsafePathPrefixes = []
         warningSet = []
+        warningPaths = [:]
         reportRevision &+= 1
     }
 
-    private func appendWarning(_ message: String) {
-        if warningSet.insert(message).inserted { warnings.append(message) }
+    private func appendWarning(_ message: String, relativePath: String? = nil) {
+        if warningSet.insert(message).inserted {
+            warnings.append(message)
+            warningPaths[message] = relativePath
+        } else if warningPaths[message] != relativePath {
+            // Identical formatted text can refer to distinct paths (for example a
+            // colon in a filename). Once ambiguous, never restore a guessed action.
+            warningPaths[message] = nil
+        }
     }
 
     private func beginScan() {

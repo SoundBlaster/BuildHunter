@@ -1,0 +1,30 @@
+{
+  "baseline": "5900617cdddf2ce989308da086e28222a34604d6",
+  "runtime_commit": "dba474b5a829a2bd6b4d0a01158fb1bd688a02df",
+  "generated_utc": "2026-10-25T15:49:02.223926+00:00",
+  "source_state": "Runtime files committed; documentation, maps and specifications captured before their separate documentation commit. Historical receipts preserved.",
+  "files": {
+    "docs/warning-actions.md": "8a171b1ade4da7317c5c5cb98bff3f810fda15a627f0cdb6c55c6fc924024f2f",
+    "macos/Sources/BuildHunter/Domain/ArtifactFolderLocation.swift": "5504213f39b4ef538533a2461052f39ef29689d0bef6f7710b67cf46958338b5",
+    "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift": "2406b4c3d077b00b01dd1ab95116b9042e8522369596fd9a4bf6646faffc384f",
+    "macos/Sources/BuildHunter/Scanning/ScanEvent.swift": "5c67216dc10bbd32697df959e522ef0267d8e4153841e4f77cdac214adff3c58",
+    "macos/Sources/BuildHunter/Scanning/WindowScanModel.swift": "9b7f8283c0c1fb12877248a3a4697f0db13df4249d4295b143fff4b218c5e0be",
+    "macos/Sources/BuildHunter/UI/ScanWarningsWindow.swift": "ebd1d81f1a00ff903e57c43514f84e3f6bb3eced6ea589a665a328b732a77f73",
+    "macos/Tests/BuildHunterTests/MigrationParityTests.swift": "53d618ef5ee882822423ff23dc2fb807609018914d73f92a01e85f04d5092b4d",
+    "macos/Tests/BuildHunterTests/SearchFilterIntegrationTests.swift": "f58b4391dd880299d254037d2c67b4b6261c748e62a5cde277dbe82a024ac2e0",
+    "macos/Tests/BuildHunterTests/WindowScanModelTests.swift": "bc2947cc77a0bd057fbd83a4f23f49ff6de2734238928bde9767e66accec69c6",
+    "macos/Tests/BuildHunterUITests/BuildHunterUITests.swift": "7f3045216faa49c634132c240511fc5d8807223411c097794bddc056e3446600",
+    "specpm.yaml": "625ee13049af70ea1f27355bbab3ee93ac1c1ccaedf6089c2ba7eaff4e9ceca2",
+    "specs/claim-matrix.md": "d8fbc50d450bb5d7b9adbd1c9512037a2a6d76bde89cbb268cac4a49a271a3ad",
+    "specs/current-application.spec.yaml": "2107d3fc805a87cc5ce90b458fe20088178a94fa99d37cc6b64d09aa07779499",
+    "specs/current-bridge.spec.yaml": "07bf0754bceb51a9a04889265d020932f2044650aa5c3743d900f5768eb54793",
+    "specs/hypercode/README.md": "cb44c8ae776f11256b09588b0d6c95787d89f9ff2a37fcf6b0b10c3b0e7c6228",
+    "specs/hypercode/current.hc": "87ce144ef2e01ac7a4ac6b188aac59d18fb8df188a7a7665defbecc62817b8fd",
+    "specs/hypercode/current.hcs": "8f92460ec7f1f053b875e761a0843d1b90ebb9e576b4730be34f619927df7ad6",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/specification-progress.md": "ab7d5447fd6b4f39b046ba50563935e60ce4c264e3a5d8d12b4858be3d48ea92"
+  },
+  "map_note": "Composition and target maps unchanged; warning path/menu details folded into RustSwiftBridge, ReportPresentation and FolderActions.",
+  "excluded_user_file": "Primary checkout Xcode scheme remained modified with unchanged hash e59ed0ed16e05859a2cb1d7d43af461e76d782707c5b0e157386eff289879bbf."
+}
