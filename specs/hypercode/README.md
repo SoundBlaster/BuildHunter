@@ -258,3 +258,9 @@ scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.
 Warning actions and stopped profiling are composed after their integration; current
 topology is unchanged. Updated source/map identities and validation scope are in
 `../validation/warning-rule-profile-merge-20261028`; prior evidence remains historical.
+
+Post-merge GUI verification (2026-10-27) changes only the real-folder UI-test
+setup. Runtime roles, current/target topology and contract bindings are unchanged;
+test assembly stays folded into MacApplication. Current identities, Release
+observations and explicitly unverified Automation-blocked test repair are in
+[main-templates-20261027](../validation/main-templates-20261027/README.md).

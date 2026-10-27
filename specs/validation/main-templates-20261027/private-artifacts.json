@@ -1,0 +1,26 @@
+[
+  {
+    "name": "completed-report.json",
+    "sha256": "e583a18b8995bedd024f60281d0a30f6b9c39211d7524a3a6d79cedba1c12f28",
+    "bytes": 15775,
+    "location": "local TB5 validation directory; raw reports are not published"
+  },
+  {
+    "name": "stopped-report.json",
+    "sha256": "368c29c4469afd105eaadf198b3b659d5d4d96968befd4c2533ded608c2ff4df",
+    "bytes": 812806,
+    "location": "local TB5 validation directory; raw reports are not published"
+  },
+  {
+    "name": "forge-plugin.json",
+    "sha256": "1b9210f8ca9b7fa537ec50ac8180805fb7568d6567ff719272aece593b150bf5",
+    "bytes": 1399,
+    "location": "local TB5 validation directory; raw reports are not published"
+  },
+  {
+    "name": "forge-export.json",
+    "sha256": "1b9210f8ca9b7fa537ec50ac8180805fb7568d6567ff719272aece593b150bf5",
+    "bytes": 1399,
+    "location": "local TB5 validation directory; raw reports are not published"
+  }
+]

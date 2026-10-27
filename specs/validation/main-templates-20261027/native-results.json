@@ -1,0 +1,81 @@
+[
+  {
+    "run": "units",
+    "result": "Passed",
+    "totalTestCount": 158,
+    "passedTests": 158,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "run": "ui",
+    "result": "Failed",
+    "totalTestCount": 3,
+    "passedTests": 2,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "testFailures": [
+      {
+        "failureText": "Failed to synthesize event: Timed out while synthesizing event.",
+        "targetName": "BuildHunterUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "BuildHunterUITests/testFullFolderPathCanBeCopiedAfterOpeningARealTarget()",
+        "testIdentifierURL": "test://com.apple.xcode/BuildHunter/BuildHunterUITests/BuildHunterUITests/testFullFolderPathCanBeCopiedAfterOpeningARealTarget",
+        "testName": "testFullFolderPathCanBeCopiedAfterOpeningARealTarget()"
+      }
+    ]
+  },
+  {
+    "run": "ui-folder-retry",
+    "result": "Failed",
+    "totalTestCount": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "testFailures": [
+      {
+        "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Expected static text value: Scan complete",
+        "targetName": "BuildHunterUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "BuildHunterUITests/testFullFolderPathCanBeCopiedAfterOpeningARealTarget()",
+        "testIdentifierURL": "test://com.apple.xcode/BuildHunter/BuildHunterUITests/BuildHunterUITests/testFullFolderPathCanBeCopiedAfterOpeningARealTarget",
+        "testName": "testFullFolderPathCanBeCopiedAfterOpeningARealTarget()"
+      }
+    ]
+  },
+  {
+    "run": "chooser-test",
+    "result": "Failed",
+    "totalTestCount": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "testFailures": [
+      {
+        "failureText": "The test runner failed to initialize for UI testing. (Underlying Error: Timed out while enabling automation mode.)",
+        "targetName": "BuildHunterUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "BuildHunterUITests-Runner (35138) encountered an error",
+        "testName": "BuildHunterUITests-Runner (35138) encountered an error"
+      }
+    ]
+  },
+  {
+    "run": "chooser-retry",
+    "result": "Failed",
+    "totalTestCount": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "testFailures": [
+      {
+        "failureText": "The test runner failed to initialize for UI testing. (Underlying Error: Timed out while enabling automation mode.)",
+        "targetName": "BuildHunterUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "BuildHunterUITests-Runner (35914) encountered an error",
+        "testName": "BuildHunterUITests-Runner (35914) encountered an error"
+      }
+    ]
+  }
+]

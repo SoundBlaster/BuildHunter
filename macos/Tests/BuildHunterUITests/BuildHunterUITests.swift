@@ -546,15 +546,24 @@ final class BuildHunterUITests: XCTestCase {
         let selectedRoot = root.resolvingSymlinksInPath()
         let app = launchWindow()
         defer { app.terminate() }
-        // A restored diagram can cover the chooser's owner window on a developer Mac.
+        // Remove restored companion windows before opening a modal chooser. Merely
+        // raising its owner does not keep a diagram from intercepting later input.
+        for diagram in app.windows.matching(NSPredicate(format: "identifier BEGINSWITH %@", "artifact-diagram-")).allElementsBoundByIndex {
+            diagram.buttons[XCUIIdentifierCloseWindow].click()
+        }
         activateWindow(titled: "BuildHunter", in: app)
         let emptyWindow = app.windows.containing(.button, identifier: "buildhunter.empty.openFolder").firstMatch
         emptyWindow.buttons["buildhunter.empty.openFolder"].click()
         let open = app.descendants(matching: .any).matching(identifier: "OKButton").firstMatch
         XCTAssertTrue(open.waitForExistence(timeout: 5))
         app.typeKey("g", modifierFlags: [.command, .shift])
-        app.typeText(selectedRoot.path)
-        app.typeKey(.return, modifierFlags: [])
+        let path = app.textFields["PathTextField"]
+        XCTAssertTrue(path.waitForExistence(timeout: 5), "Go to Folder must own keyboard input before entering the fixture path")
+        path.click()
+        path.typeKey("a", modifierFlags: .command)
+        path.typeText(selectedRoot.path)
+        XCTAssertEqual(path.value as? String, selectedRoot.path)
+        path.typeKey(.return, modifierFlags: [])
         open.click()
         let scanWindow = app.windows.containing(.button, identifier: "buildhunter.toolbar.openDiagram").firstMatch
         expectValue("Scan complete", of: scanWindow.staticTexts["buildhunter.report.status"])

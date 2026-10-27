@@ -1,0 +1,18 @@
+{
+  "xcode": {
+    "exit_code": 0,
+    "output": "Xcode 27.1\nBuild version 27A9275\n"
+  },
+  "swift": {
+    "exit_code": 0,
+    "output": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\nswift-driver version: 1.168.6 "
+  },
+  "macos": {
+    "exit_code": 0,
+    "output": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0\nBuildVersion:\t\t26A428\n"
+  },
+  "specpm": {
+    "exit_code": 0,
+    "output": "specpm 0.2.0\n"
+  }
+}

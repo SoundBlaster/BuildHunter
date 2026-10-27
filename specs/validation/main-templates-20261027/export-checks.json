@@ -1,0 +1,45 @@
+{
+  "completed": {
+    "status": "complete",
+    "total_bytes": 8192,
+    "artifacts": 1,
+    "custom_rules": [
+      {
+        "average_ns": 208.5,
+        "evaluations": 2,
+        "false": 0,
+        "max_ns": 250,
+        "package_id": "verification.forge",
+        "phase": "preliminary",
+        "rule_id": "output",
+        "skipped_by_dispatch": 5,
+        "target_id": "verification.forge-output",
+        "total_ns": 417,
+        "true": 0,
+        "unknown": 2
+      },
+      {
+        "average_ns": 104,
+        "evaluations": 2,
+        "false": 1,
+        "max_ns": 125,
+        "package_id": "verification.forge",
+        "phase": "resolved",
+        "rule_id": "output",
+        "skipped_by_dispatch": 3,
+        "target_id": "verification.forge-output",
+        "total_ns": 208,
+        "true": 1,
+        "unknown": 0
+      }
+    ],
+    "profile_rows": 28
+  },
+  "stopped": {
+    "status": "stopped",
+    "profile_status": "cancelled",
+    "profile_rows": 28,
+    "preliminary_calls": 455550
+  },
+  "template_export_bytes_equal": true
+}
