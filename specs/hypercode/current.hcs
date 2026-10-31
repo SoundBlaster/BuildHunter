@@ -9,6 +9,7 @@ CommandLine:
   source: "src/main.rs"
   boundary_spec: "buildhunter.current.application"
 MacApplication:
+  edition_composition: "BUILDHUNTER_COMMERCE optionally imports a private edition UI; default public assembly has no store dependency"
   source: "macos/Sources/BuildHunter/UI/BuildHunterApp.swift"
   boundary_spec: "buildhunter.current.application"
 WindowSession:
@@ -29,7 +30,7 @@ Settings:
   source: "macos/Sources/BuildHunter/Domain/SearchFilters.swift"
   folded_into: "buildhunter.current.classification"
 TemplateManagement:
-  edition_resources: "optional bounded manifest and SHA256 package resources; combined catalog; purchase policy excluded"
+  edition_resources: "optional hashed bundle; edition-neutral authorization gates bundled documents only; immutable per-scan admission; store verification excluded"
   source: "macos/Sources/BuildHunter/UI/UserTemplatesWindow.swift"
   boundary_spec: "buildhunter.current.templates"
 TemplateRegistry:

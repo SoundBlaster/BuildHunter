@@ -288,6 +288,45 @@ struct UserTemplateTests {
 @Suite("Bundled catalog resources")
 @MainActor
 struct BundledCatalogTests {
+    @Test("Locked bundled catalog preserves built-in and user rules, including validation errors")
+    func lockedCatalog() throws {
+        let user = Data(TemplateCatalog.example().utf8)
+        let invalidBundle = Data("{".utf8)
+        let basic = try TemplateCatalog.metadata(documents: [], bundledDocuments: [invalidBundle], access: .denied)
+        let custom = try TemplateCatalog.metadata(documents: [user], bundledDocuments: [invalidBundle], access: .denied)
+        #expect(basic.targets.count == 13 && custom.targets.count == 14)
+        #expect(custom.packages?.count == 4)
+        do {
+            _ = try TemplateCatalog.metadata(documents: [invalidBundle], bundledDocuments: [user], access: .denied)
+            Issue.record("A locked paid catalog must not bypass user template validation")
+        } catch let error as TemplateProblem { #expect(error.templateIndex == 0) }
+        #expect(throws: TemplateProblem.self) {
+            _ = try TemplateCatalog.metadata(documents: [], bundledDocuments: [invalidBundle], access: .allowed)
+        }
+    }
+
+    @Test("Authorization expires at its boundary and captured scans survive subsequent revocation")
+    func authorizationSnapshots() throws {
+        let gate = BundledCatalogAuthorization(requiresAuthorization: true)
+        let now = Date(timeIntervalSince1970: 100)
+        #expect(gate.snapshot(at: now) == .denied)
+        gate.update(isAllowed: true, expiresAt: now.addingTimeInterval(10))
+        let admitted = gate.snapshot(at: now)
+        #expect(admitted == .allowed)
+        #expect(gate.snapshot(at: now.addingTimeInterval(10)) == .denied)
+        gate.update(isAllowed: false)
+        #expect(gate.snapshot(at: now) == .denied && admitted == .allowed)
+        let bundle = Data(TemplateCatalog.example().utf8)
+        let running = try TemplateCatalog.create(documents: [], bundledDocuments: [bundle], access: admitted)
+        defer { bh_catalog_destroy(running) }
+        let next = try TemplateCatalog.metadata(documents: [], bundledDocuments: [bundle], access: gate.snapshot(at: now))
+        #expect(next.targets.count == 13)
+        let json = String(cString: try #require(bh_catalog_json(running)))
+        let metadata = try JSONDecoder().decode(ScanCatalogMetadata.self, from: Data(json.utf8))
+        #expect(metadata.targets.count == 14)
+        #expect(BundledCatalogAuthorization(requiresAuthorization: false).snapshot(at: now) == .allowed)
+    }
+
     @Test("Bundle packages and user templates share one immutable catalog and exclusions")
     func composition() throws {
         let bundled = Data(TemplateCatalog.example().utf8)
