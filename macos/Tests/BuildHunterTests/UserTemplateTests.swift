@@ -1,3 +1,4 @@
+import CryptoKit
 import Darwin
 import Foundation
 import Testing
@@ -281,5 +282,72 @@ struct UserTemplateTests {
         let url = FileManager.default.temporaryDirectory.appending(path: "UserTemplates-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
+    }
+}
+
+@Suite("Bundled catalog resources")
+@MainActor
+struct BundledCatalogTests {
+    @Test("Bundle packages and user templates share one immutable catalog and exclusions")
+    func composition() throws {
+        let bundled = Data(TemplateCatalog.example().utf8)
+        let user = Data(TemplateCatalog.example().utf8)
+        let metadata = try TemplateCatalog.metadata(documents: [user], bundledDocuments: [bundled])
+        #expect(metadata.targets.count == 15)
+        #expect(metadata.packages?.count == 5)
+        let target = try #require(metadata.targets.last).id
+        let excluded = try TemplateCatalog.metadata(documents: [user], excluded: [target], bundledDocuments: [bundled])
+        #expect(excluded.digest == metadata.digest)
+        #expect(excluded.excludedTargetIDs.contains(target))
+    }
+
+    @Test("Broken edition packages fail closed; user error indexes remain user-relative")
+    func diagnostics() throws {
+        let bundled = Data(TemplateCatalog.example().utf8)
+        do {
+            _ = try TemplateCatalog.metadata(documents: [], bundledDocuments: [Data("{".utf8)])
+            Issue.record("Broken bundle admitted")
+        } catch let error as TemplateProblem { #expect(error.code == "bundled_catalog_invalid") }
+        do {
+            _ = try TemplateCatalog.metadata(documents: [Data("{".utf8)], bundledDocuments: [bundled])
+            Issue.record("Broken user template admitted")
+        } catch let error as TemplateProblem { #expect(error.templateIndex == 0) }
+        #expect(throws: TemplateProblem.self) {
+            _ = try TemplateCatalog.metadata(documents: [bundled], bundledDocuments: [bundled])
+        }
+    }
+
+    @Test("Resource manifest preserves exact bytes and rejects tampering or missing files")
+    func resourceIntegrity() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let folder = root.appending(path: "Catalog")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bytes = Data(TemplateCatalog.example().utf8)
+        let package = folder.appending(path: "package.json")
+        try bytes.write(to: package)
+        let hash = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+        let manifest: [String: Any] = ["format": "buildhunter.bundled-catalog/1", "packages": [["file": "package.json", "sha256": hash]]]
+        try JSONSerialization.data(withJSONObject: manifest).write(to: folder.appending(path: "catalog.json"))
+        #expect(try BundledTemplateCatalog.documents(resources: root, manifestPath: "Catalog/catalog.json") == [bytes])
+        try Data("{}".utf8).write(to: package)
+        #expect(throws: TemplateProblem.self) { _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "Catalog/catalog.json") }
+        try FileManager.default.removeItem(at: package)
+        #expect(throws: TemplateProblem.self) { _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "Catalog/catalog.json") }
+    }
+
+    @Test("Configured missing manifests, traversal and external links do not fall back to basic")
+    func locations() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let folder = root.appending(path: "Catalog")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        for path in ["Catalog/missing.json", "../catalog.json", "/Catalog/catalog.json", "Catalog/a/b.json", ""] {
+            #expect(throws: TemplateProblem.self) { _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: path) }
+        }
+        let outside = root.appending(path: "outside.json")
+        try Data("{}".utf8).write(to: outside)
+        try FileManager.default.createSymbolicLink(at: folder.appending(path: "catalog.json"), withDestinationURL: outside)
+        #expect(throws: TemplateProblem.self) { _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "Catalog/catalog.json") }
     }
 }

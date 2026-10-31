@@ -1322,3 +1322,15 @@ runtime, current and target maps, claims and accepted requirements are unchanged
 by the upper UI-test-only layer. Combined source/map identities and fresh
 structural validation: `validation/stack-119-123-20261028`. Hosted macOS UI and
 unit tests are required for the combined tip.
+
+## Bundled edition catalog — 2026-10-31
+
+TemplateManagement now folds optional resource-manifest loading into its existing
+preparation role. C6 / current.templates/edition_resources records the new app
+resource reads; bounded_admission and scan_isolation keep their whole-catalog
+obligations. Current bridge/application and catalog snapshot interfaces/ABI are
+unchanged: no new executable plugin interface or private definitions. No new HC
+node is needed for this helper. Target Store delivery/purchase acceptance remains
+draft and unproven. Source/map identities and current checks are in
+[the receipt](validation/bundled-catalog-20261031/README.md); older receipts remain
+historical and do not validate changed preparation code.

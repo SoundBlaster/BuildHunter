@@ -104,7 +104,8 @@ scanner policy. There is no implicit precedence override for user files.
 ## Limits and identity
 
 - Regular files only; no directory, device or FIFO input. UTF-8 JSON is required.
-- At most 61 connected user packages, 1 MiB per file; the effective Rust catalog
+- At most 61 connected user packages (the 61-document admission budget is shared
+  with optional bundled edition packages), 1 MiB per file; the effective Rust catalog
   also includes 3 built-ins and has a 16 MiB total byte budget.
 - Rifle's existing JSON-depth, expression, rule, target, marker and cost admission
   limits remain in force. Duplicate JSON keys and unsupported operators/formats

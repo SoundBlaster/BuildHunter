@@ -1,5 +1,6 @@
 import Foundation
 import Darwin
+import CryptoKit
 
 struct TemplateProblem: Error, LocalizedError, Codable, Equatable, Sendable {
     let code: String
@@ -45,13 +46,87 @@ private func receiveTemplateError(_ context: UnsafeMutableRawPointer?, _ bytes: 
     receiver.problem = try? JSONDecoder().decode(TemplateProblem.self, from: Data(bytes: bytes, count: count))
 }
 
+
+/// Edition resources are immutable application inputs, never user registrations.
+enum BundledTemplateCatalog {
+    private struct Manifest: Decodable {
+        struct Entry: Decodable { let file: String; let sha256: String }
+        let format: String
+        let packages: [Entry]
+    }
+
+    static func documents(bundle: Bundle = .main) throws -> [Data] {
+        guard let setting = bundle.object(forInfoDictionaryKey: "BuildHunterBundledCatalog") else { return [] }
+        guard let name = setting as? String, let resources = bundle.resourceURL else {
+            throw problem("Invalid bundled catalog setting.")
+        }
+        return try documents(resources: resources, manifestPath: name)
+    }
+
+    static func documents(resources: URL, manifestPath: String) throws -> [Data] {
+        let parts = manifestPath.split(separator: "/", omittingEmptySubsequences: false)
+        guard parts.count == 2, parts.allSatisfy({ safeName(String($0)) }) else {
+            throw problem("The bundled catalog must name a resource folder and manifest.")
+        }
+        let root = resources.resolvingSymlinksInPath().standardizedFileURL
+        let directory = root.appending(path: String(parts[0]), directoryHint: .isDirectory)
+        let manifestURL = directory.appending(path: String(parts[1]))
+        do {
+            try checkLocation(manifestURL, root: root)
+            let bytes = try TemplateFiles.readURL(manifestURL)
+            guard bytes.count <= 65_536 else { throw problem("Bundled manifest exceeds 64 KiB.") }
+            let manifest = try JSONDecoder().decode(Manifest.self, from: bytes)
+            guard manifest.format == "buildhunter.bundled-catalog/1",
+                  (1...TemplateCatalog.maximumTemplates).contains(manifest.packages.count),
+                  Set(manifest.packages.map(\.file)).count == manifest.packages.count else {
+                throw problem("Unsupported or invalid bundled catalog manifest.")
+            }
+            var result: [Data] = []
+            var total = 0
+            for entry in manifest.packages {
+                guard safeName(entry.file) else { throw problem("Invalid bundled package filename.") }
+                let url = directory.appending(path: entry.file)
+                try checkLocation(url, root: root)
+                let data = try TemplateFiles.readURL(url)
+                total += data.count
+                guard total <= TemplateCatalog.maximumCatalogBytes else { throw problem("Bundled catalog exceeds its byte budget.") }
+                let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+                guard hash == entry.sha256 else { throw problem("Bundled package integrity check failed: \(entry.file)") }
+                result.append(data)
+            }
+            return result
+        } catch {
+            throw problem("Cannot load bundled catalog: \(error.localizedDescription)")
+        }
+    }
+
+    private static func safeName(_ name: String) -> Bool {
+        !name.isEmpty && name != "." && name != ".." && name.utf8.allSatisfy {
+            (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || [45, 46, 95].contains($0)
+        }
+    }
+    private static func checkLocation(_ url: URL, root: URL) throws {
+        let values = try url.resourceValues(forKeys: [.isSymbolicLinkKey])
+        guard values.isSymbolicLink != true,
+              url.resolvingSymlinksInPath().path.hasPrefix(root.path + "/") else {
+            throw problem("Bundled resources must remain inside the application resources.")
+        }
+    }
+    private static func problem(_ message: String) -> TemplateProblem {
+        TemplateProblem(code: "bundled_catalog_invalid", location: "BuildHunterBundledCatalog", message: message)
+    }
+}
+
 enum TemplateCatalog {
     static let maximumFileBytes = 1_048_576
     static let maximumTemplates = 61
     static let maximumCatalogBytes = 16 * 1_048_576
 
     /// The immutable Rust handle owns its parsed data; all NSData backing lives through the call.
-    static func create(documents: [Data], excluded: Set<String> = []) throws -> UnsafeMutableRawPointer {
+    static func create(documents userDocuments: [Data], excluded: Set<String> = [],
+                       bundledDocuments: [Data]? = nil) throws -> UnsafeMutableRawPointer {
+        let bundled = try bundledDocuments ?? BundledTemplateCatalog.documents()
+        let documents = bundled + userDocuments
         guard documents.count <= maximumTemplates,
               documents.allSatisfy({ $0.count <= maximumFileBytes }),
               documents.reduce(0, { $0 + $1.count }) <= maximumCatalogBytes else {
@@ -71,13 +146,21 @@ enum TemplateCatalog {
             }
         }
         guard let handle else {
-            throw receiver.problem ?? TemplateProblem(code: "catalog_failed", location: "", message: "Could not prepare the template catalog.")
+            var problem = receiver.problem ?? TemplateProblem(code: "catalog_failed", location: "", message: "Could not prepare the template catalog.")
+            if let index = problem.templateIndex {
+                if index < bundled.count {
+                    problem = TemplateProblem(code: "bundled_catalog_invalid", location: "BuildHunterBundledCatalog", message: problem.message)
+                } else {
+                    problem.templateIndex = index - bundled.count
+                }
+            }
+            throw problem
         }
         return handle
     }
 
-    static func metadata(documents: [Data], excluded: Set<String> = []) throws -> ScanCatalogMetadata {
-        let handle = try create(documents: documents, excluded: excluded)
+    static func metadata(documents: [Data], excluded: Set<String> = [], bundledDocuments: [Data]? = nil) throws -> ScanCatalogMetadata {
+        let handle = try create(documents: documents, excluded: excluded, bundledDocuments: bundledDocuments)
         defer { bh_catalog_destroy(handle) }
         guard let pointer = bh_catalog_json(handle),
               let data = String(cString: pointer).data(using: .utf8),
