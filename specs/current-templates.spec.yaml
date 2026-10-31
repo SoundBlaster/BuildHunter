@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.templates
   title: File-backed user template management
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: draft
 intent:
   summary: Connect user-owned declarative JSON files and prepare a bounded immutable catalog for each new GUI scan.
@@ -12,6 +12,7 @@ scope:
   includes:
   - Settings Templates tab, bounded text editor, explicit file reads/writes, bookmarks and enabled registrations.
   - Draft validation, external-edit detection and all-or-nothing next-scan catalog admission.
+  - Optional edition resource manifests admitted with user files into the same catalog.
   excludes:
   - Git integration, file watchers, crash-recovery autosave and an IDE or visual rule builder.
   - CLI import UX, executable plugins, Swift authoring SDK and StoreKit/commercial delivery.
@@ -50,6 +51,9 @@ constraints:
 - id: file_exchange
   level: MUST
   statement: First-release free authoring includes a simple GUI editor and JSON import/export. Import connects files at their chosen paths. Export validates and atomically writes a selected copy without changing registrations, the source reference or unsaved-draft state; reject connected/current-source destinations and preserve an existing export when validation fails. Export never enables a duplicate package. Swift SDK is separate scope.
+- id: edition_resources
+  level: MUST
+  statement: A configured BuildHunterBundledCatalog resource manifest must load all SHA256-verified regular package resources within the application resource root or reject catalog preparation. Without the setting, basic/user-file behavior is retained. Bundled plus user packages share the 61-document and byte budgets. Built-in Rust namespaces remain reserved; bundled files have external origin and do not override user IDs. Errors in user documents retain user-relative indexes; bundled errors identify the edition resource. This is resource composition, not purchase authorization or Store acceptance.
 - id: scan_isolation
   level: MUST
   statement: Capture registrations and exclusions at scan creation, reload enabled files before traversal, and keep the admitted Rust catalog through scan return. Later file changes, disablement or disconnection affect subsequent scans. Reports retain package versions and digest, not live source references.
@@ -76,7 +80,7 @@ evidence:
 - id: files
   kind: source
   path: macos/Sources/BuildHunter/Domain/UserTemplates.swift
-  supports: [constraints.bounded_admission, constraints.scoped_writes]
+  supports: [constraints.bounded_admission, constraints.scoped_writes, constraints.edition_resources]
 - id: workspace
   kind: source
   path: macos/Sources/BuildHunter/Domain/TemplateWorkspace.swift
@@ -88,7 +92,7 @@ evidence:
 - id: tests
   kind: test
   path: macos/Tests/BuildHunterTests/UserTemplateTests.swift
-  supports: [constraints.free_files, constraints.bounded_admission, constraints.scoped_writes, constraints.scan_isolation, constraints.draft_validation, constraints.file_exchange]
+  supports: [constraints.free_files, constraints.bounded_admission, constraints.scoped_writes, constraints.scan_isolation, constraints.draft_validation, constraints.file_exchange, constraints.edition_resources]
 - id: native_draft_smoke
   kind: test
   path: specs/validation/test-approval-20261026/README.md
@@ -100,6 +104,7 @@ provenance:
     behavior: medium
   notes:
   - Owner accepted the minimal file-backed free authoring scope on 2026-10-25; this recovered BoundarySpec remains draft, not blanket architecture or Store acceptance.
+  - Bundled resource follow-up identities and synthetic unit checks are in validation/bundled-catalog-20261031. The binding revision is the baseline; changed files are hashed in that receipt.
   - Current source/map hashes, executed checks and native-vs-XCTest limits are recorded in validation/user-templates-20261025.
   - Owner additionally requested syntax/fixture documentation and free per-rule profiling; their implementation is described by buildhunter.rules.profile, not editor Check timing.
   - The 2026-10-26 first-release clarification adds explicit file exchange; follow-up source and checks are in validation/template-export-20261026. Earlier receipts remain historical.
@@ -109,7 +114,7 @@ implementationBindings:
   scope: component
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: c80aeee967ccb295c4e3bacb55050d1b8d9f9710
+    revision: fed5d68c670c4b7ff57f63cfa85f4e5c1ad99524
   files:
     owned:
     - macos/Sources/BuildHunter/Domain/TemplateLibrary.swift

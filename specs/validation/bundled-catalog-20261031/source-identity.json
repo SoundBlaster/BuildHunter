@@ -1,0 +1,12 @@
+{
+  "baseline": "fed5d68c670c4b7ff57f63cfa85f4e5c1ad99524",
+  "files": {
+    "macos/Sources/BuildHunter/Domain/UserTemplates.swift": "54cd25ff4b41d4e5013ed2caaf573c8c203f901a3f0cebcadf5ef45c1821db4e",
+    "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "063d76459e49390c8caf1807ffc18e29ee3abf74fea0edf8bf8aa07efeb62958",
+    "specs/current-templates.spec.yaml": "1c8129b08b52f73b5d69f4bbee820d9e636ebca101ca769c4c4b78cb3c4d55c2",
+    "specs/hypercode/current.hcs": "db54b4ccfd55aa68947163f8267ae1d367514e193d4f2a3c230d1264d30976cb",
+    "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21"
+  }
+}
