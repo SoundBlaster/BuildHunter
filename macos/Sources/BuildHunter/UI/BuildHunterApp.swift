@@ -43,7 +43,7 @@ struct BuildHunterApp: App {
                 SearchSettingsWindow().tabItem { Text("Search") }
                 UserTemplatesWindow(workspace: .shared).tabItem { Text("Templates") }
 #if BUILDHUNTER_COMMERCE
-                ArsenalSettingsView(session: commerce).tabItem { Text("Arsenal") }
+                ArsenalSettingsView(session: commerce).tabItem { Text("Catalog") }
 #endif
             }
         }
