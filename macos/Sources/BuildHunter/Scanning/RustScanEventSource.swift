@@ -38,6 +38,7 @@ final class RustScanEventSource: ScanEventSource {
         // Settings changes affect the next scan, never a running report.
         let filters = settings.snapshot
         let templateFiles = templates.references
+        let catalogAccess = BundledCatalogAuthorization.shared.snapshot()
         let templateStorageProblem = templates.storageProblem
         let rootBytes = target.withUnsafeFileSystemRepresentation { pointer -> Data in
             guard let pointer else { return Data() }
@@ -65,7 +66,7 @@ final class RustScanEventSource: ScanEventSource {
                     if let templateStorageProblem {
                         throw TemplateProblem(code: "invalid_registry", location: "", message: templateStorageProblem)
                     }
-                    catalog = try TemplateFiles.createCatalog(templateFiles, excluded: filters.excludedFilterIDs)
+                    catalog = try TemplateFiles.createCatalog(templateFiles, excluded: filters.excludedFilterIDs, access: catalogAccess)
                 } catch {
                     context.yield(.warning(generation: generation, message: "Template catalog: \(error.localizedDescription) Fix or disable the template in Settings → Templates."))
                     context.finish(status: 3)

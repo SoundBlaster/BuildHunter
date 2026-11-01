@@ -1,0 +1,32 @@
+{
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/catalog-access-20261031/harness",
+    "--scratch-path",
+    "/Volumes/TB5/Developer/Builds/GitHub/BuildHunter-hunter-workers-617c525de1693e19/catalog-access-20261031/harness-build",
+    "--cache-path",
+    "/Volumes/TB5/Developer/Caches/swiftpm"
+  ],
+  "exit_code": 0,
+  "elapsed_s": 4.57,
+  "source_sha256": {
+    "macos/Sources/BuildHunter/Domain/UserTemplates.swift": "acf33ef76b6fa1f7d5edf306e9877f4a9545dbd044fc2a5aa6f14291dbaa1f8f",
+    "macos/Sources/BuildHunter/Domain/SearchFilters.swift": "6a166451171d565fa85149541a19c55910d1234c32d38fc081a1587caf2f0669",
+    "macos/Sources/BuildHunter/Domain/ArtifactPolicyContext.swift": "987bcd4e3f3577826f011ad63c6941c907f410deeb5169ebfc25c9dc9e43ab1b",
+    "macos/Sources/BuildHunter/Bridge/BuildHunterFFI.h": "f5e309da898c5fe2087961d28228e7db6365a88b881e80a68c31c4b956825b49",
+    "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "1f8e6e049b702328432bb0c4f09791db9060e12e59ce8261851c6a9ccbd38a8c"
+  },
+  "generated_sha256": {
+    "Package.swift": "1b2c3107c99757609bdf921b9a6c49bfe5d98c12aa1cf541a7d468c77907d5c9",
+    "Tests/BuildHunterTests/BundledCatalogTests.swift": "f2f46e9a28ddcb5ba05907887fdc9d9c61336c4f1399faee4bebe909e6d15886",
+    "Sources/BuildHunter/Metadata.swift": "503704528d4759b01414b839ec683c46735d02a08fa1d6ccd8d64932acdbfb78",
+    "Sources/BuildHunter/UserTemplates.swift": "778ae19d7b7c564ebaec5a5d726509ed329f45fa8a3ee5fba6125358c01f6629",
+    "Sources/BuildHunter/ArtifactKind.swift": "1a5b70f12c5bd47a983156b6287a9c0934f06a9c39f159ef02f149c85e76f82f",
+    "Sources/CBuildHunter/BuildHunterFFI.h": "f5e309da898c5fe2087961d28228e7db6365a88b881e80a68c31c4b956825b49",
+    "Sources/CBuildHunter/module.modulemap": "b0f87359d23372497f039a72119336a39c97e9902e3d8c4cf3319480d883b744"
+  },
+  "rust_library_sha256": "e01aba02ed8f2cfe3cbe7e4592045e711742c58d163d06e666f40624ef855a16",
+  "log_sha256": "b1fbcc5ac7ccc926345efe1c7dd552edd56d2bdd704783c163d0ae16c28f622e"
+}

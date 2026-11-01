@@ -1,0 +1,14 @@
+{
+  "baseline": "ae90cc9bc02fe432a5175f2b130c0f0d21f2d262",
+  "sha256": {
+    "macos/Sources/BuildHunter/Domain/UserTemplates.swift": "acf33ef76b6fa1f7d5edf306e9877f4a9545dbd044fc2a5aa6f14291dbaa1f8f",
+    "macos/Sources/BuildHunter/Scanning/RustScanEventSource.swift": "18d39255cbb1ea7607a9e99f48ca36763e2d6e70bf5f8d07c51dad8c64f12fda",
+    "macos/Sources/BuildHunter/UI/BuildHunterApp.swift": "13b678b1d1ee0f56b60fd372f26bf3beef32d5812e3e0470cc7ca667d46c217d",
+    "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "1f8e6e049b702328432bb0c4f09791db9060e12e59ce8261851c6a9ccbd38a8c",
+    "specs/current-templates.spec.yaml": "4f567ba960b695b0fbdf8a62874b3edeea31565c2ebd2096161e00e2a389ce71",
+    "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
+    "specs/hypercode/current.hcs": "d78a0e238950970df94d6b38911365e84782b094e1329261d1befd3af905046d",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21"
+  }
+}

@@ -120,3 +120,22 @@ The editor and explicit template saves/exports add user-selected file writes alo
 existing report exports. Scanning remains read-only; importing data does not add
 executable plugins, networking, JIT or permission escalation. App Store acceptance
 and the future Arsenal purchase/trial flow require separate validation.
+
+
+## Optional edition authorization
+
+BuildHunter's normal public build does not depend on StoreKit or a private
+catalog. An edition can set `BuildHunterRequiresCatalogEntitlement` to `true` and
+supply an authorization value through its application assembly. It starts locked
+until that assembly grants access. Only bundled documents are gated: built-in
+Swift/Rust/Python rules and user JSON files remain free, including Check and Save.
+Denied bundled documents are not read. Enabled user files still receive the
+usual validation and diagnostics.
+
+Each new scan captures a value before its worker starts; purchase, revocation or
+expiry later affects subsequent scans. A running Rust catalog retains its admitted
+data. The generic loader verifies resource integrity, not purchases. The optional
+`BUILDHUNTER_COMMERCE` assembly hook imports the private edition module only when
+explicitly supplied by an edition project; default public builds omit that hook.
+Unflagged development preview editions preserve the existing bundled-resource
+behavior and must not be mistaken for purchase-enabled distribution builds.

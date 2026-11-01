@@ -1,14 +1,31 @@
 import AppKit
 import SwiftUI
+#if BUILDHUNTER_COMMERCE
+import BuildHunterEditionUI
+#endif
 
 @main
 struct BuildHunterApp: App {
     @NSApplicationDelegateAdaptor(TemplateApplicationDelegate.self) private var templateDelegate
     @State private var windows = ScanWindowStore()
+#if BUILDHUNTER_COMMERCE
+    @State private var commerce = CommerceSession(
+        productID: Bundle.main.object(forInfoDictionaryKey: "BuildHunterCommerceProductID") as? String,
+        onAccessChange: { allowed, expiresAt in
+            BundledCatalogAuthorization.shared.update(isAllowed: allowed, expiresAt: expiresAt)
+        })
+    @Environment(\.scenePhase) private var scenePhase
+#endif
 
     var body: some Scene {
         WindowGroup("BuildHunter") {
             BuildHunterWindow(windowStore: windows)
+#if BUILDHUNTER_COMMERCE
+                .task { await commerce.start() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await commerce.refresh() } }
+                }
+#endif
 #if SCREENER_SCREENSHOTS
                 .preferredColorScheme(IsDarkScreenshotAppearance().isSatisfiedBy(
                     ProcessInfo.processInfo.environment["SCREENER_APPEARANCE"] ?? "light") ? .dark : .light)
@@ -25,6 +42,9 @@ struct BuildHunterApp: App {
             TabView {
                 SearchSettingsWindow().tabItem { Text("Search") }
                 UserTemplatesWindow(workspace: .shared).tabItem { Text("Templates") }
+#if BUILDHUNTER_COMMERCE
+                ArsenalSettingsView(session: commerce).tabItem { Text("Arsenal") }
+#endif
             }
         }
 

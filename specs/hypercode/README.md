@@ -264,3 +264,14 @@ setup. Runtime roles, current/target topology and contract bindings are unchange
 test assembly stays folded into MacApplication. Current identities, Release
 observations and explicitly unverified Automation-blocked test repair are in
 [main-templates-20261027](../validation/main-templates-20261027/README.md).
+
+
+Catalog authorization (2026-10-31) folds the thread-safe edition-neutral permission
+into TemplateManagement/edition_resources and immutable scan_isolation. The
+MacApplication assembly optionally imports the private edition UI only with
+BUILDHUNTER_COMMERCE; public builds have no private package dependency. StoreKit
+verification and purchase UI belong to the private composition and are outside
+this recovered boundary. No extra public topology node or new accepted requirement
+is implied. Locked bundles are not read; built-in rules and user files remain
+available. Fresh source/map identities and focused checks are in
+validation/catalog-access-20261031; previous receipts remain historical.
