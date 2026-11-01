@@ -1345,3 +1345,25 @@ this recovered boundary. No extra public topology node or new accepted requireme
 is implied. Locked bundles are not read; built-in rules and user files remain
 available. Fresh source/map identities and focused checks are in
 validation/catalog-access-20261031; previous receipts remain historical.
+
+## Catalog display name — 2026-11-01
+
+The optional commerce tab in MacApplication is labelled Catalog. This is a
+presentation-only change: current.application and current.templates claims,
+assembly obligations, profiles, bindings and HC topology remain unchanged.
+The private edition supplies the tab content. Prior screenshots and runtime
+receipts retain their original source identities and do not verify this label.
+Fresh source/map hashes and structural check results are in
+`validation/catalog-display-name-20261101/identity.json`; structural checks do
+not establish visual behavior or purchase acceptance.
+
+## String catalog pilot — 2026-11-01
+
+MacApplication's optional Catalog tab gains an app-owned English/Russian string
+catalog. The edition's other strings are owned by its private Swift packages.
+No scan, purchase, permission or lifecycle claim changes; current.application and
+current.templates, their HC roles and assembly obligations remain unchanged.
+This source-localization pilot is not evidence of complete application
+localization or visual acceptance. Previous receipts remain historical. Current
+project/catalog and map hashes plus structural checks are recorded in
+`validation/string-catalog-pilot-20261101/identity.json`.

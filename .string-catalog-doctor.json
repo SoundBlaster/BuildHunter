@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "locales": [
+    "en",
+    "ru"
+  ],
+  "baseline": "strings-baseline.json",
+  "catalogs": [
+    {
+      "path": "macos/Resources/Localizable.xcstrings"
+    }
+  ]
+}
