@@ -80,3 +80,19 @@ samples, and UI tests capture the opened completed profile. Incoming
 chart samples, metric selection and numeric readouts animate smoothly; Reduce
 Motion disables these animations. Rolling points retain absolute timestamp
 identities, and a fresh scan resets the chart without morphing the old timeline.
+# String Catalog Doctor
+
+The Catalog settings tab is the first `en`/`ru` localization pilot; the rest of
+the application has not yet been migrated. CI runs the public
+StringCatalogDoctor at the revision pinned in `scripts/check_string_catalogs.py`
+on Linux. With a clean checkout of that revision, run locally:
+
+```sh
+python3 scripts/check_string_catalogs.py --root . --doctor /path/to/StringCatalogDoctor
+```
+
+Add every new `.xcstrings` path to `.string-catalog-doctor.json` and update its
+locale list only when that locale is supported. The empty baseline is intentional;
+do not regenerate it to hide regressions. The check verifies configured catalog
+structure and common placeholders, not translation quality, layout, or coverage
+of Swift strings which have not been added to catalogs.

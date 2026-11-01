@@ -1,0 +1,24 @@
+name: String catalog
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  doctor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: app
+      - uses: actions/checkout@v4
+        with:
+          repository: SoundBlaster/StringCatalogDoctor
+          ref: 2c50f14ea08edc1281e1883c72f1b1b4f1f2a77c
+          path: doctor
+          persist-credentials: false
+      - name: Check configured catalogs and translations
+        run: python3 app/scripts/check_string_catalogs.py --root app --doctor doctor

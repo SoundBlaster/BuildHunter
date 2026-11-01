@@ -1356,3 +1356,14 @@ receipts retain their original source identities and do not verify this label.
 Fresh source/map hashes and structural check results are in
 `validation/catalog-display-name-20261101/identity.json`; structural checks do
 not establish visual behavior or purchase acceptance.
+
+## String catalog pilot — 2026-11-01
+
+MacApplication's optional Catalog tab gains an app-owned English/Russian string
+catalog. The edition's other strings are owned by its private Swift packages.
+No scan, purchase, permission or lifecycle claim changes; current.application and
+current.templates, their HC roles and assembly obligations remain unchanged.
+This source-localization pilot is not evidence of complete application
+localization or visual acceptance. Previous receipts remain historical. Current
+project/catalog and map hashes plus structural checks are recorded in
+`validation/string-catalog-pilot-20261101/identity.json`.

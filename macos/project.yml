@@ -22,6 +22,8 @@ targets:
     sources:
       - path: Sources/BuildHunter
       - path: Resources/LanguageIcons.xcassets
+      - path: Resources/Localizable.xcstrings
+        buildPhase: resources
       - path: Resources/LanguageIcons-LICENSE.txt
         buildPhase: resources
       - path: Resources/BuildHunter.icon

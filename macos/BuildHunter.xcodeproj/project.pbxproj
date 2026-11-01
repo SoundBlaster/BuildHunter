@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		834F75F0864216C705CC9693 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0C31C34D992017665FA5211F /* Localizable.xcstrings */; };
 		030D8A083791B92C0E600782 /* ArtifactSunburstTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95843E8BD5AD3180718D17BB /* ArtifactSunburstTests.swift */; };
 		0749941185285C61B5082D39 /* DemoScanSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADEADEDFC0CAEC86E7E0EDDA /* DemoScanSource.swift */; };
 		09B87DD084F674EF99C7780D /* ScanWarningsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF1B4700243426D331A9592 /* ScanWarningsTests.swift */; };
@@ -92,6 +93,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0C31C34D992017665FA5211F /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		00000051A0A5D27FDC840E45 /* ArtifactFolderLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactFolderLocation.swift; sourceTree = "<group>"; };
 		0219C15F5F9E796FBAF3677B /* ScanProfilePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanProfilePanel.swift; sourceTree = "<group>"; };
 		02F4835A6B404BD4FA145445 /* TemplateWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateWorkspace.swift; sourceTree = "<group>"; };
@@ -322,6 +324,7 @@
 				DBCD4D4B8EC3A6085A9226B9 /* BuildHunter.icon */,
 				7E4DE14CFBB529855CE4C158 /* LanguageIcons-LICENSE.txt */,
 				7259337C0C79F54B8B54057A /* LanguageIcons.xcassets */,
+				0C31C34D992017665FA5211F /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -519,6 +522,7 @@
 				20FE88EFDAB69E1C50173980 /* BuildHunter.icon in Resources */,
 				EDDD6C54E3E04CDDFFB0D81F /* LanguageIcons-LICENSE.txt in Resources */,
 				4C3286B8E715EA2A06E954DB /* LanguageIcons.xcassets in Resources */,
+				834F75F0864216C705CC9693 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

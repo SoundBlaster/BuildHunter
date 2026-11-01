@@ -1,0 +1,88 @@
+{
+  "baseline": "35fa0ab9ec20ea88e35875f50cd5a5e1734b9316",
+  "sha256": {
+    "macos/Resources/Localizable.xcstrings": "e9533447735d8fe548a357a8aee0d0cbe44c1f69c4326db4187f22a738a42a78",
+    "macos/project.yml": "306a8a9d79b4acd6805af7e73099e1fc96f53716fb9333292ad3ac56d44cb9b5",
+    "macos/BuildHunter.xcodeproj/project.pbxproj": "8358f183bc8f59b00a0547a841597745fb67624ebe3240a9b592e6e1c6c8745d",
+    "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
+    "specs/hypercode/current.hcs": "d78a0e238950970df94d6b38911365e84782b094e1329261d1befd3af905046d",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/current-application.spec.yaml": "621babd4771536a8813f98ca9d1d07fb694f47efe92f16aee8bd54cbdcd8e72c"
+  },
+  "checks": [
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/current.hc"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/current.hc",
+        "--hcs",
+        "specs/hypercode/current.hcs",
+        "--ctx",
+        "client=cli"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/current.hc",
+        "--hcs",
+        "specs/hypercode/current.hcs",
+        "--ctx",
+        "client=gui"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/target.hc"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/target.hc",
+        "--hcs",
+        "specs/hypercode/target.hcs",
+        "--ctx",
+        "edition=public"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/target.hc",
+        "--hcs",
+        "specs/hypercode/target.hcs",
+        "--ctx",
+        "edition=store"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "specpm",
+        "validate",
+        ".",
+        "--json"
+      ],
+      "exit_code": 0
+    }
+  ]
+}
