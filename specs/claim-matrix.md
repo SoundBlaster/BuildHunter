@@ -674,3 +674,14 @@ Current source/map identities and actual checks: validation/rule-profiling-20261
 Prior receipts remain historical. New recovered specs stay draft; source, native
 UI, local test-host limitations and GitHub CI are reported separately. Timing
 scope excludes host I/O and is not a speedup or CPU/RAM attribution claim.
+
+
+Catalog authorization (2026-10-31) folds the thread-safe edition-neutral permission
+into TemplateManagement/edition_resources and immutable scan_isolation. The
+MacApplication assembly optionally imports the private edition UI only with
+BUILDHUNTER_COMMERCE; public builds have no private package dependency. StoreKit
+verification and purchase UI belong to the private composition and are outside
+this recovered boundary. No extra public topology node or new accepted requirement
+is implied. Locked bundles are not read; built-in rules and user files remain
+available. Fresh source/map identities and focused checks are in
+validation/catalog-access-20261031; previous receipts remain historical.

@@ -3,7 +3,7 @@ kind: BoundarySpec
 metadata:
   id: buildhunter.current.templates
   title: File-backed user template management
-  version: 0.1.0-draft.4
+  version: 0.1.0-draft.5
   status: draft
 intent:
   summary: Connect user-owned declarative JSON files and prepare a bounded immutable catalog for each new GUI scan.
@@ -53,10 +53,10 @@ constraints:
   statement: First-release free authoring includes a simple GUI editor and JSON import/export. Import connects files at their chosen paths. Export validates and atomically writes a selected copy without changing registrations, the source reference or unsaved-draft state; reject connected/current-source destinations and preserve an existing export when validation fails. Export never enables a duplicate package. Swift SDK is separate scope.
 - id: edition_resources
   level: MUST
-  statement: A configured BuildHunterBundledCatalog resource manifest must load all SHA256-verified regular package resources within the application resource root or reject catalog preparation. Without the setting, basic/user-file behavior is retained. Bundled plus user packages share the 61-document and byte budgets. Built-in Rust namespaces remain reserved; bundled files have external origin and do not override user IDs. Errors in user documents retain user-relative indexes; bundled errors identify the edition resource. This is resource composition, not purchase authorization or Store acceptance.
+  statement: An authorized configured BuildHunterBundledCatalog resource manifest must load all SHA256-verified regular package resources within the application resource root or reject catalog preparation. Without the setting, basic/user-file behavior is retained. Bundled plus user packages share the 61-document and byte budgets. Built-in Rust namespaces remain reserved; bundled files have external origin and do not override user IDs. Errors in user documents retain user-relative indexes; bundled errors identify the edition resource. Edition-neutral authorization admits only bundled documents; when denied, do not read them and retain built-in and user-file validation. Required-authorization editions start denied, and optional expiry uses a strict before-deadline check. The assembly supplies authorization; this boundary does not verify purchases or issue trials. Unflagged preview composition retains its prior resource behavior.
 - id: scan_isolation
   level: MUST
-  statement: Capture registrations and exclusions at scan creation, reload enabled files before traversal, and keep the admitted Rust catalog through scan return. Later file changes, disablement or disconnection affect subsequent scans. Reports retain package versions and digest, not live source references.
+  statement: Capture registrations, exclusions and the bundled-authorization value at scan creation, reload enabled files before traversal, and keep the admitted Rust catalog through scan return. Later file changes, disablement, disconnection or authorization changes affect subsequent scans. Reports retain package versions and digest, not live source references.
 effects:
   sideEffects:
   - id: template_read
@@ -104,6 +104,7 @@ provenance:
     behavior: medium
   notes:
   - Owner accepted the minimal file-backed free authoring scope on 2026-10-25; this recovered BoundarySpec remains draft, not blanket architecture or Store acceptance.
+  - Catalog authorization follow-up identities and focused checks are in validation/catalog-access-20261031; private StoreKit verification and Store acceptance remain separate.
   - Bundled resource follow-up identities and synthetic unit checks are in validation/bundled-catalog-20261031. The binding revision is the baseline; changed files are hashed in that receipt.
   - Current source/map hashes, executed checks and native-vs-XCTest limits are recorded in validation/user-templates-20261025.
   - Owner additionally requested syntax/fixture documentation and free per-rule profiling; their implementation is described by buildhunter.rules.profile, not editor Check timing.

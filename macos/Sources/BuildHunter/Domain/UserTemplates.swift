@@ -117,6 +117,38 @@ enum BundledTemplateCatalog {
     }
 }
 
+/// Edition-neutral permission for bundled documents. It never governs built-in or user rules.
+struct BundledCatalogAccess: Equatable, Sendable {
+    let isAllowed: Bool
+    static let allowed = Self(isAllowed: true)
+    static let denied = Self(isAllowed: false)
+}
+
+/// The assembly supplies verified authorization; workers capture an immutable value per scan.
+/// No StoreKit, account, user-defaults or environment dependency enters the template engine.
+final class BundledCatalogAuthorization: @unchecked Sendable {
+    static let shared = BundledCatalogAuthorization(requiresAuthorization:
+        Bundle.main.object(forInfoDictionaryKey: "BuildHunterRequiresCatalogEntitlement") as? Bool == true)
+    private let lock = NSLock()
+    private var allowed: Bool
+    private var expiresAt: Date?
+
+    init(requiresAuthorization: Bool) { allowed = !requiresAuthorization }
+
+    func update(isAllowed: Bool, expiresAt: Date? = nil) {
+        lock.withLock {
+            allowed = isAllowed
+            self.expiresAt = expiresAt
+        }
+    }
+
+    func snapshot(at date: Date = Date()) -> BundledCatalogAccess {
+        lock.withLock {
+            BundledCatalogAccess(isAllowed: allowed && (expiresAt.map { date < $0 } ?? true))
+        }
+    }
+}
+
 enum TemplateCatalog {
     static let maximumFileBytes = 1_048_576
     static let maximumTemplates = 61
@@ -124,8 +156,9 @@ enum TemplateCatalog {
 
     /// The immutable Rust handle owns its parsed data; all NSData backing lives through the call.
     static func create(documents userDocuments: [Data], excluded: Set<String> = [],
-                       bundledDocuments: [Data]? = nil) throws -> UnsafeMutableRawPointer {
-        let bundled = try bundledDocuments ?? BundledTemplateCatalog.documents()
+                       bundledDocuments: [Data]? = nil,
+                       access: BundledCatalogAccess = BundledCatalogAuthorization.shared.snapshot()) throws -> UnsafeMutableRawPointer {
+        let bundled = access.isAllowed ? try (bundledDocuments ?? BundledTemplateCatalog.documents()) : []
         let documents = bundled + userDocuments
         guard documents.count <= maximumTemplates,
               documents.allSatisfy({ $0.count <= maximumFileBytes }),
@@ -159,8 +192,9 @@ enum TemplateCatalog {
         return handle
     }
 
-    static func metadata(documents: [Data], excluded: Set<String> = [], bundledDocuments: [Data]? = nil) throws -> ScanCatalogMetadata {
-        let handle = try create(documents: documents, excluded: excluded, bundledDocuments: bundledDocuments)
+    static func metadata(documents: [Data], excluded: Set<String> = [], bundledDocuments: [Data]? = nil,
+                         access: BundledCatalogAccess = BundledCatalogAuthorization.shared.snapshot()) throws -> ScanCatalogMetadata {
+        let handle = try create(documents: documents, excluded: excluded, bundledDocuments: bundledDocuments, access: access)
         defer { bh_catalog_destroy(handle) }
         guard let pointer = bh_catalog_json(handle),
               let data = String(cString: pointer).data(using: .utf8),
@@ -253,9 +287,10 @@ enum TemplateFiles {
         return documents
     }
 
-    static func createCatalog(_ references: [TemplateReference], excluded: Set<String>) throws -> UnsafeMutableRawPointer {
+    static func createCatalog(_ references: [TemplateReference], excluded: Set<String>,
+                              access: BundledCatalogAccess = BundledCatalogAuthorization.shared.snapshot()) throws -> UnsafeMutableRawPointer {
         let enabled = references.filter(\.enabled)
-        do { return try TemplateCatalog.create(documents: documents(enabled), excluded: excluded) }
+        do { return try TemplateCatalog.create(documents: documents(enabled), excluded: excluded, access: access) }
         catch var problem as TemplateProblem {
             if let index = problem.templateIndex, enabled.indices.contains(index) {
                 problem = TemplateProblem(code: problem.code, location: enabled[index].path + problem.location,
