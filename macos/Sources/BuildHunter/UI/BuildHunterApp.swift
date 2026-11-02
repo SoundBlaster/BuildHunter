@@ -8,6 +8,7 @@ import BuildHunterEditionUI
 struct BuildHunterApp: App {
     @NSApplicationDelegateAdaptor(TemplateApplicationDelegate.self) private var templateDelegate
     @State private var windows = ScanWindowStore()
+    @State private var settingsTab = "rules"
 #if BUILDHUNTER_COMMERCE
     @State private var commerce = CommerceSession(
         productID: Bundle.main.object(forInfoDictionaryKey: "BuildHunterCommerceProductID") as? String,
@@ -39,11 +40,11 @@ struct BuildHunterApp: App {
         }
 
         Settings {
-            TabView {
-                SearchSettingsWindow().tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }
-                UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }
+            TabView(selection: $settingsTab) {
+                SearchSettingsWindow().tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }.tag("rules")
+                UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }.tag("templates")
 #if BUILDHUNTER_COMMERCE
-                ArsenalSettingsView(session: commerce).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }
+                ArsenalSettingsView(session: commerce, openScanRules: { settingsTab = "rules" }).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
 #endif
             }
             .frame(minWidth: 760, minHeight: 540)

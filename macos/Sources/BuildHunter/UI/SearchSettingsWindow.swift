@@ -11,6 +11,7 @@ struct SearchSettingsWindow: View {
     }
 
     @State private var query = ""
+    @State private var selectionChanged = false
     @State private var expandedGroups: Set<String> = []
     @State private var expandedSections: Set<String> = []
 
@@ -51,7 +52,7 @@ struct SearchSettingsWindow: View {
         let selections = filters.map { filter in
             FilterSelection(isEnabled: Binding(
                 get: { settings.isEnabled(for: filter.id) },
-                set: { settings.setEnabled($0, for: filter.id) }
+                set: { settings.setEnabled($0, for: filter.id); selectionChanged = true }
             ))
         }
         return Toggle(sources: selections, isOn: \.isEnabled) {
@@ -64,7 +65,7 @@ struct SearchSettingsWindow: View {
     private func row(_ filter: SearchFilterDescriptor) -> some View {
         HStack(spacing: 10) {
             Toggle(filter.title, isOn: Binding(get: { settings.isEnabled(for: filter.id) },
-                set: { settings.setEnabled($0, for: filter.id) }))
+                set: { settings.setEnabled($0, for: filter.id); selectionChanged = true }))
                 .toggleStyle(.checkbox)
                 .nestedAccessibilityIdentifier("filter.\(filter.id)")
             Spacer()
@@ -124,10 +125,12 @@ struct SearchSettingsWindow: View {
                     }
                 }
             } footer: {
-                Text("Changes apply to the next scan or Rescan. Open reports keep their current results.")
+                if selectionChanged {
+                    Text("Changes apply to the next scan or Rescan. Open reports keep their current results.")
+                }
             }
             Section {
-                Button("Enable All") { settings.enableAll() }
+                Button("Enable All") { settings.enableAll(); selectionChanged = true }
                     .nestedAccessibilityIdentifier("enableAll")
             }
             Section {

@@ -1388,3 +1388,13 @@ remain unchanged. Source/map identities and structural checks are in
 `validation/scan-rules-20261102/identity.json`. The pytest-name search and mixed
 selection were manually checked; local XCTest failed to initialize automation
 before executing a test (issue #125), and is not a passing runtime receipt.
+
+## Catalog navigation — 2026-11-02
+
+MacApplication owns the selected Settings tab and passes an action to the
+private commerce presentation to open Scan Rules. A preference-change note is
+shown when a rule selection changes. The current application preferences and
+catalog admission claims, HC topology and scan snapshot obligations remain
+unchanged; the private preview does not itself authorize rules. Source/map
+hashes and structural checks are in `validation/catalog-navigation-20261102`.
+These checks do not prove the private composition or StoreKit behavior.
