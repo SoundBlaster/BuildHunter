@@ -2,8 +2,8 @@
   "baseline": "37b443e8a710ce0c43fc437b9d95eed9754e3696",
   "sha256": {
     "macos/Sources/BuildHunter/UI/BuildHunterApp.swift": "050aa3827d463eeded4c81a58eb7d060444b11a6725e7fe73b85fdb5dd3ea425",
-    "macos/Sources/BuildHunter/UI/SearchSettingsWindow.swift": "86ae3c3a4bdb085e77f3a429d84a885f3f82a1cfe4744af2ecf3f71cb237296f",
-    "macos/Tests/BuildHunterUITests/BuildHunterUITests.swift": "6611cdb16d164a28e136e7b91c1f27f07dad01a61812f595674f3c340ee7e6d5",
+    "macos/Sources/BuildHunter/UI/SearchSettingsWindow.swift": "4bc5608c853fd9f08ed85deec8c20fa5bbc47e3c0b31d55ef9dff3b308474739",
+    "macos/Tests/BuildHunterUITests/BuildHunterUITests.swift": "447af96818a1fc4a2abf17bf7fba9bdefd47a13154d4a5cab3551610155e041c",
     "macos/Resources/Localizable.xcstrings": "05887e55e30dcef1db2aab91d0bfe96b080b1b5f40fa5fb030ffb98ffcbbaa74",
     "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
     "specs/hypercode/current.hcs": "d78a0e238950970df94d6b38911365e84782b094e1329261d1befd3af905046d",

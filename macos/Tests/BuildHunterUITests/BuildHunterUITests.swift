@@ -69,12 +69,35 @@ final class BuildHunterUITests: XCTestCase {
         let search = app.textFields["buildhunter.settings.search.filterQuery"]
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         search.click()
-        search.typeText(".pytest_cache")
+        let clipboard = NSPasteboard.general
+        let savedItems = (clipboard.pasteboardItems ?? []).map { item in
+            let copy = NSPasteboardItem()
+            for type in item.types {
+                if let data = item.data(forType: type) { copy.setData(data, forType: type) }
+            }
+            return copy
+        }
+        clipboard.clearContents()
+        clipboard.setString(".pytest_cache", forType: .string)
+        app.menuBars.menuBarItems["Edit"].click()
+        app.menuItems["Paste"].click()
+        clipboard.clearContents()
+        clipboard.writeObjects(savedItems)
         let rule = app.checkBoxes["buildhunter.settings.search.filter.python.pytest-cache"]
         XCTAssertTrue(rule.waitForExistence(timeout: 5))
         rule.click()
         XCTAssertEqual((rule.value as? NSNumber)?.intValue, 0)
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "10 / 11")).firstMatch.waitForExistence(timeout: 5))
+        let python = app.checkBoxes["buildhunter.settings.search.group.Python"]
+        let caches = app.checkBoxes["buildhunter.settings.search.group.Caches"]
+        XCTAssertTrue(caches.waitForExistence(timeout: 5))
+        XCTAssertEqual((python.value as? NSNumber)?.intValue, 2)
+        XCTAssertEqual((caches.value as? NSNumber)?.intValue, 2)
+        caches.click()
+        XCTAssertEqual((rule.value as? NSNumber)?.intValue, 1)
+        XCTAssertEqual((caches.value as? NSNumber)?.intValue, 1)
+        caches.click()
+        XCTAssertEqual((rule.value as? NSNumber)?.intValue, 0)
+        XCTAssertEqual((caches.value as? NSNumber)?.intValue, 0)
     }
 
     func testScanProfileOpensFromStatusBar() {

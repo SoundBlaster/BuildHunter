@@ -43,19 +43,22 @@ struct SearchSettingsWindow: View {
         })
     }
 
+    private struct FilterSelection {
+        let isEnabled: Binding<Bool>
+    }
+
     private func checkbox(_ title: String, filters: [SearchFilterDescriptor]) -> some View {
-        let enabled = filters.filter { settings.isEnabled(for: $0.id) }.count
-        let state = enabled == 0 ? "square" : (enabled == filters.count ? "checkmark.square.fill" : "minus.square.fill")
-        return Button {
-            let newValue = enabled != filters.count
-            for filter in filters { settings.setEnabled(newValue, for: filter.id) }
-        } label: {
-            Image(systemName: state).foregroundStyle(enabled == 0 ? Color.secondary : Color.accentColor)
+        let selections = filters.map { filter in
+            FilterSelection(isEnabled: Binding(
+                get: { settings.isEnabled(for: filter.id) },
+                set: { settings.setEnabled($0, for: filter.id) }
+            ))
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityValue(enabled == 0 ? "Off" : (enabled == filters.count ? "On" : "Mixed"))
-        .accessibilityAddTraits(.isToggle)
+        return Toggle(sources: selections, isOn: \.isEnabled) {
+            Text(LocalizedStringKey(title)).fontWeight(.semibold)
+        }
+        .toggleStyle(.checkbox)
+        .nestedAccessibilityIdentifier("group.\(title)")
     }
 
     private func row(_ filter: SearchFilterDescriptor) -> some View {
@@ -76,7 +79,6 @@ struct SearchSettingsWindow: View {
     private func groupHeader(_ title: String, filters: [SearchFilterDescriptor]) -> some View {
         HStack {
             checkbox(title, filters: filters)
-            Text(LocalizedStringKey(title)).fontWeight(.semibold)
             Spacer()
             Text("\(filters.filter { settings.isEnabled(for: $0.id) }.count) / \(filters.count)")
                 .foregroundStyle(.secondary).monospacedDigit()
