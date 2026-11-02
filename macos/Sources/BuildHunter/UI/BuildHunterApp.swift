@@ -7,9 +7,9 @@ import BuildHunterEditionUI
 #if BUILDHUNTER_MANAGED_ASSETS
 @MainActor private let managedCatalogDelivery = CatalogAssetDelivery { root, expiry in
     BundledCatalogAuthorization.shared.update(isAllowed: false)
-    BundledTemplateCatalog.setManagedResources(root)
     if let root {
         _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "ArsenalCatalog/catalog.json")
+        BundledTemplateCatalog.setManagedResources(root)
         BundledCatalogAuthorization.shared.update(isAllowed: true, expiresAt: expiry)
     }
 }

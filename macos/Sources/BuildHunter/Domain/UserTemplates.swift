@@ -53,6 +53,7 @@ enum BundledTemplateCatalog {
 
     /// A managed asset URL is valid only during this process; never persist it.
     static func setManagedResources(_ root: URL?) { managedRoot.set(root) }
+    static func managedResourceSnapshot() -> URL? { managedRoot.get() }
 
     private struct Manifest: Decodable {
         struct Entry: Decodable { let file: String; let sha256: String }
@@ -134,6 +135,7 @@ private final class ManagedCatalogRoot: @unchecked Sendable {
 /// Edition-neutral permission for bundled documents. It never governs built-in or user rules.
 struct BundledCatalogAccess: Equatable, Sendable {
     let isAllowed: Bool
+    var managedResources: URL? = nil
     static let allowed = Self(isAllowed: true)
     static let denied = Self(isAllowed: false)
 }
@@ -158,7 +160,8 @@ final class BundledCatalogAuthorization: @unchecked Sendable {
 
     func snapshot(at date: Date = Date()) -> BundledCatalogAccess {
         lock.withLock {
-            BundledCatalogAccess(isAllowed: allowed && (expiresAt.map { date < $0 } ?? true))
+            BundledCatalogAccess(isAllowed: allowed && (expiresAt.map { date < $0 } ?? true),
+                                 managedResources: BundledTemplateCatalog.managedResourceSnapshot())
         }
     }
 }
@@ -172,7 +175,16 @@ enum TemplateCatalog {
     static func create(documents userDocuments: [Data], excluded: Set<String> = [],
                        bundledDocuments: [Data]? = nil,
                        access: BundledCatalogAccess = BundledCatalogAuthorization.shared.snapshot()) throws -> UnsafeMutableRawPointer {
-        let bundled = access.isAllowed ? try (bundledDocuments ?? BundledTemplateCatalog.documents()) : []
+        let bundled: [Data]
+        if !access.isAllowed {
+            bundled = []
+        } else if let bundledDocuments {
+            bundled = bundledDocuments
+        } else if let root = access.managedResources {
+            bundled = try BundledTemplateCatalog.documents(resources: root, manifestPath: "ArsenalCatalog/catalog.json")
+        } else {
+            bundled = try BundledTemplateCatalog.documents()
+        }
         let documents = bundled + userDocuments
         guard documents.count <= maximumTemplates,
               documents.allSatisfy({ $0.count <= maximumFileBytes }),

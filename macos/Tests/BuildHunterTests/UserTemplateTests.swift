@@ -389,4 +389,22 @@ struct BundledCatalogTests {
         try FileManager.default.createSymbolicLink(at: folder.appending(path: "catalog.json"), withDestinationURL: outside)
         #expect(throws: TemplateProblem.self) { _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "Catalog/catalog.json") }
     }
+
+    @Test("Managed resource admission uses the captured root and still validates hashes")
+    func managedResourceSnapshot() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let folder = root.appending(path: "ArsenalCatalog")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bytes = Data(TemplateCatalog.example().utf8)
+        try bytes.write(to: folder.appending(path: "package.json"))
+        let hash = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+        let manifest: [String: Any] = ["format": "buildhunter.bundled-catalog/1", "packages": [["file": "package.json", "sha256": hash]]]
+        try JSONSerialization.data(withJSONObject: manifest).write(to: folder.appending(path: "catalog.json"))
+        let allowed = BundledCatalogAccess(isAllowed: true, managedResources: root)
+        _ = try TemplateCatalog.metadata(documents: [], access: allowed)
+        try Data("{}".utf8).write(to: folder.appending(path: "package.json"))
+        #expect(throws: TemplateProblem.self) { _ = try TemplateCatalog.metadata(documents: [], access: allowed) }
+        _ = try TemplateCatalog.metadata(documents: [], access: BundledCatalogAccess(isAllowed: false, managedResources: root))
+    }
 }
