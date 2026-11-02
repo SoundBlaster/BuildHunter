@@ -49,6 +49,11 @@ private func receiveTemplateError(_ context: UnsafeMutableRawPointer?, _ bytes: 
 
 /// Edition resources are immutable application inputs, never user registrations.
 enum BundledTemplateCatalog {
+    private static let managedRoot = ManagedCatalogRoot()
+
+    /// A managed asset URL is valid only during this process; never persist it.
+    static func setManagedResources(_ root: URL?) { managedRoot.set(root) }
+
     private struct Manifest: Decodable {
         struct Entry: Decodable { let file: String; let sha256: String }
         let format: String
@@ -57,7 +62,9 @@ enum BundledTemplateCatalog {
 
     static func documents(bundle: Bundle = .main) throws -> [Data] {
         guard let setting = bundle.object(forInfoDictionaryKey: "BuildHunterBundledCatalog") else { return [] }
-        guard let name = setting as? String, let resources = bundle.resourceURL else {
+        let managed = bundle.object(forInfoDictionaryKey: "BuildHunterManagedCatalog") as? Bool == true
+        let resources = managed ? managedRoot.get() : bundle.resourceURL
+        guard let name = setting as? String, let resources else {
             throw problem("Invalid bundled catalog setting.")
         }
         return try documents(resources: resources, manifestPath: name)
@@ -115,6 +122,13 @@ enum BundledTemplateCatalog {
     private static func problem(_ message: String) -> TemplateProblem {
         TemplateProblem(code: "bundled_catalog_invalid", location: "BuildHunterBundledCatalog", message: message)
     }
+}
+
+private final class ManagedCatalogRoot: @unchecked Sendable {
+    private let lock = NSLock()
+    private var root: URL?
+    func set(_ value: URL?) { lock.withLock { root = value } }
+    func get() -> URL? { lock.withLock { root } }
 }
 
 /// Edition-neutral permission for bundled documents. It never governs built-in or user rules.

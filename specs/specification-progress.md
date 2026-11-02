@@ -1401,3 +1401,7 @@ and scan snapshot obligations remain unchanged. The private preview does not
 itself authorize rules. Source/map
 hashes and structural checks are in `validation/catalog-navigation-20261102`.
 These checks do not prove the private composition or StoreKit behavior.
+
+## Managed catalog source — 2026-11-02
+
+The edition assembly may supply a process-local resource root after verifying access and delivery. Package hashes, size limits and denied-access isolation remain enforced by the template boundary. Apple-hosted download, signing and end-to-end evidence belong to the private MAS assembly and are not claimed here.
