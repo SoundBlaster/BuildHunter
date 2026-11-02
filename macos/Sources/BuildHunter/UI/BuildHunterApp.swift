@@ -40,7 +40,7 @@ struct BuildHunterApp: App {
 
         Settings {
             TabView {
-                SearchSettingsWindow().tabItem { Label("Search", systemImage: "magnifyingglass") }
+                SearchSettingsWindow().tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }
                 UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }
 #if BUILDHUNTER_COMMERCE
                 ArsenalSettingsView(session: commerce).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }

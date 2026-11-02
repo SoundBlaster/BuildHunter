@@ -42,7 +42,7 @@ final class BuildHunterUITests: XCTestCase {
         var app = launchWindow(settingsSuite: suite)
         openSettings(app)
         let filterID = "buildhunter.settings.search.filter.swift.build"
-        let swiftFilter = app.switches[filterID]
+        let swiftFilter = app.checkBoxes[filterID]
         XCTAssertTrue(swiftFilter.waitForExistence(timeout: 5), "The application menu must open the native Settings window")
         XCTAssertEqual((swiftFilter.value as? NSNumber)?.intValue, 1)
         swiftFilter.click()
@@ -53,13 +53,28 @@ final class BuildHunterUITests: XCTestCase {
         app = launchWindow(settingsSuite: suite)
         defer { app.terminate() }
         openSettings(app)
-        let persisted = app.switches[filterID]
+        let persisted = app.checkBoxes[filterID]
         XCTAssertTrue(persisted.waitForExistence(timeout: 5))
         XCTAssertEqual((persisted.value as? NSNumber)?.intValue, 0, "Search exclusions must persist across application launches")
         let enableAll = app.buttons["buildhunter.settings.search.enableAll"]
         XCTAssertTrue(enableAll.waitForExistence(timeout: 5))
         enableAll.click()
         XCTAssertEqual((persisted.value as? NSNumber)?.intValue, 1)
+    }
+
+    func testScanRulesFilterFindsDiskNameAndPreservesSelection() {
+        let app = launchWindow(settingsSuite: "BuildHunter.SettingsUITests.\(UUID().uuidString)")
+        defer { app.terminate() }
+        openSettings(app)
+        let search = app.textFields["Filter rules"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.click()
+        search.typeText(".pytest_cache")
+        let rule = app.checkBoxes["buildhunter.settings.search.filter.python.pytest-cache"]
+        XCTAssertTrue(rule.waitForExistence(timeout: 5))
+        rule.click()
+        XCTAssertEqual((rule.value as? NSNumber)?.intValue, 0)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "10 / 11")).firstMatch.waitForExistence(timeout: 5))
     }
 
     func testScanProfileOpensFromStatusBar() {
@@ -163,7 +178,7 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(menuItem.waitForExistence(timeout: 5))
         menuItem.click()
         // SwiftUI remembers the last Settings tab across launches.
-        let search = app.toolbars.buttons["Search"]
+        let search = app.toolbars.buttons["Scan Rules"]
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         search.click()
     }
