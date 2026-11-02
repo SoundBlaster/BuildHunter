@@ -7,6 +7,24 @@ import Testing
 @Suite("File-backed user templates")
 @MainActor
 struct UserTemplateTests {
+    @Test("Origins follow admitted documents and reject a stale catalog digest")
+    func ruleOrigins() throws {
+        let bundled = Data(TemplateCatalog.example().utf8)
+        let user = Data(TemplateCatalog.example().utf8)
+        let metadata = try TemplateCatalog.metadata(documents: [user], bundledDocuments: [bundled], access: .allowed)
+        let origins = try SearchRuleOrigins.resolve(userDocuments: [user], bundledDocuments: [bundled], access: .allowed, digest: metadata.digest)
+        let builtinIDs = Set(try #require(ScanCatalogMetadata.basic()).targets.map(\.id))
+        #expect(metadata.targets.filter { !builtinIDs.contains($0.id) }.count == 2)
+        #expect(origins.values.filter { $0 == .catalog }.count == 1)
+        #expect(origins.values.filter { $0 == .user }.count == 1)
+        #expect(builtinIDs.allSatisfy { origins[$0] == nil })
+        #expect(try SearchRuleOrigins.resolve(userDocuments: [user], bundledDocuments: [bundled], access: .allowed, digest: String(repeating: "0", count: 64)).isEmpty)
+        let denied = try TemplateCatalog.metadata(documents: [user], bundledDocuments: [bundled], access: .denied)
+        let deniedOrigins = try SearchRuleOrigins.resolve(userDocuments: [user], bundledDocuments: [bundled], access: .denied, digest: denied.digest)
+        #expect(deniedOrigins.values.filter { $0 == .catalog }.isEmpty)
+        #expect(deniedOrigins.values.filter { $0 == .user }.count == 1)
+    }
+
     @Test("Templates extend the real catalog and package versions survive report export")
     func catalogAndExport() throws {
         let document = Data(TemplateCatalog.example().utf8)
@@ -388,5 +406,23 @@ struct BundledCatalogTests {
         try Data("{}".utf8).write(to: outside)
         try FileManager.default.createSymbolicLink(at: folder.appending(path: "catalog.json"), withDestinationURL: outside)
         #expect(throws: TemplateProblem.self) { _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "Catalog/catalog.json") }
+    }
+
+    @Test("Managed resource admission uses the captured root and still validates hashes")
+    func managedResourceSnapshot() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let folder = root.appending(path: "ArsenalCatalog")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bytes = Data(TemplateCatalog.example().utf8)
+        try bytes.write(to: folder.appending(path: "package.json"))
+        let hash = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+        let manifest: [String: Any] = ["format": "buildhunter.bundled-catalog/1", "packages": [["file": "package.json", "sha256": hash]]]
+        try JSONSerialization.data(withJSONObject: manifest).write(to: folder.appending(path: "catalog.json"))
+        let allowed = BundledCatalogAccess(isAllowed: true, managedResources: root)
+        _ = try TemplateCatalog.metadata(documents: [], access: allowed)
+        try Data("{}".utf8).write(to: folder.appending(path: "package.json"))
+        #expect(throws: TemplateProblem.self) { _ = try TemplateCatalog.metadata(documents: [], access: allowed) }
+        _ = try TemplateCatalog.metadata(documents: [], access: BundledCatalogAccess(isAllowed: false, managedResources: root))
     }
 }

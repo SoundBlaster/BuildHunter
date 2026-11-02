@@ -15,6 +15,7 @@ struct SearchSettingsWindow: View {
     @State private var selectionChanged = false
     @State private var expandedGroups: Set<String> = []
     @State private var expandedSections: Set<String> = []
+    @State private var ruleOrigins: [String: SearchRuleOrigin] = [:]
 
     private var searching: Bool { !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var allFilters: [SearchFilterDescriptor] { settings.groups.flatMap { settings.filters(in: $0) } }
@@ -49,6 +50,21 @@ struct SearchSettingsWindow: View {
         let isEnabled: Binding<Bool>
     }
 
+    @ViewBuilder private func originBadge(_ origin: SearchRuleOrigin?) -> some View {
+        if let origin {
+            Group {
+                switch origin {
+                case .catalog: Text("Catalog")
+                case .user: Text("User")
+                }
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+        }
+    }
+
     private func checkbox(_ title: String, filters: [SearchFilterDescriptor]) -> some View {
         let selections = filters.map { filter in
             FilterSelection(isEnabled: Binding(
@@ -69,6 +85,7 @@ struct SearchSettingsWindow: View {
                 set: { settings.setEnabled($0, for: filter.id); selectionChanged = true }))
                 .toggleStyle(.checkbox)
                 .nestedAccessibilityIdentifier("filter.\(filter.id)")
+            originBadge(ruleOrigins[filter.id])
             Spacer()
             let names = filter.nodeNames + filter.suffixes
             if !names.isEmpty {
@@ -81,6 +98,10 @@ struct SearchSettingsWindow: View {
     private func groupHeader(_ title: String, filters: [SearchFilterDescriptor], expanded: Binding<Bool>) -> some View {
         HStack(spacing: 0) {
             checkbox(title, filters: filters)
+            if let first = filters.first.flatMap({ ruleOrigins[$0.id] }),
+               filters.allSatisfy({ ruleOrigins[$0.id] == first }) {
+                originBadge(first).padding(.leading, 8)
+            }
             Button {
                 if (NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags).contains(.option) {
                     expandedGroups = Set(settings.groups.filter { settings.filters(in: $0).count > 1 })
@@ -169,6 +190,26 @@ struct SearchSettingsWindow: View {
         .formStyle(.grouped)
         .frame(minWidth: 760, minHeight: 540)
         .a11yRoot("buildhunter.settings.search")
+        .task(id: settings.catalogRevision) {
+            ruleOrigins = [:]
+            guard let digest = settings.catalogDigest else { return }
+            let revision = settings.catalogRevision
+            let references = TemplateLibrary.shared.references.filter(\.enabled)
+            let access = BundledCatalogAuthorization.shared.snapshot()
+            let origins = try? await Task.detached {
+                let user = try TemplateFiles.documents(references)
+                let bundled: [Data]
+                if !access.isAllowed { bundled = [] }
+                else if let root = access.managedResources {
+                    bundled = try BundledTemplateCatalog.documents(resources: root, manifestPath: "ArsenalCatalog/catalog.json")
+                } else { bundled = try BundledTemplateCatalog.documents() }
+                return try SearchRuleOrigins.resolve(userDocuments: user, bundledDocuments: bundled, access: access, digest: digest)
+            }.value
+            guard !Task.isCancelled, settings.catalogRevision == revision, settings.catalogDigest == digest,
+                  references == TemplateLibrary.shared.references.filter(\.enabled),
+                  access == BundledCatalogAuthorization.shared.snapshot() else { return }
+            ruleOrigins = origins ?? [:]
+        }
     }
 
 }

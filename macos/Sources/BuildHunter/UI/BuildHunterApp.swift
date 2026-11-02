@@ -4,6 +4,17 @@ import SwiftUI
 import BuildHunterEditionUI
 #endif
 
+#if BUILDHUNTER_MANAGED_ASSETS
+@MainActor private let managedCatalogDelivery = CatalogAssetDelivery { root, expiry in
+    BundledCatalogAuthorization.shared.update(isAllowed: false)
+    if let root {
+        _ = try BundledTemplateCatalog.documents(resources: root, manifestPath: "ArsenalCatalog/catalog.json")
+        BundledTemplateCatalog.setManagedResources(root)
+        BundledCatalogAuthorization.shared.update(isAllowed: true, expiresAt: expiry)
+    }
+}
+#endif
+
 @main
 struct BuildHunterApp: App {
     @NSApplicationDelegateAdaptor(TemplateApplicationDelegate.self) private var templateDelegate
@@ -14,7 +25,11 @@ struct BuildHunterApp: App {
     @State private var commerce = CommerceSession(
         productID: Bundle.main.object(forInfoDictionaryKey: "BuildHunterCommerceProductID") as? String,
         onAccessChange: { allowed, expiresAt in
+#if BUILDHUNTER_MANAGED_ASSETS
+            managedCatalogDelivery.update(isAllowed: allowed, expiresAt: expiresAt)
+#else
             BundledCatalogAuthorization.shared.update(isAllowed: allowed, expiresAt: expiresAt)
+#endif
         })
     @Environment(\.scenePhase) private var scenePhase
 #endif
@@ -45,7 +60,11 @@ struct BuildHunterApp: App {
                 SearchSettingsWindow().tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }.tag("rules")
                 UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }.tag("templates")
 #if BUILDHUNTER_COMMERCE
+#if BUILDHUNTER_MANAGED_ASSETS
+                ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules, delivery: managedCatalogDelivery).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
+#else
                 ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
+#endif
 #endif
             }
             .frame(minWidth: 760, minHeight: 540)

@@ -35,6 +35,34 @@ struct TemplateDocumentInfo: Decodable, Sendable {
     let title: String
 }
 
+enum SearchRuleOrigin: Sendable, Equatable {
+    case catalog, user
+}
+
+/// Classify only an admitted catalog matching the one currently shown in Settings.
+enum SearchRuleOrigins {
+    private struct Document: Decodable {
+        struct Target: Decodable { let id: String }
+        let targets: [Target]
+    }
+
+    static func resolve(userDocuments: [Data], bundledDocuments: [Data],
+                        access: BundledCatalogAccess, digest: String) throws -> [String: SearchRuleOrigin] {
+        let admitted = try TemplateCatalog.metadata(documents: userDocuments,
+            bundledDocuments: bundledDocuments, access: access)
+        guard admitted.digest == digest else { return [:] }
+        var result: [String: SearchRuleOrigin] = [:]
+        let decoder = JSONDecoder()
+        for bytes in access.isAllowed ? bundledDocuments : [] {
+            for target in try decoder.decode(Document.self, from: bytes).targets { result[target.id] = .catalog }
+        }
+        for bytes in userDocuments {
+            for target in try decoder.decode(Document.self, from: bytes).targets { result[target.id] = .user }
+        }
+        return result
+    }
+}
+
 private final class TemplateErrorReceiver {
     var problem: TemplateProblem?
 }
@@ -49,6 +77,12 @@ private func receiveTemplateError(_ context: UnsafeMutableRawPointer?, _ bytes: 
 
 /// Edition resources are immutable application inputs, never user registrations.
 enum BundledTemplateCatalog {
+    private static let managedRoot = ManagedCatalogRoot()
+
+    /// A managed asset URL is valid only during this process; never persist it.
+    static func setManagedResources(_ root: URL?) { managedRoot.set(root) }
+    static func managedResourceSnapshot() -> URL? { managedRoot.get() }
+
     private struct Manifest: Decodable {
         struct Entry: Decodable { let file: String; let sha256: String }
         let format: String
@@ -57,7 +91,9 @@ enum BundledTemplateCatalog {
 
     static func documents(bundle: Bundle = .main) throws -> [Data] {
         guard let setting = bundle.object(forInfoDictionaryKey: "BuildHunterBundledCatalog") else { return [] }
-        guard let name = setting as? String, let resources = bundle.resourceURL else {
+        let managed = bundle.object(forInfoDictionaryKey: "BuildHunterManagedCatalog") as? Bool == true
+        let resources = managed ? managedRoot.get() : bundle.resourceURL
+        guard let name = setting as? String, let resources else {
             throw problem("Invalid bundled catalog setting.")
         }
         return try documents(resources: resources, manifestPath: name)
@@ -117,9 +153,17 @@ enum BundledTemplateCatalog {
     }
 }
 
+private final class ManagedCatalogRoot: @unchecked Sendable {
+    private let lock = NSLock()
+    private var root: URL?
+    func set(_ value: URL?) { lock.withLock { root = value } }
+    func get() -> URL? { lock.withLock { root } }
+}
+
 /// Edition-neutral permission for bundled documents. It never governs built-in or user rules.
 struct BundledCatalogAccess: Equatable, Sendable {
     let isAllowed: Bool
+    var managedResources: URL? = nil
     static let allowed = Self(isAllowed: true)
     static let denied = Self(isAllowed: false)
 }
@@ -144,7 +188,8 @@ final class BundledCatalogAuthorization: @unchecked Sendable {
 
     func snapshot(at date: Date = Date()) -> BundledCatalogAccess {
         lock.withLock {
-            BundledCatalogAccess(isAllowed: allowed && (expiresAt.map { date < $0 } ?? true))
+            BundledCatalogAccess(isAllowed: allowed && (expiresAt.map { date < $0 } ?? true),
+                                 managedResources: BundledTemplateCatalog.managedResourceSnapshot())
         }
     }
 }
@@ -158,7 +203,16 @@ enum TemplateCatalog {
     static func create(documents userDocuments: [Data], excluded: Set<String> = [],
                        bundledDocuments: [Data]? = nil,
                        access: BundledCatalogAccess = BundledCatalogAuthorization.shared.snapshot()) throws -> UnsafeMutableRawPointer {
-        let bundled = access.isAllowed ? try (bundledDocuments ?? BundledTemplateCatalog.documents()) : []
+        let bundled: [Data]
+        if !access.isAllowed {
+            bundled = []
+        } else if let bundledDocuments {
+            bundled = bundledDocuments
+        } else if let root = access.managedResources {
+            bundled = try BundledTemplateCatalog.documents(resources: root, manifestPath: "ArsenalCatalog/catalog.json")
+        } else {
+            bundled = try BundledTemplateCatalog.documents()
+        }
         let documents = bundled + userDocuments
         guard documents.count <= maximumTemplates,
               documents.allSatisfy({ $0.count <= maximumFileBytes }),

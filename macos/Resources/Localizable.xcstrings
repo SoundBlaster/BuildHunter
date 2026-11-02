@@ -17,6 +17,12 @@
         }
       }
     },
+    "User": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "User" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Пользователь" } }
+      }
+    },
     "Scan Rules": {
       "localizations": {
         "en": {

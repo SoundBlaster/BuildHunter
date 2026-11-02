@@ -200,6 +200,8 @@ final class SearchFilterSettings {
 
     @ObservationIgnored private let defaults: UserDefaults
     private var catalog: [SearchFilterDescriptor]
+    private(set) var catalogDigest: String?
+    private(set) var catalogRevision: UInt64 = 0
 
     init(
         catalog: [SearchFilterDescriptor] = SearchFilterCatalog.load(),
@@ -229,6 +231,8 @@ final class SearchFilterSettings {
     func useCatalog(_ metadata: ScanCatalogMetadata) {
         guard metadata.isSupported else { return }
         catalog = SearchFilterCatalog.descriptors(for: metadata)
+        catalogDigest = metadata.digest
+        catalogRevision &+= 1
     }
 
     func isEnabled(for filterID: String) -> Bool {

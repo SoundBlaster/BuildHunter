@@ -30,7 +30,7 @@ Settings:
   source: "macos/Sources/BuildHunter/Domain/SearchFilters.swift"
   folded_into: "buildhunter.current.classification"
 TemplateManagement:
-  edition_resources: "optional hashed bundle; edition-neutral authorization gates bundled documents only; immutable per-scan admission; store verification excluded"
+  edition_resources: "optional hashed bundle or process-local managed resource root; edition-neutral authorization gates edition documents only; immutable per-scan admission; store verification and asset delivery excluded"
   source: "macos/Sources/BuildHunter/UI/UserTemplatesWindow.swift"
   boundary_spec: "buildhunter.current.templates"
 TemplateRegistry:

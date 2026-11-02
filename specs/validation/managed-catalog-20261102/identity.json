@@ -1,0 +1,96 @@
+{
+  "baseline": "df3cbc1a7f91977b0369d065cc8e3e8b76411189",
+  "cwd": "repository root",
+  "tools": {
+    "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode": "ed236f86551590d3b0539c66e572cdfcdcf0ce567fa3913e2f2dfa0097dfc78b",
+    "/opt/homebrew/bin/specpm": "1c80370f940afd1be509c5bd53fb0c7c6d1bd558d8e6718fdf19b9179ae09142"
+  },
+  "sha256": {
+    "macos/Sources/BuildHunter/Domain/UserTemplates.swift": "6ebeec4e9215575eec47c8254e142b549c98fb0b390d7e934f776c3a1c7bcf5d",
+    "macos/Sources/BuildHunter/UI/BuildHunterApp.swift": "40253ffcaf4b8c7f97a83bedabfb21a9306c61f932d27fe01619637f58ab112a",
+    "macos/Tests/BuildHunterTests/UserTemplateTests.swift": "61d55956a48643e418a7627e35903fb9ed7b7a2b11fb979597f7f178cc17a322",
+    "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
+    "specs/hypercode/current.hcs": "31f3b866d2ff31b4418011dd5b0fe58b45543e2ea0380c0865ef491c49f459f6",
+    "specs/hypercode/target.hc": "bc3acb341000361d0eb2836fd4740e93575b02e15d33235de8f1a4708b8267b9",
+    "specs/hypercode/target.hcs": "5e46fa6a02346a3f7fb821b12c218d81d3d556281bba33bca31c949254b5db21",
+    "specs/current-application.spec.yaml": "621babd4771536a8813f98ca9d1d07fb694f47efe92f16aee8bd54cbdcd8e72c",
+    "specs/current-templates.spec.yaml": "d05a295347f7b91f8b824ea6b5a5b5e58b5d3ec5bb086de2fd62945de23d52c0",
+    "specpm.yaml": "c41da6f521ab1cfb7d66a3cdbd3d1592391080ff78011383a2f8a334bf0a2cb9"
+  },
+  "checks": [
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/current.hc"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/current.hc",
+        "--hcs",
+        "specs/hypercode/current.hcs",
+        "--ctx",
+        "client=cli"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/current.hc",
+        "--hcs",
+        "specs/hypercode/current.hcs",
+        "--ctx",
+        "client=gui"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "parse",
+        "specs/hypercode/target.hc"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/target.hc",
+        "--hcs",
+        "specs/hypercode/target.hcs",
+        "--ctx",
+        "edition=public"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/egor/Development/GitHub/0AL/Hypercode/.build/release/hypercode",
+        "validate",
+        "specs/hypercode/target.hc",
+        "--hcs",
+        "specs/hypercode/target.hcs",
+        "--ctx",
+        "edition=store"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/opt/homebrew/bin/specpm",
+        "validate",
+        ".",
+        "--json"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "limits": "Structural validation only; does not prove Apple-hosted delivery or runtime conformance. Prior test evidence applies only to its exact source revision."
+}
