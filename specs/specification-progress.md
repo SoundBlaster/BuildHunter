@@ -1367,3 +1367,37 @@ This source-localization pilot is not evidence of complete application
 localization or visual acceptance. Previous receipts remain historical. Current
 project/catalog and map hashes plus structural checks are recorded in
 `validation/string-catalog-pilot-20261101/identity.json`.
+
+## Settings presentation — 2026-11-02
+
+MacApplication settings tabs use SF Symbols and a shared minimum frame; Search
+no longer fixes its width. Current application and template claims, HC roles,
+bindings and assembly obligations remain unchanged. Source identities and
+structural checks are in `validation/settings-layout-20261102/identity.json`;
+the open-source Search and Templates tabs were visually inspected locally.
+The optional private Catalog tab remains to be verified in the MAS composition.
+
+## Scan Rules presentation — 2026-11-02
+
+MacApplication presents existing search filter exclusions in a searchable,
+expandable hierarchy. Group actions update the same individual IDs; unknown
+persisted exclusions and next-scan snapshot behavior remain unchanged. Python
+sections group known IDs and retain unknown rules under Other. Current application
+preferences and template/catalog claims, HC topology and assembly obligations
+remain unchanged. Source/map identities and structural checks are in
+`validation/scan-rules-20261102/identity.json`. The pytest-name search and mixed
+selection were manually checked; local XCTest failed to initialize automation
+before executing a test (issue #125), and is not a passing runtime receipt.
+
+## Catalog navigation — 2026-11-02
+
+MacApplication owns the selected Settings tab and passes an action to the
+private commerce presentation to open Scan Rules. The action reloads enabled
+template documents and authorized catalog metadata before showing the filters;
+failures and changed access are reported instead of showing a stale list. A
+preference-change note is shown when a rule selection changes. The existing
+template reading and admission roles cover this additional consumer; HC topology
+and scan snapshot obligations remain unchanged. The private preview does not
+itself authorize rules. Source/map
+hashes and structural checks are in `validation/catalog-navigation-20261102`.
+These checks do not prove the private composition or StoreKit behavior.

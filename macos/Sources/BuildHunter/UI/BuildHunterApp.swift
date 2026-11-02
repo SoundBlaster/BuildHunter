@@ -8,7 +8,9 @@ import BuildHunterEditionUI
 struct BuildHunterApp: App {
     @NSApplicationDelegateAdaptor(TemplateApplicationDelegate.self) private var templateDelegate
     @State private var windows = ScanWindowStore()
+    @State private var settingsTab = "rules"
 #if BUILDHUNTER_COMMERCE
+    @State private var catalogNavigationError: String?
     @State private var commerce = CommerceSession(
         productID: Bundle.main.object(forInfoDictionaryKey: "BuildHunterCommerceProductID") as? String,
         onAccessChange: { allowed, expiresAt in
@@ -39,13 +41,22 @@ struct BuildHunterApp: App {
         }
 
         Settings {
-            TabView {
-                SearchSettingsWindow().tabItem { Text("Search") }
-                UserTemplatesWindow(workspace: .shared).tabItem { Text("Templates") }
+            TabView(selection: $settingsTab) {
+                SearchSettingsWindow().tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }.tag("rules")
+                UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }.tag("templates")
 #if BUILDHUNTER_COMMERCE
-                ArsenalSettingsView(session: commerce).tabItem { Text("Catalog") }
+                ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
 #endif
             }
+            .frame(minWidth: 760, minHeight: 540)
+#if BUILDHUNTER_COMMERCE
+            .alert("Unable to load scan rules", isPresented: Binding(
+                get: { catalogNavigationError != nil },
+                set: { if !$0 { catalogNavigationError = nil } }
+            )) { Button("OK") { catalogNavigationError = nil } } message: {
+                Text(catalogNavigationError ?? "")
+            }
+#endif
         }
 
         WindowGroup("Artifact Diagram", id: "artifact-diagram", for: UUID.self) { $scanID in
@@ -87,6 +98,41 @@ struct BuildHunterApp: App {
         .restorationBehavior(.disabled)
         .commandsRemoved()
     }
+
+#if BUILDHUNTER_COMMERCE
+    @MainActor
+    private func openCatalogRules() {
+        let library = TemplateLibrary.shared
+        if let problem = library.storageProblem {
+            catalogNavigationError = problem
+            return
+        }
+        let references = library.references.filter(\.enabled)
+        let access = BundledCatalogAuthorization.shared.snapshot()
+        guard access.isAllowed else {
+            catalogNavigationError = String(localized: "Catalog access changed. Try again.")
+            return
+        }
+        Task {
+            do {
+                let metadata = try await Task.detached {
+                    let documents = try references.map { try TemplateFiles.read($0) }
+                    return try TemplateCatalog.metadata(documents: documents, access: access)
+                }.value
+                guard access == BundledCatalogAuthorization.shared.snapshot() else {
+                    throw TemplateProblem(code: "access_changed", location: "", message: String(localized: "Catalog access changed. Try again."))
+                }
+                guard library.storageProblem == nil, references == library.references.filter(\.enabled) else {
+                    throw TemplateProblem(code: "templates_changed", location: "", message: String(localized: "Templates changed. Try again."))
+                }
+                SearchFilterSettings.shared.useCatalog(metadata)
+                settingsTab = "rules"
+            } catch {
+                catalogNavigationError = error.localizedDescription
+            }
+        }
+    }
+#endif
 }
 
 struct ArtifactDiagramRequest {
