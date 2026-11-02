@@ -144,6 +144,54 @@
           }
         }
       }
+    },
+    "Unable to load scan rules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to load scan rules"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось загрузить правила сканирования"
+          }
+        }
+      }
+    },
+    "Catalog access changed. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catalog access changed. Try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к каталогу изменился. Повторите попытку."
+          }
+        }
+      }
+    },
+    "Templates changed. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Templates changed. Try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаблоны изменились. Повторите попытку."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

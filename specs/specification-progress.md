@@ -1392,9 +1392,12 @@ before executing a test (issue #125), and is not a passing runtime receipt.
 ## Catalog navigation — 2026-11-02
 
 MacApplication owns the selected Settings tab and passes an action to the
-private commerce presentation to open Scan Rules. A preference-change note is
-shown when a rule selection changes. The current application preferences and
-catalog admission claims, HC topology and scan snapshot obligations remain
-unchanged; the private preview does not itself authorize rules. Source/map
+private commerce presentation to open Scan Rules. The action reloads enabled
+template documents and authorized catalog metadata before showing the filters;
+failures and changed access are reported instead of showing a stale list. A
+preference-change note is shown when a rule selection changes. The existing
+template reading and admission roles cover this additional consumer; HC topology
+and scan snapshot obligations remain unchanged. The private preview does not
+itself authorize rules. Source/map
 hashes and structural checks are in `validation/catalog-navigation-20261102`.
 These checks do not prove the private composition or StoreKit behavior.
