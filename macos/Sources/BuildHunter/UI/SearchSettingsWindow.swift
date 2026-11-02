@@ -75,7 +75,7 @@ struct SearchSettingsWindow: View {
                 Text(names.joined(separator: ", ")).font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary).lineLimit(1)
             }
-        }.padding(.vertical, 4)
+        }.padding(.vertical, 4).padding(.horizontal, 12)
     }
 
     private func groupHeader(_ title: String, filters: [SearchFilterDescriptor], expanded: Binding<Bool>) -> some View {
@@ -101,7 +101,7 @@ struct SearchSettingsWindow: View {
             .accessibilityLabel(Text(LocalizedStringKey(title)))
             .accessibilityValue(expanded.wrappedValue ? "Expanded" : "Collapsed")
             .nestedAccessibilityIdentifier("expand.\(title)")
-        }
+        }.padding(.horizontal, 12)
     }
 
     var body: some View {
