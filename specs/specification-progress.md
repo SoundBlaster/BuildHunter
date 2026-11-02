@@ -1367,3 +1367,12 @@ This source-localization pilot is not evidence of complete application
 localization or visual acceptance. Previous receipts remain historical. Current
 project/catalog and map hashes plus structural checks are recorded in
 `validation/string-catalog-pilot-20261101/identity.json`.
+
+## Settings presentation — 2026-11-02
+
+MacApplication settings tabs use SF Symbols and a shared minimum frame; Search
+no longer fixes its width. Current application and template claims, HC roles,
+bindings and assembly obligations remain unchanged. Source identities and
+structural checks are in `validation/settings-layout-20261102/identity.json`;
+the open-source Search and Templates tabs were visually inspected locally.
+The optional private Catalog tab remains to be verified in the MAS composition.

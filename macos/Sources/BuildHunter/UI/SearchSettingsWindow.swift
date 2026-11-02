@@ -57,7 +57,7 @@ struct SearchSettingsWindow: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420, height: 540)
+        .frame(minWidth: 760, minHeight: 540)
         .a11yRoot("buildhunter.settings.search")
     }
 }

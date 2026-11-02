@@ -40,12 +40,13 @@ struct BuildHunterApp: App {
 
         Settings {
             TabView {
-                SearchSettingsWindow().tabItem { Text("Search") }
-                UserTemplatesWindow(workspace: .shared).tabItem { Text("Templates") }
+                SearchSettingsWindow().tabItem { Label("Search", systemImage: "magnifyingglass") }
+                UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }
 #if BUILDHUNTER_COMMERCE
-                ArsenalSettingsView(session: commerce).tabItem { Text("Catalog") }
+                ArsenalSettingsView(session: commerce).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }
 #endif
             }
+            .frame(minWidth: 760, minHeight: 540)
         }
 
         WindowGroup("Artifact Diagram", id: "artifact-diagram", for: UUID.self) { $scanID in
