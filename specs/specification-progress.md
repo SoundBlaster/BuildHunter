@@ -1405,3 +1405,15 @@ These checks do not prove the private composition or StoreKit behavior.
 ## Managed catalog source — 2026-11-02
 
 The edition assembly may supply a process-local resource root after verifying access and delivery. Package hashes, size limits and denied-access isolation remain enforced by the template boundary. Apple-hosted download, signing and end-to-end evidence belong to the private MAS assembly and are not claimed here.
+
+## Scan rule source badges — 2026-11-02
+
+The Settings presentation labels rules from admitted edition packages and user
+documents. The source mapping is accepted only when a separately validated
+catalog matches the current scan catalog digest; an unavailable or changed
+document leaves the source unlabelled. Built-in rules remain unlabelled. Existing
+template admission and current.application preference claims, HC composition,
+and scan snapshot obligations remain unchanged. Structural validation and
+source identities are recorded in `validation/rule-source-badges-20261102`;
+the focused macOS template tests passed locally, but visual acceptance and
+Apple-hosted delivery are not established by that result.

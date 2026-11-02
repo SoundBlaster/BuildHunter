@@ -35,6 +35,34 @@ struct TemplateDocumentInfo: Decodable, Sendable {
     let title: String
 }
 
+enum SearchRuleOrigin: Sendable, Equatable {
+    case catalog, user
+}
+
+/// Classify only an admitted catalog matching the one currently shown in Settings.
+enum SearchRuleOrigins {
+    private struct Document: Decodable {
+        struct Target: Decodable { let id: String }
+        let targets: [Target]
+    }
+
+    static func resolve(userDocuments: [Data], bundledDocuments: [Data],
+                        access: BundledCatalogAccess, digest: String) throws -> [String: SearchRuleOrigin] {
+        let admitted = try TemplateCatalog.metadata(documents: userDocuments,
+            bundledDocuments: bundledDocuments, access: access)
+        guard admitted.digest == digest else { return [:] }
+        var result: [String: SearchRuleOrigin] = [:]
+        let decoder = JSONDecoder()
+        for bytes in access.isAllowed ? bundledDocuments : [] {
+            for target in try decoder.decode(Document.self, from: bytes).targets { result[target.id] = .catalog }
+        }
+        for bytes in userDocuments {
+            for target in try decoder.decode(Document.self, from: bytes).targets { result[target.id] = .user }
+        }
+        return result
+    }
+}
+
 private final class TemplateErrorReceiver {
     var problem: TemplateProblem?
 }

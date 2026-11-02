@@ -7,6 +7,24 @@ import Testing
 @Suite("File-backed user templates")
 @MainActor
 struct UserTemplateTests {
+    @Test("Origins follow admitted documents and reject a stale catalog digest")
+    func ruleOrigins() throws {
+        let bundled = Data(TemplateCatalog.example().utf8)
+        let user = Data(TemplateCatalog.example().utf8)
+        let metadata = try TemplateCatalog.metadata(documents: [user], bundledDocuments: [bundled], access: .allowed)
+        let origins = try SearchRuleOrigins.resolve(userDocuments: [user], bundledDocuments: [bundled], access: .allowed, digest: metadata.digest)
+        let builtinIDs = Set(try #require(ScanCatalogMetadata.basic()).targets.map(\.id))
+        #expect(metadata.targets.filter { !builtinIDs.contains($0.id) }.count == 2)
+        #expect(origins.values.filter { $0 == .catalog }.count == 1)
+        #expect(origins.values.filter { $0 == .user }.count == 1)
+        #expect(builtinIDs.allSatisfy { origins[$0] == nil })
+        #expect(try SearchRuleOrigins.resolve(userDocuments: [user], bundledDocuments: [bundled], access: .allowed, digest: String(repeating: "0", count: 64)).isEmpty)
+        let denied = try TemplateCatalog.metadata(documents: [user], bundledDocuments: [bundled], access: .denied)
+        let deniedOrigins = try SearchRuleOrigins.resolve(userDocuments: [user], bundledDocuments: [bundled], access: .denied, digest: denied.digest)
+        #expect(deniedOrigins.values.filter { $0 == .catalog }.isEmpty)
+        #expect(deniedOrigins.values.filter { $0 == .user }.count == 1)
+    }
+
     @Test("Templates extend the real catalog and package versions survive report export")
     func catalogAndExport() throws {
         let document = Data(TemplateCatalog.example().utf8)
