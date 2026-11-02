@@ -1404,4 +1404,4 @@ These checks do not prove the private composition or StoreKit behavior.
 
 ## Managed catalog source — 2026-11-02
 
-The edition assembly may supply a process-local resource root after verifying access and delivery. Package hashes, size limits and denied-access isolation remain enforced by the template boundary. Apple-hosted download, signing and end-to-end evidence belong to the private MAS assembly and are not claimed here.
+The edition assembly may supply a process-local resource root after verifying access and delivery. Package hashes, size limits and denied-access isolation remain enforced by the template boundary. The affected roles are MacApplication/TemplateManagement, current.templates/edition_resources and current.application/generation; the existing assembly boundary owns source selection. Current source and map identities, tool identities, structural validation and limitations are recorded in `validation/managed-catalog-20261102`. Earlier receipts remain historical. Apple-hosted download, signing and end-to-end evidence belong to the private MAS assembly and are not claimed here.
