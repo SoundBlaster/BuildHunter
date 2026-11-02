@@ -94,6 +94,7 @@ struct SearchSettingsWindow: View {
                     }
                     Spacer()
                     TextField("Filter rules", text: $query).textFieldStyle(.roundedBorder).frame(maxWidth: 220)
+                        .nestedAccessibilityIdentifier("filterQuery")
                 }
                 ForEach(settings.groups, id: \.self) { group in
                     let filters = settings.filters(in: group)

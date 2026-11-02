@@ -66,7 +66,7 @@ final class BuildHunterUITests: XCTestCase {
         let app = launchWindow(settingsSuite: "BuildHunter.SettingsUITests.\(UUID().uuidString)")
         defer { app.terminate() }
         openSettings(app)
-        let search = app.textFields["Filter rules"]
+        let search = app.textFields["buildhunter.settings.search.filterQuery"]
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         search.click()
         search.typeText(".pytest_cache")
