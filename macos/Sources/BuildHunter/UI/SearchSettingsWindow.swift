@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import NestedA11yIDs
 
@@ -77,12 +78,29 @@ struct SearchSettingsWindow: View {
         }.padding(.vertical, 4)
     }
 
-    private func groupHeader(_ title: String, filters: [SearchFilterDescriptor]) -> some View {
-        HStack {
+    private func groupHeader(_ title: String, filters: [SearchFilterDescriptor], expanded: Binding<Bool>) -> some View {
+        HStack(spacing: 0) {
             checkbox(title, filters: filters)
-            Spacer()
-            Text("\(filters.filter { settings.isEnabled(for: $0.id) }.count) / \(filters.count)")
-                .foregroundStyle(.secondary).monospacedDigit()
+            Button {
+                if (NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags).contains(.option) {
+                    expandedGroups = Set(settings.groups.filter { settings.filters(in: $0).count > 1 })
+                    expandedSections = Set(["Caches", "Build & packaging", "Environments", "Other"].map { "Python." + $0 })
+                } else {
+                    expanded.wrappedValue.toggle()
+                }
+            } label: {
+                HStack {
+                    Spacer(minLength: 8)
+                    Text("\(filters.filter { settings.isEnabled(for: $0.id) }.count) / \(filters.count)")
+                        .foregroundStyle(.secondary).monospacedDigit()
+                    Image(systemName: expanded.wrappedValue ? "chevron.down" : "chevron.right")
+                        .foregroundStyle(.secondary).frame(width: 18)
+                }.contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(LocalizedStringKey(title)))
+            .accessibilityValue(expanded.wrappedValue ? "Expanded" : "Collapsed")
+            .nestedAccessibilityIdentifier("expand.\(title)")
         }
     }
 
@@ -106,21 +124,25 @@ struct SearchSettingsWindow: View {
                         if filters.count == 1, let filter = visible.first {
                             row(filter)
                         } else {
-                            DisclosureGroup(isExpanded: expansion(group)) {
+                            let groupExpansion = expansion(group)
+                            groupHeader(group, filters: filters, expanded: groupExpansion)
+                            if groupExpansion.wrappedValue {
                                 if group == "Python" {
                                     ForEach(["Caches", "Build & packaging", "Environments", "Other"], id: \.self) { name in
                                         let children = filters.filter { section($0) == name }
                                         let shown = children.filter(matches)
                                         if !shown.isEmpty {
-                                            DisclosureGroup(isExpanded: expansion(group + "." + name, sections: true)) {
-                                                ForEach(shown) { row($0) }
-                                            } label: { groupHeader(name, filters: children) }
+                                            let sectionExpansion = expansion(group + "." + name, sections: true)
+                                            groupHeader(name, filters: children, expanded: sectionExpansion).padding(.leading, 20)
+                                            if sectionExpansion.wrappedValue {
+                                                ForEach(shown) { row($0).padding(.leading, 40) }
+                                            }
                                         }
                                     }
                                 } else {
-                                    ForEach(visible) { row($0) }
+                                    ForEach(visible) { row($0).padding(.leading, 20) }
                                 }
-                            } label: { groupHeader(group, filters: filters) }
+                            }
                         }
                     }
                 }
