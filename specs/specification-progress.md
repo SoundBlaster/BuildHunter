@@ -1406,6 +1406,14 @@ These checks do not prove the private composition or StoreKit behavior.
 
 The edition assembly may supply a process-local resource root after verifying access and delivery. Package hashes, size limits and denied-access isolation remain enforced by the template boundary. The affected roles are MacApplication/TemplateManagement, current.templates/edition_resources and current.application/generation; the existing assembly boundary owns source selection. Current source and map identities, tool identities, structural validation and limitations are recorded in `validation/managed-catalog-20261102`. Earlier receipts remain historical. Apple-hosted download, signing and end-to-end evidence belong to the private MAS assembly and are not claimed here.
 
+Accessibility context audit (2026-11-03): existing ReportPresentation,
+TemplateManagement and RuleProfilePresentation retain their responsibilities;
+SwiftUI composes local IDs and passes the context into embedded native controls.
+No functional scan or template claim changes. Source/map identities, observed
+native-editor test results, retained standalone AppKit boundaries, and the
+Automation-mode UI-test limitation are in
+`validation/accessibility-context-20261103.md`.
+
 ## Scan rule source badges — 2026-11-02
 
 The Settings presentation labels rules from admitted edition packages and user

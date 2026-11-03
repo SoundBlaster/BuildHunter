@@ -1,4 +1,5 @@
 import AppKit
+import NestedA11yIDs
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -13,9 +14,9 @@ struct UserTemplatesWindow: View {
             HStack {
                 Button("Import JSON…", action: connect)
                     .help("Connect JSON files in their current folder")
-                    .accessibilityIdentifier("buildhunter.templates.connect")
+                    .nestedAccessibilityIdentifier("connect")
                 Button("New…") { request(.new) }
-                    .accessibilityIdentifier("buildhunter.templates.new")
+                    .nestedAccessibilityIdentifier("new")
                 Spacer()
                 if workspace.busy { ProgressView().controlSize(.small) }
             }
@@ -56,16 +57,17 @@ struct UserTemplatesWindow: View {
                     if workspace.isDirty { Text("Unsaved changes").font(.caption).foregroundStyle(.secondary) }
                     TemplateJSONEditor(text: $workspace.text, editable: workspace.hasDocument && !workspace.busy,
                         rejected: workspace.explain)
+                        .nestedAccessibilityIdentifier("editor")
                         .frame(minHeight: 200)
                     HStack {
                         Button("Check") { Task { await workspace.check() } }
-                            .accessibilityIdentifier("buildhunter.templates.check")
+                            .nestedAccessibilityIdentifier("check")
                         Button("Reload") {
                             if let reference = workspace.reference { request(.load(reference)) }
                         }.disabled(workspace.reference == nil)
                         Spacer()
                         Button("Export JSON…") { savePanel(exporting: true) }
-                            .accessibilityIdentifier("buildhunter.templates.export")
+                            .nestedAccessibilityIdentifier("export")
                         Button("Save As…", action: saveAs)
                         Button("Save") { Task { await workspace.save() } }
                             .disabled(workspace.reference == nil || !workspace.isDirty)
@@ -80,12 +82,13 @@ struct UserTemplatesWindow: View {
                 .textSelection(.enabled).lineLimit(4)
                 .accessibilityLabel("Template status")
                 .accessibilityValue(workspace.message)
-                .accessibilityIdentifier("buildhunter.templates.status")
+                .nestedAccessibilityIdentifier("status")
             Text("Files stay where you put them. Git is managed outside BuildHunter. Enabled files are reloaded for each new scan.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .padding()
         .frame(minWidth: 760, minHeight: 500)
+        .a11yRoot("buildhunter.templates")
         .confirmationDialog("Discard the unsaved template changes?", isPresented: Binding(
             get: { pending != nil }, set: { if !$0 { pending = nil } })) {
             Button("Discard Changes", role: .destructive) {
