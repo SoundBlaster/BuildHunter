@@ -37,6 +37,10 @@ under Apache-2.0; consult its license and privacy documentation before use.
    Check the resulting state: successful delivery of a click
    alone does not prove that the UI changed. Respect the tool's retry guidance.
 
+   A safe smoke test in Debug is to open **Mock State**, snapshot the menu with
+   `--surface menu`, select **Completed results**, and snapshot the window again.
+   A successful transition exposes the report table and enables its controls.
+
 Snapshots can include private paths and other UI data. Keep recordings, snapshots
 and logs local unless their contents have been reviewed for sharing. This is a
 supplement to, not a replacement for, the project's automated UI tests.
