@@ -1,0 +1,10 @@
+{
+  "base": "1cfb4ed4547407a9707d21f8d32861ddd1c6ac6f",
+  "files": {
+    ".github/workflows/stack-gate.yml": "5467110f44524a5b343f5194c121ec89f9b33cf3bbd386c04d81879c9724f204",
+    "specs/hypercode/ci.hc": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a",
+    "specs/hypercode/ci.hcs": "ba4bd94d65bfd073d564e4852fdcd706979a01c2533844b49aadee941a27d2eb",
+    "specs/ci-validation.spec.yaml": "e334318de0b68dc65aa50fdaab8b1a6895dfb852b75693cc9e96f8d29dac09bf"
+  },
+  "scope": "CI publisher schedule and existing CI model; not application runtime"
+}
