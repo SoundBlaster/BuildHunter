@@ -1429,8 +1429,9 @@ Apple-hosted delivery are not established by that result.
 ## CI status reconciliation — 2026-11-03
 
 The `TrustedStatusPublication` role (`buildhunter.delivery.ci`, standalone and
-native-stack profiles) also runs on a five-minute schedule to refresh thread
-resolution and batch evidence when no supported workflow event fires. GitHub
+native-stack profiles) also runs a five-minute, read-mostly thread reconciliation when no supported
+workflow event fires. Unchanged review states do not produce new statuses; a
+transition to ready is verified against current batch evidence. GitHub
 may delay scheduled runs; the existing live evidence checks and authority do
 not change. This changes CI operation only: product roles, boundary claims and
 parent assembly obligations are unchanged. No application runtime acceptance

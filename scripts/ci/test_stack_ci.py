@@ -12,7 +12,7 @@ import urllib.parse
 import zipfile
 
 from stack_ci import (API, NotReady, StripRedirectAuth, WORKFLOWS, evidence, main,
-                      plan, publish, receipt, required_jobs, verify, verify_workflow)
+                      plan, publish, receipt, required_jobs, verify, verify_workflow, reconcile_review_threads)
 from stack_ci_ruleset import proposal
 
 
@@ -37,6 +37,7 @@ class Fixture:
         self.calls = []
         self.runs, self.jobs, self.artifacts, self.zipfiles = {}, {}, {}, {}
         self.bad_reviews = set()
+        self.statuses = {}
         for number, head, ref, parent, base in [(1, LOWER, "lower", "main", BASE), (2, TIP, "tip", "lower", LOWER)]:
             self.prs[number] = {"number": number, "state": "open", "draft": False,
                 "head": {"ref": ref, "sha": head, "repo": {"full_name": REPO}},
@@ -48,6 +49,7 @@ class Fixture:
     def request(self, path, data=None, binary=False):
         self.calls.append((path, data))
         if path.startswith("statuses/"):
+            self.statuses[path.split("/")[1]] = copy.deepcopy(data)
             return {}
         if path.startswith("pulls/"):
             return copy.deepcopy(self.prs[int(path.split("/")[1])])
@@ -65,6 +67,9 @@ class Fixture:
 
     def pages(self, path, key=None):
         self.calls.append((path, None))
+        if path.startswith("commits/") and path.endswith("/status") and key == "statuses":
+            status = self.statuses.get(path.split("/")[1])
+            return [copy.deepcopy(status)] if status is not None else []
         if path.startswith("actions/workflows/"):
             workflow = path.split("/")[2]
             head = path.split("head_sha=")[1].split("&")[0]
@@ -454,3 +459,96 @@ class RulesetTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScheduledThreadReconciliationTests(unittest.TestCase):
+    def setUp(self):
+        self.api = Fixture()
+        self.api.green()
+        self.target = f"https://github.com/{REPO}/pull/2"
+        self.green = {"state": "success", "context": "Stack CI gate",
+                      "description": "Current batch CI evidence verified; merge only the tested tip",
+                      "target_url": self.target}
+        self.api.statuses = {LOWER: copy.deepcopy(self.green), TIP: copy.deepcopy(self.green)}
+        self.api.calls.clear()
+
+    def posts(self):
+        return [(path, data) for path, data in self.api.calls if path.startswith("statuses/")]
+
+    def run_schedule(self):
+        reconcile_review_threads(self.api, list(self.api.prs.values()), True)
+
+    def test_repeated_unchanged_green_produces_no_status_writes(self):
+        for _ in range(5):
+            self.run_schedule()
+        self.assertEqual(self.posts(), [])
+
+    def test_reopened_thread_invalidates_the_whole_stack_once(self):
+        self.api.bad_reviews.add(2)
+        self.run_schedule()
+        self.assertEqual({path for path, _ in self.posts()}, {"statuses/" + LOWER, "statuses/" + TIP})
+        self.assertTrue(all(data["state"] == "pending" for _, data in self.posts()))
+        self.api.calls.clear()
+        self.run_schedule()
+        self.assertEqual(self.posts(), [])
+
+    def test_resolution_verifies_evidence_and_restores_success_once(self):
+        self.api.bad_reviews.add(2)
+        self.run_schedule()
+        self.api.bad_reviews.clear()
+        self.api.calls.clear()
+        self.run_schedule()
+        self.assertEqual({path for path, _ in self.posts()}, {"statuses/" + LOWER, "statuses/" + TIP})
+        self.assertTrue(all(data["state"] == "success" for _, data in self.posts()))
+        self.api.calls.clear()
+        self.run_schedule()
+        self.assertEqual(self.posts(), [])
+
+    def test_unresolved_thread_never_restores_success(self):
+        self.api.bad_reviews.add(2)
+        self.run_schedule()
+        self.api.calls.clear()
+        self.run_schedule()
+        self.assertEqual(self.posts(), [])
+        self.assertTrue(all(x["state"] == "pending" for x in self.api.statuses.values()))
+
+    def test_resolved_thread_with_failed_ci_stays_pending_without_churn(self):
+        self.api.bad_reviews.add(2)
+        self.run_schedule()
+        self.api.bad_reviews.clear()
+        self.api.runs.clear()
+        self.run_schedule()
+        self.api.calls.clear()
+        self.run_schedule()
+        self.assertEqual(self.posts(), [])
+        self.assertTrue(all(x["state"] == "pending" for x in self.api.statuses.values()))
+
+    def test_schedule_entrypoint_does_not_invalidate_unchanged_status(self):
+        env = {"GITHUB_EVENT_NAME": "schedule", "GITHUB_REPOSITORY": REPO, "STACK_MACOS_CI": "true"}
+        with patch.dict(os.environ, env, clear=True), patch("sys.argv", ["stack_ci.py", "publish"]), \
+             patch("stack_ci.API", return_value=self.api):
+            main()
+        self.assertEqual(self.posts(), [])
+
+    def test_review_api_failure_invalidates_green_once(self):
+        with patch.object(self.api, "reviews", side_effect=OSError("network unavailable")):
+            self.run_schedule()
+            self.assertEqual({path for path, _ in self.posts()}, {"statuses/" + LOWER, "statuses/" + TIP})
+            self.assertTrue(all(data["state"] == "pending" for _, data in self.posts()))
+            self.api.calls.clear()
+            self.run_schedule()
+            self.assertEqual(self.posts(), [])
+
+    def test_missing_initial_status_is_not_invented_by_schedule(self):
+        self.api.statuses.clear()
+        self.run_schedule()
+        self.assertEqual(self.posts(), [])
+
+    def test_ready_recheck_invalidates_other_green_stack_heads_before_verification(self):
+        self.api.statuses[TIP] = {"state": "pending", "context": "Stack CI gate",
+                                  "description": "Unresolved review threads", "target_url": self.target}
+        self.run_schedule()
+        posts = self.posts()
+        self.assertEqual(posts[0][0], "statuses/" + LOWER)
+        self.assertEqual(posts[0][1]["state"], "pending")
+        self.assertTrue(all(self.api.statuses[head]["state"] == "success" for head in (LOWER, TIP)))

@@ -257,7 +257,7 @@ def verify(api, number, enabled, require_tip=False):
     return expected
 
 
-def publish(api, number, enabled):
+def publish(api, number, enabled, *, skip_unchanged=False):
     # Only reset/attest live head revisions; never trust SHAs from event input.
     initial = plan(api, number, enabled)
     state, description = "success", "Current batch CI evidence verified; merge only the tested tip"
@@ -270,11 +270,85 @@ def publish(api, number, enabled):
         live = api.request(f"pulls/{member['pr']}")
         if live["head"]["sha"] != member["head"]:
             raise NotReady("Head changed before status publication")
-        api.request(f"statuses/{member['head']}", {
-            "state": state, "context": CONTEXT, "description": description[:140],
-            "target_url": f"https://github.com/{api.repository}/pull/{verified['tip']}",
-        })
+        payload = {"state": state, "context": CONTEXT, "description": description[:140],
+                   "target_url": f"https://github.com/{api.repository}/pull/{verified['tip']}"}
+        if skip_unchanged:
+            current = latest_gate_status(api, member["head"])
+            if current is not None and all(current.get(k) == payload[k] for k in ("state", "description", "target_url")):
+                continue
+        api.request(f"statuses/{member['head']}", payload)
     return state, description
+
+
+def latest_gate_status(api, head):
+    """Read the newest status per context from GitHub's combined-status API."""
+    statuses = api.pages(f"commits/{sha(head)}/status", "statuses")
+    if type(statuses) is not list:
+        raise NotReady("Current status is unavailable")
+    matches = [item for item in statuses if isinstance(item, dict) and item.get("context") == CONTEXT]
+    if len(matches) > 1:
+        raise NotReady("Current status is ambiguous")
+    return matches[0] if matches else None
+
+
+def reconcile_review_threads(api, prs, enabled):
+    """Periodic read-mostly recovery; unchanged heads produce no status writes.
+
+    Normal event-driven publication retains its invalidate-before-verification
+    behavior. Native review-thread branch protection remains authoritative.
+    """
+    handled = set()
+    for pr in prs:
+        number = pr["number"]
+        if number in handled:
+            continue
+        try:
+            head = sha(pr["head"]["sha"])
+            current = latest_gate_status(api, head)
+            if current is None:
+                # An event-driven run is responsible for the initial status.
+                continue
+            try:
+                api.reviews(number)
+                ready = True
+            except (NotReady, KeyError, TypeError, ValueError, OSError) as error:
+                ready = False
+                reason = str(error) if isinstance(error, NotReady) else "Review state unavailable"
+            if not ready and current.get("state") == "success":
+                try:
+                    members = plan(api, number, enabled)["members"]
+                except (NotReady, KeyError, TypeError, ValueError, OSError):
+                    members = [{"pr": number, "head": head}]
+                for member in members:
+                    live = api.request(f"pulls/{member['pr']}")
+                    if live["state"] != "open" or live["head"]["sha"] != member["head"]:
+                        raise NotReady("Head changed before status publication")
+                    previous = current if member["head"] == head else latest_gate_status(api, member["head"])
+                    if previous is not None and previous.get("state") == "pending":
+                        continue
+                    payload = {"state": "pending", "context": CONTEXT, "description": reason[:140]}
+                    if previous is not None and previous.get("target_url"):
+                        payload["target_url"] = previous["target_url"]
+                    api.request(f"statuses/{member['head']}", payload)
+                handled.update(member["pr"] for member in members)
+            elif ready and current.get("state") != "success":
+                expected = plan(api, number, enabled)
+                # All observed stack heads must be pending before full verification.
+                # Avoid writing another pending status where one is already current.
+                for member in expected["members"]:
+                    live = api.request(f"pulls/{member['pr']}")
+                    if live["state"] != "open" or live["head"]["sha"] != member["head"]:
+                        raise NotReady("Head changed before status publication")
+                    previous = current if member["head"] == head else latest_gate_status(api, member["head"])
+                    if previous is None or previous.get("state") != "pending":
+                        api.request(f"statuses/{member['head']}", {
+                            "state": "pending", "context": CONTEXT,
+                            "description": "Refreshing current batch CI evidence"})
+                publish(api, number, enabled, skip_unchanged=True)
+                handled.update(member["pr"] for member in expected["members"])
+        except (NotReady, KeyError, TypeError, ValueError, OSError) as error:
+            # One unavailable PR must not prevent reconciliation of other PRs.
+            print(number, "review reconciliation unavailable", type(error).__name__)
 
 
 def main():
@@ -320,6 +394,9 @@ def main():
             return
         # Refresh all open PRs: trunk/membership changes can invalidate other layers.
         prs = api.pages("pulls?state=open")
+        if os.environ.get("GITHUB_EVENT_NAME") == "schedule":
+            reconcile_review_threads(api, prs, enabled)
+            return
         # Invalidate first: schema/API errors or a cancelled publisher must not
         # leave a previous green status on a head we have already observed.
         for pr in prs:
