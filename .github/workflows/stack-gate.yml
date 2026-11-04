@@ -9,7 +9,7 @@ on:
     branches: [main]
   # GitHub Actions has no review-thread resolved trigger; reconcile periodically.
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
 permissions:
   contents: read

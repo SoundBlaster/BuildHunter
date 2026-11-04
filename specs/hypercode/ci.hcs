@@ -29,7 +29,7 @@ ReviewThreads:
   implementation: "paginated GraphQL threads/reviewDecision, native rules still authoritative"
 TrustedStatusPublication:
   source: ".github/workflows/stack-gate.yml"
-  implementation: "default-branch-only code, read APIs + statuses write; invalidate before event refresh; five-minute review-thread reconciliation writes only changed status"
+  implementation: "default-branch-only code, read APIs + statuses write; invalidate before event refresh; hourly review-thread reconciliation writes only changed status"
 MergePreflight:
   source: "scripts/ci/stack_ci.py"
   implementation: "verify-merge requires selected tip; status alone cannot forbid intentional prefix"
