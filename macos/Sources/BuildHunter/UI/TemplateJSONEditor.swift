@@ -1,9 +1,11 @@
 import AppKit
+import NestedA11yIDs
 import SwiftUI
 
 /// Bounded plain text editing. Highlight only the changed paragraph; large files
 /// keep plain text to avoid turning each keystroke into a full-document rendering job.
 struct TemplateJSONEditor: NSViewRepresentable {
+    @Environment(\.accessibilityPrefix) private var accessibilityPrefix
     @Binding var text: String
     var editable: Bool
     var rejected: (String) -> Void
@@ -23,13 +25,14 @@ struct TemplateJSONEditor: NSViewRepresentable {
         editor.textColor = .textColor
         editor.allowsUndo = true
         editor.delegate = context.coordinator
-        editor.setAccessibilityIdentifier("buildhunter.templates.editor")
+        editor.setAccessibilityIdentifier(accessibilityPrefix)
         return view
     }
 
     func updateNSView(_ view: NSScrollView, context: Context) {
         context.coordinator.parent = self
         guard let editor = view.documentView as? NSTextView else { return }
+        editor.setAccessibilityIdentifier(accessibilityPrefix)
         editor.isEditable = editable
         if editor.string != text {
             editor.string = text

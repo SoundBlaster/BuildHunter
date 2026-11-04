@@ -113,8 +113,8 @@ final class BuildHunterUITests: XCTestCase {
         XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
         statusItem.click()
         XCTAssertTrue(chart.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average"].exists)
-        XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak"].exists)
+        XCTAssertTrue(app.staticTexts["buildhunter.report.profile.average.label"].exists)
+        XCTAssertTrue(app.staticTexts["buildhunter.report.profile.peak.label"].exists)
         attachScreenshot(named: "scan-profile-completed", from: app)
         app.radioButtons["CPU"].click()
         let current = app.staticTexts["buildhunter.report.profile.current.value"]

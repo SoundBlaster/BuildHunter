@@ -326,6 +326,7 @@ struct ArtifactReportTable: View {
 /// Keep one current data source instead of passing full arrays to SwiftUI's
 /// TableRowForEachState.ChildTraits, which can retain historical projections.
 private struct ArtifactNativeTable: NSViewRepresentable {
+    @Environment(\.accessibilityPrefix) private var accessibilityPrefix
     let rows: [ScanRow]
     let sortOrder: [ScanRowComparator]
     let rootURL: URL?
@@ -343,7 +344,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
         table.usesAlternatingRowBackgroundColors = true
         table.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         table.indentationPerLevel = 0
-        table.setAccessibilityIdentifier("buildhunter.report.table")
+        table.setAccessibilityIdentifier(accessibilityPrefix)
         for (key, title, width, minimum) in [
             ("path", "Path", 360.0, 240.0), ("size", "Size", 125.0, 100.0),
             ("language", "Language", 120.0, 90.0), ("kind", "Kind", 150.0, 110.0)
@@ -368,6 +369,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         guard let table = scroll.documentView as? NSOutlineView else { return }
+        table.setAccessibilityIdentifier(accessibilityPrefix)
         context.coordinator.update(self, table: table)
     }
 

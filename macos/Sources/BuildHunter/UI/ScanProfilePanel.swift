@@ -116,9 +116,9 @@ struct ScanProfilePanel: View {
                     // is independent and remains animated.
             }
             HStack(spacing: 12) {
-                statistic("Current", value: metric.isResource || isScanning ? current : 0)
-                statistic("Average", value: average)
-                statistic("Peak", value: peak)
+                statistic("Current", id: "current", value: metric.isResource || isScanning ? current : 0)
+                statistic("Average", id: "average", value: average)
+                statistic("Peak", id: "peak", value: peak)
             }
             HStack(spacing: 16) {
                 legend(metric.rawValue, color: Self.rateColor)
@@ -293,12 +293,12 @@ struct ScanProfilePanel: View {
         }
     }
 
-    private func statistic(_ title: String, value: Double?) -> some View {
+    private func statistic(_ title: String, id: String, value: Double?) -> some View {
         let display = statisticDisplay(value)
         return VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(title)
-                    .nestedAccessibilityIdentifier(title.lowercased())
+                    .nestedAccessibilityIdentifier("label")
                 Text(display.unit)
                     .fontWeight(.regular)
             }
@@ -312,9 +312,10 @@ struct ScanProfilePanel: View {
                 .minimumScaleFactor(0.65)
                 // Keep the complete measurement available to assistive technology.
                 .accessibilityValue(value.map(formatted) ?? "—")
-                .nestedAccessibilityIdentifier("\(title.lowercased()).value")
+                .nestedAccessibilityIdentifier("value")
 
         }
+        .nestedAccessibilityIdentifier(id)
         // Each statistic owns an equal column, independent of live digit counts.
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
