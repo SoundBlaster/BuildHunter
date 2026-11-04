@@ -17,6 +17,9 @@ Open **Diagram** (⇧⌘D) to see the same report in a separate animated sunburs
 
 Debug builds include a **Mock State** menu in the window toolbar. It displays synthetic empty, scanning, completed, stopped, and incomplete reports, and clears any previous real target URL. Mock controls are compiled out of Release builds. `NestedA11yIDs` composes stable identifiers for test controls. UI tests select every state, check accessible status, open and dismiss the folder picker, verify the companion diagram, and attach screenshots to `.xcresult`. CI exports and checks ten PNGs under `macos/.build/ci/ui-screenshots`.
 
+For agent-assisted manual UI checks using the optional external `agent-desktop`
+tool, see [Agent desktop testing](../docs/agent-desktop-testing.md).
+
 Generate and open the Xcode project:
 
 Install Rust with rustup first. The Rust pre-build script uses Cargo from `PATH`,
