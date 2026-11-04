@@ -7,6 +7,9 @@ on:
     types: [opened, synchronize, reopened, edited, closed, ready_for_review, converted_to_draft, stacked]
   push:
     branches: [main]
+  # GitHub Actions has no review-thread resolved trigger; reconcile periodically.
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
 permissions:
   contents: read

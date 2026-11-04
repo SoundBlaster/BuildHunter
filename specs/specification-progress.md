@@ -1425,3 +1425,15 @@ and scan snapshot obligations remain unchanged. Structural validation and
 source identities are recorded in `validation/rule-source-badges-20261102`;
 the focused macOS template tests passed locally, but visual acceptance and
 Apple-hosted delivery are not established by that result.
+
+## CI status reconciliation — 2026-11-03
+
+The `TrustedStatusPublication` role (`buildhunter.delivery.ci`, standalone and
+native-stack profiles) also runs an hourly, read-mostly thread reconciliation when no supported
+workflow event fires. Unchanged review states do not produce new statuses; a
+transition to ready is verified against current batch evidence. GitHub
+may delay scheduled runs; the existing live evidence checks and authority do
+not change. This changes CI operation only: product roles, boundary claims and
+parent assembly obligations are unchanged. No application runtime acceptance
+is implied. The CI Hypercode map records the changed publisher behavior; source
+hashes and validation are in [the CI refresh record](validation/ci-thread-refresh-20261103/README.md).

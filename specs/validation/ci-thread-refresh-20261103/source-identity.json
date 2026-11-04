@@ -1,0 +1,12 @@
+{
+  "base": "1cfb4ed4547407a9707d21f8d32861ddd1c6ac6f",
+  "files": {
+    ".github/workflows/stack-gate.yml": "b8dc5bd0cd408b531d18f2bb43b4ae66541c11939f419ad7731db45fd1d9b664",
+    "specs/hypercode/ci.hc": "cab49aaee59bcb9e293f67f7951a391350fdba1afdf529a1690ecc8cb85dbe6a",
+    "specs/hypercode/ci.hcs": "100aad4419d531d6aefeac2a30279abd8de642be156f2d0d8fb4dad6a743b8c3",
+    "specs/ci-validation.spec.yaml": "e334318de0b68dc65aa50fdaab8b1a6895dfb852b75693cc9e96f8d29dac09bf",
+    "scripts/ci/stack_ci.py": "d4e90c01cd38b177d56f8826894b5cdfe636f85ff6bb54946559c859b31d43c1",
+    "scripts/ci/test_stack_ci.py": "bf588ccf1442dd8ba7d8518d269547cb25d306bca014968eb3af2562fd39d175"
+  },
+  "scope": "CI publisher schedule and existing CI model; not application runtime"
+}
