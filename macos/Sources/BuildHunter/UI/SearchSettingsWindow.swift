@@ -55,7 +55,7 @@ struct SearchSettingsWindow: View {
             Group {
                 switch origin {
                 case .catalog: Text("Catalog")
-                case .user: Text("User")
+                case .user: Label("User", systemImage: "person.crop.circle")
                 }
             }
             .font(.caption.weight(.medium))
