@@ -1442,7 +1442,7 @@ hashes and validation are in [the CI refresh record](validation/ci-thread-refres
 
 Scan Rules and the optional Store Catalog now use the app-owned `ScanRuleRow`
 layout. Selection, icon and disclosure are supplied by their owning view;
-the optional edition provides its own icon lookup and preview content. User
+the optional edition maps its target identities to shared framework assets and provides preview content. User
 origin selects `person.crop.circle`; catalog identity and paid definitions
 remain in the edition. Existing classification, persisted selection, catalog
 admission, effects, and scan snapshot contracts are unchanged. The layout is
@@ -1451,8 +1451,8 @@ no draft requirement is promoted to owner acceptance. Historical evidence retain
 its original source scope. Visual and integration validation are recorded in PR.
 
 Source SHA-256: SearchSettingsWindow.swift
-`4497286ff2fc46e6ed5fb113238ce6834a25a4f2c8adf8c87ee8369faf07aa59`;
+`df483cf58c2499f3731409a8268bbfeab0d6514d8196c673d025fe6cee497882`;
 BuildHunterApp.swift
 `be2f567ff4da4149e3824f915f84ca5d80eb4b6c27b2e3aa38fc4cd0ef64cc45`;
 current.hcs
-`e1c311b959c5296db84f25b51c6bd7832313bfc58669a8aee9ee5209345f0a57`.
+`8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.

@@ -30,7 +30,7 @@ struct ScanRuleIcon: View {
     private var icon: Image {
         if isUser { return Image(systemName: "person.crop.circle") }
 #if BUILDHUNTER_COMMERCE
-        if let icon = catalogRuleIcon(for: id) { return icon }
+        if let name = catalogRuleIconName(for: id) { return Image(name) }
 #endif
         switch group.lowercased() {
         case "swift": return Image("LanguageSwift")
@@ -41,7 +41,9 @@ struct ScanRuleIcon: View {
     }
 
     var body: some View {
-        icon.resizable().scaledToFit().frame(width: 20, height: 20).accessibilityHidden(true)
+        icon.renderingMode(!isUser && group.lowercased() == "rust" ? .template : .original)
+            .resizable().scaledToFit().frame(width: 20, height: 20)
+            .foregroundStyle(.primary).accessibilityHidden(true)
     }
 }
 
