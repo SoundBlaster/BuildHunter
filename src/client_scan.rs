@@ -16,6 +16,17 @@ use std::{
     sync::Arc,
 };
 
+impl From<CandidateNodeKind> for NodeKind {
+    fn from(kind: CandidateNodeKind) -> Self {
+        match kind {
+            CandidateNodeKind::Directory => Self::Directory,
+            CandidateNodeKind::RegularFile => Self::RegularFile,
+            CandidateNodeKind::Symlink => Self::Symlink,
+            CandidateNodeKind::Other => Self::Other,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct CatalogArtifact {
     pub id: u64,
@@ -143,12 +154,7 @@ pub fn scan_client(
             if snapshot.profile() == ClientProfile::GuiV1 && legacy.has_artifact_ancestor {
                 return CandidateAction::Traverse;
             }
-            let kind = match kind {
-                CandidateNodeKind::Directory => NodeKind::Directory,
-                CandidateNodeKind::RegularFile => NodeKind::RegularFile,
-                CandidateNodeKind::Symlink => NodeKind::Symlink,
-                CandidateNodeKind::Other => NodeKind::Other,
-            };
+            let kind = NodeKind::from(kind);
             if kind == NodeKind::Symlink {
                 return CandidateAction::Traverse;
             }

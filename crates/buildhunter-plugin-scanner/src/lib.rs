@@ -1,6 +1,6 @@
 //! Opt-in filesystem integration. The pure policy crate and default clients stay separate.
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-use build_hunter::{ArtifactClassificationCode, CandidateAction, CandidateNodeKind, ScanEvent};
+use build_hunter::{ArtifactClassificationCode, CandidateAction, ScanEvent};
 use build_hunter::{ScanControl, ScanOptions, ScanProfileSample, ScanStatus, ScanWarning};
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 use buildhunter_plugin_policy::{CandidateFacts, Decision, MarkerFact, MarkerProbe, NodeKind};
@@ -157,12 +157,7 @@ pub fn scan(
                 if legacy.node_name == b".git" {
                     return CandidateAction::Prune;
                 }
-                let kind = match kind {
-                    CandidateNodeKind::Directory => NodeKind::Directory,
-                    CandidateNodeKind::RegularFile => NodeKind::RegularFile,
-                    CandidateNodeKind::Symlink => NodeKind::Symlink,
-                    CandidateNodeKind::Other => NodeKind::Other,
-                };
+                let kind = NodeKind::from(kind);
                 if kind == NodeKind::Symlink {
                     return CandidateAction::Traverse;
                 }

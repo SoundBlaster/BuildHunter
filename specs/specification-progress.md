@@ -17,6 +17,13 @@ preservation and external test modules.
 Two deliberately independent event-mapping and UI polling fragments carry
 narrow reporting suppressions; this changes no runtime contract or topology.
 
+The client and plugin scan adapters share the `CandidateNodeKind` to policy
+`NodeKind` conversion in `client_scan.rs`. Their separate traversal, symlink and
+marker policies remain unchanged; current scan and plugin boundary claims and
+the HC topology are unaffected. Local validation: eight client-scan tests and
+18 plugin-scanner tests passed; Hypercode validated the CLI and GUI current-map
+contexts. SpecPM returned zero errors and 54 warnings. Hosted CI is separate.
+
 Latest feature slice: [R7 file-backed user templates](../docs/user-templates.md),
 2026-10-25 feature branch. Its contracts/evidence are recorded below and in
 `validation/user-templates-20261025`; it does not close CLI/SDK/Store delivery.
