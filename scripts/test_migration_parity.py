@@ -93,7 +93,10 @@ class MigrationParityTests(unittest.TestCase):
             accounting = json.loads(profile.read_text())
             self.assertEqual(accounting["status"], run["status"])
             self.assertEqual(len(report["errors"]), run["warnings"])
-            expected = [case["rows"][key] for key in run["expected"]]
+            # The frozen corpus records the old marker-following behavior.
+            # The current client intentionally rejects that one symlink marker.
+            expected = [case["rows"][key] for key in run["expected"]
+                        if case["id"] != "marker-links-vs-artifact-links" or key != "rust"]
             actual = []
             for row in report["artifacts"]:
                 # Both emitted paths share Rust's canonical root, including the

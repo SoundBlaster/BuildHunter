@@ -13,7 +13,8 @@ Checks on the source files identified in `source-identity.json`:
 
 - Root Rust library: 98 passed, including both client profiles and link cases.
 - Plugin policy: 21 passed; independent plugin scanner: 19 passed.
-- CLI integration: 15 passed; JSON contract tests: 13 passed.
+- CLI integration: 15 passed; CLI migration parity: 3 passed; JSON contract
+  tests: 13 passed.
 - Unsigned macOS XCTest `BuildHunterTests/MigrationParityTests`: 3 passed,
   exercising the native GUI event source and its migration corpus.
 - Hypercode `current.hc`/`current.hcs`, CLI and GUI contexts: no issues.

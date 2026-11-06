@@ -19,7 +19,8 @@
     "specs/plugin-policy.spec.yaml": "c724851c077e0df67ac32dd53a5700a85c5764a4366850f28e35e72ffa308131",
     "specs/plugin-scanner.spec.yaml": "574b72083228d20a5fca4f82034cc1526b8c4fdb4df9353da13812c77223ed6c",
     "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
-    "specs/hypercode/current.hcs": "00d09cd34f3264238d5d2a121da080a0799b8ec93ebc11f1613f267c0149b031"
+    "specs/hypercode/current.hcs": "00d09cd34f3264238d5d2a121da080a0799b8ec93ebc11f1613f267c0149b031",
+    "scripts/test_migration_parity.py": "464ad5fb149d1e23ceddf464e2e46e9d5e66b7c5a47ca8ef54c4c845fbabbb42"
   },
   "scope": "Selected-root-relative facts and terminal marker symlinks"
 }
