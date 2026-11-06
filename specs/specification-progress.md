@@ -14,6 +14,8 @@ zero errors and 54 dependency warnings. Hosted workflow execution remains to be
 verified separately. The production-only selection and report were rerun locally;
 the source-selection unit tests cover conditional production branches, line
 preservation and external test modules.
+Two deliberately independent event-mapping and UI polling fragments carry
+narrow reporting suppressions; this changes no runtime contract or topology.
 
 Latest feature slice: [R7 file-backed user templates](../docs/user-templates.md),
 2026-10-25 feature branch. Its contracts/evidence are recorded below and in

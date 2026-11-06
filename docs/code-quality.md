@@ -30,3 +30,7 @@ is a prompt for review, not a measurement of correctness or maintainability.
 No duplication or complexity threshold blocks a change. Tool failures still fail
 the report job; the workflow does not replace existing tests, Rust Clippy or
 other CI checks and is not a required stack gate.
+
+For deliberately independent code, a narrowly scoped `jscpd:ignore-start` /
+`jscpd:ignore-end` comment pair suppresses the region. State the reason next to
+the markers; do not exclude an entire file to silence one known match.

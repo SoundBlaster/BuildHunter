@@ -254,6 +254,8 @@ pub fn scan(
                                 .take()
                                 .expect("discovery immediately follows classification");
                             state.targets.insert(a.id, target.clone());
+                            // This adapter owns a distinct public event type; keep its mapping local.
+                            // jscpd:ignore-start
                             PluginScanEvent::ArtifactDiscovered(PluginArtifact {
                                 id: a.id,
                                 relative_path: a.relative_path.clone(),
@@ -262,6 +264,7 @@ pub fn scan(
                                 nested: a.nested,
                                 partial: a.partial,
                             })
+                            // jscpd:ignore-end
                         }
                         ScanEvent::ArtifactCompleted { id, bytes, partial } => {
                             PluginScanEvent::ArtifactCompleted {

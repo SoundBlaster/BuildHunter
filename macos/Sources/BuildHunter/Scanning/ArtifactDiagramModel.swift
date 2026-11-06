@@ -52,6 +52,8 @@ final class ArtifactDiagramModel {
 
     /// Coalesces streaming events while this window exists. Work occurs off the main actor
     /// and never runs from the table's per-event reducer.
+    // Deliberately mirrors the table's polling loop; refresh policies stay independent.
+    // jscpd:ignore-start
     func follow(_ scan: WindowScanModel) async {
         while !Task.isCancelled {
             await refresh(from: scan)
@@ -59,6 +61,7 @@ final class ArtifactDiagramModel {
         }
     }
 
+    // jscpd:ignore-end
     func refresh(from scan: WindowScanModel) async {
         guard !Task.isCancelled, !navigationTransitionActive else { return }
         let revision = scan.reportRevision
