@@ -28,6 +28,7 @@ Export:
   folded_into: "buildhunter.current.application"
 Settings:
   source: "macos/Sources/BuildHunter/Domain/SearchFilters.swift"
+  presentation: "macos/Sources/BuildHunter/UI/SearchSettingsWindow.swift: ScanRuleRow and icon assets shared with injected edition preview; optional selection, edition-provided target-to-icon mapping"
   folded_into: "buildhunter.current.classification"
 TemplateManagement:
   edition_resources: "optional hashed bundle or process-local managed resource root; edition-neutral authorization gates edition documents only; immutable per-scan admission; store verification and asset delivery excluded"

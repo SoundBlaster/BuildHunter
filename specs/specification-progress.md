@@ -1437,3 +1437,22 @@ not change. This changes CI operation only: product roles, boundary claims and
 parent assembly obligations are unchanged. No application runtime acceptance
 is implied. The CI Hypercode map records the changed publisher behavior; source
 hashes and validation are in [the CI refresh record](validation/ci-thread-refresh-20261103/README.md).
+
+## Shared scan rule row — 2026-11-06
+
+Scan Rules and the optional Store Catalog now use the app-owned `ScanRuleRow`
+layout. Selection, icon and disclosure are supplied by their owning view;
+the optional edition maps its target identities to shared framework assets and provides preview content. User
+origin selects `person.crop.circle`; catalog identity and paid definitions
+remain in the edition. Existing classification, persisted selection, catalog
+admission, effects, and scan snapshot contracts are unchanged. The layout is
+folded into Settings and the existing application/classification boundaries;
+no draft requirement is promoted to owner acceptance. Historical evidence retains
+its original source scope. Visual and integration validation are recorded in PR.
+
+Source SHA-256: SearchSettingsWindow.swift
+`df483cf58c2499f3731409a8268bbfeab0d6514d8196c673d025fe6cee497882`;
+BuildHunterApp.swift
+`be2f567ff4da4149e3824f915f84ca5d80eb4b6c27b2e3aa38fc4cd0ef64cc45`;
+current.hcs
+`8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
