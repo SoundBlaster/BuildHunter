@@ -1,0 +1,41 @@
+name: Code quality report
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'crates/**'
+      - 'macos/Sources/BuildHunter/**'
+      - 'scripts/ci/code_quality.sh'
+      - '.github/workflows/code-quality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'crates/**'
+      - 'macos/Sources/BuildHunter/**'
+      - 'scripts/ci/code_quality.sh'
+      - '.github/workflows/code-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Measure source
+        run: bash scripts/ci/code_quality.sh "$RUNNER_TEMP/code-quality"
+      - name: Publish report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-report
+          path: ${{ runner.temp }}/code-quality/
+          retention-days: 7
+          if-no-files-found: error
