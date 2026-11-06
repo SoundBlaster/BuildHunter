@@ -112,16 +112,18 @@ struct MigrationParityTests {
             case .profile, .ruleProfile: break
             }
         }
-        // Preserve the frozen corpus; marker symlinks are the one deliberate policy change.
         let expected = try run.expected
-            .filter { tree.id != "marker-links-vs-artifact-links" || $0 != "rust" }
             .map { try #require(tree.rows[$0]) }
         let metadata = try #require(catalog)
         #expect(terminal == [run.status], "\(tree.id)/\(run.id)")
         #expect(warnings.count == run.warnings, "\(tree.id)/\(run.id): \(warnings)")
-        #expect(discovered.values.map(\.relativePath).sorted() == expected.map(\.path).sorted(),
+        let measured = discovered.values.filter { !$0.isSymlink }
+        #expect(measured.map(\.relativePath).sorted() == expected.map(\.path).sorted(),
                 "\(tree.id)/\(run.id)")
-        #expect(Set(completed.keys) == Set(discovered.keys))
+        #expect(Set(completed.keys) == Set(measured.map(\.id)))
+        if tree.id == "marker-links-vs-artifact-links" {
+            #expect(discovered.values.filter(\.isSymlink).map(\.relativePath) == ["linked/.build"])
+        }
         for row in expected {
             #expect(!row.nested, "The GUI baseline contains only outer roots")
             let artifact = try #require(discovered.values.first { $0.relativePath == row.path })

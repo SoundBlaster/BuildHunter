@@ -28,6 +28,8 @@ struct ArtifactSizeStatistics: Equatable, Sendable {
             partialCount += count
             if bytes.map({ $0 < 0 }) ?? true { unavailableCount += count }
             if bytes == 0 { zeroCount += count }
+        case .notMeasured:
+            unavailableCount += count
         }
     }
 }
@@ -121,7 +123,7 @@ struct ArtifactSunburstSnapshot: Equatable, Sendable {
         switch size {
         case .measured(let value), .partial(.some(let value)):
             UInt64(max(0, value))
-        case .measuring, .partial(nil):
+        case .measuring, .partial(nil), .notMeasured:
             0
         }
     }

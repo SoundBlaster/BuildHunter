@@ -71,7 +71,8 @@ constraints:
 - id: finder_handoff
   level: MUST
   statement: NSWorkspace.activateFileViewerSelecting requests Finder selection; the .opened outcome describes a handoff
-    request, not observed Finder completion. Fallback stays within the specified accessRoot check.
+    request, not observed Finder completion. An existing or dangling symbolic link is selected by its own path
+    without resolving its target. Fallback stays within the specified accessRoot check.
 - id: warning_actions
   level: MUST
   statement: Warning table cells and row backgrounds offer Copy for the context selection and Open in Finder
@@ -89,7 +90,7 @@ constraints:
 - id: cli_profile
   level: MUST
   statement: CLI JSON formats paths lossily and lists nested findings while summing only outer roots; language/exclusion/environment
-    options and process exit codes belong to this adapter, not generic traversal. JSON schema 2 adds full catalog metadata, per-row target IDs and typed diagnostics; GUI exports freeze the same identity with the selected report. Legacy/mock exports without metadata retain schema 1.
+    options and process exit codes belong to this adapter, not generic traversal. JSON schema 3 retains catalog metadata and adds symlink entry type, null unmeasured bytes and an unmeasured-link count; GUI exports freeze the same identity with the selected report. Legacy/mock exports without metadata or links retain schema 1.
 effects:
   sideEffects:
   - id: user_export
@@ -227,7 +228,7 @@ implementationBindings:
   language: swift
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 7ccc42d9b75b7ce686cddc9045a5eddb4b1e9019
+    revision: 84ce408234e3f605933b3cd62bb1ec58c1d80013
   files:
     owned:
     - macos/Sources/BuildHunter/Scanning/WindowScanModel.swift

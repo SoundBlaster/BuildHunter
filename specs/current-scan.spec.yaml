@@ -144,8 +144,9 @@ constraints:
     CompletedWithChanges respectively; CompletedWithChanges can retain partial sizes and notices.
 - id: symlink_scope
   level: MUST
-  statement: Traversal skips symbolic links; marker_is_file uses fs::metadata to resolve recognized symlinked marker
-    files. This exception is observed, not a universal no-follow guarantee.
+  statement: Traversal and measurement do not follow symbolic links. The catalog observer may request a terminal
+    unmeasured symlink finding. The separately retained legacy numeric policy still uses fs::metadata to resolve
+    recognized symlinked marker files; it is not the catalog marker policy or a universal no-follow guarantee.
 - id: backend_lifetime
   level: MUST
   statement: Run coordinator and each worker through Hunter with_guarded_backend.
@@ -534,7 +535,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 4a022516eb8e0e6ed11c75f4b10c8d61ed4a1d0d
+    revision: 84ce408234e3f605933b3cd62bb1ec58c1d80013
   files:
     owned:
     - src/lib.rs

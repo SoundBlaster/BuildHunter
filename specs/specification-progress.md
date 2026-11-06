@@ -1,5 +1,31 @@
 # BuildHunter — architecture and specification progress
 
+## Symlink entries and potential findings — 2026-11-07
+
+Goal: show a matching symlink itself as a potential cache location without
+following or measuring its destination, while accepting a symlink marker as a
+present entry. Baseline: BuildHunter `84ce408234e3f605933b3cd62bb1ec58c1d80013`.
+The changed boundaries are `buildhunter.plugin.policy/fact_boundary`,
+`buildhunter.plugin.scanner/marker_scope,routing`,
+`buildhunter.catalog.scan/compatible_profiles,potential_symlinks,event_lifetime`,
+`buildhunter.current.scan/symlink_scope`, `buildhunter.current.bridge/payload_ownership`
+and `buildhunter.current.application/finder_handoff,cli_profile`. The HC roles
+are MarkerVocabulary, ClientMarkerAcquisition, CatalogEventTransport,
+CandidateClassification, MarkerAcquisition, ArtifactInterpretation and the
+existing application presentation/Finder roles.
+
+Observed implementation: regular and dangling marker symlinks count without
+target access. A named, unambiguous possible match has an unknown size and a
+terminal event. The stronger scoped scanner remains distinct from the pathname
+client; retained legacy numeric policy keeps its earlier marker behavior. The
+symlink projection cannot prove the target kind or inspect markers inside the
+target, and marker-only targets without a necessary name or an explicit
+symlink-kind comparison do not become findings.
+Historical fixture and receipt files remain historical. Source hashes, tool
+identities and current verification are recorded in
+`validation/symlink-entries-20261107`; tests and structural validation do not
+prove a Finder handoff completed or MAS sandbox acceptance.
+
 ## Code quality reporting — 2026-11-06
 
 The CI map includes an advisory Linux quality report alongside existing checks.
@@ -1481,6 +1507,9 @@ BuildHunterApp.swift
 current.hcs
 `8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
 ## Selected-root-relative facts and terminal marker links — 2026-11-06
+
+Historical implementation below is superseded by the 2026-11-07 symlink entry
+behavior described at the top of this record; its original evidence is preserved.
 
 The owner requested harmonizing terminal marker-symlink handling and supporting
 context-sensitive catalog paths. The default CLI/GUI catalog scanner now rejects

@@ -109,7 +109,7 @@ struct ScanReportExport: Sendable {
 
     // MARK: CSV
 
-    static let csvHeader = ["Path", "Absolute Path", "Language", "Kind", "Size (bytes)", "Size", "Size State"]
+    static let csvHeader = ["Path", "Absolute Path", "Language", "Kind", "Size (bytes)", "Size", "Size State", "Entry Type"]
 
     /// RFC 4180 with CRLF line breaks and a UTF-8 byte order mark, so Excel and Numbers
     /// both read non-ASCII paths correctly. The file holds only the table; the folder and
@@ -128,6 +128,7 @@ struct ScanReportExport: Sendable {
                 bytes.map(String.init) ?? "",
                 bytes.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary) } ?? "",
                 Self.sizeState(row.size),
+                row.isSymlink ? "symlink" : "artifact",
             ]
             if identityColumns { fields += [row.targetID ?? "", row.catalogDigest ?? "", row.unsafePathPrefix == nil ? "true" : "false"] }
             lines.append(fields.map(Self.csvField).joined(separator: ","))
@@ -161,17 +162,20 @@ struct ScanReportExport: Sendable {
         enum CodingKeys: String, CodingKey {
             case schemaVersion = "schema_version", generatedAt = "generated_at", appVersion = "app_version"
             case root, status, totalBytes = "total_bytes", elapsedSeconds = "elapsed_seconds"
+            case unmeasuredSymlinks = "unmeasured_symlinks"
             case excludedFilters = "excluded_filters", artifacts, errors, catalog, diagnostics, resourceUsage = "scan_budgets", ruleProfile = "rule_profile"
         }
 
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(report.catalogMetadata == nil ? ScanReportExport.schemaVersion : 2, forKey: .schemaVersion)
+            try container.encode(report.catalogMetadata == nil && !report.rows.contains(where: \.isSymlink)
+                                 ? ScanReportExport.schemaVersion : 3, forKey: .schemaVersion)
             try container.encode(report.generatedAt, forKey: .generatedAt)
             try container.encode(report.appVersion, forKey: .appVersion)
             try container.encode(report.rootURL?.path ?? report.rootName, forKey: .root)
             try container.encode(report.status.rawValue, forKey: .status)
             try container.encode(report.totalBytes, forKey: .totalBytes)
+            try container.encode(report.rows.filter(\.isSymlink).count, forKey: .unmeasuredSymlinks)
             // Encoded as null when unknown, so every key the CLI writes is always present.
             try container.encode(report.elapsedSeconds.map { ($0 * 1_000).rounded() / 1_000 },
                                  forKey: .elapsedSeconds)
@@ -192,6 +196,7 @@ struct ScanReportExport: Sendable {
         enum CodingKeys: String, CodingKey {
             case path, relativePath = "relative_path", language, kind, bytes, sizeState = "size_state", nested
             case targetID = "target_id", catalogDigest = "catalog_digest", pathIsExact = "path_is_exact"
+            case entryType = "entry_type"
         }
 
         func encode(to encoder: Encoder) throws {
@@ -202,6 +207,7 @@ struct ScanReportExport: Sendable {
             try container.encode(row.scannerKind ?? ScanReportExport.cliKind(row.kind), forKey: .kind)
             try container.encode(ScanReportExport.bytes(of: row.size), forKey: .bytes)
             try container.encode(ScanReportExport.sizeState(row.size), forKey: .sizeState)
+            try container.encode(row.isSymlink ? "symlink" : "artifact", forKey: .entryType)
             // The app reports only outermost artifact roots, never nested ones.
             try container.encode(false, forKey: .nested)
             try container.encodeIfPresent(row.targetID, forKey: .targetID)
@@ -225,7 +231,7 @@ struct ScanReportExport: Sendable {
         switch size {
         case .measured(let bytes): bytes
         case .partial(let bytes): bytes
-        case .measuring: nil
+        case .measuring, .notMeasured: nil
         }
     }
 
@@ -234,6 +240,7 @@ struct ScanReportExport: Sendable {
         case .measured: "measured"
         case .partial: "partial"
         case .measuring: "measuring"
+        case .notMeasured: "not_measured"
         }
     }
 

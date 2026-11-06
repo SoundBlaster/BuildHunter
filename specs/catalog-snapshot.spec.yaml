@@ -82,13 +82,13 @@ provenance:
     behavior: medium
   notes:
   - R7 GUI user-file delivery is evidenced in validation/user-templates-20261025; CLI file-import UX remains separate. The additive constructor does not change the existing ABI-1 numeric/event layout.
-  - R4 clients use this metadata and target identity. The original legacy-file-markers/1 profile has since been replaced by the owner-authorized terminal-no-follow-file-markers/1 profile; lossy GUI path actions remain disabled (C4). This does not prove whole-process budgets.
+  - R4 clients use this metadata and target identity. The current owner-authorized terminal-entry-file-or-symlink/2 profile counts marker links without resolving them; lossy GUI path actions remain disabled (C4). This does not prove whole-process budgets.
 implementationBindings:
 - id: catalog_sources
   scope: component
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 59508e3b7ecb6ae12458e4c2ff87dc3d645d0b16
+    revision: 84ce408234e3f605933b3cd62bb1ec58c1d80013
   files:
     owned:
     - src/catalog.rs

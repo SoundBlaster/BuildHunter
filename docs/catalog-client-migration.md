@@ -44,11 +44,17 @@ scoped acquisition, close resource budgets (R5), or prove sandbox/Store acceptan
 
 `scan_client` observes all candidates, acquires markers requested by enabled
 rule bindings, and measures findings with stable descriptors shared through Arc.
-The original `legacy-file-markers/1` profile preserved R2 marker file links and
-selected-root parent context. It is superseded by the explicitly declared
-`terminal-no-follow-file-markers/1` policy: a terminal marker symlink is false,
-while selected-root parent context remains available. This pathname API does not
+The current `terminal-entry-file-or-symlink/2` policy treats a terminal symlink
+marker as present without resolving its target, including a dangling link.
+Selected-root parent context remains available. This pathname API does not
 claim descriptor confinement; the opt-in scoped scanner remains stronger.
+
+Named symlinks, or symlinks matched by rules explicitly testing their kind, can
+appear as potential findings when only target kind or own
+markers are unknown. Their destination is never probed, traversed, or measured;
+event 9 is terminal without a completion event. Ambiguous candidates remain
+diagnostics. CLI JSON schema 3 uses null bytes and a symlink entry type; totals
+include measured bytes only and disclose the count of unmeasured links.
 
 `bh_scan_catalog_v1` emits metadata before discovery, references targets by ID,
 and surfaces typed ambiguity/unavailability diagnostics. Borrowed pointers last
@@ -69,18 +75,19 @@ builds a finite decision table for production scans. The numeric APIs and legacy
 classification tests remain available; the old descriptor JSON supplies ordering
 and compatibility hints only. Settings and `--list-filters` enumerate validated
 plugin target IDs, with the existing preference key and unknown valid exclusions
-preserved. New reports use JSON schema 2 and export the frozen catalog/profile/
-marker policy, target IDs and diagnostics; legacy/mock exports keep schema 1.
+preserved. Catalog reports use JSON schema 3 and export the frozen catalog/profile/
+marker policy, target IDs, diagnostics and unmeasured link count; legacy/mock
+exports without links or catalog metadata keep schema 1.
 
-C3 originally preserved R2 marker links; the owner-requested terminal no-follow
-change supersedes that part of C3 while preserving the frozen historical corpus.
+C3 now counts marker symlinks by entry without resolving them and separately
+reports eligible candidate links; the frozen historical corpus is preserved.
 Selected-root parent behavior remains unchanged. C4 copies raw selected-root bytes
 and disables Finder/Copy actions for lossy components and descendants; safe
 ancestors remain usable. This is action rejection, not a new inode capability.
 
 The full scanner regression creates 200 actual new target names with individual
 marker bindings, 1,024 unrelated folders and an exclusion; it verifies independent
-allocated bytes, one completion per finding and exactly 200/199 relevant marker
+allocated bytes, one completion per measured finding and exactly 200/199 relevant marker
 observations. `cargo bench --locked --bench catalog_scan` additionally compares
 13 vs 200 targets on the same representative filesystem tree in seven interleaved
 Release rounds, checking all rows/sizes each time. It records first finding, total

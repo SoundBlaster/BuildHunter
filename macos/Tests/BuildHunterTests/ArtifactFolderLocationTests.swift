@@ -22,6 +22,19 @@ struct ArtifactFolderLocationTests {
                 == build.standardizedFileURL.path)
     }
 
+    @Test("Existing and dangling symbolic links are selected without resolving them")
+    func symbolicLinks() throws {
+        let root = try makeRoot()
+        defer { try? FileManager.default.removeItem(at: root) }
+        for (name, destination) in [("link", "/"), ("dangling", "/missing-buildhunter-destination")] {
+            let link = root.appendingPathComponent(name)
+            try FileManager.default.createSymbolicLink(atPath: link.path, withDestinationPath: destination)
+            let action = try #require(ArtifactFolderLocation.actionURL(root: root, relativePath: name, unsafePrefixes: []))
+            #expect(!action.hasDirectoryPath)
+            #expect(ArtifactFolderLocation.nearestExistingFolder(to: action, within: root)?.path == link.path)
+        }
+    }
+
     @Test("A deleted folder falls back to its nearest existing parent")
     func deletedFolder() throws {
         let root = try makeRoot()

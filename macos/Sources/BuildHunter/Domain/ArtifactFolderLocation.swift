@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 /// Where "Show in Finder" ended up for a scanned folder.
 enum FinderRevealOutcome: Equatable {
@@ -27,7 +28,9 @@ enum ArtifactFolderLocation {
               !relativePath.split(separator: "/").contains("..") else { return nil }
         let path = relativePath == "." ? "" : relativePath
         guard !unsafePrefixes.contains(where: { $0.isEmpty || path == $0 || path.hasPrefix($0 + "/") }) else { return nil }
-        return path.isEmpty ? root : root.appendingPathComponent(path, isDirectory: true)
+        // Do not append a trailing slash: it can force a symlink to be resolved
+        // as a directory before Finder sees the entry itself.
+        return path.isEmpty ? root : root.appendingPathComponent(path, isDirectory: false)
     }
 
     /// The folder itself if it still exists as a directory, otherwise its nearest existing
@@ -40,6 +43,9 @@ enum ArtifactFolderLocation {
         var candidate = requested
         while true {
             if let boundary, !isPath(candidate.path, inside: boundary) { return nil }
+            // Inspect the requested entry itself: even a dangling link can be
+            // selected in Finder without resolving or opening its destination.
+            if candidate.path == requested.path && isSymbolicLink(candidate) { return candidate }
             if isDirectory(candidate) { return candidate }
             if let boundary, candidate.path == boundary { return nil }
             let parent = candidate.deletingLastPathComponent()
@@ -55,5 +61,12 @@ enum ArtifactFolderLocation {
     private static func isDirectory(_ url: URL) -> Bool {
         var isDirectory: ObjCBool = false
         return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+
+    private static func isSymbolicLink(_ url: URL) -> Bool {
+        var metadata = stat()
+        return url.path.withCString { path in
+            lstat(path, &metadata) == 0 && (metadata.st_mode & mode_t(S_IFMT)) == mode_t(S_IFLNK)
+        }
     }
 }

@@ -98,7 +98,7 @@ CandidateSelection:
   implementation: "scan_client every-node observer + conservative catalog dispatch; legacy gate bypassed"
   folded_into: "buildhunter.current.classification"
 MarkerVocabulary:
-  implementation: "enabled plugin bindings -> per-candidate marker requests; terminal-no-follow-file-markers/1 pathname acquisition"
+  implementation: "enabled plugin bindings -> per-candidate marker requests; terminal-entry-file-or-symlink/2 pathname acquisition"
   folded_into: "buildhunter.current.classification"
 ClientPolicy:
   source: "src/client_scan.rs"
@@ -497,11 +497,11 @@ ClientAdmission:
   implementation: "versioned CLI environment/nesting and GUI outer-root admission; unavailable names traverse"
   folded_into: "buildhunter.catalog.scan"
 ClientMarkerAcquisition:
-  implementation: "dynamic candidate-specific bindings under inherited guard; terminal marker symlinks rejected"
+  implementation: "dynamic candidate-specific bindings under inherited guard; terminal symlink entries count without resolving targets"
   folded_into: "buildhunter.catalog.scan"
 CatalogEventTransport:
   source: "src/catalog_bridge.rs"
-  implementation: "version 1 events: immutable metadata, target ID discoveries and typed diagnostics"
+  implementation: "version 1 events: immutable metadata, target ID discoveries, terminal unmeasured symlink candidates and typed diagnostics"
   folded_into: "buildhunter.catalog.scan"
 
 LegacyPolicyCompatibility:

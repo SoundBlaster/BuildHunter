@@ -712,6 +712,7 @@ private struct ArtifactDiagramSidebar: View {
     private func sizeDescription(_ state: SizeState) -> String {
         switch state {
         case .measuring: "Measuring…"
+        case .notMeasured: "—"
         case .measured(let bytes): diagramBytes(Double(bytes))
         case .partial(let bytes): bytes.map { "\(diagramBytes(Double($0))) partial" } ?? "Partial · size unknown"
         }

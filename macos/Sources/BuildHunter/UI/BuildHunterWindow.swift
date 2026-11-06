@@ -423,7 +423,8 @@ private struct ArtifactNativeTable: NSViewRepresentable {
             switch key {
             case "size": text = Self.sizeDescription(row.size)
             case "language": text = row.language
-            case "kind": text = row.kind.rawValue
+            case "kind": text = row.isSymlink
+                ? "\(row.kind.rawValue) · \(String(localized: "Symlink · potential match"))" : row.kind.rawValue
             default: text = row.relativePath
             }
             let url = ArtifactFolderLocation.actionURL(root: rootURL, relativePath: row.relativePath, unsafePrefixes: unsafePathPrefixes)
@@ -472,6 +473,7 @@ private struct ArtifactNativeTable: NSViewRepresentable {
         private static func sizeDescription(_ state: SizeState) -> String {
             switch state {
             case .measuring: "Measuring…"
+            case .notMeasured: "—"
             case .measured(let bytes): ByteCountFormatter.string(fromByteCount: bytes, countStyle: .binary)
             case .partial(let bytes): bytes.map {
                 "\(ByteCountFormatter.string(fromByteCount: $0, countStyle: .binary)) partial"

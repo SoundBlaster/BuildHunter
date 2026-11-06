@@ -285,7 +285,11 @@ fn main() {
         |event| {
             if profile_path.is_some()
                 && !recorded_first_finding
-                && matches!(event, CatalogScanEvent::ArtifactDiscovered(_))
+                && matches!(
+                    event,
+                    CatalogScanEvent::ArtifactDiscovered(_)
+                        | CatalogScanEvent::SymlinkDiscovered(_)
+                )
             {
                 recorded_first_finding = true;
                 profile.record_first_finding(start.elapsed());
@@ -356,10 +360,15 @@ fn main() {
             .cmp(&a.bytes)
             .then(a.relative_path.cmp(&b.relative_path))
     });
-    let total: u64 = rows.iter().filter(|r| !r.nested).map(|r| r.bytes).sum();
+    let total: u64 = rows
+        .iter()
+        .filter(|r| !r.nested)
+        .filter_map(|r| r.bytes)
+        .sum();
+    let unmeasured = rows.iter().filter(|r| r.is_symlink).count();
     if json {
         println!(
-            "{{\"schema_version\":2,\"catalog\":{},\"scan_budgets\":{},\"root\":{},\"total_bytes\":{total},\"elapsed_seconds\":{:.3},\"artifacts\":[",
+            "{{\"schema_version\":3,\"catalog\":{},\"scan_budgets\":{},\"root\":{},\"total_bytes\":{total},\"unmeasured_symlinks\":{unmeasured},\"elapsed_seconds\":{:.3},\"artifacts\":[",
             snapshot.metadata_json(),
             control.resource_usage_json(),
             quoted(&root.to_string_lossy()),
@@ -372,7 +381,9 @@ fn main() {
                 serde_json::json!({
                     "path":root.join(&row.relative_path).to_string_lossy(),"relative_path":row.relative_path.to_string_lossy(),
                     "language":row.target.ecosystem,"kind":presentation_kind(ClientProfile::CliV1,&row.target),
-                    "target_id":row.target.id,"bytes":row.bytes,"nested":row.nested,"partial":row.partial,
+                    "target_id":row.target.id,"bytes":row.bytes,
+                    "entry_type":if row.is_symlink { "symlink" } else { "artifact" },
+                    "nested":row.nested,"partial":row.partial,
                 })
             );
         }
@@ -403,12 +414,17 @@ fn main() {
         );
         for row in &rows {
             println!(
-                "{:>14}  {:<7}  {:<11}  {}{}{}",
-                human(row.bytes),
+                "{:>14}  {:<7}  {:<11}  {}{}{}{}",
+                row.bytes.map(human).unwrap_or_else(|| "—".into()),
                 row.target.ecosystem,
                 presentation_kind(ClientProfile::CliV1, &row.target),
                 row.relative_path.display(),
                 if row.nested { " [nested]" } else { "" },
+                if row.is_symlink {
+                    " [symlink, potential]"
+                } else {
+                    ""
+                },
                 if row.partial {
                     " [partial / changed]"
                 } else {
@@ -417,7 +433,7 @@ fn main() {
             );
         }
         println!(
-            "\n{} artifacts; total: {} ({total} bytes); {:.3}s",
+            "\n{} artifacts; measured total: {} ({total} bytes); {unmeasured} unmeasured symlinks; {:.3}s",
             rows.len(),
             human(total),
             start.elapsed().as_secs_f64()

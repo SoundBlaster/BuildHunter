@@ -39,6 +39,49 @@ fn facts<'a>(
 }
 
 #[test]
+fn symlink_projection_respects_explicit_entry_kind_rules() {
+    use buildhunter_plugin_policy::RulePhase;
+    let marker = BTreeMap::new();
+    let explicit = edited(|v| {
+        v["program"]["facts"] = json!([{"id":"kind","type":"string"}]);
+        v["bindings"] = json!({"kind":{"source":"node.kind"}});
+        v["program"]["rules"][0]["when"] = json!({"fact":"kind","op":"eq","value":"symlink"});
+    });
+    let catalog = load(&explicit).unwrap();
+    let result = catalog
+        .classify_symlink_candidate(
+            facts(Some("arbitrary-link"), NodeKind::Symlink, &marker),
+            None,
+            None,
+            RulePhase::Resolved,
+        )
+        .unwrap();
+    assert_eq!(result.decision, Decision::Found("rust.target".into()));
+    assert_eq!(result.potential_symlink_target(), Some("rust.target"));
+
+    let excludes = edited(|v| {
+        v["program"]["facts"] =
+            json!([{"id":"name","type":"string"},{"id":"kind","type":"string"}]);
+        v["bindings"] = json!({"name":{"source":"node.name"},"kind":{"source":"node.kind"}});
+        v["program"]["rules"][0]["when"] = json!({"all":[
+            {"fact":"name","op":"eq","value":"target"},
+            {"not":{"fact":"kind","op":"eq","value":"symlink"}}
+        ]});
+    });
+    let catalog = load(&excludes).unwrap();
+    let result = catalog
+        .classify_symlink_candidate(
+            facts(Some("target"), NodeKind::Symlink, &marker),
+            None,
+            None,
+            RulePhase::Resolved,
+        )
+        .unwrap();
+    assert_eq!(result.decision, Decision::NoMatch);
+    assert_eq!(result.potential_symlink_target(), None);
+}
+
+#[test]
 fn relative_path_binding_is_scoped_unknown_when_absent_and_profiled_consistently() {
     let catalog = PluginCatalog::load(&[input(RELATIVE, Origin::External)], &[]).unwrap();
     assert!(catalog.needs_relative_path());

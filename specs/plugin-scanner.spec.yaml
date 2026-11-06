@@ -58,13 +58,13 @@ constraints:
   statement: Observe every visited node independent of built-in names and marker bits; .git remains host-pruned. Preserve exact node kinds and lossless paths; invalid UTF-8 names stay unavailable. Supply node.relative_path only when active rules request it, scoped lexically to the selected root; invalid UTF-8 or out-of-scope paths stay unavailable.
 - id: marker_scope
   level: MUST
-  statement: On supported Unix backends, anchor marker metadata to the selected root descriptor, open intermediate components without following links, and inspect final entries without following links or reading contents. Root parent is out_of_scope; symlink markers are false.
+  statement: On supported Unix backends, anchor marker metadata to the selected root descriptor, open intermediate components without following links, and inspect final entries without following links or reading contents. Root parent is out_of_scope; regular files and symlink entries count as markers.
 - id: effective_acquisition
   level: MUST
   statement: Request only active deduplicated bindings. Unknown placeholders may eliminate I/O only when pure evaluation has no unknown targets; final decisions must use actual observations when required. Disabled-only bindings cause no observations.
 - id: routing
   level: MUST
-  statement: Found carries full target metadata and creates one artifact. Ambiguous, Indeterminate, NoMatch and exclusions do not prune descendants. Typed policy diagnostics remain distinct from traversal I/O warnings and are delivered during candidate processing without waiting for a core event; observers may cancel before descendants are processed.
+  statement: Found carries full target metadata and creates one artifact. A single named potential symlink match is reported as an unmeasured terminal finding without inspecting its target. Ambiguous, Indeterminate, NoMatch and exclusions do not prune descendants. Typed policy diagnostics remain distinct from traversal I/O warnings and are delivered during candidate processing without waiting for a core event; observers may cancel before descendants are processed.
 - id: resource_retention
   level: MUST
   statement: Apply the same ScanControl finding/listing/queue/warning quotas as default clients. Gate typed diagnostics through one per-scan DiagnosticRetention before retained clone or observer publication; diagnostic count/weight exhaustion requests an explicit Incomplete stop with a reserved resource warning. Share each immutable TargetDescriptor through Arc between event and report artifacts, including after the input catalog drops. This changes the experimental Rust target field from an owned descriptor to Arc; catalog size and active classification allocations remain outside report payload estimates. Diagnostic-only scans without quota exhaustion retain their existing Completed semantics.

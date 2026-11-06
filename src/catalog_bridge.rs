@@ -32,6 +32,7 @@ pub fn diagnostic_json(diagnostic: &CatalogDiagnostic) -> serde_json::Value {
 /// event, 1 carries a target ID, 7 carries a typed diagnostic JSON object. Base
 /// event types 2/3/4/5 and status codes retain the original ABI meanings. Profile
 /// event 8 optionally publishes a bounded rule-profile aggregate before Finished;
+/// event 9 reports an unmeasured symlink candidate without a completion event;
 /// event 5 optionally carries resource-budget/loss JSON in metadata; the 88-byte
 /// numeric profile payload is unchanged.
 ///
@@ -100,8 +101,9 @@ pub unsafe extern "C" fn bh_scan_catalog_v1(
                 let mut message = String::new();
                 let mut details = String::new();
                 match event {
-                    CatalogScanEvent::ArtifactDiscovered(artifact) => {
-                        ffi.base.event_type = 1;
+                    CatalogScanEvent::ArtifactDiscovered(artifact)
+                    | CatalogScanEvent::SymlinkDiscovered(artifact) => {
+                        ffi.base.event_type = if artifact.is_symlink { 9 } else { 1 };
                         ffi.base.artifact_id = artifact.id;
                         path = crate::path_bytes(&artifact.relative_path);
                         ffi.target_id = artifact.target.id.as_ptr();
