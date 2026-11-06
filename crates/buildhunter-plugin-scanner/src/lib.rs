@@ -116,6 +116,7 @@ pub fn scan(
         } else {
             std::env::current_dir().map_err(ScanError::Io)?.join(root)
         };
+        let needs_relative_path = catalog.needs_relative_path();
         let requests: Vec<MarkerProbe> = catalog
             .marker_requests(NodeKind::Directory)
             .into_iter()
@@ -161,6 +162,9 @@ pub fn scan(
                 if kind == NodeKind::Symlink {
                     return CandidateAction::Traverse;
                 }
+                let relative_path = needs_relative_path
+                    .then(|| build_hunter::plugin_relative_path(&root, path))
+                    .flatten();
                 let active = catalog.marker_requests(kind);
                 // Unknown placeholders can prove NoMatch without filesystem I/O.
                 // They must never be interpreted as false or retained as final diagnostics.
@@ -169,11 +173,14 @@ pub fn scan(
                     .map(|p| ((*p).clone(), MarkerFact::Unavailable("not_observed")))
                     .collect();
                 let classify = |markers: &BTreeMap<MarkerProbe, MarkerFact>| {
-                    catalog.classify(CandidateFacts {
-                        name: legacy.name(),
-                        kind,
-                        markers,
-                    })
+                    catalog.classify_with_path(
+                        CandidateFacts {
+                            name: legacy.name(),
+                            kind,
+                            markers,
+                        },
+                        relative_path.as_deref(),
+                    )
                 };
                 let result = classify(&markers).and_then(|preliminary| {
                     if preliminary.unknown.is_empty() {

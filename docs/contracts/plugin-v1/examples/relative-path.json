@@ -1,0 +1,38 @@
+{
+  "format": "buildhunter.plugin/1-draft.1",
+  "id": "example.relative-cache",
+  "version": "1.0.0",
+  "title": "Example relative cache",
+  "description": "A synthetic example matching one path suffix below the selected scan root.",
+  "program": {
+    "format": "rifle.program/1-draft.1",
+    "facts": [
+      { "id": "name", "type": "string" },
+      { "id": "kind", "type": "string" },
+      { "id": "relative", "type": "string" }
+    ],
+    "rules": [
+      {
+        "id": "cache",
+        "when": {
+          "all": [
+            { "fact": "name", "op": "eq", "value": "workspace.cache" },
+            { "fact": "kind", "op": "eq", "value": "directory" },
+            { "any": [
+              { "fact": "relative", "op": "eq", "value": "deps/.cache/workspace.cache" },
+              { "fact": "relative", "op": "suffix", "value": "/deps/.cache/workspace.cache" }
+            ] }
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": {
+    "name": { "source": "node.name" },
+    "kind": { "source": "node.kind" },
+    "relative": { "source": "node.relative_path" }
+  },
+  "targets": [
+    { "id": "example.relative-cache.result", "title": "Example cache", "ecosystem": "example", "kind": "cache", "ruleIds": ["cache"] }
+  ]
+}

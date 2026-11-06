@@ -60,7 +60,7 @@ fn binding(v: &Value, kind: FactType, path: &str) -> Result<Binding, Error> {
         .and_then(Value::as_str)
         .ok_or_else(|| error("invalid_shape", path, "missing source"))?;
     match source {
-        "node.name" | "node.kind" => {
+        "node.name" | "node.kind" | "node.relative_path" => {
             object(v, &["source"], path)?;
             if kind != FactType::String {
                 return Err(error(
@@ -69,10 +69,10 @@ fn binding(v: &Value, kind: FactType, path: &str) -> Result<Binding, Error> {
                     "node source requires string fact",
                 ));
             }
-            Ok(if source == "node.name" {
-                Binding::Name
-            } else {
-                Binding::Kind
+            Ok(match source {
+                "node.name" => Binding::Name,
+                "node.kind" => Binding::Kind,
+                _ => Binding::RelativePath,
             })
         }
         "marker" => {

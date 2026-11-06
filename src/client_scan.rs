@@ -83,7 +83,7 @@ impl CatalogScanReport {
 /// Scan with one immutable snapshot. Dynamic marker requests and every-node
 /// observation replace the fixed candidate-name/marker/prefetch vocabulary.
 /// CLI admission retains environment pruning; GUI admission retains outer roots.
-/// Marker file links and selected-root parent markers retain the R2 profile.
+/// Marker file links are not followed; selected-root parent markers retain the R2 profile.
 /// This pathname compatibility entrypoint does not claim descriptor confinement.
 pub fn scan_client(
     root: &Path,
@@ -131,6 +131,7 @@ pub fn scan_client(
     });
     let emit = RefCell::new(emit);
     let catalog = snapshot.catalog();
+    let needs_relative_path = catalog.needs_relative_path();
     let descriptors: BTreeMap<_, _> = catalog
         .targets()
         .iter()
@@ -158,6 +159,9 @@ pub fn scan_client(
             if kind == NodeKind::Symlink {
                 return CandidateAction::Traverse;
             }
+            let relative_path = needs_relative_path
+                .then(|| crate::plugin_relative_path(root, path))
+                .flatten();
             let requests = catalog.candidate_marker_requests(legacy.name(), kind);
             let mut observed = BTreeMap::new();
             // Environment admission belongs to the CLI profile, even if the target is
@@ -201,9 +205,14 @@ pub fn scan_client(
                 .collect();
             let mut classify = |facts, phase| {
                 if let Some(profile) = state.rule_profile.as_mut() {
-                    catalog.classify_profiled(facts, profile, phase)
+                    catalog.classify_profiled_with_path(
+                        facts,
+                        relative_path.as_deref(),
+                        profile,
+                        phase,
+                    )
                 } else {
-                    catalog.classify(facts)
+                    catalog.classify_with_path(facts, relative_path.as_deref())
                 }
             };
             let result = classify(
@@ -236,21 +245,25 @@ pub fn scan_client(
                     .map(|(probe, value)| (probe.clone(), value.fact()))
                     .collect();
                 if let Some(profile) = state.rule_profile.as_mut() {
-                    catalog.classify_profiled(
+                    catalog.classify_profiled_with_path(
                         CandidateFacts {
                             name: legacy.name(),
                             kind,
                             markers: &markers,
                         },
+                        relative_path.as_deref(),
                         profile,
                         RulePhase::Resolved,
                     )
                 } else {
-                    catalog.classify(CandidateFacts {
-                        name: legacy.name(),
-                        kind,
-                        markers: &markers,
-                    })
+                    catalog.classify_with_path(
+                        CandidateFacts {
+                            name: legacy.name(),
+                            kind,
+                            markers: &markers,
+                        },
+                        relative_path.as_deref(),
+                    )
                 }
             });
             match result {
@@ -437,7 +450,7 @@ fn observe_marker(candidate: &Path, probe: &MarkerProbe) -> Observation {
     let Some(directory) = directory else {
         return Observation::Known(false);
     };
-    match std::fs::metadata(directory.join(&probe.name)) {
+    match std::fs::symlink_metadata(directory.join(&probe.name)) {
         Ok(metadata) => Observation::Known(metadata.is_file()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Observation::Known(false),
         Err(error) => Observation::Unavailable(error.to_string()),

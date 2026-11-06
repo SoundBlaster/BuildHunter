@@ -47,7 +47,7 @@ class CLIIntegrationTests(unittest.TestCase):
         metadata = report["catalog"]
         self.assertEqual(metadata["format"], "buildhunter.catalog/1")
         self.assertEqual(metadata["profile"], "buildhunter.cli/1")
-        self.assertEqual(metadata["markerPolicy"], "legacy-file-markers/1")
+        self.assertEqual(metadata["markerPolicy"], "terminal-no-follow-file-markers/1")
         self.assertRegex(metadata["digest"], r"^[0-9a-f]{64}$")
         self.assertEqual(metadata["excludedTargetIDs"], ["python.pytest-cache"])
         self.assertEqual(report["diagnostics"], [])

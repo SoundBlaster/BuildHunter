@@ -112,7 +112,10 @@ struct MigrationParityTests {
             case .profile, .ruleProfile: break
             }
         }
-        let expected = try run.expected.map { try #require(tree.rows[$0]) }
+        // Preserve the frozen corpus; marker symlinks are the one deliberate policy change.
+        let expected = try run.expected
+            .filter { tree.id != "marker-links-vs-artifact-links" || $0 != "rust" }
+            .map { try #require(tree.rows[$0]) }
         let metadata = try #require(catalog)
         #expect(terminal == [run.status], "\(tree.id)/\(run.id)")
         #expect(warnings.count == run.warnings, "\(tree.id)/\(run.id): \(warnings)")

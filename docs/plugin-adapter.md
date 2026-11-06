@@ -88,6 +88,8 @@ cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked 
 
 The opt-in [scanner integration](plugin-scanner-integration.md) now observes
 arbitrary candidates and uses descriptor-bound acquisition on macOS/Linux.
-Default CLI/GUI use the separate `legacy-file-markers/1` compatibility path with
-frozen C2 profiles, catalog/diagnostics through versioned FFI/Settings and rejection
+Default CLI/GUI use `terminal-no-follow-file-markers/1`: terminal marker links
+do not match, but selected-root parent markers remain available. The pathname
+adapter does not claim descriptor confinement. It retains C2 profiles otherwise,
+catalog/diagnostics through versioned FFI/Settings and rejection
 of lossy GUI path actions. No JIT, plugin commands or private dependency is required.

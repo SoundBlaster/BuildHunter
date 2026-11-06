@@ -32,6 +32,7 @@ pub struct MarkerProbe {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Binding {
     Name,
+    RelativePath,
     Kind,
     Marker(MarkerProbe),
 }
@@ -234,7 +235,21 @@ impl PluginCatalog {
     }
     /// Pure classification; an index may exclude only targets proven unable to match.
     pub fn classify(&self, facts: CandidateFacts<'_>) -> Result<Classification, Error> {
-        self.dispatch.classify(facts, None, RulePhase::Preliminary)
+        self.classify_with_path(facts, None)
+    }
+    /// `relative_path` is a lossless, slash-separated path confined to the scan root.
+    /// A missing path remains unknown to rules that reference it.
+    pub fn classify_with_path(
+        &self,
+        facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
+    ) -> Result<Classification, Error> {
+        self.dispatch
+            .classify(facts, relative_path, None, RulePhase::Preliminary)
+    }
+    /// Whether any enabled target needs a scan-relative path fact.
+    pub fn needs_relative_path(&self) -> bool {
+        self.dispatch.needs_relative_path()
     }
     /// One bounded accumulator per scan; never stores candidate names or paths.
     pub fn rule_profile(&self) -> RuleProfile {
@@ -248,6 +263,16 @@ impl PluginCatalog {
         profile: &mut RuleProfile,
         phase: RulePhase,
     ) -> Result<Classification, Error> {
+        self.classify_profiled_with_path(facts, None, profile, phase)
+    }
+    /// Profile the same classification with an optional scan-relative path fact.
+    pub fn classify_profiled_with_path(
+        &self,
+        facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
+        profile: &mut RuleProfile,
+        phase: RulePhase,
+    ) -> Result<Classification, Error> {
         if !profile.matches_catalog(&self.digest, &self.exclusions) {
             return Err(error(
                 "catalog_mismatch",
@@ -255,7 +280,9 @@ impl PluginCatalog {
                 "profile belongs to another catalog",
             ));
         }
-        let result = self.dispatch.classify(facts, Some(profile), phase);
+        let result = self
+            .dispatch
+            .classify(facts, relative_path, Some(profile), phase);
         if result.is_err() {
             profile.record_error();
         }

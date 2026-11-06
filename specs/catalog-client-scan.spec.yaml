@@ -41,7 +41,10 @@ constraints:
   statement: Observe every candidate without the legacy fixed name gate or speculative root sizing. Derive rule marker requests from enabled catalog bindings and the conservative candidate index. Keep CLI environment admission as an explicit host-profile obligation.
 - id: compatible_profiles
   level: MUST
-  statement: Preserve R2 CLI nested findings/environment pruning and GUI outer-root/environment precedence. Prune .git only outside an artifact. The legacy-file-markers/1 acquisition profile follows marker file links and observes selected-root parent markers, matching existing clients. This compatibility API does not claim descriptor confinement or change the stricter opt-in plugin scanner contract.
+  statement: Preserve R2 CLI nested findings/environment pruning and GUI outer-root/environment precedence. Prune .git only outside an artifact. The terminal-no-follow-file-markers/1 profile rejects final marker symlinks while retaining selected-root parent marker observations. This pathname API does not claim descriptor confinement or change the stricter opt-in plugin scanner contract.
+- id: relative_path_fact
+  level: MUST
+  statement: Supply node.relative_path only when enabled rules need it, relative to the selected root, with slash-separated components and dot for the root. Reject out-of-scope, parent-component and non-UTF-8 paths as unavailable; never expose an absolute path through this fact.
 - id: identity
   level: MUST
   statement: Findings retain full target descriptors through shared immutable ownership; reports retain profile, full digest and frozen exclusions. Numeric core labels remain transport placeholders and must not replace plugin identity.
@@ -69,6 +72,7 @@ evidence:
   supports:
   - constraints.dynamic_selection
   - constraints.compatible_profiles
+  - constraints.relative_path_fact
   - constraints.identity
   - constraints.diagnostics
 - id: bridge_source
@@ -83,6 +87,7 @@ evidence:
   path: src/client_scan_tests.rs
   supports:
   - constraints.compatible_profiles
+  - constraints.relative_path_fact
   - constraints.diagnostics
   - constraints.event_lifetime
 provenance:
@@ -91,7 +96,7 @@ provenance:
     boundary: high
     behavior: medium
   notes:
-  - Compatibility is an explicit migration profile, not acceptance of a future unified marker policy or proof of Windows scoped acquisition.
+  - The owner authorized replacing the prior follow-marker compatibility behavior. Historical migration fixtures remain unchanged; new tests assert the intentional exception. This is not proof of descriptor confinement or Windows scoped acquisition.
 implementationBindings:
 - id: catalog_scan_sources
   scope: component

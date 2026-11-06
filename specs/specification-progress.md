@@ -1480,3 +1480,14 @@ BuildHunterApp.swift
 `be2f567ff4da4149e3824f915f84ca5d80eb4b6c27b2e3aa38fc4cd0ef64cc45`;
 current.hcs
 `8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
+## Selected-root-relative facts and terminal marker links — 2026-11-06
+
+The owner requested harmonizing terminal marker-symlink handling and supporting
+context-sensitive catalog paths. The default CLI/GUI catalog scanner now rejects
+terminal symlink markers, while retaining its selected-root parent lookup and
+pathname acquisition limitations. The strict scanner keeps descriptor-scoped
+marker acquisition. Both provide the same optional `node.relative_path` fact,
+rooted lexically at the selected scan root; unavailable paths remain unknown.
+The pure Rifle policy adapter does not acquire filesystem facts. Historical R2/R4
+receipts and the frozen migration corpus remain intact; tests identify the one
+intentional expectation change. See `validation/relative-path-markers-20261106`.

@@ -82,7 +82,7 @@ provenance:
     behavior: medium
   notes:
   - R7 GUI user-file delivery is evidenced in validation/user-templates-20261025; CLI file-import UX remains separate. The additive constructor does not change the existing ABI-1 numeric/event layout.
-  - R4 clients now use this metadata and target identity. The explicit legacy-file-markers/1 profile preserves C3 compatibility; lossy GUI path actions are disabled (C4). This descriptive draft does not accept future marker harmonization or prove whole-process budgets.
+  - R4 clients use this metadata and target identity. The original legacy-file-markers/1 profile has since been replaced by the owner-authorized terminal-no-follow-file-markers/1 profile; lossy GUI path actions remain disabled (C4). This does not prove whole-process budgets.
 implementationBindings:
 - id: catalog_sources
   scope: component

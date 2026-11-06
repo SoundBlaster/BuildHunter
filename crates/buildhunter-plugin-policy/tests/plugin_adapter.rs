@@ -7,6 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 const RUST: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/rust.json");
 const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
+const RELATIVE: &[u8] =
+    include_bytes!("../../../docs/contracts/plugin-v1/examples/relative-path.json");
 fn input(bytes: &[u8], origin: Origin) -> PluginInput<'_> {
     PluginInput { bytes, origin }
 }
@@ -34,6 +36,64 @@ fn facts<'a>(
         kind,
         markers,
     }
+}
+
+#[test]
+fn relative_path_binding_is_scoped_unknown_when_absent_and_profiled_consistently() {
+    let catalog = PluginCatalog::load(&[input(RELATIVE, Origin::External)], &[]).unwrap();
+    assert!(catalog.needs_relative_path());
+    let markers = BTreeMap::new();
+    for (path, expected) in [
+        (
+            Some("deps/.cache/workspace.cache"),
+            Decision::Found("example.relative-cache.result".into()),
+        ),
+        (
+            Some("project/deps/.cache/workspace.cache"),
+            Decision::Found("example.relative-cache.result".into()),
+        ),
+        (
+            Some("project/notdeps/.cache/workspace.cache"),
+            Decision::NoMatch,
+        ),
+        (
+            Some("project/deps/wrong/workspace.cache"),
+            Decision::NoMatch,
+        ),
+        (Some("."), Decision::NoMatch),
+        (None, Decision::Indeterminate),
+    ] {
+        let candidate = || facts(Some("workspace.cache"), NodeKind::Directory, &markers);
+        let result = catalog.classify_with_path(candidate(), path).unwrap();
+        assert_eq!(result.decision, expected, "{path:?}");
+        let mut profile = catalog.rule_profile();
+        let profiled = catalog
+            .classify_profiled_with_path(
+                candidate(),
+                path,
+                &mut profile,
+                buildhunter_plugin_policy::RulePhase::Resolved,
+            )
+            .unwrap();
+        assert_eq!(profiled.decision, result.decision);
+    }
+    assert_eq!(
+        catalog
+            .classify(facts(
+                Some("workspace.cache"),
+                NodeKind::Directory,
+                &markers
+            ))
+            .unwrap()
+            .decision,
+        Decision::Indeterminate
+    );
+    let excluded = PluginCatalog::load(
+        &[input(RELATIVE, Origin::External)],
+        &["example.relative-cache.result"],
+    )
+    .unwrap();
+    assert!(!excluded.needs_relative_path());
 }
 
 #[test]

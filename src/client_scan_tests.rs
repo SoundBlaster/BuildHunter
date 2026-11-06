@@ -64,6 +64,105 @@ fn similarly_named_local_devicefs_directory_is_still_scanned() {
 }
 
 #[test]
+fn scan_relative_path_matches_only_complete_components_in_both_clients() {
+    let tree = tests::TempTree::new();
+    for path in [
+        "deps/.cache/workspace.cache/object",
+        "project/deps/.cache/workspace.cache/object",
+        "project/notdeps/.cache/workspace.cache/object",
+        "project/deps/wrong/workspace.cache/object",
+    ] {
+        let file = tree.0.join(path);
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(file, b"payload").unwrap();
+    }
+    let doc = include_bytes!("../docs/contracts/plugin-v1/examples/relative-path.json");
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::with_templates(profile, &[doc], &[]).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.diagnostics.is_empty() && report.warnings.is_empty());
+        let found: BTreeSet<_> = report
+            .artifacts
+            .iter()
+            .filter(|a| a.target.id == "example.relative-cache.result")
+            .map(|a| a.relative_path.clone())
+            .collect();
+        assert_eq!(
+            found,
+            BTreeSet::from([
+                PathBuf::from("deps/.cache/workspace.cache"),
+                PathBuf::from("project/deps/.cache/workspace.cache")
+            ])
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn relative_path_fact_never_lossily_decodes_or_escapes_root() {
+    use std::os::unix::ffi::OsStrExt;
+    let root = Path::new("/tmp/root");
+    let invalid = root.join(std::ffi::OsStr::from_bytes(b"bad-\xff"));
+    assert!(crate::plugin_relative_path(root, &invalid).is_none());
+    assert!(crate::plugin_relative_path(root, Path::new("/tmp/root-other/file")).is_none());
+    assert!(crate::plugin_relative_path(root, Path::new("/tmp/root/../outside")).is_none());
+    assert_eq!(
+        crate::plugin_relative_path(root, root).as_deref(),
+        Some(".")
+    );
+    assert_eq!(
+        crate::plugin_relative_path(root, Path::new("/tmp/root/dir/file")).as_deref(),
+        Some("dir/file")
+    );
+    assert_eq!(
+        crate::plugin_relative_path(root, Path::new("/tmp/root/dir//./file")).as_deref(),
+        Some("dir/file")
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn marker_file_symlinks_are_not_followed_in_either_client() {
+    use std::os::unix::fs::symlink;
+    let tree = tests::TempTree::new();
+    for project in ["regular", "link", "dangling", "directory"] {
+        fs::create_dir_all(tree.0.join(project).join("target")).unwrap();
+    }
+    fs::write(tree.0.join("regular/Cargo.toml"), b"marker").unwrap();
+    fs::write(tree.0.join("actual.toml"), b"marker").unwrap();
+    symlink("../actual.toml", tree.0.join("link/Cargo.toml")).unwrap();
+    symlink("../missing.toml", tree.0.join("dangling/Cargo.toml")).unwrap();
+    fs::create_dir_all(tree.0.join("directory/Cargo.toml")).unwrap();
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::basic(profile, &[]).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+        let found: Vec<_> = report
+            .artifacts
+            .iter()
+            .map(|a| a.relative_path.clone())
+            .collect();
+        assert_eq!(found, vec![PathBuf::from("regular/target")]);
+    }
+}
+
+#[test]
 fn two_hundred_targets_scan_dynamic_names_and_only_probe_relevant_markers() {
     let tree = tests::TempTree::new();
     catalog_fixture::prepare_synthetic(&tree.0, 200, 1024);
@@ -161,7 +260,7 @@ fn independent_bytes(path: &Path, apparent: bool) -> u64 {
 }
 
 #[test]
-fn catalog_clients_match_both_frozen_profiles_and_exclusions() {
+fn catalog_clients_match_frozen_profiles_except_explicit_marker_link_change() {
     let corpus: Value =
         serde_json::from_str(include_str!("../tests/fixtures/migration-parity-v1.json")).unwrap();
     for case in corpus["cases"].as_array().unwrap() {
@@ -212,10 +311,13 @@ fn catalog_clients_match_both_frozen_profiles_and_exclusions() {
                 );
                 let label = format!("{} / {} / apparent={apparent}", case["id"], run["id"]);
                 assert!(report.diagnostics.is_empty(), "{label}");
+                // The frozen v1 corpus remains historical evidence. Its one
+                // intentional incompatibility is that marker links no longer count.
                 let expected = run["expected"]
                     .as_array()
                     .unwrap()
                     .iter()
+                    .filter(|key| case["id"] != "marker-links-vs-artifact-links" || *key != "rust")
                     .map(|key| &case["rows"][key.as_str().unwrap()])
                     .collect::<Vec<_>>();
                 assert_eq!(report.artifacts.len(), expected.len(), "{label}");

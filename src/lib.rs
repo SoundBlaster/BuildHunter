@@ -763,6 +763,44 @@ fn relative_path(root: &Path, path: &Path) -> PathBuf {
     }
 }
 
+/// Lossless lexical path beneath the selected root, for declarative plugin facts.
+/// It performs no filesystem access and never exposes an absolute path.
+pub fn plugin_relative_path<'a>(root: &Path, path: &'a Path) -> Option<std::borrow::Cow<'a, str>> {
+    let relative = path.strip_prefix(root).ok()?;
+    if relative.components().any(|part| {
+        !matches!(
+            part,
+            std::path::Component::Normal(_) | std::path::Component::CurDir
+        )
+    }) {
+        return None;
+    }
+    if relative.as_os_str().is_empty() {
+        return Some(std::borrow::Cow::Borrowed("."));
+    }
+    let text = relative.to_str()?;
+    #[cfg(windows)]
+    let text = std::borrow::Cow::Owned(text.replace('\\', "/"));
+    #[cfg(not(windows))]
+    let text = std::borrow::Cow::Borrowed(text);
+    if text
+        .split('/')
+        .all(|component| !component.is_empty() && component != ".")
+    {
+        return Some(text);
+    }
+    let normalized = text
+        .split('/')
+        .filter(|component| !component.is_empty() && *component != ".")
+        .collect::<Vec<_>>()
+        .join("/");
+    Some(std::borrow::Cow::Owned(if normalized.is_empty() {
+        ".".to_string()
+    } else {
+        normalized
+    }))
+}
+
 type ListTask = DirectoryTask<usize, u32>;
 type Listing = DirectoryListing<u32>;
 enum WorkerMessage {

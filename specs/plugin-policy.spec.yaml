@@ -60,8 +60,8 @@ constraints:
 - id: fact_boundary
   level: MUST
   statement: Consume typed observations only. Missing required marker is an error; inaccessible/invalid-name facts
-    remain unknown. Own markers are false for non-directories; symlink candidates never classify. Actual no-follow/scope/cloud
-    I/O must be enforced by the future scanner adapter.
+    and unavailable relative paths remain unknown. Own markers are false for non-directories; symlink candidates never classify.
+    The host supplies a selected-root-relative node.relative_path and owns filesystem acquisition, scope and no-follow enforcement.
 - id: budgets
   level: MUST
   statement: Validate complete catalogs before exclusions and enforce Rifle budgets plus 2048 target IDs and 512

@@ -44,11 +44,11 @@ scoped acquisition, close resource budgets (R5), or prove sandbox/Store acceptan
 
 `scan_client` observes all candidates, acquires markers requested by enabled
 rule bindings, and measures findings with stable descriptors shared through Arc.
-The `legacy-file-markers/1` profile preserves R2 marker file links and selected-root
-parent context; metadata declares this profile explicitly. It is the compatibility
-migration path, with no descriptor-confinement claim. The existing opt-in scoped
-plugin scanner remains a separate stronger acquisition API. A stricter default
-marker policy still needs a deliberate profile/golden-data change.
+The original `legacy-file-markers/1` profile preserved R2 marker file links and
+selected-root parent context. It is superseded by the explicitly declared
+`terminal-no-follow-file-markers/1` policy: a terminal marker symlink is false,
+while selected-root parent context remains available. This pathname API does not
+claim descriptor confinement; the opt-in scoped scanner remains stronger.
 
 `bh_scan_catalog_v1` emits metadata before discovery, references targets by ID,
 and surfaces typed ambiguity/unavailability diagnostics. Borrowed pointers last
@@ -72,9 +72,9 @@ plugin target IDs, with the existing preference key and unknown valid exclusions
 preserved. New reports use JSON schema 2 and export the frozen catalog/profile/
 marker policy, target IDs and diagnostics; legacy/mock exports keep schema 1.
 
-C3 deliberately preserves the R2 `legacy-file-markers/1` behavior. Tightening
-marker links/selected-root parent context is a separate explicit profile change,
-not an unstated consequence of adopting plugins. C4 copies raw selected-root bytes
+C3 originally preserved R2 marker links; the owner-requested terminal no-follow
+change supersedes that part of C3 while preserving the frozen historical corpus.
+Selected-root parent behavior remains unchanged. C4 copies raw selected-root bytes
 and disables Finder/Copy actions for lossy components and descendants; safe
 ancestors remain usable. This is action rejection, not a new inode capability.
 

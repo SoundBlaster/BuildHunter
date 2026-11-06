@@ -55,7 +55,7 @@ constraints:
     no bytes and produces a change notice. Independent passes remain live observations.
 - id: candidate_gate
   level: MUST
-  statement: Observe every visited node independent of built-in names and marker bits; .git remains host-pruned. Preserve exact node kinds and lossless paths; invalid UTF-8 names stay unavailable.
+  statement: Observe every visited node independent of built-in names and marker bits; .git remains host-pruned. Preserve exact node kinds and lossless paths; invalid UTF-8 names stay unavailable. Supply node.relative_path only when active rules request it, scoped lexically to the selected root; invalid UTF-8 or out-of-scope paths stay unavailable.
 - id: marker_scope
   level: MUST
   statement: On supported Unix backends, anchor marker metadata to the selected root descriptor, open intermediate components without following links, and inspect final entries without following links or reading contents. Root parent is out_of_scope; symlink markers are false.

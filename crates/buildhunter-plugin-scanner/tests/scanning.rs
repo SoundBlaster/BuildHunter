@@ -9,6 +9,8 @@ use std::{
 };
 
 const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
+const RELATIVE: &[u8] =
+    include_bytes!("../../../docs/contracts/plugin-v1/examples/relative-path.json");
 struct Tree(PathBuf);
 impl Tree {
     fn new() -> Self {
@@ -41,6 +43,51 @@ fn catalog(excluded: &[&str]) -> PluginCatalog {
         excluded,
     )
     .unwrap()
+}
+
+#[test]
+fn scan_scopes_relative_path_to_selected_root_and_matches_components() {
+    let tree = Tree::new();
+    for path in [
+        "project/deps/.cache/workspace.cache/object",
+        "project/notdeps/.cache/workspace.cache/object",
+    ] {
+        tree.file(path, b"payload");
+    }
+    let catalog = PluginCatalog::load(
+        &[PluginInput {
+            bytes: RELATIVE,
+            origin: Origin::External,
+        }],
+        &[],
+    )
+    .unwrap();
+    let report = scan(
+        &tree.0,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(
+        report.artifacts[0].relative_path,
+        PathBuf::from("project/deps/.cache/workspace.cache")
+    );
+    let inner = tree.0.join("project/deps");
+    let clipped = scan(
+        &inner,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert_eq!(clipped.status, ScanStatus::Completed);
+    assert!(clipped.artifacts.is_empty() && clipped.diagnostics.is_empty());
 }
 
 #[test]

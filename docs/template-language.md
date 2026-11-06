@@ -74,6 +74,7 @@ OR. Multiple matching targets are **ambiguous**, not first-match-wins.
 |---|---|---|
 | `node.name` | `string` | Candidate's final path component, case-sensitive |
 | `node.kind` | `string` | `directory`, `regular_file`, `symlink`, `other` |
+| `node.relative_path` | `string` | Lossless path relative to the selected root; `/` separates components, root is `.` |
 | `marker`, scope `own` | `boolean` | A regular marker file in the candidate directory |
 | `marker`, scope `parent` | `boolean` | A regular marker file in the candidate's parent |
 
@@ -81,11 +82,17 @@ Marker names are single components: no `/`, `\\`, `.` or `..`. All declared
 facts need matching bindings, and all facts must be used. Own-marker facts are
 false on non-directories. Symlink candidates are skipped by the current client.
 A missing marker is known false; an inaccessible marker is unavailable, not false.
-The current CLI/GUI `legacy-file-markers/1` profile follows marker-file symlinks
-and may inspect the selected root's parent for a parent marker. This does not
-claim the stronger descriptor-confined policy of the experimental scanner.
+The current CLI/GUI `terminal-no-follow-file-markers/1` profile rejects a
+symlink as the final marker component and may inspect the selected root's parent
+for a parent marker. Its pathname acquisition does not claim descriptor
+confinement or protect intermediate components against concurrent replacement.
 
-Facts do not expose file contents, sizes, timestamps or arbitrary paths. Rule
+The relative path fact contains no absolute path; it is unavailable when the
+candidate cannot be represented losslessly or falls outside the selected root.
+It is lexical data, not an access handle. A suffix check needs a leading `/` to
+enforce a component boundary; include an exact alternative for the same path at
+the root. Older hosts reject the new binding. Facts do not expose file contents,
+sizes, timestamps or arbitrary absolute paths. Rule
 predicates cannot read files. The host acquires shared marker observations;
 profiling does not charge the same I/O independently to every consumer rule.
 

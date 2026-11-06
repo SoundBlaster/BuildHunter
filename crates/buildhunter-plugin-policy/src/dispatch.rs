@@ -33,6 +33,11 @@ pub(super) struct Dispatch {
 }
 
 impl Dispatch {
+    pub(super) fn needs_relative_path(&self) -> bool {
+        self.targets
+            .iter()
+            .any(|target| target.bindings.contains(&Binding::RelativePath))
+    }
     pub(super) fn add(&mut self, doc: &Value, plugin: &ActivePlugin) -> Result<(), Error> {
         let Some(original) = &plugin.plan else {
             return Ok(());
@@ -158,6 +163,7 @@ impl Dispatch {
     pub(super) fn classify(
         &self,
         facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
         mut profile: Option<&mut RuleProfile>,
         phase: RulePhase,
     ) -> Result<Classification, Error> {
@@ -179,6 +185,9 @@ impl Dispatch {
                         .map(FactValue::String)
                         .unwrap_or(FactValue::Unavailable("invalid_name")),
                     Binding::Kind => FactValue::String(facts.kind.label()),
+                    Binding::RelativePath => relative_path
+                        .map(FactValue::String)
+                        .unwrap_or(FactValue::Unavailable("relative_path_unavailable")),
                     Binding::Marker(probe)
                         if probe.scope == Scope::Own && facts.kind != NodeKind::Directory =>
                     {
