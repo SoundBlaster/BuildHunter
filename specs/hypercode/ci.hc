@@ -3,6 +3,7 @@ BuildValidation
     NativeStackIdentity
     CumulativeDiff
   LightweightChecks
+  CodeQualityReport
   MacOSChecks
   PlanReceipts
   BatchEvidenceGate

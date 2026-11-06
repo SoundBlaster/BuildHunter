@@ -1,5 +1,15 @@
 # Repository instructions
 
+## Reuse and code quality
+
+- Look for an existing component or implementation before adding similar
+  behavior. Reuse it when the responsibilities and semantics match; express
+  real differences through composition or configuration.
+- Do not force unrelated behavior into one abstraction just to reduce a metric.
+  Preserve module boundaries, accessibility and independently meaningful tests.
+- Use the advisory code-quality report to investigate duplication and complexity;
+  assess the actual code rather than optimizing for a percentage.
+
 ## Maintain architecture maps and specifications with code
 
 Start from `specs/specification-progress.md`, `specs/hypercode/README.md`,

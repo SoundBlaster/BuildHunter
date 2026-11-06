@@ -13,6 +13,9 @@ CumulativeDiff:
 LightweightChecks:
   source: ".github/workflows/ci.yml"
   implementation: "Linux/Windows Rust/CLI/schema plus catalog 200-target end-to-end Release gate in existing jobs"
+CodeQualityReport:
+  source: ".github/workflows/code-quality.yml"
+  implementation: "advisory Linux report on source duplication and per-file complexity; no duplication threshold"
 MacOSChecks:
   scoped_plugin_bulk_profile: "Rust macOS job also tests the plugin pilot with build-hunter/macos-bulk-metadata; no extra job or scheduling change"
   source: ".github/workflows/macos.yml"

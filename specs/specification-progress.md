@@ -1,5 +1,22 @@
 # BuildHunter — architecture and specification progress
 
+## Code quality reporting — 2026-11-06
+
+The CI map includes an advisory Linux quality report alongside existing checks.
+It does not alter product behavior, accepted BoundarySpec claims or required
+stack gates. Its duplication and complexity figures are heuristics, not evidence
+of runtime correctness. See [code-quality policy](../docs/code-quality.md).
+Local validation against source revision `f3f6994d5d1bd6d5207d105805444bc8826c0d88`:
+the original report included inline tests and is superseded by production-only
+source selection; Hypercode parsed the CI map and
+validated both stack contexts with no issues. `specpm validate . --json` returned
+zero errors and 54 dependency warnings. Hosted workflow execution remains to be
+verified separately. The production-only selection and report were rerun locally;
+the source-selection unit tests cover conditional production branches, line
+preservation and external test modules.
+Two deliberately independent event-mapping and UI polling fragments carry
+narrow reporting suppressions; this changes no runtime contract or topology.
+
 Latest feature slice: [R7 file-backed user templates](../docs/user-templates.md),
 2026-10-25 feature branch. Its contracts/evidence are recorded below and in
 `validation/user-templates-20261025`; it does not close CLI/SDK/Store delivery.
