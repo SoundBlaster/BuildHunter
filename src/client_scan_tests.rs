@@ -524,3 +524,18 @@ fn opt_in_rule_profile_is_bounded_and_emitted_once_before_terminal_without_chang
     assert_eq!(report.status, ScanStatus::Cancelled);
     assert_eq!(report.rule_profile.unwrap()["scan_status"], "cancelled");
 }
+
+#[test]
+fn candidate_node_kind_maps_to_policy_node_kind() {
+    use crate::CandidateNodeKind;
+    use buildhunter_plugin_policy::NodeKind;
+
+    for (candidate, expected) in [
+        (CandidateNodeKind::Directory, NodeKind::Directory),
+        (CandidateNodeKind::RegularFile, NodeKind::RegularFile),
+        (CandidateNodeKind::Symlink, NodeKind::Symlink),
+        (CandidateNodeKind::Other, NodeKind::Other),
+    ] {
+        assert_eq!(NodeKind::from(candidate), expected);
+    }
+}
