@@ -7,10 +7,13 @@ It does not alter product behavior, accepted BoundarySpec claims or required
 stack gates. Its duplication and complexity figures are heuristics, not evidence
 of runtime correctness. See [code-quality policy](../docs/code-quality.md).
 Local validation against source revision `f3f6994d5d1bd6d5207d105805444bc8826c0d88`:
-the report script produced JSON and a summary; Hypercode parsed the CI map and
+the original report included inline tests and is superseded by production-only
+source selection; Hypercode parsed the CI map and
 validated both stack contexts with no issues. `specpm validate . --json` returned
 zero errors and 54 dependency warnings. Hosted workflow execution remains to be
-verified separately.
+verified separately. The production-only selection and report were rerun locally;
+the source-selection unit tests cover conditional production branches, line
+preservation and external test modules.
 
 Latest feature slice: [R7 file-backed user templates](../docs/user-templates.md),
 2026-10-25 feature branch. Its contracts/evidence are recorded below and in
