@@ -61,9 +61,9 @@ struct BuildHunterApp: App {
                 UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }.tag("templates")
 #if BUILDHUNTER_COMMERCE
 #if BUILDHUNTER_MANAGED_ASSETS
-                ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules, delivery: managedCatalogDelivery).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
+                ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules, delivery: managedCatalogDelivery, row: catalogPreviewRow).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
 #else
-                ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
+                ArsenalSettingsView(session: commerce, openScanRules: openCatalogRules, row: catalogPreviewRow).tabItem { Label("Catalog", systemImage: "square.stack.3d.up") }.tag("catalog")
 #endif
 #endif
             }
@@ -119,6 +119,24 @@ struct BuildHunterApp: App {
     }
 
 #if BUILDHUNTER_COMMERCE
+    private func catalogPreviewRow(id: String, title: Text, kind: Text, expanded: Bool,
+                                   action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            ScanRuleRow {
+                HStack(spacing: 8) {
+                    ScanRuleIcon(id: id, group: "", isUser: false)
+                    title
+                }
+            } secondary: {
+                kind.foregroundStyle(.secondary)
+                Image(systemName: expanded ? "chevron.down" : "chevron.right")
+                    .foregroundStyle(.secondary).frame(width: 18)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(expanded ? "Expanded" : "Collapsed")
+    }
+
     @MainActor
     private func openCatalogRules() {
         let library = TemplateLibrary.shared

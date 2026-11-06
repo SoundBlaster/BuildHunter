@@ -1438,19 +1438,21 @@ parent assembly obligations are unchanged. No application runtime acceptance
 is implied. The CI Hypercode map records the changed publisher behavior; source
 hashes and validation are in [the CI refresh record](validation/ci-thread-refresh-20261103/README.md).
 
-## User template origin symbol — 2026-11-06
+## Shared scan rule row — 2026-11-06
 
-The existing User origin badge in Scan Rules now includes the SF Symbol
-`person.crop.circle`; Catalog badges and the origin classification are unchanged.
-The symbol is a presentation detail folded into Settings and
-`buildhunter.current.application` / `buildhunter.current.classification`:
-no boundary, admission rule, stored setting, requirement or owner acceptance
-changes. This is a source observation, not a visual or accessibility runtime
-validation. Earlier validation receipts remain scoped to their original source.
+Scan Rules and the optional Store Catalog now use the app-owned `ScanRuleRow`
+layout. Selection, icon and disclosure are supplied by their owning view;
+the optional edition provides its own icon lookup and preview content. User
+origin selects `person.crop.circle`; catalog identity and paid definitions
+remain in the edition. Existing classification, persisted selection, catalog
+admission, effects, and scan snapshot contracts are unchanged. The layout is
+folded into Settings and the existing application/classification boundaries;
+no draft requirement is promoted to owner acceptance. Historical evidence retains
+its original source scope. Visual and integration validation are recorded in PR.
 
-Affected source `macos/Sources/BuildHunter/UI/SearchSettingsWindow.swift` SHA-256:
-`e56047a44d9076b4d201d296211583f33493f3d4a9147356df6795d967327d3d`.
-
-Validation: Swift frontend parsing succeeded; SpecPM 0.2.0 `validate .`
-reported 0 errors and 54 warnings. Hypercode CLI was unavailable, so HC
-structural validation was not rerun. No native runtime claim is made.
+Source SHA-256: SearchSettingsWindow.swift
+`4497286ff2fc46e6ed5fb113238ce6834a25a4f2c8adf8c87ee8369faf07aa59`;
+BuildHunterApp.swift
+`be2f567ff4da4149e3824f915f84ca5d80eb4b6c27b2e3aa38fc4cd0ef64cc45`;
+current.hcs
+`e1c311b959c5296db84f25b51c6bd7832313bfc58669a8aee9ee5209345f0a57`.

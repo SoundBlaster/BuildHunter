@@ -1,6 +1,49 @@
 import AppKit
 import SwiftUI
 import NestedA11yIDs
+#if BUILDHUNTER_COMMERCE
+import BuildHunterEditionUI
+#endif
+
+/// Shared layout for scan-rule selection and the optional catalog preview.
+struct ScanRuleRow<Primary: View, Secondary: View>: View {
+    @ViewBuilder let primary: Primary
+    @ViewBuilder let secondary: Secondary
+
+    var body: some View {
+        HStack(spacing: 10) {
+            primary
+            Spacer(minLength: 8)
+            secondary
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 12)
+        .contentShape(Rectangle())
+    }
+}
+
+struct ScanRuleIcon: View {
+    let id: String
+    let group: String
+    let isUser: Bool
+
+    private var icon: Image {
+        if isUser { return Image(systemName: "person.crop.circle") }
+#if BUILDHUNTER_COMMERCE
+        if let icon = catalogRuleIcon(for: id) { return icon }
+#endif
+        switch group.lowercased() {
+        case "swift": return Image("LanguageSwift")
+        case "rust": return Image("LanguageRust")
+        case "python": return Image("LanguagePython")
+        default: return Image(systemName: "square.stack.3d.up")
+        }
+    }
+
+    var body: some View {
+        icon.resizable().scaledToFit().frame(width: 20, height: 20).accessibilityHidden(true)
+    }
+}
 
 struct SearchSettingsWindow: View {
     @Bindable private var settings: SearchFilterSettings
@@ -55,7 +98,7 @@ struct SearchSettingsWindow: View {
             Group {
                 switch origin {
                 case .catalog: Text("Catalog")
-                case .user: Label("User", systemImage: "person.crop.circle")
+                case .user: Text("User")
                 }
             }
             .font(.caption.weight(.medium))
@@ -73,35 +116,45 @@ struct SearchSettingsWindow: View {
             ))
         }
         return Toggle(sources: selections, isOn: \.isEnabled) {
-            Text(LocalizedStringKey(title)).fontWeight(.semibold)
+            HStack(spacing: 8) {
+                ScanRuleIcon(id: "", group: filters.first?.group ?? title,
+                             isUser: filters.allSatisfy { ruleOrigins[$0.id] == .user })
+                Text(LocalizedStringKey(title)).fontWeight(.semibold)
+            }
         }
         .toggleStyle(.checkbox)
         .nestedAccessibilityIdentifier("group.\(title)")
     }
 
     private func row(_ filter: SearchFilterDescriptor) -> some View {
-        HStack(spacing: 10) {
-            Toggle(filter.title, isOn: Binding(get: { settings.isEnabled(for: filter.id) },
-                set: { settings.setEnabled($0, for: filter.id); selectionChanged = true }))
+        ScanRuleRow {
+            Toggle(isOn: Binding(get: { settings.isEnabled(for: filter.id) },
+                set: { settings.setEnabled($0, for: filter.id); selectionChanged = true })) {
+                HStack(spacing: 8) {
+                    ScanRuleIcon(id: filter.id, group: filter.group, isUser: ruleOrigins[filter.id] == .user)
+                    Text(filter.title)
+                }
+            }
                 .toggleStyle(.checkbox)
                 .nestedAccessibilityIdentifier("filter.\(filter.id)")
             originBadge(ruleOrigins[filter.id])
-            Spacer()
+        } secondary: {
             let names = filter.nodeNames + filter.suffixes
             if !names.isEmpty {
                 Text(names.joined(separator: ", ")).font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary).lineLimit(1)
             }
-        }.padding(.vertical, 4).padding(.horizontal, 12)
+        }
     }
 
     private func groupHeader(_ title: String, filters: [SearchFilterDescriptor], expanded: Binding<Bool>) -> some View {
-        HStack(spacing: 0) {
+        ScanRuleRow {
             checkbox(title, filters: filters)
             if let first = filters.first.flatMap({ ruleOrigins[$0.id] }),
                filters.allSatisfy({ ruleOrigins[$0.id] == first }) {
                 originBadge(first).padding(.leading, 8)
             }
+        } secondary: {
             Button {
                 if (NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags).contains(.option) {
                     expandedGroups = Set(settings.groups.filter { settings.filters(in: $0).count > 1 })
@@ -122,7 +175,7 @@ struct SearchSettingsWindow: View {
             .accessibilityLabel(Text(LocalizedStringKey(title)))
             .accessibilityValue(expanded.wrappedValue ? "Expanded" : "Collapsed")
             .nestedAccessibilityIdentifier("expand.\(title)")
-        }.padding(.horizontal, 12)
+        }
     }
 
     var body: some View {
