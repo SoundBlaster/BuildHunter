@@ -780,7 +780,7 @@ pub fn plugin_relative_path<'a>(root: &Path, path: &'a Path) -> Option<std::borr
     }
     let text = relative.to_str()?;
     #[cfg(windows)]
-    let text = std::borrow::Cow::Owned(text.replace('\\', "/"));
+    let text: std::borrow::Cow<'_, str> = std::borrow::Cow::Owned(text.replace('\\', "/"));
     #[cfg(not(windows))]
     let text = std::borrow::Cow::Borrowed(text);
     if text
