@@ -57,7 +57,12 @@ struct BuildHunterApp: App {
 
         Settings {
             TabView(selection: $settingsTab) {
+#if BUILDHUNTER_COMMERCE
+                SearchSettingsWindow(catalogUnlocked: catalogUnlocked, openCatalog: { settingsTab = "catalog" })
+                    .tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }.tag("rules")
+#else
                 SearchSettingsWindow().tabItem { Label("Scan Rules", systemImage: "magnifyingglass") }.tag("rules")
+#endif
                 UserTemplatesWindow(workspace: .shared).tabItem { Label("Templates", systemImage: "curlybraces") }.tag("templates")
 #if BUILDHUNTER_COMMERCE
 #if BUILDHUNTER_MANAGED_ASSETS
@@ -119,6 +124,13 @@ struct BuildHunterApp: App {
     }
 
 #if BUILDHUNTER_COMMERCE
+    private var catalogUnlocked: Bool {
+        switch commerce.access {
+        case .purchased, .trial: true
+        case .locked, .disabled: false
+        }
+    }
+
     private func catalogPreviewRow(id: String, title: Text, kind: Text, expanded: Bool,
                                    action: @escaping () -> Void) -> some View {
         Button(action: action) {
