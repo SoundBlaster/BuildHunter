@@ -49,7 +49,7 @@ struct UserTemplatesWindow: View {
                     }
                     .padding(8)
                 }
-                .frame(minWidth: 200, idealWidth: 250, maxWidth: 350)
+                .frame(minWidth: 140, idealWidth: 220, maxWidth: 350)
                 .disabled(workspace.busy)
                 VStack(alignment: .leading) {
                     Text(workspace.reference?.path ?? "New template")
@@ -59,22 +59,25 @@ struct UserTemplatesWindow: View {
                         rejected: workspace.explain)
                         .nestedAccessibilityIdentifier("editor")
                         .frame(minHeight: 200)
-                    HStack {
-                        Button("Check") { Task { await workspace.check() } }
-                            .nestedAccessibilityIdentifier("check")
-                        Button("Reload") {
-                            if let reference = workspace.reference { request(.load(reference)) }
-                        }.disabled(workspace.reference == nil)
-                        Spacer()
-                        Button("Export JSON…") { savePanel(exporting: true) }
-                            .nestedAccessibilityIdentifier("export")
-                        Button("Save As…", action: saveAs)
-                        Button("Save") { Task { await workspace.save() } }
-                            .disabled(workspace.reference == nil || !workspace.isDirty)
+                    ScrollView(.horizontal) {
+                        HStack {
+                            Button("Check") { Task { await workspace.check() } }
+                                .nestedAccessibilityIdentifier("check")
+                            Button("Reload") {
+                                if let reference = workspace.reference { request(.load(reference)) }
+                            }.disabled(workspace.reference == nil)
+                            Spacer()
+                            Button("Export JSON…") { savePanel(exporting: true) }
+                                .nestedAccessibilityIdentifier("export")
+                            Button("Save As…", action: saveAs)
+                            Button("Save") { Task { await workspace.save() } }
+                                .disabled(workspace.reference == nil || !workspace.isDirty)
+                        }
                     }
+                    .fixedSize(horizontal: false, vertical: true)
                     .disabled(workspace.busy || !workspace.hasDocument)
                 }
-                .frame(minWidth: 360)
+                .frame(minWidth: 300)
                 .padding(.leading, 8)
             }
             Text(workspace.message)
@@ -87,7 +90,6 @@ struct UserTemplatesWindow: View {
                 .font(.caption).foregroundStyle(.secondary)
         }
         .padding()
-        .frame(minWidth: 760, minHeight: 500)
         .a11yRoot("buildhunter.templates")
         .confirmationDialog("Discard the unsaved template changes?", isPresented: Binding(
             get: { pending != nil }, set: { if !$0 { pending = nil } })) {
