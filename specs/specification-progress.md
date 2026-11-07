@@ -1518,6 +1518,24 @@ BuildHunterApp.swift
 current.hcs
 `8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
 
+### Catalog discovery in Settings — 2026-11-07
+
+The Store edition's Scan Rules tab presents the availability of additional
+Catalog rules, the purchase-access state and a link to the Catalog tab. The
+public edition does not receive this Store-specific entry. The
+`buildhunter.current.application` boundary and parent obligations remain
+unchanged; entitlement and catalog admission continue to be owned by their
+existing components. This is a presentation change; older visual evidence is
+historical. Source SHA-256: BuildHunterApp.swift
+`62559662e98b8b8689621d7585179b67085c7d232b50ab9a6f70510872a5b318`;
+SearchSettingsWindow.swift
+`d60787d1ef4f181991c567eb2408167993abd8306553c06577d68c9a45b7dd2f`.
+Swift frontend parsing and `make specpm-validate` passed with four baseline
+warnings. A Release MAS composition based on the TestFlight 9 pins compiled
+with both changed source files overlaid; signature, sandbox and resource hash
+checks passed. This does not establish visual runtime behavior. Hypercode CLI
+was unavailable.
+
 ### Checkbox and icon spacing — 2026-11-07
 
 The GUI Settings presentation adds leading space to the labels of individual

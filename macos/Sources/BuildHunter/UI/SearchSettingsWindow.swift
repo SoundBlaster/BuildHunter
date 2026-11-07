@@ -49,11 +49,16 @@ struct ScanRuleIcon: View {
 
 struct SearchSettingsWindow: View {
     @Bindable private var settings: SearchFilterSettings
+    private let catalogUnlocked: Bool?
+    private let openCatalog: () -> Void
     @AppStorage(ScanWarningsPresentation.storageKey, store: SearchFilterSettings.defaultUserDefaults)
     private var warningsPresentation = ScanWarningsPresentation.window
 
-    init(settings: SearchFilterSettings = .shared) {
+    init(settings: SearchFilterSettings = .shared, catalogUnlocked: Bool? = nil,
+         openCatalog: @escaping () -> Void = {}) {
         self.settings = settings
+        self.catalogUnlocked = catalogUnlocked
+        self.openCatalog = openCatalog
     }
 
     @State private var query = ""
@@ -184,6 +189,22 @@ struct SearchSettingsWindow: View {
 
     var body: some View {
         Form {
+            if let catalogUnlocked {
+                Section {
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading) {
+                                Text("Catalog").font(.headline)
+                                Text(catalogUnlocked ? "Additional scan rules unlocked" : "Unlock additional ready-made scan rules")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: { Image(systemName: "square.stack.3d.up") }
+                        Spacer()
+                        Button("View Catalog", action: openCatalog)
+                            .nestedAccessibilityIdentifier("viewCatalog")
+                    }
+                }
+            }
             Section {
                 HStack {
                     VStack(alignment: .leading) {
