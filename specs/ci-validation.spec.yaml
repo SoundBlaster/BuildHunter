@@ -97,6 +97,10 @@ provenance:
     boundary: high
     behavior: medium
   notes:
+  - The SpecPM warning-baseline guard adds a Python test to the existing change-classification
+    workflow. It does not change stack planning, scheduling, evidence, trust or merge policy;
+    the CI architecture map and existing boundary claims remain unchanged. Hosted CI tests
+    the guard, but does not validate against the machine-local registry.
   - R4 adds cargo bench --locked --bench catalog_scan inside the existing Rust/CLI jobs. No additional macOS jobs or ready-tip scheduling changes. The broad timing guard is independent from exact finding/size/marker-count assertions; measurements do not accept C5 budgets.
   - R3 adds one macOS Rust-job step exercising plugin acquisition with the root
     macos-bulk-metadata feature. The existing ready-tip/job/gate scheduling is
@@ -116,7 +120,7 @@ implementationBindings:
   language: python
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 713f6f074e8c71b21875d88fe2482de23c356929
+    revision: e9e5c9a8093fc9a464dc264b57ca78a45ba5c083
   files:
     owned:
     - .github/actionlint.yaml

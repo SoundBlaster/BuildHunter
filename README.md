@@ -195,10 +195,13 @@ validation report and defaults to `http://127.0.0.1:8081`. To use another
 registry, run `make specpm-validate SPECPM_REGISTRY=https://registry.example`.
 The registry and a SpecPM version supporting `--registry` must be available;
 the target does not start a server or install dependencies. Platform
-capabilities may remain unresolved and appear as warnings in the report. If the
-registry is unreachable, SpecPM reports `dependency_registry_unavailable` as a
-warning and may still exit successfully; inspect the JSON before relying on
-external dependency resolution.
+capabilities may remain unresolved and appear as warnings in the report. The
+check allows only the existing platform warnings in
+`specs/specpm-warning-baseline.json`; new warnings, repeated warnings, errors,
+and an unreachable registry cause a nonzero exit. Fewer warnings are allowed.
+Update the baseline only when the affected specification obligations change.
+This command requires the configured registry and is run locally; hosted CI tests
+the guard but does not validate against the local registry.
 
 ### Template syntax and rule profiling
 

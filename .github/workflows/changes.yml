@@ -35,6 +35,7 @@ jobs:
         run: |
           python3 scripts/ci/test_changes.py
           python3 scripts/ci/test_stack_ci.py
+          python3 scripts/test_check_specpm.py
       - name: Classify complete event diff
         id: diff
         env:

@@ -1,5 +1,16 @@
 # BuildHunter — architecture and specification progress
 
+## SpecPM diagnostic baseline — 2026-11-07
+
+`buildhunter.delivery.ci` retains its existing contract and HC map: the change
+adds a guard unit test to the existing classifier step, without changing stack
+planning, gating, or scheduling. Implementation revision: `e9e5c9a`.
+Locally `python3 scripts/test_check_specpm.py` passed; `make specpm-validate`
+passed against the existing local registry index with zero errors and four
+allowed platform warnings, and failed when the registry was unavailable.
+Hosted CI exercises the guard but does not validate the local registry or prove
+runtime scanner behavior. Existing validation receipts remain historical.
+
 ## Symlink entries and potential findings — 2026-11-07
 
 Goal: show a matching symlink itself as a potential cache location without

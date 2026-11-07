@@ -1,0 +1,6 @@
+[
+  {"code": "required_capability_missing_from_registry", "file": "specs/ci-validation.spec.yaml", "field": "requires.capabilities", "message": "No eligible provider in the registry declares platform.github.actions."},
+  {"code": "required_capability_missing_from_registry", "file": "specs/current-scan.spec.yaml", "field": "requires.capabilities", "message": "No eligible provider in the registry declares platform.filesystem.metadata."},
+  {"code": "required_capability_missing_from_registry", "file": "specs/hunter-design.spec.yaml", "field": "requires.capabilities", "message": "No eligible provider in the registry declares platform.filesystem.metadata."},
+  {"code": "required_capability_missing_from_registry", "file": "specpm.yaml", "field": "index.requires.capabilities", "message": "No eligible provider in the registry declares platform.filesystem.metadata."}
+]
