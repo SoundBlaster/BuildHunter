@@ -93,9 +93,13 @@ class MigrationParityTests(unittest.TestCase):
             accounting = json.loads(profile.read_text())
             self.assertEqual(accounting["status"], run["status"])
             self.assertEqual(len(report["errors"]), run["warnings"])
+            # Keep the v1 measured-artifact golden separate from new unmeasured links.
             expected = [case["rows"][key] for key in run["expected"]]
             actual = []
             for row in report["artifacts"]:
+                if row["entry_type"] == "symlink":
+                    self.assertIsNone(row["bytes"])
+                    continue
                 # Both emitted paths share Rust's canonical root, including the
                 # Windows verbatim prefix (Python resolve may omit that prefix).
                 relative = os.path.relpath(row["path"], report["root"]).replace(os.sep, "/")
@@ -108,6 +112,9 @@ class MigrationParityTests(unittest.TestCase):
                         for row in expected if not row["nested"])
             self.assertEqual(report["total_bytes"], total)
             self.assertEqual(accounting["samples"][-1]["measured_bytes"], total)
+            if case["id"] == "marker-links-vs-artifact-links":
+                self.assertEqual([row["relative_path"] for row in report["artifacts"]
+                                  if row["entry_type"] == "symlink"], ["linked/.build"])
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ them would not prove that implementation was refactored. The pure policy and sca
 default CLI/GUI classification now uses PluginPolicy through ClientCatalogScan and
 versioned catalog FFI. The strict opt-in PluginScanning path uses descriptor-bound
 macOS/Linux traversal/markers/measurement; default clients deliberately preserve the
-legacy-file-markers/1 compatibility path without that confinement claim.
+terminal-entry-file-or-symlink/2 pathname profile without that confinement claim.
 
 Source bindings use real repository paths and symbols, not executable imports.
 File existence and HC property validation do not prove semantic correspondence.

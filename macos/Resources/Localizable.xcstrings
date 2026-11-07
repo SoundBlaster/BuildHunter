@@ -1,6 +1,12 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Symlink · potential match": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Symlink · potential match" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Символическая ссылка · возможное совпадение" } }
+      }
+    },
     "Catalog": {
       "localizations": {
         "en": {

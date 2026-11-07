@@ -21,6 +21,7 @@ struct CompiledTarget {
     plan: Plan,
     profile_offset: usize,
     bindings: Vec<Binding>,
+    explicit_symlink_kind: bool,
 }
 
 #[derive(Default, Debug)]
@@ -33,6 +34,11 @@ pub(super) struct Dispatch {
 }
 
 impl Dispatch {
+    pub(super) fn needs_relative_path(&self) -> bool {
+        self.targets
+            .iter()
+            .any(|target| target.bindings.contains(&Binding::RelativePath))
+    }
     pub(super) fn add(&mut self, doc: &Value, plugin: &ActivePlugin) -> Result<(), Error> {
         let Some(original) = &plugin.plan else {
             return Ok(());
@@ -46,6 +52,10 @@ impl Dispatch {
         let name_facts: BTreeSet<_> = binding_map
             .iter()
             .filter_map(|(id, binding)| matches!(binding, Binding::Name).then_some(*id))
+            .collect();
+        let kind_facts: BTreeSet<_> = binding_map
+            .iter()
+            .filter_map(|(id, binding)| matches!(binding, Binding::Kind).then_some(*id))
             .collect();
         for target in &plugin.targets {
             let mut program = doc["program"].clone();
@@ -62,6 +72,11 @@ impl Dispatch {
                     .iter()
                     .map(|r| selector(&r["when"], &name_facts)),
             );
+            let explicit_symlink_kind = program["rules"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|rule| references_symlink_kind(&rule["when"], &kind_facts));
             let mut used = BTreeSet::new();
             for rule in program["rules"].as_array().unwrap() {
                 crate::validation::collect_facts(&rule["when"], &mut used);
@@ -101,6 +116,7 @@ impl Dispatch {
                 profile_offset,
                 plan,
                 bindings,
+                explicit_symlink_kind,
             });
         }
         Ok(())
@@ -117,6 +133,30 @@ impl Dispatch {
         for (suffix, targets) in &self.suffix {
             if name.ends_with(suffix) {
                 indices.extend(targets);
+            }
+        }
+        indices.sort_unstable();
+        indices.dedup();
+        indices
+    }
+
+    /// Consider named potential targets plus rules that explicitly address the
+    /// actual symlink kind. Marker-only fallback rules cannot identify a link.
+    fn named_candidates(&self, name: Option<&str>) -> Vec<usize> {
+        let mut indices = self
+            .fallback
+            .iter()
+            .copied()
+            .filter(|index| self.targets[*index].explicit_symlink_kind)
+            .collect::<Vec<_>>();
+        if let Some(name) = name {
+            if let Some(exact) = self.exact.get(name) {
+                indices.extend(exact);
+            }
+            for (suffix, targets) in &self.suffix {
+                if name.ends_with(suffix) {
+                    indices.extend(targets);
+                }
             }
         }
         indices.sort_unstable();
@@ -158,18 +198,25 @@ impl Dispatch {
     pub(super) fn classify(
         &self,
         facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
         mut profile: Option<&mut RuleProfile>,
         phase: RulePhase,
+        symlink_projection: bool,
     ) -> Result<Classification, Error> {
         let mut result = Classification::empty();
-        if facts.kind == NodeKind::Symlink {
+        if facts.kind == NodeKind::Symlink && !symlink_projection {
             return Ok(result);
         }
         if let Some(profile) = profile.as_deref_mut() {
             profile.record_call(phase);
         }
         let mut notices = BTreeSet::new();
-        for index in self.candidates(facts.name) {
+        let candidates = if symlink_projection {
+            self.named_candidates(facts.name)
+        } else {
+            self.candidates(facts.name)
+        };
+        for index in candidates {
             let target = &self.targets[index];
             let mut values = Vec::with_capacity(target.bindings.len());
             for (index, binding) in target.bindings.iter().enumerate() {
@@ -178,7 +225,16 @@ impl Dispatch {
                         .name
                         .map(FactValue::String)
                         .unwrap_or(FactValue::Unavailable("invalid_name")),
+                    Binding::Kind if symlink_projection && !target.explicit_symlink_kind => {
+                        FactValue::Unavailable("symlink_target_kind")
+                    }
                     Binding::Kind => FactValue::String(facts.kind.label()),
+                    Binding::RelativePath => relative_path
+                        .map(FactValue::String)
+                        .unwrap_or(FactValue::Unavailable("relative_path_unavailable")),
+                    Binding::Marker(probe) if symlink_projection && probe.scope == Scope::Own => {
+                        FactValue::Unavailable("symlink_own_marker")
+                    }
                     Binding::Marker(probe)
                         if probe.scope == Scope::Own && facts.kind != NodeKind::Directory =>
                     {
@@ -251,6 +307,32 @@ impl Dispatch {
             _ => Decision::Ambiguous,
         };
         Ok(result)
+    }
+}
+
+fn references_symlink_kind(expr: &Value, kind_facts: &BTreeSet<&str>) -> bool {
+    match expr {
+        Value::Array(values) => values
+            .iter()
+            .any(|value| references_symlink_kind(value, kind_facts)),
+        Value::Object(fields) => {
+            let is_kind = fields
+                .get("fact")
+                .and_then(Value::as_str)
+                .is_some_and(|fact| kind_facts.contains(fact));
+            let mentions_symlink = fields.get("value").and_then(Value::as_str) == Some("symlink")
+                || fields
+                    .get("values")
+                    .and_then(Value::as_array)
+                    .is_some_and(|values| {
+                        values.iter().any(|value| value.as_str() == Some("symlink"))
+                    });
+            (is_kind && mentions_symlink)
+                || fields
+                    .values()
+                    .any(|value| references_symlink_kind(value, kind_facts))
+        }
+        _ => false,
     }
 }
 

@@ -13,6 +13,22 @@ BINARY = Path(sys.argv.pop(1)).resolve()
 
 
 class CLIIntegrationTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == "posix", "requires symbolic links")
+    def test_symlink_candidate_has_unknown_size_and_keeps_the_link_path(self):
+        (self.root / "Cargo.toml").symlink_to("missing-manifest")
+        (self.root / "target").symlink_to("missing-cache")
+        report = self.scan()
+        self.assertEqual(report["total_bytes"], 0)
+        self.assertEqual(report["unmeasured_symlinks"], 1)
+        self.assertEqual(len(report["artifacts"]), 1)
+        artifact = report["artifacts"][0]
+        self.assertEqual(artifact["relative_path"], "target")
+        self.assertEqual(artifact["entry_type"], "symlink")
+        self.assertEqual(artifact["target_id"], "rust.target")
+        self.assertIsNone(artifact["bytes"])
+        output = subprocess.check_output([str(BINARY), str(self.root)], text=True)
+        self.assertIn("[symlink, potential]", output)
+
     def test_rule_profile_is_opt_in_preserves_results_and_protects_existing_file(self):
         self.write("Cargo.toml")
         self.write("target/object.o")
@@ -43,11 +59,11 @@ class CLIIntegrationTests(unittest.TestCase):
     def test_report_and_filters_share_catalog_identity_and_target_ids(self):
         self.write(".build/object.o")
         report = self.scan("--exclude", "python.pytest-cache")
-        self.assertEqual(report["schema_version"], 2)
+        self.assertEqual(report["schema_version"], 3)
         metadata = report["catalog"]
         self.assertEqual(metadata["format"], "buildhunter.catalog/1")
         self.assertEqual(metadata["profile"], "buildhunter.cli/1")
-        self.assertEqual(metadata["markerPolicy"], "legacy-file-markers/1")
+        self.assertEqual(metadata["markerPolicy"], "terminal-entry-file-or-symlink/2")
         self.assertRegex(metadata["digest"], r"^[0-9a-f]{64}$")
         self.assertEqual(metadata["excludedTargetIDs"], ["python.pytest-cache"])
         self.assertEqual(report["diagnostics"], [])
@@ -130,7 +146,8 @@ class CLIIntegrationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
         self.assertFalse(report["errors"])
-        self.assertEqual(report["total_bytes"], sum(r["bytes"] for r in report["artifacts"] if not r["nested"]))
+        self.assertEqual(report["total_bytes"], sum(r["bytes"] for r in report["artifacts"]
+                                                    if not r["nested"] and r["bytes"] is not None))
         return report
 
     def test_language_detection_and_negative_project_markers(self):

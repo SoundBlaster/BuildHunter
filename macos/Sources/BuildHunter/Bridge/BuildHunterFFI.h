@@ -97,6 +97,8 @@ void bh_catalog_destroy(void *catalog);
 /* Catalog event ABI 1: all payloads are borrowed only until callback return.
  * Type 6 (before scan events): metadata is the frozen catalog JSON.
  * Type 1: target_id identifies a descriptor in that snapshot.
+ * Type 9: an unmeasured possible symlink match; target_id and path identify
+ * the link itself, and no completion event follows.
  * Type 7: metadata is a typed classification diagnostic; base path/message are
  * displayable warning data. Other base types/statuses retain their old meaning. */
 typedef struct BHCatalogScanEvent {

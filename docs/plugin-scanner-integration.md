@@ -2,8 +2,9 @@
 
 `crates/buildhunter-plugin-scanner` connects the pure PluginCatalog to the existing
 Rust traversal/measurement engine. It is an independent package, outside the root
-CLI dependency graph. The pure policy package remains filesystem-free. CLI, GUI,
-Settings defaults and numeric FFI still use their existing policies.
+CLI dependency graph. The pure policy package remains filesystem-free. CLI and
+GUI use it through their pathname-based catalog adapter; the scoped integration
+and retained legacy numeric FFI remain separate entrypoints.
 
 ## API and ownership
 
@@ -50,7 +51,8 @@ candidate index, directory-listing cache or throughput optimization.
 On macOS/Linux, a selected root directory descriptor anchors marker access.
 Intermediate components are opened one at a time with openat/O_NOFOLLOW;
 fstatat/AT_SYMLINK_NOFOLLOW checks the final marker's type without opening its
-contents. Link/directory/non-file markers are false. Parent of selected root is
+contents. Regular files and symlink entries count as markers; directories and
+other entry types do not. A link's target is never resolved. Parent of selected root is
 out_of_scope without reading outside. A replaced intermediate directory cannot
 redirect a marker lookup. Missing final marker is false; access, cloud and boundary
 failures are unavailable. Checks run under the non-materializing guard; macOS
@@ -59,8 +61,9 @@ before scan events; policy errors return ScanError after an explicit Failed even
 
 Windows and other platforms without the macOS/Linux backend fail closed with
 UnsupportedPlatform; their no-follow acquisition remains pending.
-Marker safety is stronger than the legacy symlink-marker behavior and is confined
-to this opt-in path. The pilot now selects Hunter ScopedFilesystem for root observation, directory
+The scope guarantee is confined to this opt-in path. Named symlink candidates
+may be reported separately as potential matches with no measured bytes, without
+opening or reading their destinations. The pilot selects Hunter ScopedFilesystem for root observation, directory
 listings, worker sizing and coordinator fallback. Markers share that exact root
 anchor rather than independently reopening the selected path. Each prepared
 measurement pass retains its directory, and failed scoped access never retries

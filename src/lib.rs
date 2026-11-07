@@ -282,6 +282,8 @@ pub enum CandidateAction {
     Traverse,
     Prune,
     Classify(ArtifactClassificationCode),
+    /// Report this symlink itself as a potential artifact without measuring it.
+    ReportSymlink(ArtifactClassificationCode),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -324,6 +326,8 @@ pub struct Artifact {
     pub bytes: u64,
     pub nested: bool,
     pub partial: bool,
+    /// The entry is a symlink; its destination and size were not inspected.
+    pub is_symlink: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -346,7 +350,13 @@ pub enum ScanStatus {
 pub enum ScanEvent {
     Profile(ScanProfileSample),
     ArtifactDiscovered(Artifact),
-    ArtifactCompleted { id: u64, bytes: u64, partial: bool },
+    /// A terminal discovery: no measurement/completion event follows.
+    SymlinkDiscovered(Artifact),
+    ArtifactCompleted {
+        id: u64,
+        bytes: u64,
+        partial: bool,
+    },
     Warning(ScanWarning),
     Finished(ScanStatus),
 }
@@ -364,7 +374,7 @@ impl ScanReport {
     pub fn total_bytes(&self) -> u64 {
         self.artifacts
             .iter()
-            .filter(|artifact| !artifact.nested)
+            .filter(|artifact| !artifact.nested && !artifact.is_symlink)
             .map(|artifact| artifact.bytes)
             .sum()
     }
@@ -761,6 +771,44 @@ fn relative_path(root: &Path, path: &Path) -> PathBuf {
     } else {
         relative.to_owned()
     }
+}
+
+/// Lossless lexical path beneath the selected root, for declarative plugin facts.
+/// It performs no filesystem access and never exposes an absolute path.
+pub fn plugin_relative_path<'a>(root: &Path, path: &'a Path) -> Option<std::borrow::Cow<'a, str>> {
+    let relative = path.strip_prefix(root).ok()?;
+    if relative.components().any(|part| {
+        !matches!(
+            part,
+            std::path::Component::Normal(_) | std::path::Component::CurDir
+        )
+    }) {
+        return None;
+    }
+    if relative.as_os_str().is_empty() {
+        return Some(std::borrow::Cow::Borrowed("."));
+    }
+    let text = relative.to_str()?;
+    #[cfg(windows)]
+    let text: std::borrow::Cow<'_, str> = std::borrow::Cow::Owned(text.replace('\\', "/"));
+    #[cfg(not(windows))]
+    let text = std::borrow::Cow::Borrowed(text);
+    if text
+        .split('/')
+        .all(|component| !component.is_empty() && component != ".")
+    {
+        return Some(text);
+    }
+    let normalized = text
+        .split('/')
+        .filter(|component| !component.is_empty() && *component != ".")
+        .collect::<Vec<_>>()
+        .join("/");
+    Some(std::borrow::Cow::Owned(if normalized.is_empty() {
+        ".".to_string()
+    } else {
+        normalized
+    }))
 }
 
 type ListTask = DirectoryTask<usize, u32>;
@@ -1187,6 +1235,9 @@ where
     }
     fn finish(&mut self, _exit: hunter_fs_core::CoordinatorExit) {
         for index in (0..self.progress.len()).rev() {
+            if self.artifacts[index].is_symlink {
+                continue;
+            }
             if !self.progress[index].is_completed() {
                 self.progress[index].mark_partial();
                 self.complete(index as u64 + 1);
@@ -1358,7 +1409,14 @@ where
         }
     }
 
-    fn discover(&mut self, path: &Path, nested: bool, language: u32, kind: u32) -> Option<u64> {
+    fn discover(
+        &mut self,
+        path: &Path,
+        nested: bool,
+        language: u32,
+        kind: u32,
+        is_symlink: bool,
+    ) -> Option<u64> {
         let relative_path = relative_path(self.root, path);
         let weight = relative_path.capacity().saturating_add(
             std::mem::size_of::<Artifact>() + std::mem::size_of::<SubtreeProgress>(),
@@ -1383,11 +1441,16 @@ where
             bytes: 0,
             nested,
             partial: false,
+            is_symlink,
         };
         if let Some(profile) = self.profile {
             profile::bump(&profile.counters.artifacts, 1);
         }
-        self.emit(&ScanEvent::ArtifactDiscovered(artifact.clone()));
+        self.emit(&if is_symlink {
+            ScanEvent::SymlinkDiscovered(artifact.clone())
+        } else {
+            ScanEvent::ArtifactDiscovered(artifact.clone())
+        });
         self.artifacts.push(artifact);
         self.progress.push(SubtreeProgress::default());
         Some(id)
@@ -1440,14 +1503,25 @@ where
         } else {
             CandidateAction::Traverse
         };
-        if is_symlink || action == CandidateAction::Prune || self.control.should_stop() {
+        if self.control.should_stop() {
+            return None;
+        }
+        if is_symlink {
+            if let CandidateAction::ReportSymlink(code) = action {
+                self.discover(&path, !chain.is_empty(), code.language, code.kind, true);
+            }
+            return None;
+        }
+        if action == CandidateAction::Prune {
             return None;
         }
         let artifact = match action {
             CandidateAction::Classify(code) => {
-                Some(self.discover(&path, !chain.is_empty(), code.language, code.kind)?)
+                Some(self.discover(&path, !chain.is_empty(), code.language, code.kind, false)?)
             }
-            CandidateAction::Traverse | CandidateAction::Prune => None,
+            CandidateAction::Traverse
+            | CandidateAction::Prune
+            | CandidateAction::ReportSymlink(_) => None,
         };
         (!chain.is_empty() || artifact.is_some()).then_some(FileSlot {
             index,
@@ -1535,7 +1609,8 @@ where
             return ListingAction::Complete(ArtifactBranch { chain, parent_len });
         }
         if let CandidateAction::Classify(code) = action {
-            let Some(id) = self.discover(&path, parent_len > 0, code.language, code.kind) else {
+            let Some(id) = self.discover(&path, parent_len > 0, code.language, code.kind, false)
+            else {
                 return ListingAction::Abandon;
             };
             chain.push(id);
@@ -2052,10 +2127,10 @@ unsafe fn send_ffi_event(callback: BHEventCallback, context: *mut c_void, event:
     }
     let (ffi, _path, _message) = match event {
         ScanEvent::Profile(_) => unreachable!(),
-        ScanEvent::ArtifactDiscovered(artifact) => {
+        ScanEvent::ArtifactDiscovered(artifact) | ScanEvent::SymlinkDiscovered(artifact) => {
             let path = path_bytes(&artifact.relative_path);
             let ffi = BHScanEvent {
-                event_type: 1,
+                event_type: if artifact.is_symlink { 9 } else { 1 },
                 artifact_id: artifact.id,
                 path: path.as_ptr(),
                 path_len: path.len(),

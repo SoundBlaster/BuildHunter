@@ -42,7 +42,8 @@
               "source": {
                 "enum": [
                   "node.name",
-                  "node.kind"
+                  "node.kind",
+                  "node.relative_path"
                 ]
               }
             },

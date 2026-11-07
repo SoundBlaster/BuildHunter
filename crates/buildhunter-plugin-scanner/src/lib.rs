@@ -20,9 +20,11 @@ pub struct PluginArtifact {
     pub id: u64,
     pub relative_path: PathBuf,
     pub target: Arc<TargetDescriptor>,
-    pub bytes: u64,
+    /// None for a symlink whose target was not measured.
+    pub bytes: Option<u64>,
     pub nested: bool,
     pub partial: bool,
+    pub is_symlink: bool,
 }
 #[derive(Clone, Debug)]
 pub struct CandidateDiagnostic {
@@ -32,6 +34,7 @@ pub struct CandidateDiagnostic {
 #[derive(Clone, Debug)]
 pub enum PluginScanEvent {
     ArtifactDiscovered(PluginArtifact),
+    SymlinkDiscovered(PluginArtifact),
     ArtifactCompleted { id: u64, bytes: u64, partial: bool },
     Diagnostic(CandidateDiagnostic),
     Warning(ScanWarning),
@@ -54,8 +57,8 @@ impl PluginScanReport {
     pub fn total_bytes(&self) -> u64 {
         self.artifacts
             .iter()
-            .filter(|a| !a.nested)
-            .map(|a| a.bytes)
+            .filter(|a| !a.nested && !a.is_symlink)
+            .filter_map(|a| a.bytes)
             .sum()
     }
 }
@@ -116,13 +119,15 @@ pub fn scan(
         } else {
             std::env::current_dir().map_err(ScanError::Io)?.join(root)
         };
+        let needs_relative_path = catalog.needs_relative_path();
         let requests: Vec<MarkerProbe> = catalog
             .marker_requests(NodeKind::Directory)
             .into_iter()
             .cloned()
             .collect();
         let filesystem = hunter_fs::ScopedFilesystem::open(&root).map_err(ScanError::Io)?;
-        let scope = scope::Scope::new(&filesystem, !requests.is_empty()).map_err(ScanError::Io)?;
+        let scope =
+            scope::Scope::new(&filesystem, &root, !requests.is_empty()).map_err(ScanError::Io)?;
         struct State {
             selected: Option<Arc<TargetDescriptor>>,
             targets: BTreeMap<u64, Arc<TargetDescriptor>>,
@@ -158,10 +163,24 @@ pub fn scan(
                     return CandidateAction::Prune;
                 }
                 let kind = NodeKind::from(kind);
-                if kind == NodeKind::Symlink {
-                    return CandidateAction::Traverse;
-                }
-                let active = catalog.marker_requests(kind);
+                let relative_path = needs_relative_path
+                    .then(|| build_hunter::plugin_relative_path(&root, path))
+                    .flatten();
+                let active = catalog
+                    .candidate_marker_requests(
+                        legacy.name(),
+                        if kind == NodeKind::Symlink {
+                            NodeKind::Directory
+                        } else {
+                            kind
+                        },
+                    )
+                    .into_iter()
+                    .filter(|probe| {
+                        kind != NodeKind::Symlink
+                            || probe.scope == buildhunter_plugin_policy::Scope::Parent
+                    })
+                    .collect::<Vec<_>>();
                 // Unknown placeholders can prove NoMatch without filesystem I/O.
                 // They must never be interpreted as false or retained as final diagnostics.
                 let mut markers: BTreeMap<_, _> = active
@@ -169,11 +188,21 @@ pub fn scan(
                     .map(|p| ((*p).clone(), MarkerFact::Unavailable("not_observed")))
                     .collect();
                 let classify = |markers: &BTreeMap<MarkerProbe, MarkerFact>| {
-                    catalog.classify(CandidateFacts {
+                    let facts = CandidateFacts {
                         name: legacy.name(),
                         kind,
                         markers,
-                    })
+                    };
+                    if kind == NodeKind::Symlink {
+                        catalog.classify_symlink_candidate(
+                            facts,
+                            relative_path.as_deref(),
+                            None,
+                            buildhunter_plugin_policy::RulePhase::Preliminary,
+                        )
+                    } else {
+                        catalog.classify_with_path(facts, relative_path.as_deref())
+                    }
                 };
                 let result = classify(&markers).and_then(|preliminary| {
                     if preliminary.unknown.is_empty() {
@@ -181,11 +210,11 @@ pub fn scan(
                     }
                     for probe in active {
                         let (fact, observed) = if control.is_cancelled() {
-                            (MarkerFact::Unavailable("cancelled"), false)
+                            (MarkerFact::Unavailable("cancelled"), 0)
                         } else {
                             scope.observe(path, probe)
                         };
-                        state.observations += u64::from(observed);
+                        state.observations = state.observations.saturating_add(observed);
                         markers.insert(probe.clone(), fact);
                     }
                     classify(&markers)
@@ -200,50 +229,64 @@ pub fn scan(
                         control.cancel();
                         CandidateAction::Traverse
                     }
-                    Ok(classification) => match &classification.decision {
-                        Decision::Found(id) => {
-                            state.selected = Some(
-                                descriptors
-                                    .get(id.as_str())
-                                    .expect("validated target exists")
-                                    .clone(),
-                            );
-                            // Numeric labels stay transport placeholders inside this wrapper;
-                            // emitted/report artifacts always carry the real TargetDescriptor.
-                            CandidateAction::Classify(ArtifactClassificationCode {
+                    Ok(classification) => {
+                        if kind == NodeKind::Symlink
+                            && let Some(potential) = classification.potential_symlink_target()
+                        {
+                            state.selected = descriptors.get(potential).cloned();
+                            return CandidateAction::ReportSymlink(ArtifactClassificationCode {
                                 language: 0,
                                 kind: 0,
-                            })
+                            });
                         }
-                        Decision::NoMatch => CandidateAction::Traverse,
-                        Decision::Ambiguous | Decision::Indeterminate => {
-                            let diagnostic = CandidateDiagnostic {
-                                relative_path: path.strip_prefix(&root).unwrap_or(path).to_owned(),
-                                classification,
-                            };
-                            if !state.diagnostic_budget.admit(
-                                &diagnostic.relative_path,
-                                &diagnostic.classification,
-                                control,
-                            ) {
-                                return CandidateAction::Traverse;
+                        match &classification.decision {
+                            Decision::Found(id) => {
+                                state.selected = Some(
+                                    descriptors
+                                        .get(id.as_str())
+                                        .expect("validated target exists")
+                                        .clone(),
+                                );
+                                // Numeric labels stay transport placeholders inside this wrapper;
+                                // emitted/report artifacts always carry the real TargetDescriptor.
+                                CandidateAction::Classify(ArtifactClassificationCode {
+                                    language: 0,
+                                    kind: 0,
+                                })
                             }
-                            state.diagnostics.push(diagnostic.clone());
-                            // Deliver while processing this candidate so the observer can
-                            // cancel before traversal continues, even without core events.
-                            // Never hold our state borrow across a consumer callback.
-                            drop(state);
-                            (emit.borrow_mut())(&PluginScanEvent::Diagnostic(diagnostic));
-                            CandidateAction::Traverse
+                            Decision::NoMatch => CandidateAction::Traverse,
+                            Decision::Ambiguous | Decision::Indeterminate => {
+                                let diagnostic = CandidateDiagnostic {
+                                    relative_path: path
+                                        .strip_prefix(&root)
+                                        .unwrap_or(path)
+                                        .to_owned(),
+                                    classification,
+                                };
+                                if !state.diagnostic_budget.admit(
+                                    &diagnostic.relative_path,
+                                    &diagnostic.classification,
+                                    control,
+                                ) {
+                                    return CandidateAction::Traverse;
+                                }
+                                state.diagnostics.push(diagnostic.clone());
+                                // Deliver while processing this candidate so the observer can
+                                // cancel before traversal continues, even without core events.
+                                // Never hold our state borrow across a consumer callback.
+                                drop(state);
+                                (emit.borrow_mut())(&PluginScanEvent::Diagnostic(diagnostic));
+                                CandidateAction::Traverse
+                            }
                         }
-                    },
+                    }
                 }
             },
             |event| {
                 let event = {
                     let mut state = state.borrow_mut();
                     match event {
-                        ScanEvent::ArtifactDiscovered(a) => {
+                        ScanEvent::ArtifactDiscovered(a) | ScanEvent::SymlinkDiscovered(a) => {
                             let target = state
                                 .selected
                                 .take()
@@ -251,14 +294,20 @@ pub fn scan(
                             state.targets.insert(a.id, target.clone());
                             // This adapter owns a distinct public event type; keep its mapping local.
                             // jscpd:ignore-start
-                            PluginScanEvent::ArtifactDiscovered(PluginArtifact {
+                            let artifact = PluginArtifact {
                                 id: a.id,
                                 relative_path: a.relative_path.clone(),
                                 target,
-                                bytes: a.bytes,
+                                bytes: (!a.is_symlink).then_some(a.bytes),
                                 nested: a.nested,
                                 partial: a.partial,
-                            })
+                                is_symlink: a.is_symlink,
+                            };
+                            if a.is_symlink {
+                                PluginScanEvent::SymlinkDiscovered(artifact)
+                            } else {
+                                PluginScanEvent::ArtifactDiscovered(artifact)
+                            }
                             // jscpd:ignore-end
                         }
                         ScanEvent::ArtifactCompleted { id, bytes, partial } => {
@@ -293,9 +342,10 @@ pub fn scan(
                 id: a.id,
                 relative_path: a.relative_path,
                 target: state.targets.remove(&a.id).expect("discovered target"),
-                bytes: a.bytes,
+                bytes: (!a.is_symlink).then_some(a.bytes),
                 nested: a.nested,
                 partial: a.partial,
+                is_symlink: a.is_symlink,
             })
             .collect();
         Ok(PluginScanReport {

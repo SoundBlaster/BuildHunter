@@ -7,6 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 const RUST: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/rust.json");
 const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
+const RELATIVE: &[u8] =
+    include_bytes!("../../../docs/contracts/plugin-v1/examples/relative-path.json");
 fn input(bytes: &[u8], origin: Origin) -> PluginInput<'_> {
     PluginInput { bytes, origin }
 }
@@ -34,6 +36,107 @@ fn facts<'a>(
         kind,
         markers,
     }
+}
+
+#[test]
+fn symlink_projection_respects_explicit_entry_kind_rules() {
+    use buildhunter_plugin_policy::RulePhase;
+    let marker = BTreeMap::new();
+    let explicit = edited(|v| {
+        v["program"]["facts"] = json!([{"id":"kind","type":"string"}]);
+        v["bindings"] = json!({"kind":{"source":"node.kind"}});
+        v["program"]["rules"][0]["when"] = json!({"fact":"kind","op":"eq","value":"symlink"});
+    });
+    let catalog = load(&explicit).unwrap();
+    let result = catalog
+        .classify_symlink_candidate(
+            facts(Some("arbitrary-link"), NodeKind::Symlink, &marker),
+            None,
+            None,
+            RulePhase::Resolved,
+        )
+        .unwrap();
+    assert_eq!(result.decision, Decision::Found("rust.target".into()));
+    assert_eq!(result.potential_symlink_target(), Some("rust.target"));
+
+    let excludes = edited(|v| {
+        v["program"]["facts"] =
+            json!([{"id":"name","type":"string"},{"id":"kind","type":"string"}]);
+        v["bindings"] = json!({"name":{"source":"node.name"},"kind":{"source":"node.kind"}});
+        v["program"]["rules"][0]["when"] = json!({"all":[
+            {"fact":"name","op":"eq","value":"target"},
+            {"not":{"fact":"kind","op":"eq","value":"symlink"}}
+        ]});
+    });
+    let catalog = load(&excludes).unwrap();
+    let result = catalog
+        .classify_symlink_candidate(
+            facts(Some("target"), NodeKind::Symlink, &marker),
+            None,
+            None,
+            RulePhase::Resolved,
+        )
+        .unwrap();
+    assert_eq!(result.decision, Decision::NoMatch);
+    assert_eq!(result.potential_symlink_target(), None);
+}
+
+#[test]
+fn relative_path_binding_is_scoped_unknown_when_absent_and_profiled_consistently() {
+    let catalog = PluginCatalog::load(&[input(RELATIVE, Origin::External)], &[]).unwrap();
+    assert!(catalog.needs_relative_path());
+    let markers = BTreeMap::new();
+    for (path, expected) in [
+        (
+            Some("deps/.cache/workspace.cache"),
+            Decision::Found("example.relative-cache.result".into()),
+        ),
+        (
+            Some("project/deps/.cache/workspace.cache"),
+            Decision::Found("example.relative-cache.result".into()),
+        ),
+        (
+            Some("project/notdeps/.cache/workspace.cache"),
+            Decision::NoMatch,
+        ),
+        (
+            Some("project/deps/wrong/workspace.cache"),
+            Decision::NoMatch,
+        ),
+        (Some("."), Decision::NoMatch),
+        (None, Decision::Indeterminate),
+    ] {
+        let candidate = || facts(Some("workspace.cache"), NodeKind::Directory, &markers);
+        let result = catalog.classify_with_path(candidate(), path).unwrap();
+        assert_eq!(result.decision, expected, "{path:?}");
+        let mut profile = catalog.rule_profile();
+        let profiled = catalog
+            .classify_profiled_with_path(
+                candidate(),
+                path,
+                &mut profile,
+                buildhunter_plugin_policy::RulePhase::Resolved,
+            )
+            .unwrap();
+        assert_eq!(profiled.decision, result.decision);
+    }
+    assert_eq!(
+        catalog
+            .classify(facts(
+                Some("workspace.cache"),
+                NodeKind::Directory,
+                &markers
+            ))
+            .unwrap()
+            .decision,
+        Decision::Indeterminate
+    );
+    let excluded = PluginCatalog::load(
+        &[input(RELATIVE, Origin::External)],
+        &["example.relative-cache.result"],
+    )
+    .unwrap();
+    assert!(!excluded.needs_relative_path());
 }
 
 #[test]

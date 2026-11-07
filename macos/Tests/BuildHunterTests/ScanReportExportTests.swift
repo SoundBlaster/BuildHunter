@@ -48,17 +48,34 @@ struct ScanReportExportTests {
             row("Odd, \"quoted\"\nname/target", .partial(512), language: "Rust", kind: .cache),
             row("Lib/.venv", .partial(nil), language: "Python", kind: .environment),
         ]).csv()
-        #expect(csv.hasPrefix("\u{FEFF}Path,Absolute Path,Language,Kind,Size (bytes),Size,Size State\r\n"))
+        #expect(csv.hasPrefix("\u{FEFF}Path,Absolute Path,Language,Kind,Size (bytes),Size,Size State,Entry Type\r\n"))
         #expect(csv.hasSuffix("\r\n"))
         let records = csv.dropFirst().components(separatedBy: "\r\n").filter { !$0.isEmpty }
         #expect(records.count == 4)
         #expect(records[1].hasPrefix("App/.build,/Users/me/Projects/App/.build,Swift,Build output,2048,"))
-        #expect(records[1].hasSuffix(",measured"))
-        #expect(records[2] == "Lib/.venv,/Users/me/Projects/Lib/.venv,Python,Environment,,,partial")
+        #expect(records[1].hasSuffix(",measured,artifact"))
+        #expect(records[2] == "Lib/.venv,/Users/me/Projects/Lib/.venv,Python,Environment,,,partial,artifact")
         // Commas, quotes and line breaks stay inside one quoted field with doubled quotes.
         #expect(records[3].hasPrefix("\"Odd, \"\"quoted\"\"\nname/target\","))
         #expect(records[3].contains(",Rust,Cache,512,"))
-        #expect(records[3].hasSuffix(",partial"))
+        #expect(records[3].hasSuffix(",partial,artifact"))
+    }
+
+    @Test("A symlink is exported as unmeasured without adding target bytes")
+    func symlinkExport() throws {
+        let link = ScanRow(id: UUID(), relativePath: "Project/target", language: "Rust", kind: .buildOutput,
+                           size: .notMeasured, isSymlink: true)
+        let report = export([link])
+        let object = try #require(JSONSerialization.jsonObject(with: report.json()) as? [String: Any])
+        let artifacts = try #require(object["artifacts"] as? [[String: Any]])
+        let artifact = try #require(artifacts.first)
+        #expect(object["schema_version"] as? Int == 3)
+        #expect(object["unmeasured_symlinks"] as? Int == 1)
+        #expect(object["total_bytes"] as? Int == 0)
+        #expect(artifact["entry_type"] as? String == "symlink")
+        #expect(artifact["bytes"] is NSNull)
+        #expect(artifact["size_state"] as? String == "not_measured")
+        #expect(report.csv().contains(",,,not_measured,symlink"))
     }
 
     @Test("A synthetic report without a folder leaves absolute paths empty")

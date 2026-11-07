@@ -378,7 +378,7 @@ final class RustScanBridgeContext: @unchecked Sendable {
             catalogTargets = Dictionary(uniqueKeysWithValues: metadata.targets.map { ($0.id, $0) })
             yield(.catalog(generation: generation, metadata: metadata, rootPathIsExact: rootPathIsExact))
             if !rootPathIsExact { warnAboutBridge("The selected path is not valid UTF-8; path actions are disabled.") }
-        case 1:
+        case 1, 9:
             guard let catalogMetadata, let id = decodeUTF8(value.target_id, length: value.target_id_len),
                   let target = catalogTargets[id], let kind = target.artifactKind else {
                 warnAboutBridge("A discovery refers to an unknown catalog target."); return
@@ -389,7 +389,8 @@ final class RustScanBridgeContext: @unchecked Sendable {
             if firstInvalid != nil { warnAboutBridge("A detected path is not valid UTF-8; path actions are disabled for its lossy components.") }
             yield(.discovered(generation: generation, artifact: ScanArtifact(
                 id: stableID(value.base.artifact_id), relativePath: path, language: target.language,
-                kind: kind, targetID: target.id, catalogDigest: catalogMetadata.digest, unsafePathPrefix: unsafePrefix)))
+                kind: kind, targetID: target.id, catalogDigest: catalogMetadata.digest, unsafePathPrefix: unsafePrefix,
+                isSymlink: value.base.event_type == 9)))
         case 5:
             var usage: ScanResourceUsage?
             if value.metadata_len > 0 {

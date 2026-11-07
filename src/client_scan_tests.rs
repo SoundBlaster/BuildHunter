@@ -60,7 +60,233 @@ fn similarly_named_local_devicefs_directory_is_still_scanned() {
     assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
     assert_eq!(report.artifacts.len(), 1);
     assert_eq!(report.artifacts[0].relative_path, local);
-    assert!(report.artifacts[0].bytes > 0);
+    assert!(report.artifacts[0].bytes.is_some_and(|bytes| bytes > 0));
+}
+
+#[test]
+fn scan_relative_path_matches_only_complete_components_in_both_clients() {
+    let tree = tests::TempTree::new();
+    for path in [
+        "deps/.cache/workspace.cache/object",
+        "project/deps/.cache/workspace.cache/object",
+        "project/notdeps/.cache/workspace.cache/object",
+        "project/deps/wrong/workspace.cache/object",
+    ] {
+        let file = tree.0.join(path);
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(file, b"payload").unwrap();
+    }
+    let doc = include_bytes!("../docs/contracts/plugin-v1/examples/relative-path.json");
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::with_templates(profile, &[doc], &[]).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.diagnostics.is_empty() && report.warnings.is_empty());
+        let found: BTreeSet<_> = report
+            .artifacts
+            .iter()
+            .filter(|a| a.target.id == "example.relative-cache.result")
+            .map(|a| a.relative_path.clone())
+            .collect();
+        assert_eq!(
+            found,
+            BTreeSet::from([
+                PathBuf::from("deps/.cache/workspace.cache"),
+                PathBuf::from("project/deps/.cache/workspace.cache")
+            ])
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn relative_path_fact_never_lossily_decodes_or_escapes_root() {
+    use std::os::unix::ffi::OsStrExt;
+    let root = Path::new("/tmp/root");
+    let invalid = root.join(std::ffi::OsStr::from_bytes(b"bad-\xff"));
+    assert!(crate::plugin_relative_path(root, &invalid).is_none());
+    assert!(crate::plugin_relative_path(root, Path::new("/tmp/root-other/file")).is_none());
+    assert!(crate::plugin_relative_path(root, Path::new("/tmp/root/../outside")).is_none());
+    assert_eq!(
+        crate::plugin_relative_path(root, root).as_deref(),
+        Some(".")
+    );
+    assert_eq!(
+        crate::plugin_relative_path(root, Path::new("/tmp/root/dir/file")).as_deref(),
+        Some("dir/file")
+    );
+    assert_eq!(
+        crate::plugin_relative_path(root, Path::new("/tmp/root/dir//./file")).as_deref(),
+        Some("dir/file")
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn marker_symlink_entries_count_without_resolving_their_targets() {
+    use std::os::unix::fs::symlink;
+    let tree = tests::TempTree::new();
+    for project in [
+        "regular",
+        "link",
+        "dangling",
+        "directory",
+        "directory-link",
+        "marker-loop",
+    ] {
+        fs::create_dir_all(tree.0.join(project).join("target")).unwrap();
+    }
+    fs::write(tree.0.join("regular/Cargo.toml"), b"marker").unwrap();
+    fs::write(tree.0.join("actual.toml"), b"marker").unwrap();
+    symlink("../actual.toml", tree.0.join("link/Cargo.toml")).unwrap();
+    symlink("../missing.toml", tree.0.join("dangling/Cargo.toml")).unwrap();
+    fs::create_dir_all(tree.0.join("directory/Cargo.toml")).unwrap();
+    symlink(
+        "../directory/Cargo.toml",
+        tree.0.join("directory-link/Cargo.toml"),
+    )
+    .unwrap();
+    symlink("Cargo.toml", tree.0.join("marker-loop/Cargo.toml")).unwrap();
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::basic(profile, &[]).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+        let mut found: Vec<_> = report
+            .artifacts
+            .iter()
+            .map(|a| a.relative_path.clone())
+            .collect();
+        found.sort();
+        assert_eq!(
+            found,
+            vec![
+                PathBuf::from("dangling/target"),
+                PathBuf::from("directory-link/target"),
+                PathBuf::from("link/target"),
+                PathBuf::from("marker-loop/target"),
+                PathBuf::from("regular/target")
+            ]
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn symlink_candidates_are_reported_without_following_or_measuring_targets() {
+    use std::os::unix::fs::symlink;
+    let tree = tests::TempTree::new();
+    let outside = tests::TempTree::new();
+    fs::write(outside.0.join("secret"), vec![b'x'; 16_384]).unwrap();
+    for project in ["valid", "missing", "loop", "not-a-project"] {
+        fs::create_dir_all(tree.0.join(project)).unwrap();
+    }
+    fs::write(tree.0.join("valid/Cargo.toml"), b"marker").unwrap();
+    symlink(&outside.0, tree.0.join("valid/target")).unwrap();
+    symlink("../absent", tree.0.join("missing/.build")).unwrap();
+    symlink(".build", tree.0.join("loop/.build")).unwrap();
+    symlink(&outside.0, tree.0.join("not-a-project/target")).unwrap();
+
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::basic(profile, &[]).unwrap();
+        let mut events = Vec::new();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |event| events.push(event.clone()),
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+        let found: BTreeSet<_> = report
+            .artifacts
+            .iter()
+            .map(|artifact| {
+                assert!(artifact.is_symlink);
+                assert_eq!(artifact.bytes, None);
+                artifact.relative_path.clone()
+            })
+            .collect();
+        assert_eq!(
+            found,
+            BTreeSet::from([
+                PathBuf::from("valid/target"),
+                PathBuf::from("missing/.build"),
+                PathBuf::from("loop/.build")
+            ])
+        );
+        assert_eq!(report.total_bytes(), 0);
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| matches!(event, CatalogScanEvent::SymlinkDiscovered(_)))
+                .count(),
+            3
+        );
+        assert!(
+            !events
+                .iter()
+                .any(|event| matches!(event, CatalogScanEvent::ArtifactCompleted { .. }))
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn user_rule_can_explicitly_select_symlinks_without_a_name_filter() {
+    use std::os::unix::fs::symlink;
+    let tree = tests::TempTree::new();
+    symlink("missing", tree.0.join("arbitrary-link")).unwrap();
+    let mut document: Value = serde_json::from_slice(include_bytes!(
+        "../docs/contracts/plugin-v1/examples/synthetic.json"
+    ))
+    .unwrap();
+    document["program"]["facts"] = serde_json::json!([{"id":"kind","type":"string"}]);
+    document["bindings"] = serde_json::json!({"kind":{"source":"node.kind"}});
+    document["program"]["rules"][0]["when"] =
+        serde_json::json!({"fact":"kind","op":"eq","value":"symlink"});
+    let bytes = serde_json::to_vec(&document).unwrap();
+    for excluded in [&[][..], &["example.forge-output"][..]] {
+        let snapshot =
+            CatalogSnapshot::with_templates(ClientProfile::GuiV1, &[&bytes], excluded).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.diagnostics.is_empty());
+        if excluded.is_empty() {
+            assert_eq!(report.artifacts.len(), 1);
+            assert_eq!(
+                report.artifacts[0].relative_path,
+                PathBuf::from("arbitrary-link")
+            );
+            assert_eq!(report.artifacts[0].target.id, "example.forge-output");
+            assert!(report.artifacts[0].is_symlink && report.artifacts[0].bytes.is_none());
+        } else {
+            assert!(report.artifacts.is_empty());
+        }
+    }
 }
 
 #[test]
@@ -98,7 +324,10 @@ fn two_hundred_targets_scan_dynamic_names_and_only_probe_relevant_markers() {
         for artifact in &report.artifacts {
             let name = artifact.relative_path.to_str().unwrap();
             assert_eq!(artifact.target.id, format!("example.{name}"));
-            assert_eq!(artifact.bytes, independent_bytes(&tree.0.join(name), false));
+            assert_eq!(
+                artifact.bytes,
+                Some(independent_bytes(&tree.0.join(name), false))
+            );
             assert!(!artifact.partial && !artifact.nested);
         }
         assert_eq!(
@@ -161,7 +390,7 @@ fn independent_bytes(path: &Path, apparent: bool) -> u64 {
 }
 
 #[test]
-fn catalog_clients_match_both_frozen_profiles_and_exclusions() {
+fn catalog_clients_match_frozen_profiles_except_explicit_marker_link_change() {
     let corpus: Value =
         serde_json::from_str(include_str!("../tests/fixtures/migration-parity-v1.json")).unwrap();
     for case in corpus["cases"].as_array().unwrap() {
@@ -212,13 +441,19 @@ fn catalog_clients_match_both_frozen_profiles_and_exclusions() {
                 );
                 let label = format!("{} / {} / apparent={apparent}", case["id"], run["id"]);
                 assert!(report.diagnostics.is_empty(), "{label}");
+                // Compare the frozen v1 regular artifacts separately from newly
+                // reported, unmeasured symlinks.
                 let expected = run["expected"]
                     .as_array()
                     .unwrap()
                     .iter()
                     .map(|key| &case["rows"][key.as_str().unwrap()])
                     .collect::<Vec<_>>();
-                assert_eq!(report.artifacts.len(), expected.len(), "{label}");
+                assert_eq!(
+                    report.artifacts.iter().filter(|a| !a.is_symlink).count(),
+                    expected.len(),
+                    "{label}"
+                );
                 let mut total = 0;
                 for row in expected {
                     let artifact = report
@@ -251,7 +486,7 @@ fn catalog_clients_match_both_frozen_profiles_and_exclusions() {
                         root.join(&artifact.relative_path)
                     };
                     let bytes = independent_bytes(&absolute, apparent);
-                    assert_eq!(artifact.bytes, bytes, "{label}");
+                    assert_eq!(artifact.bytes, Some(bytes), "{label}");
                     assert!(!artifact.partial, "{label}");
                     if !artifact.nested {
                         total += bytes;
@@ -284,7 +519,7 @@ fn catalog_clients_match_both_frozen_profiles_and_exclusions() {
                     "{label}"
                 );
                 for artifact in &report.artifacts {
-                    assert_eq!(events.iter().filter(|event|matches!(event,CatalogScanEvent::ArtifactCompleted{id,..} if *id==artifact.id)).count(),1,"{label}");
+                    assert_eq!(events.iter().filter(|event|matches!(event,CatalogScanEvent::ArtifactCompleted{id,..} if *id==artifact.id)).count(),usize::from(!artifact.is_symlink),"{label}");
                 }
             }
         }

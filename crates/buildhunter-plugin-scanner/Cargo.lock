@@ -36,6 +36,7 @@ dependencies = [
  "build-hunter",
  "buildhunter-plugin-policy",
  "hunter-fs",
+ "hunter-fs-core",
  "serde_json",
 ]
 

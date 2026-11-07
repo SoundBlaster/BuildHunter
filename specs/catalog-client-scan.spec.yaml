@@ -33,7 +33,7 @@ interfaces:
     summary: scan_client(root, snapshot, ScanOptions, include_environments, control, observer) -> CatalogScanReport.
   - id: catalog_event_abi
     kind: library
-    summary: bh_scan_catalog_v1 with BHCatalogScanEvent version 1; metadata event 6, target IDs on discovery, typed diagnostic event 7; event 5 optionally carries resource-budget/loss JSON without changing its numeric profile payload. Optional bounded rule-profile event 8 precedes Finished when explicitly enabled.
+    summary: bh_scan_catalog_v1 with BHCatalogScanEvent version 1; metadata event 6, target IDs on discovery, typed diagnostic event 7, terminal unmeasured symlink discovery event 9; event 5 optionally carries resource-budget/loss JSON without changing its numeric profile payload. Optional bounded rule-profile event 8 precedes Finished when explicitly enabled.
   outbound: []
 constraints:
 - id: dynamic_selection
@@ -41,7 +41,13 @@ constraints:
   statement: Observe every candidate without the legacy fixed name gate or speculative root sizing. Derive rule marker requests from enabled catalog bindings and the conservative candidate index. Keep CLI environment admission as an explicit host-profile obligation.
 - id: compatible_profiles
   level: MUST
-  statement: Preserve R2 CLI nested findings/environment pruning and GUI outer-root/environment precedence. Prune .git only outside an artifact. The legacy-file-markers/1 acquisition profile follows marker file links and observes selected-root parent markers, matching existing clients. This compatibility API does not claim descriptor confinement or change the stricter opt-in plugin scanner contract.
+  statement: Preserve R2 CLI nested findings/environment pruning and GUI outer-root/environment precedence. Prune .git only outside an artifact. The terminal-entry-file-or-symlink/2 profile recognizes a final regular file or symlink marker without following its target, and retains selected-root parent marker observations. This pathname API does not claim descriptor confinement; the opt-in scanner uses a separate scoped backend.
+- id: potential_symlinks
+  level: MUST
+  statement: For a visited symlink, consider targets with a necessary matching name or a rule explicitly comparing node kind with symlink. Explicit kind comparisons use the actual entry kind; otherwise the target type and own markers remain unavailable. Parent markers may be observed under the selected profile. Report a single unambiguous possible target as a terminal symlink discovery with no target I/O or size. Retain other unavailable facts and conflicts as diagnostics; never count unknown size as zero or include it in measured totals.
+- id: relative_path_fact
+  level: MUST
+  statement: Supply node.relative_path only when enabled rules need it, relative to the selected root, with slash-separated components and dot for the root. Reject out-of-scope, parent-component and non-UTF-8 paths as unavailable; never expose an absolute path through this fact.
 - id: identity
   level: MUST
   statement: Findings retain full target descriptors through shared immutable ownership; reports retain profile, full digest and frozen exclusions. Numeric core labels remain transport placeholders and must not replace plugin identity.
@@ -50,7 +56,7 @@ constraints:
   statement: Use the shared per-scan DiagnosticRetention gate. Surface ambiguous and unavailable classification as typed diagnostics and continue descendants unless cancelled or an explicit resource quota is reached. Diagnostics make otherwise completed results incomplete; cancellation and failure take precedence. Profile warning counters include diagnostics. Policy errors fail the scan and preserve an explanatory diagnostic within its retention quota; quota exhaustion preserves a reserved resource-limit warning. Target-map growth follows admitted findings.
 - id: event_lifetime
   level: MUST
-  statement: Emit metadata before scan events; deliver callbacks serially on the caller thread. All event pointers are borrowed only until callback return. Consumers retain control/catalog/context through return, after worker join. Preserve one completion per discovery and Finished last; invalid arguments return 3 before events.
+  statement: Emit metadata before scan events; deliver callbacks serially on the caller thread. All event pointers are borrowed only until callback return. Consumers retain control/catalog/context through return, after worker join. Preserve one completion per measured discovery; terminal symlink event 9 has no completion. Finished is last; invalid arguments return 3 before events.
 - id: path_transport
   level: MUST
   statement: Preserve raw Rust path bytes in event payloads; presentation strings are not path capabilities. GUI action safety remains a separate consumer obligation and is not established by this ABI.
@@ -69,6 +75,8 @@ evidence:
   supports:
   - constraints.dynamic_selection
   - constraints.compatible_profiles
+  - constraints.potential_symlinks
+  - constraints.relative_path_fact
   - constraints.identity
   - constraints.diagnostics
 - id: bridge_source
@@ -83,6 +91,7 @@ evidence:
   path: src/client_scan_tests.rs
   supports:
   - constraints.compatible_profiles
+  - constraints.relative_path_fact
   - constraints.diagnostics
   - constraints.event_lifetime
 provenance:
@@ -91,13 +100,13 @@ provenance:
     boundary: high
     behavior: medium
   notes:
-  - Compatibility is an explicit migration profile, not acceptance of a future unified marker policy or proof of Windows scoped acquisition.
+  - The owner authorized treating marker links as entries and reporting candidate links without following them. Historical migration fixtures remain unchanged; new witnesses cover the additional findings. This is not proof of descriptor confinement or Windows scoped acquisition.
 implementationBindings:
 - id: catalog_scan_sources
   scope: component
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 6da2ce553f598be4d74494953cf8dcf8bf907c61
+    revision: 84ce408234e3f605933b3cd62bb1ec58c1d80013
   files:
     owned:
     - src/client_scan.rs

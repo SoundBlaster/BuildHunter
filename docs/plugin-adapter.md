@@ -43,8 +43,12 @@ unfiltered Rifle plans are not retained in the final snapshot.
 
 `marker_requests(kind)` returns deduplicated active probes. Own markers are not
 requested for non-directories; symlink candidates have no requests and never
-classify. This is a complete conservative probe set for the current adapter,
-not a candidate-index optimization or instruction to probe all markers eagerly.
+classify under the ordinary exact-kind API. The separate symlink projection
+considers targets with necessary matching names and treats the target kind and
+own markers as unavailable. A rule that explicitly compares node kind with
+symlink instead receives the actual symlink kind, even without a name filter.
+It can identify a possible match, not prove what
+the link points to. Candidate-specific requests use a conservative name index.
 
 `classify(CandidateFacts)` consumes observations; it does not obtain them.
 Node kind is an enum, name is lossless Unicode or None, and each required marker
@@ -88,6 +92,8 @@ cargo test --manifest-path crates/buildhunter-plugin-policy/Cargo.toml --locked 
 
 The opt-in [scanner integration](plugin-scanner-integration.md) now observes
 arbitrary candidates and uses descriptor-bound acquisition on macOS/Linux.
-Default CLI/GUI use the separate `legacy-file-markers/1` compatibility path with
-frozen C2 profiles, catalog/diagnostics through versioned FFI/Settings and rejection
+Default CLI/GUI use `terminal-entry-file-or-symlink/2`: terminal marker links
+count by name without following them, and selected-root parent markers remain available. The pathname
+adapter does not claim descriptor confinement. It retains C2 profiles otherwise,
+catalog/diagnostics through versioned FFI/Settings and rejection
 of lossy GUI path actions. No JIT, plugin commands or private dependency is required.

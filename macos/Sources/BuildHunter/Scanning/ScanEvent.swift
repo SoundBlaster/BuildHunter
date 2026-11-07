@@ -12,12 +12,15 @@ struct ScanArtifact: Identifiable, Equatable, Sendable {
     var catalogDigest: String? = nil
     /// First lossy component in display coordinates; disables actions on it and its descendants.
     var unsafePathPrefix: String? = nil
+    /// This entry is a potential match; its target and size were not inspected.
+    var isSymlink: Bool = false
 }
 
 enum SizeState: Equatable, Sendable {
     case measuring
     case measured(Int64)
     case partial(Int64?)
+    case notMeasured
 }
 
 enum ScanPhase: Equatable, Sendable {
@@ -67,6 +70,7 @@ struct ScanRow: Identifiable, Equatable, Sendable {
     var catalogDigest: String? = nil
     /// First lossy component in display coordinates; disables actions on it and its descendants.
     var unsafePathPrefix: String? = nil
+    var isSymlink: Bool = false
 }
 
 /// Table sorting is a projection: the scanner retains its append-only row indices.
@@ -111,7 +115,7 @@ struct ScanRowComparator: SortComparator, Sendable {
     private func knownBytes(_ size: SizeState) -> Int64? {
         switch size {
         case .measured(let bytes), .partial(.some(let bytes)): bytes >= 0 ? bytes : nil
-        case .measuring, .partial(nil): nil
+        case .measuring, .partial(nil), .notMeasured: nil
         }
     }
 }

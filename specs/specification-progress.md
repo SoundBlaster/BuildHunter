@@ -1,5 +1,31 @@
 # BuildHunter — architecture and specification progress
 
+## Symlink entries and potential findings — 2026-11-07
+
+Goal: show a matching symlink itself as a potential cache location without
+following or measuring its destination, while accepting a symlink marker as a
+present entry. Baseline: BuildHunter `84ce408234e3f605933b3cd62bb1ec58c1d80013`.
+The changed boundaries are `buildhunter.plugin.policy/fact_boundary`,
+`buildhunter.plugin.scanner/marker_scope,routing`,
+`buildhunter.catalog.scan/compatible_profiles,potential_symlinks,event_lifetime`,
+`buildhunter.current.scan/symlink_scope`, `buildhunter.current.bridge/payload_ownership`
+and `buildhunter.current.application/finder_handoff,cli_profile`. The HC roles
+are MarkerVocabulary, ClientMarkerAcquisition, CatalogEventTransport,
+CandidateClassification, MarkerAcquisition, ArtifactInterpretation and the
+existing application presentation/Finder roles.
+
+Observed implementation: regular and dangling marker symlinks count without
+target access. A named, unambiguous possible match has an unknown size and a
+terminal event. The stronger scoped scanner remains distinct from the pathname
+client; retained legacy numeric policy keeps its earlier marker behavior. The
+symlink projection cannot prove the target kind or inspect markers inside the
+target, and marker-only targets without a necessary name or an explicit
+symlink-kind comparison do not become findings.
+Historical fixture and receipt files remain historical. Source hashes, tool
+identities and current verification are recorded in
+`validation/symlink-entries-20261107`; tests and structural validation do not
+prove a Finder handoff completed or MAS sandbox acceptance.
+
 ## Code quality reporting — 2026-11-06
 
 The CI map includes an advisory Linux quality report alongside existing checks.
@@ -1480,3 +1506,17 @@ BuildHunterApp.swift
 `be2f567ff4da4149e3824f915f84ca5d80eb4b6c27b2e3aa38fc4cd0ef64cc45`;
 current.hcs
 `8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
+## Selected-root-relative facts and terminal marker links — 2026-11-06
+
+Historical implementation below is superseded by the 2026-11-07 symlink entry
+behavior described at the top of this record; its original evidence is preserved.
+
+The owner requested harmonizing terminal marker-symlink handling and supporting
+context-sensitive catalog paths. The default CLI/GUI catalog scanner now rejects
+terminal symlink markers, while retaining its selected-root parent lookup and
+pathname acquisition limitations. The strict scanner keeps descriptor-scoped
+marker acquisition. Both provide the same optional `node.relative_path` fact,
+rooted lexically at the selected scan root; unavailable paths remain unknown.
+The pure Rifle policy adapter does not acquire filesystem facts. Historical R2/R4
+receipts and the frozen migration corpus remain intact; tests identify the one
+intentional expectation change. See `validation/relative-path-markers-20261106`.

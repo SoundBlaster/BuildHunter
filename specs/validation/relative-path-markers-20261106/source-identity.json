@@ -1,0 +1,26 @@
+{
+  "base": "1474fbf235b02009216be473c9c2aa3b7c87e9a6",
+  "files": {
+    "src/lib.rs": "dab87cc791bf7dc8819e949b400f7a586c6e6137936592d4a09ec2e109f28261",
+    "src/client_scan.rs": "8b113b98f52ce08b60da3c037ea6c048c8f1d9231382dee273a950474d58dda0",
+    "src/client_scan_tests.rs": "b7bd0df585f8bb22c23afac450f8a9d82b171a0089201f56ac25d18935afa658",
+    "src/catalog.rs": "a0546769122ae2568e841277d055300288d65498b125f5da18cd1b4492227bdd",
+    "crates/buildhunter-plugin-policy/src/lib.rs": "2b29e31646d2e231db7da2c2ba2c36c92573b544149bd7d89ce5af88a1b02c08",
+    "crates/buildhunter-plugin-policy/src/dispatch.rs": "1ac6d6dde10a70174b27f76e68907ff855e14ae3bdb9799fc4f3ecdba14b8e4a",
+    "crates/buildhunter-plugin-policy/src/validation.rs": "871a3ec558812e5d57a2cfaefbfbad6b168d0250e547b87f0177cb5518f1549b",
+    "crates/buildhunter-plugin-policy/tests/plugin_adapter.rs": "1c361c512c9a034250bf2f09e9fcdeb468ee0afc4049cd4add1d5ef1a01a5be9",
+    "crates/buildhunter-plugin-scanner/src/lib.rs": "f207664902e5b339175054fe868953869870858d5b042be6b6fd141e59af9a9b",
+    "crates/buildhunter-plugin-scanner/tests/scanning.rs": "f6b14247c82953258f5788202bfdf54cde699f95243c0da81e6d1ea00315cec7",
+    "docs/contracts/plugin-v1/examples/relative-path.json": "5eedaa0c3ab5af5b406a1d072587902243aff5562e375107ff81e8bf1425bdb7",
+    "docs/contracts/plugin-v1/plugin.schema.json": "a4fd830eefdba0c2a043a477845bc4c10ebca0d37d3b108dbeebf1a03b759c82",
+    "macos/Sources/BuildHunter/Domain/SearchFilters.swift": "8302142a0e5acd7ba56613ecab20a0d5233d56b67b1e9b654137a3274c602ec6",
+    "macos/Tests/BuildHunterTests/MigrationParityTests.swift": "22e45c547964dbde354f90d512bc7d1810b5ccf053ab39f960fafe8c541d283e",
+    "specs/catalog-client-scan.spec.yaml": "ee80c6cc413c565c9039abdbd99fcffbb411bea53933a979ce7506ca3c6145c6",
+    "specs/plugin-policy.spec.yaml": "c724851c077e0df67ac32dd53a5700a85c5764a4366850f28e35e72ffa308131",
+    "specs/plugin-scanner.spec.yaml": "574b72083228d20a5fca4f82034cc1526b8c4fdb4df9353da13812c77223ed6c",
+    "specs/hypercode/current.hc": "69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f",
+    "specs/hypercode/current.hcs": "00d09cd34f3264238d5d2a121da080a0799b8ec93ebc11f1613f267c0149b031",
+    "scripts/test_migration_parity.py": "464ad5fb149d1e23ceddf464e2e46e9d5e66b7c5a47ca8ef54c4c845fbabbb42"
+  },
+  "scope": "Selected-root-relative facts and terminal marker symlinks"
+}

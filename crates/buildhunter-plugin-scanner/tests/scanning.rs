@@ -9,6 +9,8 @@ use std::{
 };
 
 const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
+const RELATIVE: &[u8] =
+    include_bytes!("../../../docs/contracts/plugin-v1/examples/relative-path.json");
 struct Tree(PathBuf);
 impl Tree {
     fn new() -> Self {
@@ -41,6 +43,51 @@ fn catalog(excluded: &[&str]) -> PluginCatalog {
         excluded,
     )
     .unwrap()
+}
+
+#[test]
+fn scan_scopes_relative_path_to_selected_root_and_matches_components() {
+    let tree = Tree::new();
+    for path in [
+        "project/deps/.cache/workspace.cache/object",
+        "project/notdeps/.cache/workspace.cache/object",
+    ] {
+        tree.file(path, b"payload");
+    }
+    let catalog = PluginCatalog::load(
+        &[PluginInput {
+            bytes: RELATIVE,
+            origin: Origin::External,
+        }],
+        &[],
+    )
+    .unwrap();
+    let report = scan(
+        &tree.0,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(
+        report.artifacts[0].relative_path,
+        PathBuf::from("project/deps/.cache/workspace.cache")
+    );
+    let inner = tree.0.join("project/deps");
+    let clipped = scan(
+        &inner,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert_eq!(clipped.status, ScanStatus::Completed);
+    assert!(clipped.artifacts.is_empty() && clipped.diagnostics.is_empty());
 }
 
 #[test]
@@ -83,7 +130,7 @@ fn replacing_selected_root_during_discovery_keeps_original_tree_and_bytes() {
     assert_eq!(finished, 1);
     assert_eq!(report.status, ScanStatus::Completed);
     assert_eq!(report.artifacts.len(), 1);
-    assert_eq!(report.artifacts[0].bytes, expected);
+    assert_eq!(report.artifacts[0].bytes, Some(expected));
     assert!(!report.artifacts[0].partial);
 }
 
@@ -116,7 +163,7 @@ fn replaced_intermediate_directory_cannot_redirect_later_measurement() {
     assert!(replaced);
     assert_eq!(report.status, ScanStatus::Incomplete);
     assert_eq!(report.artifacts.len(), 1);
-    assert_eq!(report.artifacts[0].bytes, 0);
+    assert_eq!(report.artifacts[0].bytes, Some(0));
     assert!(report.artifacts[0].partial);
     assert!(!report.warnings.is_empty());
 }
@@ -152,7 +199,7 @@ fn file_replaced_by_link_after_listing_counts_neither_link_nor_target_bytes() {
     .unwrap();
     assert_eq!(report.status, ScanStatus::CompletedWithChanges);
     assert_eq!(report.artifacts.len(), 1);
-    assert_eq!(report.artifacts[0].bytes, expected.unwrap());
+    assert_eq!(report.artifacts[0].bytes, expected);
     assert!(report.artifacts[0].partial);
     assert!(!report.warnings.is_empty());
 }
@@ -190,7 +237,7 @@ fn unreadable_file_contents_do_not_prevent_metadata_sizing() {
     )
     .unwrap();
     assert_eq!(report.status, ScanStatus::Completed);
-    assert_eq!(report.artifacts[0].bytes, expected);
+    assert_eq!(report.artifacts[0].bytes, Some(expected));
     assert!(report.warnings.is_empty());
     assert_eq!(
         control.work_timings().bulk_directories,
@@ -219,7 +266,7 @@ fn arbitrary_marker_and_name_reach_scanner_and_preserve_target_metadata() {
     assert_eq!(r.artifacts.len(), 1);
     assert_eq!(r.artifacts[0].target.id, "example.forge-output");
     assert_eq!(r.artifacts[0].target.ecosystem, "example");
-    assert!(r.artifacts[0].bytes >= 5);
+    assert!(r.artifacts[0].bytes.is_some_and(|bytes| bytes >= 5));
     assert!(events.iter().any(|e|matches!(e,PluginScanEvent::ArtifactDiscovered(a) if a.target.id=="example.forge-output")));
 }
 #[test]
@@ -276,7 +323,7 @@ fn parent_of_selected_root_is_unknown_and_not_read() {
     assert_eq!(r.marker_observations, 0);
 }
 #[test]
-fn symlink_marker_is_false_and_linked_candidate_is_never_followed() {
+fn symlink_marker_counts_without_following_and_unrelated_link_is_ignored() {
     use std::os::unix::fs::symlink;
     let t = Tree::new();
     t.file("actual", b"p");
@@ -291,8 +338,50 @@ fn symlink_marker_is_false_and_linked_candidate_is_never_followed() {
         |_| {},
     )
     .unwrap();
-    assert!(r.artifacts.is_empty());
+    assert_eq!(r.artifacts.len(), 1);
+    assert_eq!(r.artifacts[0].relative_path, PathBuf::from("forge-out"));
+    assert!(!r.artifacts[0].is_symlink);
     assert!(r.diagnostics.is_empty());
+}
+
+#[test]
+fn scoped_scanner_reports_link_itself_and_accepts_dangling_marker() {
+    use std::os::unix::fs::symlink;
+    let tree = Tree::new();
+    let outside = Tree::new();
+    outside.file("secret", &[42; 8192]);
+    symlink("missing-marker", tree.0.join("forge.project")).unwrap();
+    symlink(&outside.0, tree.0.join("forge-out")).unwrap();
+    let mut events = Vec::new();
+    let report = scan(
+        &tree.0,
+        &catalog(&[]),
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |event| events.push(event.clone()),
+    )
+    .unwrap();
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert!(report.diagnostics.is_empty() && report.warnings.is_empty());
+    assert_eq!(report.artifacts.len(), 1);
+    assert_eq!(
+        report.artifacts[0].relative_path,
+        PathBuf::from("forge-out")
+    );
+    assert!(report.artifacts[0].is_symlink);
+    assert_eq!(report.total_bytes(), 0);
+    assert_eq!(
+        events
+            .iter()
+            .filter(|event| matches!(event, PluginScanEvent::SymlinkDiscovered(_)))
+            .count(),
+        1
+    );
+    assert!(
+        !events
+            .iter()
+            .any(|event| matches!(event, PluginScanEvent::ArtifactCompleted { .. }))
+    );
 }
 #[test]
 fn cancellation_from_discovery_keeps_partial_result_and_finishes_once() {
@@ -371,7 +460,7 @@ fn file_artifact_and_own_marker_only_rules_are_not_gated_by_legacy_names() {
             .find(|a| a.target.id == "example.file-output")
             .unwrap()
             .bytes,
-        7
+        Some(7)
     );
     assert!(
         r.artifacts

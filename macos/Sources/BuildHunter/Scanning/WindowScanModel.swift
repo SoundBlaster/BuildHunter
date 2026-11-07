@@ -141,9 +141,10 @@ final class WindowScanModel {
             if let prefix = artifact.unsafePathPrefix { unsafePathPrefixes.insert(prefix) }
             rowIndices[artifact.id] = rows.count
             rows.append(ScanRow(id: artifact.id, relativePath: artifact.relativePath,
-                                language: artifact.language, kind: artifact.kind, size: .measuring,
+                                language: artifact.language, kind: artifact.kind, size: artifact.isSymlink ? .notMeasured : .measuring,
                                 scannerKind: artifact.scannerKind, targetID: artifact.targetID,
-                                catalogDigest: artifact.catalogDigest, unsafePathPrefix: artifact.unsafePathPrefix))
+                                catalogDigest: artifact.catalogDigest, unsafePathPrefix: artifact.unsafePathPrefix,
+                                isSymlink: artifact.isSymlink))
             reportRevision &+= 1
         case .completed(_, let artifactID, let bytes, let partial):
             guard let index = rowIndices[artifactID] else { return }

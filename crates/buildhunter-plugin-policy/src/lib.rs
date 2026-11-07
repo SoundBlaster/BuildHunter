@@ -32,6 +32,7 @@ pub struct MarkerProbe {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Binding {
     Name,
+    RelativePath,
     Kind,
     Marker(MarkerProbe),
 }
@@ -124,6 +125,25 @@ impl Classification {
             unknown: Vec::new(),
             unavailable: Vec::new(),
         }
+    }
+
+    /// Select a single potential symlink target only when all unknown facts
+    /// are exactly the facts intentionally unavailable without dereferencing.
+    pub fn potential_symlink_target(&self) -> Option<&str> {
+        if self.matched.len() + self.unknown.len() != 1
+            || self.unavailable.iter().any(|notice| {
+                !matches!(
+                    notice.reason.as_str(),
+                    "symlink_target_kind" | "symlink_own_marker"
+                )
+            })
+        {
+            return None;
+        }
+        self.matched
+            .first()
+            .or_else(|| self.unknown.first())
+            .map(String::as_str)
     }
 }
 #[derive(Debug)]
@@ -234,7 +254,21 @@ impl PluginCatalog {
     }
     /// Pure classification; an index may exclude only targets proven unable to match.
     pub fn classify(&self, facts: CandidateFacts<'_>) -> Result<Classification, Error> {
-        self.dispatch.classify(facts, None, RulePhase::Preliminary)
+        self.classify_with_path(facts, None)
+    }
+    /// `relative_path` is a lossless, slash-separated path confined to the scan root.
+    /// A missing path remains unknown to rules that reference it.
+    pub fn classify_with_path(
+        &self,
+        facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
+    ) -> Result<Classification, Error> {
+        self.dispatch
+            .classify(facts, relative_path, None, RulePhase::Preliminary, false)
+    }
+    /// Whether any enabled target needs a scan-relative path fact.
+    pub fn needs_relative_path(&self) -> bool {
+        self.dispatch.needs_relative_path()
     }
     /// One bounded accumulator per scan; never stores candidate names or paths.
     pub fn rule_profile(&self) -> RuleProfile {
@@ -248,6 +282,16 @@ impl PluginCatalog {
         profile: &mut RuleProfile,
         phase: RulePhase,
     ) -> Result<Classification, Error> {
+        self.classify_profiled_with_path(facts, None, profile, phase)
+    }
+    /// Profile the same classification with an optional scan-relative path fact.
+    pub fn classify_profiled_with_path(
+        &self,
+        facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
+        profile: &mut RuleProfile,
+        phase: RulePhase,
+    ) -> Result<Classification, Error> {
         if !profile.matches_catalog(&self.digest, &self.exclusions) {
             return Err(error(
                 "catalog_mismatch",
@@ -255,8 +299,47 @@ impl PluginCatalog {
                 "profile belongs to another catalog",
             ));
         }
-        let result = self.dispatch.classify(facts, Some(profile), phase);
+        let result = self
+            .dispatch
+            .classify(facts, relative_path, Some(profile), phase, false);
         if result.is_err() {
+            profile.record_error();
+        }
+        result
+    }
+
+    /// Find potential named targets or evaluate rules explicitly addressing
+    /// symlinks. Target kind and own markers are unavailable without following.
+    /// The caller must present unknown outcomes as potential matches only.
+    pub fn classify_symlink_candidate(
+        &self,
+        facts: CandidateFacts<'_>,
+        relative_path: Option<&str>,
+        mut profile: Option<&mut RuleProfile>,
+        phase: RulePhase,
+    ) -> Result<Classification, Error> {
+        if facts.kind != NodeKind::Symlink {
+            return Err(error(
+                "invalid_node_kind",
+                "/candidate",
+                "expected a symlink",
+            ));
+        }
+        if let Some(ref profile) = profile
+            && !profile.matches_catalog(&self.digest, &self.exclusions)
+        {
+            return Err(error(
+                "catalog_mismatch",
+                "/rule_profile",
+                "profile belongs to another catalog",
+            ));
+        }
+        let result =
+            self.dispatch
+                .classify(facts, relative_path, profile.as_deref_mut(), phase, true);
+        if result.is_err()
+            && let Some(profile) = profile
+        {
             profile.record_error();
         }
         result

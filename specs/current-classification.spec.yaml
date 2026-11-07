@@ -139,7 +139,7 @@ provenance:
     boundary: medium
     behavior: medium
   notes:
-  - R4 default cutover uses legacy-file-markers/1 to preserve R2 marker links/selected-root context.
+  - R4 originally used legacy-file-markers/1; the owner subsequently authorized terminal-entry-file-or-symlink/2, which counts marker entries without resolving them. Selected-root parent context remains.
     This is compatibility migration, not acceptance of a unified C3 policy or R3 descriptor safety.
     Current source/run hashes and limits are in validation/r4-client-cutover-20261023.
   - R2 freezes reviewed client expectations at main 1fd905620c0d5c0317c6b08123cfe5b0653253c2.
@@ -160,7 +160,7 @@ implementationBindings:
   language: rust
   source:
     repository: https://github.com/SoundBlaster/BuildHunter
-    revision: 85e3188
+    revision: 84ce408234e3f605933b3cd62bb1ec58c1d80013
   files:
     owned:
     - src/lib.rs

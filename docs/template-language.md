@@ -74,18 +74,35 @@ OR. Multiple matching targets are **ambiguous**, not first-match-wins.
 |---|---|---|
 | `node.name` | `string` | Candidate's final path component, case-sensitive |
 | `node.kind` | `string` | `directory`, `regular_file`, `symlink`, `other` |
-| `marker`, scope `own` | `boolean` | A regular marker file in the candidate directory |
-| `marker`, scope `parent` | `boolean` | A regular marker file in the candidate's parent |
+| `node.relative_path` | `string` | Lossless path relative to the selected root; `/` separates components, root is `.` |
+| `marker`, scope `own` | `boolean` | A regular file or symlink entry in the candidate directory |
+| `marker`, scope `parent` | `boolean` | A regular file or symlink entry in the candidate's parent |
 
 Marker names are single components: no `/`, `\\`, `.` or `..`. All declared
-facts need matching bindings, and all facts must be used. Own-marker facts are
-false on non-directories. Symlink candidates are skipped by the current client.
+facts need matching bindings, and all facts must be used. For ordinary candidates,
+own-marker facts are false on non-directories.
 A missing marker is known false; an inaccessible marker is unavailable, not false.
-The current CLI/GUI `legacy-file-markers/1` profile follows marker-file symlinks
-and may inspect the selected root's parent for a parent marker. This does not
-claim the stronger descriptor-confined policy of the experimental scanner.
+The CLI/GUI `terminal-entry-file-or-symlink/2` profile counts a terminal symlink
+as a marker by its own entry, even if its target is missing; it never reads the
+target. It may inspect the selected root's parent
+for a parent marker. Its pathname acquisition does not claim descriptor
+confinement or protect intermediate components against concurrent replacement.
 
-Facts do not expose file contents, sizes, timestamps or arbitrary paths. Rule
+For a symlink candidate, the host may report a **potential** match when an enabled
+target has a necessary matching name and no competing or otherwise unavailable
+facts. Rules explicitly testing `node.kind` against `symlink` instead see the
+actual entry kind, including when they do not filter by name. Its target kind
+and markers inside it are unavailable; its target
+is neither opened nor measured. Marker-only targets without an identifying name
+cannot be established from a symlink entry. The report keeps the link path and
+an unknown size, so totals include measured findings only.
+
+The relative path fact contains no absolute path; it is unavailable when the
+candidate cannot be represented losslessly or falls outside the selected root.
+It is lexical data, not an access handle. A suffix check needs a leading `/` to
+enforce a component boundary; include an exact alternative for the same path at
+the root. Older hosts reject the new binding. Facts do not expose file contents,
+sizes, timestamps or arbitrary absolute paths. Rule
 predicates cannot read files. The host acquires shared marker observations;
 profiling does not charge the same I/O independently to every consumer rule.
 

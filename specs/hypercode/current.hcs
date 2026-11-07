@@ -98,7 +98,7 @@ CandidateSelection:
   implementation: "scan_client every-node observer + conservative catalog dispatch; legacy gate bypassed"
   folded_into: "buildhunter.current.classification"
 MarkerVocabulary:
-  implementation: "enabled plugin bindings -> per-candidate marker requests; legacy-file-markers/1 compatibility acquisition"
+  implementation: "enabled plugin bindings -> per-candidate marker requests; terminal-entry-file-or-symlink/2 pathname acquisition"
   folded_into: "buildhunter.current.classification"
 ClientPolicy:
   source: "src/client_scan.rs"
@@ -137,6 +137,7 @@ EffectivePlan:
 CandidateClassification:
   source: "crates/buildhunter-plugin-policy/src/lib.rs"
   folded_into: "buildhunter.plugin.policy"
+  relative_path_fact: "optional selected-root-relative observation; unavailable when absent"
 PluginScanning:
   source: "crates/buildhunter-plugin-scanner/src/lib.rs"
   boundary_spec: "buildhunter.plugin.scanner"
@@ -144,6 +145,7 @@ PluginScanning:
 CandidateObservation:
   source: "src/lib.rs"
   implementation: "scan_with_candidate_access + pinned Hunter ScopedFilesystem"
+  relative_path_fact: "normalized within the selected root; never an absolute path"
   folded_into: "buildhunter.plugin.scanner"
 HunterPortable:
   source: "vendor/hunter-fs-core/src/lib.rs"
@@ -495,11 +497,11 @@ ClientAdmission:
   implementation: "versioned CLI environment/nesting and GUI outer-root admission; unavailable names traverse"
   folded_into: "buildhunter.catalog.scan"
 ClientMarkerAcquisition:
-  implementation: "dynamic candidate-specific bindings under inherited guard; declared legacy-file-markers/1 semantics"
+  implementation: "dynamic candidate-specific bindings under inherited guard; terminal symlink entries count without resolving targets"
   folded_into: "buildhunter.catalog.scan"
 CatalogEventTransport:
   source: "src/catalog_bridge.rs"
-  implementation: "version 1 events: immutable metadata, target ID discoveries and typed diagnostics"
+  implementation: "version 1 events: immutable metadata, target ID discoveries, terminal unmeasured symlink candidates and typed diagnostics"
   folded_into: "buildhunter.catalog.scan"
 
 LegacyPolicyCompatibility:

@@ -117,7 +117,7 @@ struct ScanCatalogMetadata: Codable, Equatable, Sendable {
 
     var isSupported: Bool {
         format == "buildhunter.catalog/1" && profile == "buildhunter.gui/1"
-            && markerPolicy == "legacy-file-markers/1"
+            && ["terminal-no-follow-file-markers/1", "terminal-entry-file-or-symlink/2"].contains(markerPolicy)
             && digest.utf8.count == 64 && digest.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
             && targets.count <= 2_048 && Set(targets.map(\.id)).count == targets.count
             && targets.allSatisfy { !$0.id.isEmpty && $0.artifactKind != nil }

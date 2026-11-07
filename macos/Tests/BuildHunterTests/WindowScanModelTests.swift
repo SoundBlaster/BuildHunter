@@ -5,6 +5,23 @@ import Testing
 @Suite("Window scan lifecycle")
 @MainActor
 struct WindowScanModelTests {
+    @Test("A link discovery stays unmeasured when a scan finishes")
+    func symlinkDiscovery() {
+        let model = WindowScanModel(source: ControlledScanSource())
+        let root = URL(filePath: "/tmp/link-root", directoryHint: .isDirectory)
+        model.accept(target: root)
+        let generation = model.generation
+        let artifact = ScanArtifact(id: UUID(), relativePath: "Project/target", language: "Rust",
+                                    kind: .buildOutput, isSymlink: true)
+        model.apply(.discovered(generation: generation, artifact: artifact))
+        model.apply(.completed(generation: generation, artifactID: artifact.id, bytes: 123))
+        model.apply(.finished(generation: generation, result: .completed))
+        #expect(model.phase == .completed)
+        #expect(model.rows.count == 1)
+        #expect(model.rows[0].isSymlink && model.rows[0].size == .notMeasured)
+        #expect(model.actionURL(for: artifact.relativePath)?.path == root.appending(path: artifact.relativePath).path)
+    }
+
     @Test("Warning actions use exact event paths, reject unsafe paths and reset with the report")
     func warningActionLocations() async {
         let source = ControlledScanSource()
@@ -239,7 +256,7 @@ struct WindowScanModelTests {
             excludedFilterIDs: model.excludedFilterIDs, elapsedSeconds: nil, appVersion: "test",
             catalogMetadata: model.catalogMetadata, diagnostics: model.diagnostics)
         let json = try #require(JSONSerialization.jsonObject(with: report.data(as: .json)) as? [String: Any])
-        #expect(json["schema_version"] as? Int == 2)
+        #expect(json["schema_version"] as? Int == 3)
         #expect((json["catalog"] as? [String: Any])?["digest"] as? String == metadata.digest)
         let rows = try #require(json["artifacts"] as? [[String: Any]])
         #expect(rows.first?["target_id"] as? String == "swift.build")
