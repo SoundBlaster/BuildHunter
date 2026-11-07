@@ -1549,6 +1549,23 @@ evidence remains historical and does not prove the new layout. Source SHA-256:
 Swift frontend parsing and `make specpm-validate` with SpecPM 0.2.0 and the
 local registry passed; the four existing abstract capability warnings remain.
 Hypercode CLI was unavailable. No new visual runtime evidence was collected.
+
+### Refresh managed catalog settings — 2026-11-07
+
+The GUI Settings role refreshes its admitted scan-rule list when managed asset
+delivery becomes ready, including when Settings opens after delivery. Explicit
+navigation retains its existing behavior and the same access and template
+snapshot guards. This changes presentation freshness, not catalog admission,
+scan snapshots or the `buildhunter.current.application` parent obligations.
+Historical visual and runtime evidence does not cover this change. Source
+SHA-256: `44566a702c3e4851950066dac2cad86b8a788955082b186005ce312a1767a223`
+(`macos/Sources/BuildHunter/UI/BuildHunterApp.swift`).
+Swift frontend parsing and `make specpm-validate` (SpecPM 0.2.0, local registry,
+four baseline warnings) passed. A local Release MAS composition based on the
+TestFlight 9 pins compiled with the changed app source overlaid; its signature,
+sandbox and resource hashes passed verification. This is not a TestFlight
+runtime or asset-download test. Hypercode CLI was unavailable.
+
 ## Selected-root-relative facts and terminal marker links — 2026-11-06
 
 Historical implementation below is superseded by the 2026-11-07 symlink entry
