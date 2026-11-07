@@ -187,6 +187,19 @@ CLI file import and commercial composition remain separate work.
 observations and execution evidence. Maintain affected maps/contracts with code
 changes according to [AGENTS.md](AGENTS.md).
 
+### Specification validation
+
+With a running SpecPM registry containing the pinned Hunter and Rifle packages,
+run `make specpm-validate` from the repository root. The target prints the JSON
+validation report and defaults to `http://127.0.0.1:8081`. To use another
+registry, run `make specpm-validate SPECPM_REGISTRY=https://registry.example`.
+The registry and a SpecPM version supporting `--registry` must be available;
+the target does not start a server or install dependencies. Platform
+capabilities may remain unresolved and appear as warnings in the report. If the
+registry is unreachable, SpecPM reports `dependency_registry_unavailable` as a
+warning and may still exit successfully; inspect the JSON before relying on
+external dependency resolution.
+
 ### Template syntax and rule profiling
 
 See the [template language reference](docs/template-language.md) for bindings,
