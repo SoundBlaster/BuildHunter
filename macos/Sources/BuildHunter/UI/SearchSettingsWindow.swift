@@ -123,6 +123,7 @@ struct SearchSettingsWindow: View {
                              isUser: filters.allSatisfy { ruleOrigins[$0.id] == .user })
                 Text(LocalizedStringKey(title)).fontWeight(.semibold)
             }
+            .padding(.leading, 6)
         }
         .toggleStyle(.checkbox)
         .nestedAccessibilityIdentifier("group.\(title)")
@@ -136,6 +137,7 @@ struct SearchSettingsWindow: View {
                     ScanRuleIcon(id: filter.id, group: filter.group, isUser: ruleOrigins[filter.id] == .user)
                     Text(filter.title)
                 }
+                .padding(.leading, 6)
             }
                 .toggleStyle(.checkbox)
                 .nestedAccessibilityIdentifier("filter.\(filter.id)")
