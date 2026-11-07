@@ -73,6 +73,11 @@ struct BuildHunterApp: App {
 #endif
             }
             .frame(minWidth: 760, minHeight: 540)
+#if BUILDHUNTER_MANAGED_ASSETS
+            .onChange(of: managedCatalogDelivery.state, initial: true) { _, state in
+                if state == .ready { refreshCatalogRules(navigate: false) }
+            }
+#endif
 #if BUILDHUNTER_COMMERCE
             .alert("Unable to load scan rules", isPresented: Binding(
                 get: { catalogNavigationError != nil },
@@ -151,6 +156,11 @@ struct BuildHunterApp: App {
 
     @MainActor
     private func openCatalogRules() {
+        refreshCatalogRules(navigate: true)
+    }
+
+    @MainActor
+    private func refreshCatalogRules(navigate: Bool) {
         let library = TemplateLibrary.shared
         if let problem = library.storageProblem {
             catalogNavigationError = problem
@@ -175,7 +185,7 @@ struct BuildHunterApp: App {
                     throw TemplateProblem(code: "templates_changed", location: "", message: String(localized: "Templates changed. Try again."))
                 }
                 SearchFilterSettings.shared.useCatalog(metadata)
-                settingsTab = "rules"
+                if navigate { settingsTab = "rules" }
             } catch {
                 catalogNavigationError = error.localizedDescription
             }
