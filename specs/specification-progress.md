@@ -1517,6 +1517,20 @@ BuildHunterApp.swift
 `be2f567ff4da4149e3824f915f84ca5d80eb4b6c27b2e3aa38fc4cd0ef64cc45`;
 current.hcs
 `8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
+
+### Checkbox and icon spacing — 2026-11-07
+
+The GUI Settings presentation adds leading space to the labels of individual
+and group checkboxes. The MacApplication role and `buildhunter.current.application`
+boundary remain unchanged: selection, accessibility identifiers, scan policy and
+parent assembly obligations are unaffected. Catalog preview rows have no checkbox.
+This is a presentation adjustment, not a new accepted requirement; earlier visual
+evidence remains historical and does not prove the new layout. Source SHA-256:
+`3a1192369b79d7966443958e7363383ebea72ca645f3240b353d5ddeaab4686c`
+(`macos/Sources/BuildHunter/UI/SearchSettingsWindow.swift`).
+Swift frontend parsing and `make specpm-validate` with SpecPM 0.2.0 and the
+local registry passed; the four existing abstract capability warnings remain.
+Hypercode CLI was unavailable. No new visual runtime evidence was collected.
 ## Selected-root-relative facts and terminal marker links — 2026-11-06
 
 Historical implementation below is superseded by the 2026-11-07 symlink entry
