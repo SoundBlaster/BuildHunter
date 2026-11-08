@@ -72,7 +72,9 @@ struct BuildHunterApp: App {
 #endif
 #endif
             }
-            .frame(minWidth: 760, minHeight: 540)
+            .frame(minWidth: 560, idealWidth: 760, maxWidth: .infinity,
+                   minHeight: 420, idealHeight: 540, maxHeight: .infinity)
+            .background(SettingsResizeEnabler())
 #if BUILDHUNTER_MANAGED_ASSETS
             .onChange(of: managedCatalogDelivery.state, initial: true) { _, state in
                 if state == .ready { refreshCatalogRules(navigate: false) }
@@ -87,6 +89,7 @@ struct BuildHunterApp: App {
             }
 #endif
         }
+        .windowResizability(.contentMinSize)
 
         WindowGroup("Artifact Diagram", id: "artifact-diagram", for: UUID.self) { $scanID in
             if let scanID, let model = windows.model(for: scanID) {
@@ -192,6 +195,20 @@ struct BuildHunterApp: App {
         }
     }
 #endif
+}
+
+private struct SettingsResizeEnabler: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { ResizeView() }
+    func updateNSView(_ view: NSView, context: Context) {}
+
+    private final class ResizeView: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard let window else { return }
+            window.styleMask.insert(.resizable)
+            window.contentMinSize = NSSize(width: 560, height: 420)
+        }
+    }
 }
 
 struct ArtifactDiagramRequest {

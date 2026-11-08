@@ -1518,6 +1518,30 @@ BuildHunterApp.swift
 current.hcs
 `8df5450485291251d1c30e69d3d795cbb548075d5f1b3e295ee4056fba8977f6`.
 
+### Flexible Settings and rule controls — 2026-11-07
+
+Settings configures a shared content minimum and resizable window across tabs. The
+Scan Rules search uses a capsule with a Search placeholder. Enable All is
+disabled and explained when all rules are already enabled. The Templates editor
+allows narrower columns and keeps its actions reachable by horizontal scrolling.
+The `buildhunter.current.application` and `buildhunter.current.templates`
+boundaries retain their existing access, persistence and scan obligations; this
+is presentation behavior, not a new accepted specification requirement. Earlier
+visual evidence remains historical. SHA-256 of BuildHunterApp.swift:
+`1ce2c1cfbdc5f95b6223e8e56f3123f751176df5a612871c1e23381b587a567f`;
+SearchSettingsWindow.swift:
+`5ff12ba377678db55cfbe90270356ad47151938268440bdecb7a404930da393b`;
+UserTemplatesWindow.swift:
+`b5ff665094a6b5290a225ae1a454f10bafd9af2deb4ebb21c03b866694d63bc4`.
+Swift frontend parsing and SpecPM 0.2.0 validation against the local registry
+passed, with the four existing abstract-capability warnings. Hypercode CLI was
+unavailable.
+The Release MAS composition with changed source files overlaid built and passed
+signature and sandbox checks. Interactive verification confirmed the search
+control, filename filtering, all-enabled state and re-enabling a disabled rule. Settings tabs opened;
+dragging the window border could not be verified in the available desktop session.
+That build preceded the rebase integrating managed-catalog refresh.
+
 ### Catalog discovery in Settings — 2026-11-07
 
 The Store edition's Scan Rules tab presents the availability of additional

@@ -69,6 +69,7 @@ struct SearchSettingsWindow: View {
 
     private var searching: Bool { !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var allFilters: [SearchFilterDescriptor] { settings.groups.flatMap { settings.filters(in: $0) } }
+    private var allRulesEnabled: Bool { allFilters.allSatisfy { settings.isEnabled(for: $0.id) } }
 
     private func matches(_ filter: SearchFilterDescriptor) -> Bool {
         let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -213,8 +214,17 @@ struct SearchSettingsWindow: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    TextField("Filter rules", text: $query).textFieldStyle(.roundedBorder).frame(maxWidth: 220)
-                        .nestedAccessibilityIdentifier("filterQuery")
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        TextField("Search", text: $query)
+                            .textFieldStyle(.plain)
+                            .accessibilityLabel("Search rules")
+                            .nestedAccessibilityIdentifier("filterQuery")
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(.quaternary, in: Capsule())
+                    .frame(minWidth: 200, idealWidth: 260, maxWidth: 280)
                 }
                 ForEach(settings.groups, id: \.self) { group in
                     let filters = settings.filters(in: group)
@@ -251,8 +261,16 @@ struct SearchSettingsWindow: View {
                 }
             }
             Section {
-                Button("Enable All") { settings.enableAll(); selectionChanged = true }
-                    .nestedAccessibilityIdentifier("enableAll")
+                HStack {
+                    Button("Enable All") { settings.enableAll(); selectionChanged = true }
+                        .buttonStyle(.borderedProminent)
+                        .tint(allRulesEnabled ? .gray : .accentColor)
+                        .disabled(allRulesEnabled)
+                        .nestedAccessibilityIdentifier("enableAll")
+                    if allRulesEnabled {
+                        Text("All rules enabled").foregroundStyle(.secondary)
+                    }
+                }
             }
             Section {
                 Toggle("Profile individual rules", isOn: $settings.ruleProfilingEnabled)
@@ -266,7 +284,6 @@ struct SearchSettingsWindow: View {
             }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 760, minHeight: 540)
         .a11yRoot("buildhunter.settings.search")
         .task(id: settings.catalogRevision) {
             ruleOrigins = [:]
