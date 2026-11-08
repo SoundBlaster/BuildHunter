@@ -1,0 +1,16 @@
+WebsiteDelivery:
+  boundary_spec: "buildhunter.delivery.website"
+  status: "draft; hosting execution unverified"
+Trigger:
+  source: ".github/workflows/deploy-buildhunter.yml"
+  implementation: "main website/workflow changes or manual dispatch on main"
+FTPSUpload:
+  source: ".github/workflows/deploy-buildhunter.yml"
+  implementation: "FTP environment secret; fixed directory; TLS verification; no remote deletion"
+PublicVerification:
+  source: ".github/workflows/deploy-buildhunter.yml"
+  implementation: "HTTPS page availability and source/public file hash comparison"
+@contract:
+  WebsiteDelivery:
+    boundary_spec: string
+    status: string

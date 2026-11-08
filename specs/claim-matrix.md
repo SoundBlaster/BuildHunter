@@ -685,3 +685,13 @@ this recovered boundary. No extra public topology node or new accepted requireme
 is implied. Locked bundles are not read; built-in rules and user files remain
 available. Fresh source/map identities and focused checks are in
 validation/catalog-access-20261031; previous receipts remain historical.
+
+## Website publication boundary — draft
+
+| Consumer question | Draft obligation / source | Assembly and evidence limits |
+| --- | --- | --- |
+| Can the website be published to its intended path? | `buildhunter.delivery.website/destination`: FTPS uses a fixed BuildHunter directory with TLS verification. | Environment credentials, hosting permissions and DNS are external prerequisites; source evidence only. |
+| Are published files the intended files? | `buildhunter.delivery.website/publication`: no remote deletion; public pages and file digests are checked against the checkout. | Checks execute only after upload; a partial upload can precede failure. No production run has been observed. |
+
+`buildhunter.delivery.ci` remains the independent stack validation boundary;
+these draft claims do not establish release or application runtime conformance.
