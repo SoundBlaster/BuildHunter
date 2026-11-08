@@ -12,6 +12,8 @@ Choose a folder in the macOS app to scan for Swift, Rust, and Python build artif
 
 [Download the 0.1.1 preview](https://github.com/SoundBlaster/BuildHunter/releases/tag/v0.1.1), open the DMG, and drag BuildHunter to Applications. It requires macOS 26 or later on Apple Silicon, and is Developer ID signed and notarized by Apple.
 
+![BuildHunter showing scan results, an artifact diagram, and live performance metrics](docs/screenshot.png)
+
 Prefer the terminal, or want to give your coding agent a way to inspect disk usage? The app includes a CLI that produces a JSON report. Run the following after installation, or use `--help` to explore its options:
 
 ```sh
