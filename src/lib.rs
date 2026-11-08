@@ -4045,21 +4045,68 @@ mod tests {
         let tree = TempTree::new();
         let build = tree.0.join(".build");
         fs::create_dir_all(&build).unwrap();
-        for index in 0..8_000 {
-            fs::write(build.join(format!("object-{index}.o")), b"").unwrap();
-        }
+        let object = build.join("object.o");
+        fs::write(&object, b"data").unwrap();
+        let root = tree.0.clone();
+        let control = std::sync::Arc::new(ScanControl::new());
+        let (measuring, measurement_started) = std::sync::mpsc::channel();
+        let (resume, resumed) = std::sync::mpsc::channel();
+        let resumed = std::sync::Mutex::new(resumed);
+        let (finished, result) = std::sync::mpsc::channel();
+        let scanner = control.clone();
+        std::thread::spawn(move || {
+            let probes = Probes {
+                hook: Some(Box::new(move |point, path| {
+                    if point == ProbePoint::Metadata && path == object {
+                        let _ = measuring.send(());
+                        let _ = resumed
+                            .lock()
+                            .unwrap()
+                            .recv_timeout(std::time::Duration::from_secs(20));
+                    }
+                    Ok(())
+                })),
+                ..Probes::default()
+            };
+            // Disable speculative prefetch: otherwise the worker can measure
+            // a candidate before the coordinator has discovered the artifact.
+            let report = scan_session::run(
+                &root,
+                ScanOptions {
+                    apparent_size: true,
+                },
+                &scanner,
+                |_, facts, _| rust_cli_policy(facts, false),
+                |_| {},
+                &probes,
+                false,
+            );
+            let _ = finished.send(report);
+        });
+
+        measurement_started
+            .recv_timeout(std::time::Duration::from_secs(20))
+            .expect("a worker begins measuring the artifact");
+        control.cancel();
+        resume.send(()).unwrap();
+        let report = result
+            .recv_timeout(std::time::Duration::from_secs(20))
+            .expect("a cancelled scan returns instead of waiting for unsent sizes");
+        assert_eq!(report.status, ScanStatus::Cancelled);
+        assert_eq!(report.artifacts.len(), 1);
+        assert!(report.artifacts.iter().all(|artifact| artifact.partial));
+    }
+
+    #[test]
+    fn external_cancel_after_legacy_artifact_discovery_returns() {
+        let tree = TempTree::new();
+        fs::create_dir_all(tree.0.join(".build")).unwrap();
+        fs::write(tree.0.join(".build/object.o"), b"data").unwrap();
         let root = tree.0.clone();
         let control = std::sync::Arc::new(ScanControl::new());
         let (discovered, discovery) = std::sync::mpsc::channel();
+        let (resume, resumed) = std::sync::mpsc::channel();
         let (finished, result) = std::sync::mpsc::channel();
-        let canceller = control.clone();
-        std::thread::spawn(move || {
-            if discovery.recv().is_ok() {
-                // Cancel while the worker reads sizes and the caller waits for them.
-                std::thread::sleep(std::time::Duration::from_millis(1));
-                canceller.cancel();
-            }
-        });
         let scanner = control.clone();
         std::thread::spawn(move || {
             let report = scan_with_policy(
@@ -4072,17 +4119,22 @@ mod tests {
                 |event| {
                     if matches!(event, ScanEvent::ArtifactDiscovered(_)) {
                         let _ = discovered.send(());
+                        let _ = resumed.recv_timeout(std::time::Duration::from_secs(20));
                     }
                 },
             );
             let _ = finished.send(report);
         });
-
+        discovery
+            .recv_timeout(std::time::Duration::from_secs(20))
+            .expect("the default scanner discovers the artifact");
+        control.cancel();
+        resume.send(()).unwrap();
         let report = result
             .recv_timeout(std::time::Duration::from_secs(20))
-            .expect("a cancelled scan returns instead of waiting for unsent sizes");
+            .expect("the default scanner returns after cancellation");
         assert_eq!(report.status, ScanStatus::Cancelled);
-        assert!(report.artifacts.iter().all(|artifact| artifact.partial));
+        assert_eq!(report.artifacts.len(), 1);
     }
 
     #[test]

@@ -1,5 +1,17 @@
 # BuildHunter — architecture and specification progress
 
+## Cancellation test synchronization — 2026-11-08
+
+The Rust cancellation witness now synchronizes a worker's metadata probe with an
+external cancellation request instead of assuming a 1 ms sleep overlaps measurement.
+The controlled worker scenario disables speculative prefetch, which can measure a
+candidate before discovery; a separate witness covers cancellation after discovery
+through the default legacy policy path. Both scenarios passed locally on macOS with
+default features and `--all-features`. This changes test orchestration only:
+`buildhunter.current.scan/terminal` and `scan_lifetime`, current/target maps and
+runtime behavior are unchanged. The tests are bounded observations, not a proof of
+all possible cancellation races. Existing historical receipts remain historical.
+
 ## Website delivery boundary — 2026-11-08
 
 The new `.github/workflows/deploy-buildhunter.yml` introduces an independently
