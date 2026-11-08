@@ -1,0 +1,109 @@
+# Adapted from SoundBlaster/7of10; MIT notice in website/buildhunter/licenses/7of10-MIT.txt.
+name: Deploy BuildHunter website
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/buildhunter/**'
+      - '.github/workflows/deploy-buildhunter.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-buildhunter-website
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Upload static site over FTPS
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: FTP
+    env:
+      FTP_HOST: ${{ vars.FTP_HOST }}
+      FTP_PORT: ${{ vars.FTP_PORT }}
+      FTP_USER: ${{ vars.FTP_USER }}
+      FTP_REMOTE_ROOT: /www/egormerkushev.ru/buildhunter
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate deployment settings
+        run: |
+          set -euo pipefail
+          test -n "$FTP_HOST"
+          test "$FTP_PORT" = "21"
+          test -n "$FTP_USER"
+          test -n "$FTP_PASSWORD"
+          test "$FTP_REMOTE_ROOT" = "/www/egormerkushev.ru/buildhunter"
+          test -f website/buildhunter/index.html
+
+      - name: Install FTPS client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Prepare verified certificate chain
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --proto '=https' \
+            https://secure.globalsign.com/cacert/gsgccr6alphasslca2025.crt \
+            --output "$RUNNER_TEMP/hosting-intermediate.der"
+          openssl x509 -inform DER -in "$RUNNER_TEMP/hosting-intermediate.der" \
+            -out "$RUNNER_TEMP/hosting-intermediate.pem"
+          openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt \
+            "$RUNNER_TEMP/hosting-intermediate.pem"
+          cat /etc/ssl/certs/ca-certificates.crt "$RUNNER_TEMP/hosting-intermediate.pem" \
+            > "$RUNNER_TEMP/hosting-ca-bundle.pem"
+
+      - name: Upload site
+        run: |
+          set -euo pipefail
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp --env-password -u "$FTP_USER" "ftp://$FTP_HOST:$FTP_PORT" <<EOF
+          set cmd:fail-exit true
+          set ssl:verify-certificate true
+          set ssl:check-hostname true
+          set ssl:ca-file "$RUNNER_TEMP/hosting-ca-bundle.pem"
+          set ftp:ssl-allow true
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set net:max-retries 2
+          set net:timeout 30
+          lcd "$GITHUB_WORKSPACE/website/buildhunter"
+          mkdir -p "$FTP_REMOTE_ROOT"
+          cd "$FTP_REMOTE_ROOT"
+          mirror -R --verbose --exclude-glob .DS_Store . .
+          bye
+          EOF
+
+      - name: Verify published pages
+        run: |
+          set -euo pipefail
+          for page in /buildhunter/ /buildhunter/privacy/ /buildhunter/support/; do
+            curl --fail --silent --show-error --location \
+              "https://egormerkushev.ru${page}" --output /dev/null
+          done
+          python3 - <<'PYVERIFY'
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import urlopen
+          import hashlib
+
+          root = Path('website/buildhunter')
+          files = [path for path in root.rglob('*') if path.is_file() and path.name != '.DS_Store']
+          for path in files:
+              relative = path.relative_to(root).as_posix()
+              url = 'https://egormerkushev.ru/buildhunter/' + quote(relative)
+              with urlopen(url, timeout=30) as response:
+                  hosted = response.read()
+              if hashlib.sha256(hosted).digest() != hashlib.sha256(path.read_bytes()).digest():
+                  raise SystemExit(f'Published content does not match this commit: {relative}')
+          print(f'PASS: all {len(files)} published files match this commit.')
+          PYVERIFY
