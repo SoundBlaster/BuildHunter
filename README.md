@@ -1,213 +1,23 @@
-# BuildHunter
+<p align="center">
+  <img src="docs/app-icon.png" width="128" height="128" alt="BuildHunter app icon">
+</p>
 
-Hunt down build artifacts and development caches.
+<h1 align="center">BuildHunter</h1>
 
-План macOS приложения: [PRD](docs/PRD.md) и [ADR](docs/adr/0001-macos-app-architecture.md).
-В macOS приложении есть [анимированная диаграмма артефактов](docs/artifact-diagram.md)
-в отдельном окне с обновлениями по мере сканирования. Найденную папку можно открыть
-в Finder: пункт Show in Finder в контекстном меню строки таблицы, папки в списке,
-сектора диаграммы и пути, двойной клик по строке таблицы или кнопка рядом с путём.
-Если папки уже нет, Finder открывает ближайшую существующую родительскую папку
-внутри выбранной для сканирования, но не выше неё.
-Результаты завершённого или остановленного сканирования можно сохранить в файл:
-File → Export Results… (⇧⌘E) или кнопка Export в тулбаре. В окне сохранения выбираются
-формат — CSV (таблица для Numbers/Excel, UTF-8 с BOM) или JSON (поля и словарь
-`build-hunter --json` плюс `status`, `size_state`, `excluded_filters` и др.) — и порядок
-строк: как в таблице или по убыванию размера. Пока сканирование идёт, экспорт
-недоступен и приложение просит дождаться конца.
+Build folders and development caches can quietly consume gigabytes across your projects. BuildHunter makes it amazingly easy to find and measure them, so you can see where your disk space went without hunting through directories by hand.
 
-Read-only CLI для поиска локальных артефактов сборки и кешей Swift, Rust и Python.
-Rust с vendored dependencies для офлайн-сборки. Утилита ничего не удаляет.
+**Blazing-fast scans: 131,072 files in 145 ms.** That's the median of seven warm runs on a synthetic fixture with the Release CLI on an Apple Silicon Mac; results vary with the filesystem and workload. [See the benchmark](docs/diagnostics/resource-profile-20261012.md) (an earlier revision).
+
+Choose a folder in the macOS app to scan for Swift, Rust, and Python build artifacts and caches. An easy-to-read table shows what was found and how much space it takes, while an interactive, colourful diagram makes it easy to explore where it all adds up. Watch live scan, CPU, and memory metrics, then open a finding in Finder and decide what to do with it. Scans are read-only: BuildHunter never deletes your files.
+
+[Download the 0.1.1 preview](https://github.com/SoundBlaster/BuildHunter/releases/tag/v0.1.1), open the DMG, and drag BuildHunter to Applications. It requires macOS 26 or later on Apple Silicon, and is Developer ID signed and notarized by Apple.
+
+![BuildHunter showing scan results, an artifact diagram, and live performance metrics](docs/screenshot.png)
+
+Prefer the terminal, or want to give your coding agent a way to inspect disk usage? The app includes a CLI that produces a JSON report. Run the following after installation, or use `--help` to explore its options:
 
 ```sh
-cargo install --path .
-build-hunter /Users/egor/Development/GitHub
-build-hunter . --language python
-build-hunter . --language rust --json > report.json
-build-hunter . --include-envs
-build-hunter . --apparent
-build-hunter --list-filters
-build-hunter . --exclude swift.build --exclude python.pytest-cache,python.ruff-cache
-build-hunter . --exclude rust --json
+/Applications/BuildHunter.app/Contents/MacOS/build-hunter ~/Development --json
 ```
 
-Фильтры поиска описаны в [Search settings](docs/search-settings.md). Без `--exclude`
-сохраняется прежний набор поиска, включая opt-in виртуальных окружений CLI.
-`--exclude` принимает стабильные ID из `--list-filters`, список через запятую или
-имя языка (`swift`, `rust`, `python`); параметр можно повторять. `--language`
-по-прежнему выбирает язык, исключения дополнительно ограничивают результаты.
-
-CLI, GUI и Settings используют [каталог плагинов](docs/catalog-client-migration.md)
-с версионированными профилями. JSON-отчёт schema 3 включает идентичность каталога,
-исключения и target ID находок. Собственные JSON-шаблоны подключаются через GUI;
-CLI-импорт остаётся отдельной задачей.
-
-После стандартного `cargo install` executable находится в `~/.cargo/bin`.
-Также можно сразу запускать `target/release/build-hunter` из папки проекта.
-
-| Language | Обнаруживаемые пути |
-|---|---|
-| Swift | `.build` |
-| Rust | `target` рядом с `Cargo.toml` |
-| Python | `__pycache__`, `.pyc`, `.pyo`, `.egg-info`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.pytype`, `.tox`, `.nox` |
-| Python build | `build`, `dist` рядом с `pyproject.toml`, `setup.py` или `setup.cfg` |
-| Python environments | `.venv`, `venv` с `pyvenv.cfg`, только с `--include-envs` |
-
-По умолчанию корень — текущая папка. Таблица отсортирована по убыванию размера.
-Вложенные совпадения отмечаются `nested` и не добавляются повторно в общий размер.
-JSON содержит абсолютные пути, размеры в bytes и список ошибок. Для потенциального
-совпадения с symlink указывается путь самой ссылки, `entry_type: "symlink"` и
-`bytes: null`; `unmeasured_symlinks` показывает число таких находок.
-
-На Unix размер вычисляется по allocated blocks, включая директории. `--apparent`
-использует logical size; на других платформах он используется всегда.
-Symlink не обходятся и их цели не измеряются. Однозначное потенциальное совпадение
-по имени и доступным маркерам либо по явному правилу для ссылки показывается
-отдельно; его размер неизвестен и не
-включается в измеренный итог. `.git` и virtual environments пропускаются
-вне найденных артефактов. Hard link учитываются по pathname, поэтому это оценка
-размера дерева, а не гарантированного reclaimable space. APFS clones/compression
-также не позволяют считать эту оценку обещанием освободить указанное место.
-
-На macOS стандартные облачные области в `/Users/<account>/Library`
-(также через `/System/Volumes/Data/Users/<account>/Library`)
-(`Mobile Documents` для iCloud и `CloudStorage` для File Provider) всегда
-пропускаются до обхода их содержимого, включая уже загруженные объекты.
-CLI выводит предупреждение с путём (также в JSON `errors`), GUI показывает его
-по значку ⚠ с числом в строке состояния окна (отдельное окно с копируемой таблицей
-или поповер — выбор в Settings → Experiments)
-и отмечает scan как incomplete. Размеры пропущенного
-содержимого не входят в итог. Папки старых sync clients в произвольных местах
-этим правилом не распознаются; имя `iCloud` само по себе не является признаком.
-
-Это поиск по именам и признакам проекта: совпадения требуют проверки перед удалением.
-Custom Cargo target-dir, Xcode DerivedData, глобальные pip/Cargo/Swift caches,
-Python wheel files вне `dist` и произвольные имена артефактов пока не обнаруживаются.
-Размеры могут меняться при параллельной сборке. Scan не является atomic snapshot.
-Невалидные UTF-8 имена отображаются с replacement character.
-
-Exit codes: `0` — scan завершён; `1` — неполный отчёт с предупреждениями (включая пропущенные облачные области);
-`2` — ошибка аргументов или корневой папки.
-
-```sh
-cargo test
-cargo clippy --all-targets -- -D warnings
-cargo build --release
-```
-
-Однопроходный scan исключает subprocess `du`, но ускорение не гарантируется:
-большинство времени может уходить на filesystem I/O и metadata. Сравнивайте release
-build на одном дереве; результаты зависят от filesystem cache и активных сборок.
-
-## Scan performance profile
-
-```sh
-build-hunter ~/Development --profile /tmp/buildhunter-profile.json
-build-hunter ~/Development --apparent --json --profile /tmp/buildhunter-profile-apparent.json
-```
-
-Profiling is opt-in. `--profile FILE` saves a separate versioned JSON report;
-normal terminal/`--json` artifact output and search filters stay unchanged.
-The destination must not already exist; parent folders must exist. The report
-is created after scanning, so even a destination inside an artifact does not
-change its measured size during that scan. Incomplete scans still save a report
-and retain exit code 1. A hard process termination does not save a final report.
-
-The report contains cumulative snapshots, elapsed microseconds, evaluated
-filesystem entries/folders, discovered artifacts, warnings, pending worker tasks,
-and measured bytes. Initial and terminal snapshots bracket approximately 100 ms
-samples. Entries count processed files and directory listings, including the
-selected root; pruned descendants and skipped cloud placeholders are excluded.
-A dedicated sampler thread takes a snapshot on every 100 ms boundary, so slow
-directory processing or a consumer that blocks event delivery delays samples but
-never thins or merges them; each keeps the time it was taken. While the
-coordinator is blocked or workers are idle, counters do not advance and the
-interval is flat. Elapsed time covers the Rust scan through worker join.
-
-**Measured bytes/s is metadata size throughput, not disk read speed.** It uses
-allocated sizes by default (`--apparent` uses logical sizes), counts nested
-artifacts only once, and excludes unrelated files. It can legitimately reach
-GB/s without reading file contents. Average rates divide cumulative counters by
-elapsed scan time; peak rates are the largest adjacent-snapshot delta/time.
-
-Schema version 1 includes `size_mode`, `status`, `sample_interval_ms`,
-`average_entries_per_second`, `peak_entries_per_second`, and corresponding
-`*_measured_bytes_per_second` fields. `samples` holds the latest 4,096 snapshots;
-`truncated_samples` reports discarded earlier snapshots. Lifetime averages and
-peaks survive truncation. Consumers can derive interval speeds from differences
-between adjacent cumulative snapshots, avoiding division by zero.
-
-The macOS main window shows a mini bar chart of recent entries/s at the right of
-its status bar. Bars move from right to left while scanning and stay after the
-scan finishes; clicking the chart opens a popover with entries/s or measured bytes/s, current/average/peak rates, elapsed time,
-counters, and a live chart of the latest 600 intervals (about one minute). A second
-line with a gradient fill shows the total found volume (cumulative measured bytes),
-labelled on the chart's trailing axis.
-The same picker offers **CPU** and **RAM** timelines. CPU percentages use 100%
-per logical core (600% means six cores), with cumulative user/system CPU seconds.
-RAM shows current resident memory (RSS), its time-weighted mean and sampled peak.
-These readings describe the entire BuildHunter process, including its UI and
-other concurrent scans; they are not attributed to a single window. Completed
-scans retain their last resource readings. Missing OS readings show a gap/“—”.
-Collecting samples does not depend on whether the popover is open. Stop keeps
-the profile and shows current speed as zero. Rescan/replacing the folder resets
-it and rejects stale events. Profiles are kept only for the current window.
-
-CLI profile schema 1 adds a `resources` summary and nullable `cpu_user_ns`,
-`cpu_system_ns`, `resident_bytes` to each sample. CPU counters are process-time
-deltas from scan start; interval CPU cores are `(Δuser_ns + Δsystem_ns) /
-(Δelapsed_us * 1000)`. `average_cpu_cores` includes idle/permission-prompt time.
-`average_rss_bytes` integrates adjacent valid RSS readings with trapezoids;
-`rss_observed_us` reports that coverage and excludes missing intervals.
-RSS includes baseline runtime memory; it is not bytes newly allocated by scanning
-or disk cache. `sampled_peak_rss_bytes` can miss spikes shorter than the ~100 ms
-cadence. It differs from the process-lifetime peak reported by `/usr/bin/time`.
-macOS, 64-bit Linux and Windows supply process accounting; unsupported platforms
-or failed OS queries produce `null`, never a fabricated zero. Linux RSS uses the
-kernel's approximate `/proc/self/statm` accounting. Without `--profile`, resource
-probes and the sampler are not created. None of these readings measures energy.
-
-The internal C profile payload now has 11 `uint64_t` fields (88 bytes); rebuild
-the Rust static library and Swift bridge from matching sources together.
-
-## Architecture and maintained contracts
-
-[Module architecture](docs/modular-architecture.md) defines the intended public
-Hunter filesystem core, abstract Rifle rule engine/Swift authoring SDK, artifact
-product BuildHunter and private Arsenal catalog. Hunter extraction is integrated;
-default clients use the public basic plugin catalogs. Native Settings → Templates
-also connects user-owned JSON files with a minimal editor, validation and per-file
-enablement; see the [template guide](docs/user-templates.md). Files can live in
-your own Git repository, and authoring has no purchase gate. Swift authoring SDK,
-CLI file import and commercial composition remain separate work.
-
-[Current/target Hypercode maps](specs/hypercode/README.md), the descriptive
-[SpecPM package](specpm.yaml), [claim matrix](specs/claim-matrix.md) and
-[progress record](specs/specification-progress.md) separate requirements, source
-observations and execution evidence. Maintain affected maps/contracts with code
-changes according to [AGENTS.md](AGENTS.md).
-
-### Specification validation
-
-With a running SpecPM registry containing the pinned Hunter and Rifle packages,
-run `make specpm-validate` from the repository root. The target prints the JSON
-validation report and defaults to `http://127.0.0.1:8081`. To use another
-registry, run `make specpm-validate SPECPM_REGISTRY=https://registry.example`.
-The registry and a SpecPM version supporting `--registry` must be available;
-the target does not start a server or install dependencies. Platform
-capabilities may remain unresolved and appear as warnings in the report. The
-check allows only the existing platform warnings in
-`specs/specpm-warning-baseline.json`; new warnings, repeated warnings, errors,
-and an unreachable registry cause a nonzero exit. Fewer warnings are allowed.
-Update the baseline only when the affected specification obligations change.
-This command requires the configured registry and is run locally; hosted CI tests
-the guard but does not validate against the local registry.
-
-### Template syntax and rule profiling
-
-See the [template language reference](docs/template-language.md) for bindings,
-conditions, unknown semantics, examples and fixtures. Free, opt-in
-[per-rule profiling](docs/rule-profiling.md) works in GUI Search settings and via
-`build-hunter PATH --profile-rules rules.json`. JSON metrics retain rule/target/
-package identity and separate preliminary/resolved evaluations. Timings exclude
-marker I/O and add instrumentation overhead; normal scans use no per-rule timers.
+[Technical reference](docs/reference.md) · [Scan rules](docs/search-settings.md) · [User templates](docs/user-templates.md) · [License](LICENSE)
