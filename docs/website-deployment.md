@@ -11,6 +11,7 @@ Create a GitHub Actions environment named `FTP` in this repository and set:
 - Secret: `FTP_PASSWORD`.
 
 The target directory is fixed in the workflow to
-`/www/egormerkushev.ru/buildhunter`; it is created if needed. Deployment uses
+`/www/egormerkushev.ru/buildhunter`; it must already exist and be accessible to
+the configured FTP user. Deployment uses
 FTPS with certificate verification, does not delete remote files, and verifies
 published file hashes. It does not modify the Dreams website or its settings.

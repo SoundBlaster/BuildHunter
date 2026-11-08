@@ -24,7 +24,7 @@ interfaces:
 constraints:
 - id: destination
   level: MUST
-  statement: Use the fixed BuildHunter hosting directory and verify TLS certificates and hostnames.
+  statement: Use the existing fixed BuildHunter hosting directory and verify TLS certificates and hostnames.
 - id: publication
   level: MUST
   statement: Upload without remote deletion and verify public page availability and each published file hash.
@@ -32,7 +32,7 @@ effects:
   sideEffects:
   - id: remote_write
     kind: network_write
-    summary: Create the BuildHunter directory if needed and upload static files over FTPS using a GitHub environment secret.
+    summary: Upload static files to the existing BuildHunter directory over FTPS using a GitHub environment secret.
   - id: public_read
     kind: network_read
     summary: Fetch published pages and files over HTTPS for availability and digest verification.
