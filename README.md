@@ -6,6 +6,8 @@
 
 Build folders and development caches can quietly consume gigabytes across your projects. BuildHunter finds and measures them, so you can see where your disk space went without hunting through directories by hand.
 
+**131,072 files scanned in 145 ms.** That's the median of seven warm runs on a synthetic fixture with the Release CLI on an Apple Silicon Mac; results vary with the filesystem and workload. [See the benchmark](docs/diagnostics/resource-profile-20261012.md) (an earlier revision).
+
 Choose a folder in the macOS app to scan for Swift, Rust, and Python build artifacts and caches. Explore the results, open a finding in Finder, and decide what to do with it. Scans are read-only: BuildHunter never deletes your files.
 
 [Download the 0.1.1 preview](https://github.com/SoundBlaster/BuildHunter/releases/tag/v0.1.1), open the DMG, and drag BuildHunter to Applications. It requires macOS 26 or later on Apple Silicon, and is Developer ID signed and notarized by Apple.
