@@ -11,6 +11,7 @@ metadata:
   - name: Egor Merkushev
 specs:
 - path: specs/ci-validation.spec.yaml
+- path: specs/website-delivery.spec.yaml
 - path: specs/resource-budget.spec.yaml
 - path: specs/current-scan.spec.yaml
 - path: specs/current-classification.spec.yaml
@@ -30,6 +31,7 @@ index:
   provides:
     capabilities:
     - buildhunter.delivery.ci
+    - buildhunter.delivery.website
     - buildhunter.scan.resources
     - buildhunter.current.scan
     - buildhunter.current.classification
@@ -80,4 +82,10 @@ foreignArtifacts:
   role: documentation
 - format: hypercode-stylesheet
   path: specs/hypercode/ci.hcs
+  role: documentation
+- format: hypercode
+  path: specs/hypercode/website.hc
+  role: documentation
+- format: hypercode-stylesheet
+  path: specs/hypercode/website.hcs
   role: documentation

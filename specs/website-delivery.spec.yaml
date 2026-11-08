@@ -1,0 +1,54 @@
+apiVersion: specpm.dev/v0.1
+kind: BoundarySpec
+metadata:
+  id: buildhunter.delivery.website
+  title: Static website deployment
+  version: 0.1.0-draft.1
+  status: draft
+intent:
+  summary: Publish the BuildHunter product, support and privacy pages to the designated website directory.
+scope:
+  boundedContext: website_delivery
+  includes: [GitHub Actions trigger, FTPS publishing, HTTPS content verification]
+  excludes: [App Store submission, application runtime, DNS and hosting administration, publication approval]
+provides:
+  capabilities:
+  - id: buildhunter.delivery.website
+    role: primary
+    summary: Upload the versioned static website and compare public files with the source checkout.
+requires:
+  capabilities: []
+interfaces:
+  inbound: []
+  outbound: []
+constraints:
+- id: destination
+  level: MUST
+  statement: Use the fixed BuildHunter hosting directory and verify TLS certificates and hostnames.
+- id: publication
+  level: MUST
+  statement: Upload without remote deletion and verify public page availability and each published file hash.
+effects:
+  sideEffects:
+  - id: remote_write
+    kind: network_write
+    summary: Create the BuildHunter directory if needed and upload static files over FTPS using a GitHub environment secret.
+  - id: public_read
+    kind: network_read
+    summary: Fetch published pages and files over HTTPS for availability and digest verification.
+evidence:
+- id: workflow
+  kind: source
+  path: .github/workflows/deploy-buildhunter.yml
+  supports: [intent.summary, interfaces, constraints.destination, constraints.publication, effects]
+- id: instructions
+  kind: documentation
+  path: docs/website-deployment.md
+  supports: [scope, interfaces, effects]
+provenance:
+  sourceConfidence:
+    intent: medium
+    boundary: medium
+    behavior: medium
+  notes:
+  - Draft recovered from workflow source. No successful production deployment or owner acceptance is asserted.

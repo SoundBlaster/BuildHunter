@@ -1,0 +1,4 @@
+WebsiteDelivery
+  Trigger
+  FTPSUpload
+  PublicVerification

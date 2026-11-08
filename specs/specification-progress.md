@@ -1,5 +1,39 @@
 # BuildHunter — architecture and specification progress
 
+## Website delivery boundary — 2026-11-08
+
+The new `.github/workflows/deploy-buildhunter.yml` introduces an independently
+triggered production website publication boundary. Draft
+`buildhunter.delivery.website` and `hypercode/website.hc` / `.hcs` map the
+trigger, credential-backed FTPS remote writes and HTTPS verification. The
+consumer is the site operator; app runtime and MAS profiles are not affected.
+The existing draft `buildhunter.delivery.ci` covers stack evidence and is
+unchanged; publication approval, DNS, hosting availability and App Store
+submission remain outside both its claims and this recovered boundary.
+Source baseline: PR #156 head `82911221e789560974c097af22e365d46b100ef9`;
+the subsequent specification edits describe this boundary. Historical receipts remain
+historical. No owner acceptance or successful FTPS/HTTPS deployment is inferred.
+
+The standalone workflow needs GitHub Actions, FTP environment credentials and
+hosting access; these are external operator prerequisites, not provided by the
+CI gate. `requires.capabilities` stays empty for this boundary rather than
+claiming the CI gate provides deployment. Its prerequisites are explicit here.
+SHA-256 of workflow: `bbf9389b4c24d12c99fd41dd905ef927f7c709cc1ea2bc63eb9639fbfc74ae22`;
+map HC: `0dbe6f4d4f311bcef2dd28fb96fbe8775a2e4a7d926ca0a6b0331fc05f0a3522`;
+HCS: `c18cd649234a44728248850474d648aed1c951ba19d6bb99ff448b926382792c`.
+Local SpecPM 0.2.0 structural validation returned zero errors and 34 unresolved
+external capability warnings without the registry. The default registry on
+127.0.0.1:8081 returned HTML instead of the registry JSON endpoint. With a
+temporary read-only server for the existing registry index on port 18081,
+`make specpm-validate SPECPM_REGISTRY=http://127.0.0.1:18081` passed with zero
+errors and the four baseline platform warnings. This validates metadata only;
+the default registry and its package downloads are not restored. The local
+Hypercode Release binary parsed and validated the new HC/HCS map with no issues.
+Its structural validation does not verify the deployed workflow.
+Neither structural validation nor source inspection establishes deployment.
+
+
+
 ## SpecPM diagnostic baseline — 2026-11-07
 
 `buildhunter.delivery.ci` retains its existing contract and HC map: the change

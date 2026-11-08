@@ -275,3 +275,11 @@ this recovered boundary. No extra public topology node or new accepted requireme
 is implied. Locked bundles are not read; built-in rules and user files remain
 available. Fresh source/map identities and focused checks are in
 validation/catalog-access-20261031; previous receipts remain historical.
+
+## Website delivery — draft
+
+[website.hc](website.hc) / [website.hcs](website.hcs) describe the separate
+static-site publishing boundary in `.github/workflows/deploy-buildhunter.yml`.
+They do not alter the `buildhunter.delivery.ci` gate or the application runtime
+maps. See `buildhunter.delivery.website` in `../website-delivery.spec.yaml`.
+The workflow has not yet been exercised in production.
