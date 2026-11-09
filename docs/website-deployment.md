@@ -15,3 +15,7 @@ The target directory is fixed in the workflow to
 the configured FTP user. Deployment uses
 FTPS with certificate verification, does not delete remote files, and verifies
 published file hashes. It does not modify the Dreams website or its settings.
+
+The stylesheet URL includes the first 12 hexadecimal characters of the SHA-256
+of `website/buildhunter/style.css`. When the stylesheet changes, update this
+version on all three pages so browsers fetch the new file despite hosting caches.
