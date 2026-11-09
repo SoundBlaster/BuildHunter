@@ -77,7 +77,6 @@ jobs:
           set net:max-retries 2
           set net:timeout 30
           lcd "$GITHUB_WORKSPACE/website/buildhunter"
-          mkdir -p "$FTP_REMOTE_ROOT"
           cd "$FTP_REMOTE_ROOT"
           mirror -R --verbose --exclude-glob .DS_Store . .
           bye

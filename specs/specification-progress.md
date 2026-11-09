@@ -1,5 +1,20 @@
 # BuildHunter — architecture and specification progress
 
+## Website redeployment — 2026-11-09
+
+The FTPS upload now enters the existing fixed destination instead of attempting
+to create it. The hosting operator must provision the directory and grant access
+before deployment. This changes the draft `buildhunter.delivery.website`
+destination and remote-write claims; trigger, TLS, non-deletion, public verification,
+HC composition and `buildhunter.delivery.ci` obligations remain unchanged.
+Workflow SHA-256: `243140a4e8d6ba157f19dd1b0592286f3047b19d2b8646bfa7afce15ec5f5b87`.
+The map identities and prior validation below are historical; they do not establish
+successful deployment of this revised workflow.
+SpecPM 0.2.0 `specpm validate . --json` returned zero errors and 34 unresolved
+external-capability warnings without a registry. `make specpm-validate` could not
+verify the configured registry baseline: `/v0/packages` returned HTTP 404 on
+127.0.0.1:8081. Hypercode CLI was unavailable; the HC/HCS files are unchanged.
+
 ## Cancellation test synchronization — 2026-11-08
 
 The Rust cancellation witness now synchronizes a worker's metadata probe with an
