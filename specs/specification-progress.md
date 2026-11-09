@@ -1,5 +1,13 @@
 # BuildHunter — architecture and specification progress
 
+## Website stylesheet caching — 2026-11-09
+
+The landing, privacy and support pages reference a content-versioned stylesheet
+URL so browsers fetch updated styling despite the hosting cache. This presentation
+change leaves `buildhunter.delivery.website` claims, the website HC composition,
+FTPS publication and public verification unchanged. The stylesheet's SHA-256
+prefix in the URL identifies the current CSS; prior validation remains historical.
+
 ## Website redeployment — 2026-11-09
 
 The FTPS upload now enters the existing fixed destination instead of attempting
