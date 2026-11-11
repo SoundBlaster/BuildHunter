@@ -188,4 +188,5 @@ rule engine/Swift authoring; **BuildHunter** — artifact policy/plugins/CLI/GUI
 - [ADR 0001](adr/0001-macos-app-architecture.md): architecture, ownership и evidence gates.
 - [ADR 0003](adr/0003-declarative-plugins-and-product-boundaries.md): открытые plugins, приватный коммерческий каталог, Swift authoring/Rust runtime и границы будущего отдельного продукта.
 - [Plugin delivery plan](plugin-delivery-plan.md): поэтапная доставка и acceptance criteria; реализация pending.
+- [SpaceHunter](casual-disk-explorer-ideas.md): предварительные сценарии для отдельного приложения об использовании диска.
 - [CLI usage](../README.md): текущее поведение Rust CLI; PRD описывает будущий GUI, а не уже реализованные возможности.
