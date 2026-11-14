@@ -89,11 +89,16 @@ def compile_driver(repo, output, harness):
     target = output / "build"
     run(["cargo", "build", "--locked", "--release", "--lib", "--target-dir", str(target)], cwd=repo)
     binary = output / ("scanner.exe" if platform.system() == "Windows" else "scanner")
+    # Cargo 1.100 stores dependency artifacts under per-package build/*/out
+    # instead of release/deps. Discover the actual library directories so the
+    # standalone harness can resolve transitive crates on both layouts.
+    library_dirs = sorted({path.parent for path in (target / "release").rglob("*.rlib")})
     run([
         "rustc", "--edition=2024", "-O", str(harness),
         "--extern", f"build_hunter={target / 'release/libbuild_hunter.rlib'}",
-        "-L", f"dependency={target / 'release/deps'}", "-o", str(binary),
-    ])
+        *[argument for path in library_dirs for argument in ("-L", f"dependency={path}")],
+        "-o", str(binary),
+    ], cwd=repo)
     return binary
 
 

@@ -1,5 +1,25 @@
 # BuildHunter — architecture and specification progress
 
+## Diagram colors at the first visible split — 2026-11-14
+
+The `MacApplication` diagram palette assigns distinct colors at the first visible
+split below a single-child chain. Existing colors remain stable when a later scan
+revision reveals more branches, including above an already visible split; explicit
+navigation starts the destination's palette as before. This affects the diagram
+presentation within `buildhunter.current.application`; scan, report ownership,
+access and parent assembly obligations are unchanged. Current HC composition and
+bindings remain unchanged. This is presentation behavior, not an accepted new
+boundary requirement. Earlier visual observations are historical and do not prove
+the changed rendering. SHA-256 of `ArtifactSunburst.swift`:
+`67a583f6e2013296271837b679d07b133371a3e4a6f221aa0b409fcbfc0eaf68`.
+Focused `ArtifactSunburstTests` and `ArtifactDiagramModelTests` passed locally
+(51 test cases); SpecPM 0.2.0 with the local registry reported zero errors and
+four baseline platform warnings. Hypercode CLI was unavailable. On the real
+seven-artifact reproduction, a local Debug app showed distinct colors at the first
+split; Screener session `0289F60C-6897-4639-BDF5-8EC5636585F8` recorded descent
+and return. This observation does not establish behavior for all reports or the
+signed Store build.
+
 ## Website stylesheet caching — 2026-11-09
 
 The landing, privacy and support pages reference a content-versioned stylesheet
@@ -1628,6 +1648,16 @@ warnings. A Release MAS composition based on the TestFlight 9 pins compiled
 with both changed source files overlaid; signature, sandbox and resource hash
 checks passed. This does not establish visual runtime behavior. Hypercode CLI
 was unavailable.
+
+### Benchmark dependency discovery — 2026-11-14
+
+The CI comparison harness discovers Cargo's actual release library directories
+instead of assuming `release/deps`. This preserves the same benchmark and
+thresholds across Cargo artifact layouts. Full baseline/candidate comparisons
+passed locally with Rust 1.97 and 1.100; hosted CI remains the authority for
+its own required check. Source SHA-256:
+`3bb3f794cd694c32fe12ab182b3acc904fb70cf87cff526aa3cf62e42d7fa111`
+(`scripts/compare_performance.py`).
 
 ### Checkbox and icon spacing — 2026-11-07
 
