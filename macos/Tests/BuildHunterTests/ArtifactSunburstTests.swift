@@ -287,6 +287,58 @@ struct ArtifactSunburstTests {
         #expect(palette.inheritedBranchID == nil)
     }
 
+    @Test("The first visible split below a single-child chain uses different colors")
+    func colorsBelowSingleChild() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: [
+            row("Project/Only/Large/.build", .measured(100)),
+            row("Project/Only/Small/target", .measured(20))
+        ])
+        let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)
+        var palette = ArtifactSunburstPalette(scope: .init(focusID: "Project", inheritedColor: incoming))
+        palette.include(ArtifactSunburstLayout(snapshot: snapshot, focusID: "Project"))
+        #expect(palette.color(for: "Project/Only") == incoming)
+        #expect(palette.color(for: "Project/Only/Large") == incoming)
+        #expect(palette.color(for: "Project/Only/Small") != incoming)
+        #expect(palette.color(for: "Project/Only/Small/target") == palette.color(for: "Project/Only/Small"))
+    }
+
+    @Test("A later sibling does not change the first visible branch color")
+    func streamingSplitPreservesColor() {
+        let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)
+        var palette = ArtifactSunburstPalette(scope: .init(focusID: "Project", inheritedColor: incoming))
+        let first = ArtifactSunburstSnapshot(rows: [row("Project/Only/Small/target", .measured(10))])
+        palette.include(ArtifactSunburstLayout(snapshot: first, focusID: "Project"))
+        let before = palette.color(for: "Project/Only/Small")
+        let next = ArtifactSunburstSnapshot(rows: [
+            row("Project/Only/Small/target", .measured(10)),
+            row("Project/Only/Large/.build", .measured(100))
+        ])
+        palette.include(ArtifactSunburstLayout(snapshot: next, focusID: "Project"))
+        #expect(palette.color(for: "Project/Only/Small") == before)
+        #expect(palette.color(for: "Project/Only/Large") != before)
+    }
+
+    @Test("A later sibling above the split preserves the visible descendant colors")
+    func streamingAncestorSiblingPreservesColors() {
+        let first = ArtifactSunburstSnapshot(rows: [
+            row("Project/Only/Alpha/.build", .measured(100)),
+            row("Project/Only/Beta/target", .measured(20))
+        ])
+        var palette = ArtifactSunburstPalette(scope: .init(focusID: "Project", inheritedColor: .init(hue: 0.64)))
+        palette.include(ArtifactSunburstLayout(snapshot: first, focusID: "Project"))
+        let alpha = palette.color(for: "Project/Only/Alpha")
+        let beta = palette.color(for: "Project/Only/Beta")
+        let next = ArtifactSunburstSnapshot(rows: [
+            row("Project/Only/Alpha/.build", .measured(100)),
+            row("Project/Only/Beta/target", .measured(20)),
+            row("Project/New/.build", .measured(200))
+        ])
+        palette.include(ArtifactSunburstLayout(snapshot: next, focusID: "Project"))
+        #expect(palette.color(for: "Project/Only/Alpha") == alpha)
+        #expect(palette.color(for: "Project/Only/Beta") == beta)
+        #expect(palette.color(for: "Project/New") != palette.color(for: "Project/Only"))
+    }
+
     @Test("An unmeasured folder assigns its entry color only after a positive size arrives")
     func delayedInheritance() {
         let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)

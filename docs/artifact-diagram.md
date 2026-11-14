@@ -47,12 +47,14 @@ radii also shrink for narrow sectors according to their width at the inner edge,
 so decoration does not consume the sector. Select a folder in the sidebar to
 inspect its full child list, including children grouped under **Other**.
 
-At each displayed level, immediate child branches receive contrasting colors;
-every descendant shares its branch's swatch across all visible rings. Entering a
-folder starts a new palette: **only its largest child inherits the color of the
-folder selected**, and the other child branches receive contrasting hues. The same
-rule repeats at every deeper level. A tie uses the relative path; an unmeasured
-folder waits for its first positive child size before choosing the inheritor.
+Immediate child branches receive contrasting colors, and descendants share their
+branch's swatch. When a visible level has only one child, follow that chain to
+the first visible split and give its branches contrasting colors instead. The
+largest branch initially inherits its parent's color; a tie uses the relative
+path. If a split appears during streaming, the already visible branch keeps its
+color. If a new sibling appears above an existing split, previously displayed
+colors remain stable until a deliberate new navigation. An unmeasured folder
+waits for its first positive child size before choosing the inheritor.
 
 The palette is saved for that folder and entry color. Going Up restores the
 previous view; streamed measurements do not transfer its colors to a new size

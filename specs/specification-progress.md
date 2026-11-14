@@ -1,5 +1,23 @@
 # BuildHunter — architecture and specification progress
 
+## Diagram colors at the first visible split — 2026-11-14
+
+The `MacApplication` diagram palette assigns distinct colors at the first visible
+split below a single-child chain. Existing colors remain stable when a later scan
+revision reveals more branches, including above an already visible split; explicit
+navigation starts the destination's palette as before. This affects the diagram
+presentation within `buildhunter.current.application`; scan, report ownership,
+access and parent assembly obligations are unchanged. Current HC composition and
+bindings remain unchanged. This is presentation behavior, not an accepted new
+boundary requirement. Earlier visual observations are historical and do not prove
+the changed rendering. SHA-256 of `ArtifactSunburst.swift`:
+`20aa9f574d965f5edd14f77362c87e70ccb01ff383573fbb408b52344bcbbde9`.
+Focused `ArtifactSunburstTests` and `ArtifactDiagramModelTests` passed locally
+(50 test cases); SpecPM 0.2.0 with the local registry reported zero errors and
+four baseline platform warnings. Hypercode CLI was unavailable. A local test app
+launched, but Computer Use could not obtain its window, so visual verification of
+the new build on the real folder remains outstanding.
+
 ## Website stylesheet caching — 2026-11-09
 
 The landing, privacy and support pages reference a content-versioned stylesheet

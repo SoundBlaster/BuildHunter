@@ -569,7 +569,7 @@ struct ArtifactDiagramModelTests {
     @Test("Entering the same folder from different levels preserves the color actually clicked")
     func skippedLevelEntryColors() throws {
         let rows = [("Apps/Alpha/A/.build", 50), ("Apps/Alpha/B/target", 10),
-                    ("Apps/Beta/.venv", 100)].map { path, bytes in
+                    ("Apps/Beta/.venv", 100), ("Tools/.build", 5)].map { path, bytes in
             ScanRow(id: UUID(), relativePath: path, language: "Swift", kind: .buildOutput, size: .measured(Int64(bytes)))
         }
         let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: rows))

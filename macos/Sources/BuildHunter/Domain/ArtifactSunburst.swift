@@ -513,8 +513,7 @@ struct ArtifactSunburstNavigation: Sendable {
     }
 }
 
-/// A palette belongs to one navigation scope. Its immediate branches have distinct
-/// colors, shared by their descendants; the largest branch inherits the entry color.
+/// A navigation scope colors its first visible split; descendants share branch colors.
 struct ArtifactSunburstPalette: Equatable, Sendable {
     struct Swatch: Hashable, Sendable {
         let hue: Double
@@ -544,6 +543,7 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
     private(set) var colors: [String: Swatch] = [:]
     private(set) var inheritedBranchID: String?
     private var sortedHues: [Double] = []
+    private var promotedBranches: [String: Swatch] = [:]
 
     init(scope: Scope = Scope()) {
         self.scope = scope
@@ -560,10 +560,11 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
     }
 
     func color(for path: String) -> Swatch? {
-        branchRoot(for: path).flatMap { colors[$0] }
+        colors[path] ?? branchRoot(for: path).flatMap { colors[$0] }
     }
 
     mutating func include(_ layout: ArtifactSunburstLayout) {
+        let previouslyVisible = Set(colors.keys)
         if inheritedBranchID == nil, let entryColor = colors[scope.focusID] {
             let children = layout.sectors.compactMap { sector -> (path: String, bytes: Double)? in
                 guard sector.depth == 0, let path = sector.nodeID, path != scope.focusID else { return nil }
@@ -584,6 +585,49 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
             }
             // Cache visible paths as well, so identities remain directly inspectable.
             colors[path] = colors[branch]
+        }
+        promoteFirstVisibleSplit(in: layout, previouslyVisible: previouslyVisible)
+        // Preserve already visible promoted branches if a new sibling appears
+        // higher in the tree during the same scan.
+        for path in paths {
+            if let branch = promotedBranches.keys.filter({ path == $0 || path.hasPrefix($0 + "/") })
+                .max(by: { $0.count < $1.count }), let swatch = promotedBranches[branch] {
+                colors[path] = swatch
+            }
+        }
+    }
+
+    /// Skip a chain of single children, then give the first visible siblings
+    /// distinct colors. Existing assignments survive streaming updates.
+    private mutating func promoteFirstVisibleSplit(in layout: ArtifactSunburstLayout, previouslyVisible: Set<String>) {
+        let nodes = layout.sectors.filter { $0.nodeID != nil }
+        var parent = scope.focusID
+        while true {
+            let children = nodes.filter { $0.parentID == parent && $0.nodeID != parent }
+            guard !children.isEmpty else { return }
+            if children.count > 1 {
+                // Normal top-level branches already have distinct swatches.
+                guard parent != scope.focusID else { return }
+                let existing = children.filter { promotedBranches[$0.nodeID!] != nil }
+                let heir = (existing.first ?? children.first { previouslyVisible.contains($0.nodeID!) } ?? children.max {
+                    $0.bytes == $1.bytes ? $0.nodeID! > $1.nodeID! : $0.bytes < $1.bytes
+                })!
+                let inherited = colors[parent] ?? color(for: parent) ?? .other
+                for child in children {
+                    let path = child.nodeID!
+                    if promotedBranches[path] == nil {
+                        if path == heir.nodeID && existing.isEmpty {
+                            promotedBranches[path] = inherited
+                        } else {
+                            let hue = contrastingHue(preferred: Self.preferredHue(for: path), nearby: sortedHues)
+                            promotedBranches[path] = Swatch(hue: hue)
+                            sortedHues.insert(hue, at: insertionIndex(for: hue))
+                        }
+                    }
+                }
+                return
+            }
+            parent = children[0].nodeID!
         }
     }
 
