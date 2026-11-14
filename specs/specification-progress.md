@@ -1,5 +1,28 @@
 # BuildHunter — architecture and specification progress
 
+## Navigable Other groups — 2026-11-14
+
+`MacApplication` / `buildhunter.current.application` keeps diagram grouping
+inside its existing UI projection boundary. Other opens a virtual group of the
+captured hidden children, supports nested groups and Up, and exposes no group
+filesystem URL. New measurements can promote larger children into visible
+slots while retaining survivor order and colors; the existing minimum-angle
+limit can still aggregate an entire narrow branch. Group membership is captured
+on entry. No scan, deletion, or filesystem authority changes. Existing historical
+diagram evidence does not establish this behavior. A local Debug run on a
+30-folder fixture exercised two nested groups and Up with Screener markers and
+frames; this is not evidence of behavior under a concurrent live scan. The
+focused diagram suites passed 52 tests; SpecPM reported zero errors and four
+existing abstract-platform warnings. Hypercode CLI was unavailable. Source SHA-256:
+`5d0fca85f94219ab8a50a69a986833a7ec3c95ef3040b6898b1fd7dccf242480`
+(`ArtifactSunburst.swift`),
+`be5f4e9e602e99a3c339b3f6d3ed4d0b18d9fe17aeec2034a21929d3aa2ed5f6`
+(`ArtifactDiagramModel.swift`),
+`709014db45460013583995f40ff6a6b8d37c5ba2fd35dc44e8fd497b565035cd`
+(`ArtifactDiagramWindow.swift`). The existing composition map and parent
+obligations remain unchanged; this interaction is folded into the application
+role rather than introduced as a separate process or filesystem boundary.
+
 ## Diagram colors at the first visible split — 2026-11-14
 
 The `MacApplication` diagram palette assigns distinct colors at the first visible

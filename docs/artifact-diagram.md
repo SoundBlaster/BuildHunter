@@ -27,20 +27,22 @@ reports have no path to copy.
 The chart displays at most three levels. On first display, a dense sibling group
 shows up to twelve individual children plus **Other** (at most thirteen sectors
 per parent), subject to the six-degree floor inside the parent interval. On first
-display, the twelve largest children are selected. Already visible children retain
-their slots and order during streaming; newly measured folders append into free
-slots. Later large arrivals stay in Other instead of ejecting a visible folder. On deliberate navigation, the selected
-folder's largest child is made visible if it was previously grouped. Other preserves
-all remaining bytes; select it to see the complete, filterable folder list.
-Sizes and angle widths continue updating, so boundaries can move, but sibling order
-and membership do not reshuffle with each measurement. The diagram stops at the
+display, the largest children are selected. During streaming, the largest measured
+children remain visible: a newly measured larger folder can replace a smaller visible
+folder, while surviving siblings retain their relative order and colors. Other
+preserves the remaining bytes. Selecting it opens a virtual, filterable group of
+exactly those folders; repeated grouping can be opened in the same way, and Up
+returns to the preceding view. The group is not a filesystem path. Its membership
+is captured on entry; return to the parent to see any subsequent changes.
+Sizes and angle widths continue updating, so boundaries and membership can move.
+The diagram stops at the
 artifact roots, just like the table.
 
 Ring thickness depends only on hierarchy depth. Every positive displayed sector,
 including **Other**, receives at least six degrees (1/60 of a turn). When a parent's
 span cannot fit all its children at that size, excess children join **Other**; when
 multiple children compete for one-sector capacity, **Other** represents all of them.
-Existing visible children keep their order and slots as far as the available capacity allows. The remaining
+Visible children keep their order as far as the available capacity allows. The remaining
 angle is redistributed in byte proportion among larger sectors, so the minimum
 does not simply clip small slices or change reported byte totals. Gaps and corner
 radii also shrink for narrow sectors according to their width at the inner edge,

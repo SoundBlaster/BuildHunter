@@ -25,6 +25,16 @@ final class ArtifactDiagramModel {
     /// the scan's row buffer and the event reducer can keep mutating it in place.
     @ObservationIgnored private var snapshotSizes: [SizeState] = []
     @ObservationIgnored private var navigationTransitionActive = false
+    private struct OtherGroup {
+        let parentID: String
+        let members: [String]
+        let returnFocusID: String
+        let returnPalette: ArtifactSunburstPalette
+    }
+    private var otherGroups: [OtherGroup] = []
+    private var activeGroup: OtherGroup? { otherGroups.last.flatMap { $0.parentID == focusID ? $0 : nil } }
+    var isShowingOther: Bool { activeGroup != nil && previewID == nil }
+    var hasOtherNavigation: Bool { !otherGroups.isEmpty }
 
     init(snapshot: ArtifactSunburstSnapshot = ArtifactSunburstSnapshot(rows: []),
          targetURL: URL? = nil, targetName: String? = nil) {
@@ -34,15 +44,33 @@ final class ArtifactDiagramModel {
         updateLayout()
     }
 
-    var focus: ArtifactSunburstNode { snapshot.nodes[focusID] ?? snapshot.root }
+    var focus: ArtifactSunburstNode {
+        var node = snapshot.nodes[focusID] ?? snapshot.root
+        guard let group = activeGroup else { return node }
+        node.children = group.members.filter { snapshot.nodes[$0] != nil }
+        node.total = ByteTotal()
+        node.statistics = ArtifactSizeStatistics()
+        node.artifact = nil
+        for id in node.children {
+            guard let child = snapshot.nodes[id] else { continue }
+            node.total.add(child.total)
+            node.statistics.artifactCount += child.statistics.artifactCount
+            node.statistics.measuringCount += child.statistics.measuringCount
+            node.statistics.partialCount += child.statistics.partialCount
+            node.statistics.unavailableCount += child.statistics.unavailableCount
+            node.statistics.zeroCount += child.statistics.zeroCount
+        }
+        return node
+    }
 
     var displayedFolder: ArtifactSunburstNode { previewID.flatMap { snapshot.nodes[$0] } ?? focus }
-    var canNavigateUp: Bool { !focusID.isEmpty }
+    var canNavigateUp: Bool { !focusID.isEmpty || !otherGroups.isEmpty }
     var displayedURL: URL? {
-        actionURL(for: displayedFolder.id)
+        isShowingOther ? nil : actionURL(for: displayedFolder.id)
     }
     var displayedPath: String {
-        targetURL.map { displayedFolder.id.isEmpty ? $0.path : $0.appendingPathComponent(displayedFolder.id).path }
+        if isShowingOther { return "Other · \(focus.children.count) folders" }
+        return targetURL.map { displayedFolder.id.isEmpty ? $0.path : $0.appendingPathComponent(displayedFolder.id).path }
             ?? (displayedFolder.id.isEmpty ? targetName ?? "All artifacts" : displayedFolder.id)
     }
 
@@ -94,6 +122,7 @@ final class ArtifactDiagramModel {
             lastScopes = [:]
             previewID = nil
             query = ""
+            otherGroups = []
         }
         targetURL = scan.targetURL
         targetName = scan.targetName
@@ -135,7 +164,38 @@ final class ArtifactDiagramModel {
 
     func navigateUp() {
         guard canNavigateUp else { return }
+        if let group = activeGroup {
+            otherGroups.removeLast()
+            focusID = group.returnFocusID
+            palette = group.returnPalette
+            previewID = nil
+            query = ""
+            updateLayout()
+            return
+        }
         navigate(to: focus.parentID ?? "")
+    }
+
+    func showAll() {
+        if let first = otherGroups.first, first.returnFocusID.isEmpty {
+            palette = first.returnPalette
+            palettes[first.returnPalette.scope] = first.returnPalette
+            lastScopes[""] = first.returnPalette.scope
+        }
+        otherGroups = []
+        navigate(to: "")
+    }
+
+    func openOther(_ sector: ArtifactSunburstLayout.Sector) {
+        guard case .other(let parentID) = sector.id,
+              let members = layout.otherMembers[sector.id], !members.isEmpty else { return }
+        otherGroups.append(OtherGroup(parentID: parentID, members: members,
+                                      returnFocusID: focusID, returnPalette: palette))
+        focusID = parentID
+        palette = ArtifactSunburstPalette(scope: .init(focusID: parentID))
+        previewID = nil
+        query = ""
+        updateLayout()
     }
 
     /// The scanner continues; the next refresh coalesces all revisions received
@@ -166,19 +226,9 @@ final class ArtifactDiagramModel {
             .max { $0.bytes == $1.bytes ? $0.id > $1.id : $0.bytes < $1.bytes }
     }
 
-    private func prepareVisibleChildren() {
-        guard !focusID.isEmpty, palette.inheritedBranchID == nil,
-              let largest = largestChild(in: focus) else { return }
-        // Reveal a late size leader on deliberate navigation, while keeping the
-        // displayed membership fixed during subsequent scan updates.
-        if let previous = retainedOrder[focusID], !previous.contains(largest.id) {
-            retainedOrder[focusID] = [largest.id] + previous.prefix(ArtifactSunburstLayout.maximumVisibleChildren - 1)
-        }
-    }
-
     private func updateLayout() {
-        prepareVisibleChildren()
-        let updated = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID, retainedOrder: retainedOrder)
+        let updated = ArtifactSunburstLayout(snapshot: snapshot, focusID: focusID, retainedOrder: retainedOrder,
+                                             focusChildren: activeGroup?.members)
         for sector in updated.sectors {
             guard let path = sector.nodeID, path != focusID else { continue }
             if !(retainedOrder[sector.parentID] ?? []).contains(path) {

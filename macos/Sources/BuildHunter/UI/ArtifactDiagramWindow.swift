@@ -45,15 +45,25 @@ struct ArtifactDiagramWindow: View {
                                           unsafePathPrefixes: diagram.unsafePathPrefixes,
                                           canNavigateUp: diagram.canNavigateUp,
                                           navigation: navigation, navigationStart: navigationStart,
-                                          goUp: { navigate(to: diagram.focus.parentID ?? "") },
+                                          goUp: { goUp() },
                                           revealFolder: { revealFolder($0) },
                                           hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
-                        navigate(to: sector.nodeID ?? sector.parentID)
+                        if sector.nodeID == nil {
+                            diagram.openOther(sector)
+#if DEBUG
+                            DiagramTraceRecorder.shared?.mark("navigation.other")
+                            DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
+                        } else if let nodeID = sector.nodeID { navigate(to: nodeID) }
                     }
                     .padding(24)
                     .frame(minWidth: 320, idealWidth: preferredPaneWidth, maxWidth: .infinity, maxHeight: .infinity)
 
-                    ArtifactDiagramSidebar(model: diagram, navigate: { navigate(to: $0) })
+                    ArtifactDiagramSidebar(model: diagram, navigate: { navigate(to: $0) },
+                                           goUp: { goUp() }, showAll: {
+                                               if diagram.hasOtherNavigation { diagram.showAll() }
+                                               else { navigate(to: "") }
+                                           })
                         .disabled(navigation != nil)
                         .frame(minWidth: 240, idealWidth: preferredPaneWidth, maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -87,6 +97,16 @@ struct ArtifactDiagramWindow: View {
 
     private func revealFolder(_ url: URL) {
         finderNotice = ArtifactFolderActions.reveal(url, accessRoot: diagram.targetURL).notice
+    }
+
+    private func goUp() {
+        if diagram.hasOtherNavigation {
+            diagram.navigateUp()
+#if DEBUG
+            DiagramTraceRecorder.shared?.mark("navigation.other.up")
+            DiagramTraceRecorder.shared?.capture(for: 1)
+#endif
+        } else { navigate(to: diagram.focus.parentID ?? "") }
     }
 
     private func navigate(to path: String) {
@@ -329,7 +349,8 @@ private struct ArtifactSunburstChart: View {
                                     .position(x: frame.midX, y: frame.midY)
 
                                     if let sector = layout.sectors.first(where: { $0.id == hovered }) {
-                                        DiagramTooltip(name: sector.name, pointer: pointer, bounds: geometry.size)
+                                        DiagramTooltip(name: "\(sector.name) · \(diagramBytes(sector.bytes))",
+                                                       pointer: pointer, bounds: geometry.size)
                                             .allowsHitTesting(false)
                                             .accessibilityHidden(true)
                                     }
@@ -614,21 +635,23 @@ private struct DiagramTooltip: View {
 private struct ArtifactDiagramSidebar: View {
     @Bindable var model: ArtifactDiagramModel
     let navigate: (String) -> Void
+    let goUp: () -> Void
+    let showAll: () -> Void
     @State private var finderNotice: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Button("All artifacts", systemImage: "square.stack.3d.up.fill") { navigate("") }
+                Button("All artifacts", systemImage: "square.stack.3d.up.fill") { showAll() }
                     .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("showAll")
-                Button("Up", systemImage: "arrow.up.circle") { navigate(model.focus.parentID ?? "") }
+                Button("Up", systemImage: "arrow.up.circle") { goUp() }
                     .disabled(!model.canNavigateUp)
                     .nestedAccessibilityIdentifier("up")
             }
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Image(systemName: "folder.fill").accessibilityHidden(true)
+                    Image(systemName: model.isShowingOther ? "square.stack.3d.up.fill" : "folder.fill").accessibilityHidden(true)
                     Text(model.displayedPath)
                         .font(.headline)
                         .textSelection(.enabled)
