@@ -587,7 +587,7 @@ struct ArtifactDiagramModelTests {
         #expect(diagram.palette == directEntry)
     }
 
-    @Test("Late discoveries cannot displace or reorder previously visible siblings")
+    @Test("A late large discovery displaces a smaller folder without reordering survivors")
     func stableStreamingOrder() async {
         let scan = WindowScanModel(source: DiagramIdleSource())
         let diagram = ArtifactDiagramModel()
@@ -607,12 +607,58 @@ struct ArtifactDiagramModelTests {
         scan.apply(.discovered(generation: scan.generation, artifact: late))
         scan.apply(.completed(generation: scan.generation, artifactID: late.id, bytes: 1_000_000))
         await diagram.refresh(from: scan)
-        #expect(diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID) == original)
+        let updated = diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID)
+        #expect(updated.contains("Aardvark"))
+        #expect(!updated.contains("Zebra"))
+        #expect(updated.filter { original.contains($0) } == original.filter { $0 != "Zebra" })
         #expect(diagram.layout.sectors.filter { $0.depth == 0 }.reduce(0) { $0 + $1.bytes } == 1_000_078)
         for (path, color) in colors { #expect(diagram.palette.colors[path] == color) }
         diagram.navigate(to: "Middle")
         diagram.navigate(to: "")
-        #expect(diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID) == original)
+        #expect(diagram.layout.sectors.filter { $0.depth == 0 }.compactMap(\.nodeID) == updated)
+    }
+
+    @Test("Other opens only grouped folders and supports nested groups and return")
+    func otherGroupNavigation() throws {
+        let rows = (0..<30).map { index in
+            ScanRow(id: UUID(), relativePath: "Project\(index)/.build", language: "Swift",
+                    kind: .buildOutput, size: .measured(Int64(index + 1)))
+        }
+        let diagram = ArtifactDiagramModel(snapshot: ArtifactSunburstSnapshot(rows: rows),
+                                           targetURL: URL(fileURLWithPath: "/tmp"))
+        let original = diagram.layout
+        let originalColors = diagram.palette.colors
+        let other = try #require(original.sectors.first { $0.id == .other("") })
+        let members = try #require(original.otherMembers[other.id])
+        diagram.openOther(other)
+        #expect(diagram.isShowingOther && diagram.canNavigateUp)
+        #expect(diagram.displayedURL == nil)
+        #expect(Set(diagram.children.map(\.id)) == Set(members))
+        #expect(diagram.focus.bytes == other.bytes)
+        let nested = try #require(diagram.layout.sectors.first { $0.id == .other("") })
+        diagram.preview(nested.parentID)
+        #expect(diagram.isShowingOther && diagram.displayedURL == nil)
+        #expect(Set(diagram.children.map(\.id)) == Set(members))
+        let nestedMembers = try #require(diagram.layout.otherMembers[nested.id])
+        diagram.openOther(nested)
+        #expect(Set(diagram.children.map(\.id)) == Set(nestedMembers))
+        diagram.navigateUp()
+        #expect(Set(diagram.children.map(\.id)) == Set(members))
+        diagram.query = "Project0"
+        #expect(diagram.filteredChildren.map(\.id) == ["Project0"])
+        diagram.navigate(to: "Project0")
+        #expect(!diagram.isShowingOther)
+        diagram.navigateUp()
+        #expect(diagram.isShowingOther)
+        #expect(Set(diagram.children.map(\.id)) == Set(members))
+        diagram.navigateUp()
+        #expect(!diagram.isShowingOther && !diagram.canNavigateUp)
+        #expect(diagram.layout == original)
+        diagram.openOther(other)
+        diagram.navigate(to: "Project0")
+        diagram.showAll()
+        #expect(!diagram.isShowingOther && !diagram.canNavigateUp)
+        for (path, color) in originalColors { #expect(diagram.palette.colors[path] == color) }
     }
 
     @Test("Hover previews full paths and children without changing navigation, color or the saved filter")

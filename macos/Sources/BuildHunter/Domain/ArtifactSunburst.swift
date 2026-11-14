@@ -46,6 +46,13 @@ struct ByteTotal: Equatable, Sendable {
         if carry { high &+= 1 }
     }
 
+    mutating func add(_ other: ByteTotal) {
+        let (sum, carry) = low.addingReportingOverflow(other.low)
+        low = sum
+        high &+= other.high
+        if carry { high &+= 1 }
+    }
+
     mutating func subtract(_ bytes: UInt64) {
         let (difference, borrow) = low.subtractingReportingOverflow(bytes)
         low = difference
@@ -221,45 +228,32 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
     }
 
     let sectors: [Sector]
+    let otherMembers: [Sector.ID: [String]]
 
-    init(snapshot: ArtifactSunburstSnapshot, focusID: String = "", retainedOrder: [String: [String]] = [:]) {
+    init(snapshot: ArtifactSunburstSnapshot, focusID: String = "", retainedOrder: [String: [String]] = [:],
+         focusChildren: [String]? = nil) {
         let focus = snapshot.nodes[focusID] ?? snapshot.root
         var sectors: [Sector] = []
+        var groups: [Sector.ID: [String]] = [:]
         func visit(_ parent: ArtifactSunburstNode, depth: Int, start: Double, end: Double) {
             guard depth < 3, parent.bytes > 0 else { return }
-            let positive = parent.children.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
-            // Keep existing slots in discovery order. A late, larger measurement must
-            // not eject a visible folder or move it across its siblings.
+            let ids = depth == 0 ? (focusChildren ?? parent.children) : parent.children
+            let positive = ids.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
             let previousIDs = retainedOrder[parent.id] ?? []
-            let previousSet = Set(previousIDs)
-            let existing = previousIDs.compactMap { snapshot.nodes[$0] }.filter { $0.bytes > 0 }
-            let newNodes = positive.filter { !previousSet.contains($0.id) }
-            let selectedVisible: [ArtifactSunburstNode]
-            let selectedRemaining: [ArtifactSunburstNode]
-            if positive.count > Self.maximumVisibleChildren {
-                let ranked = newNodes.sorted { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }
-                let added = Array(ranked.prefix(max(0, Self.maximumVisibleChildren - existing.count))).sorted { $0.id < $1.id }
-                selectedVisible = existing + added
-                let visibleIDs = Set(selectedVisible.map(\.id))
-                selectedRemaining = positive.filter { !visibleIDs.contains($0.id) }
-            } else {
-                selectedVisible = existing + newNodes
-                selectedRemaining = []
-            }
-
-            // A parent can show only as many readable sectors as fit at the floor.
-            // Keep already visible slots first, then group every displaced child
-            // with any existing overflow in Other.
             let span = end - start
             let capacity = max(1, Int(floor(span / Self.minimumSectorAngle + 1e-12)))
-            var visible = selectedVisible
-            var remaining = selectedRemaining
-            let candidateCount = visible.count + (remaining.isEmpty ? 0 : 1)
-            if candidateCount > capacity {
-                let retainedCount = max(0, capacity - 1)
-                remaining.append(contentsOf: visible.dropFirst(retainedCount))
-                visible = Array(visible.prefix(retainedCount))
+            let needsOther = positive.count > Self.maximumVisibleChildren || positive.count > capacity
+            let count = needsOther ? min(Self.maximumVisibleChildren, max(0, capacity - 1)) : positive.count
+            let previousSet = Set(previousIDs)
+            let ranked = positive.sorted {
+                if $0.bytes != $1.bytes { return $0.bytes > $1.bytes }
+                if previousSet.contains($0.id) != previousSet.contains($1.id) { return previousSet.contains($0.id) }
+                return $0.id < $1.id
             }
+            let chosen = Set(ranked.prefix(count).map(\.id))
+            let visible = previousIDs.compactMap { chosen.contains($0) ? snapshot.nodes[$0] : nil }
+                + ranked.filter { chosen.contains($0.id) && !previousSet.contains($0.id) }
+            let remaining = ranked.filter { !chosen.contains($0.id) }
 
             let otherBytes = remaining.reduce(0) { $0 + $1.bytes }
             let weights = visible.map(\.bytes) + (remaining.isEmpty ? [] : [otherBytes])
@@ -279,8 +273,9 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
             }
             if !remaining.isEmpty, end > cursor {
                 let upper = end
+                groups[.other(parent.id)] = remaining.map(\.id)
                 sectors.append(Sector(
-                    id: .other(parent.id), parentID: parent.id, name: "Other (\(remaining.count))",
+                    id: .other(parent.id), parentID: parent.id, name: "Other (\(remaining.count) folders)",
                     bytes: otherBytes, depth: depth, start: cursor, end: upper,
                     isPartial: remaining.contains { $0.statistics.partialCount > 0 }
                 ))
@@ -294,6 +289,7 @@ struct ArtifactSunburstLayout: Equatable, Sendable {
             visit(focus, depth: 0, start: 0, end: 1)
         }
         self.sectors = sectors
+        self.otherMembers = groups
     }
 
     /// Applies a minimum width to small shares, then redistributes the remaining
