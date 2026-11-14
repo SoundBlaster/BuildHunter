@@ -16,7 +16,7 @@ focused diagram suites passed 52 tests; SpecPM reported zero errors and four
 existing abstract-platform warnings. Hypercode CLI was unavailable. Source SHA-256:
 `5d0fca85f94219ab8a50a69a986833a7ec3c95ef3040b6898b1fd7dccf242480`
 (`ArtifactSunburst.swift`),
-`be5f4e9e602e99a3c339b3f6d3ed4d0b18d9fe17aeec2034a21929d3aa2ed5f6`
+`66eb31be1a12502a93f2ac644862e5e9585dbbbd752c4d29e7b421b65dbe6c70`
 (`ArtifactDiagramModel.swift`),
 `709014db45460013583995f40ff6a6b8d37c5ba2fd35dc44e8fd497b565035cd`
 (`ArtifactDiagramWindow.swift`). The existing composition map and parent

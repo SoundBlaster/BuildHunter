@@ -205,7 +205,8 @@ final class ArtifactDiagramModel {
     }
 
     func preview(_ path: String?) {
-        let valid = path.flatMap { snapshot.nodes[$0] == nil ? nil : $0 }
+        // Other is virtual: its parent path is not a preview of the group itself.
+        let valid = path.flatMap { snapshot.nodes[$0] == nil || (activeGroup != nil && $0 == focusID) ? nil : $0 }
         guard previewID != valid else { return }
         previewID = valid
         updateChildren()
