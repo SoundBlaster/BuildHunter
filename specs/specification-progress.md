@@ -18,7 +18,7 @@ existing abstract-platform warnings. Hypercode CLI was unavailable. Source SHA-2
 (`ArtifactSunburst.swift`),
 `66eb31be1a12502a93f2ac644862e5e9585dbbbd752c4d29e7b421b65dbe6c70`
 (`ArtifactDiagramModel.swift`),
-`709014db45460013583995f40ff6a6b8d37c5ba2fd35dc44e8fd497b565035cd`
+`cdb87526540af0ecec155a28607cbe204ca8753707c0da8712051a22264718f2`
 (`ArtifactDiagramWindow.swift`). The existing composition map and parent
 obligations remain unchanged; this interaction is folded into the application
 role rather than introduced as a separate process or filesystem boundary.

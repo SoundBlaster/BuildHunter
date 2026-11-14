@@ -47,7 +47,7 @@ struct ArtifactDiagramWindow: View {
                                           navigation: navigation, navigationStart: navigationStart,
                                           goUp: { goUp() },
                                           revealFolder: { revealFolder($0) },
-                                          hover: { diagram.preview($0.map { $0.nodeID ?? $0.parentID }) }) { sector in
+                                          hover: { diagram.preview($0?.nodeID) }) { sector in
                         if sector.nodeID == nil {
                             diagram.openOther(sector)
 #if DEBUG
