@@ -560,7 +560,13 @@ struct ArtifactSunburstPalette: Equatable, Sendable {
     }
 
     func color(for path: String) -> Swatch? {
-        colors[path] ?? branchRoot(for: path).flatMap { colors[$0] }
+        if let color = colors[path] { return color }
+        var ancestor = path
+        while let separator = ancestor.lastIndex(of: "/") {
+            ancestor = String(ancestor[..<separator])
+            if let color = promotedBranches[ancestor] { return color }
+        }
+        return branchRoot(for: path).flatMap { colors[$0] }
     }
 
     mutating func include(_ layout: ArtifactSunburstLayout) {

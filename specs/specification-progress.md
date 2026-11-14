@@ -11,12 +11,14 @@ access and parent assembly obligations are unchanged. Current HC composition and
 bindings remain unchanged. This is presentation behavior, not an accepted new
 boundary requirement. Earlier visual observations are historical and do not prove
 the changed rendering. SHA-256 of `ArtifactSunburst.swift`:
-`20aa9f574d965f5edd14f77362c87e70ccb01ff383573fbb408b52344bcbbde9`.
+`67a583f6e2013296271837b679d07b133371a3e4a6f221aa0b409fcbfc0eaf68`.
 Focused `ArtifactSunburstTests` and `ArtifactDiagramModelTests` passed locally
-(50 test cases); SpecPM 0.2.0 with the local registry reported zero errors and
-four baseline platform warnings. Hypercode CLI was unavailable. A local test app
-launched, but Computer Use could not obtain its window, so visual verification of
-the new build on the real folder remains outstanding.
+(51 test cases); SpecPM 0.2.0 with the local registry reported zero errors and
+four baseline platform warnings. Hypercode CLI was unavailable. On the real
+seven-artifact reproduction, a local Debug app showed distinct colors at the first
+split; Screener session `0289F60C-6897-4639-BDF5-8EC5636585F8` recorded descent
+and return. This observation does not establish behavior for all reports or the
+signed Store build.
 
 ## Website stylesheet caching — 2026-11-09
 

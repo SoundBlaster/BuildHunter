@@ -302,6 +302,21 @@ struct ArtifactSunburstTests {
         #expect(palette.color(for: "Project/Only/Small/target") == palette.color(for: "Project/Only/Small"))
     }
 
+    @Test("Paths beyond the visible rings inherit their promoted ancestor color")
+    func unseenDescendantInheritsPromotedColor() throws {
+        let snapshot = ArtifactSunburstSnapshot(rows: [
+            row("Project/Large/a/.build", .measured(100)),
+            row("Project/Small/b/target", .measured(20))
+        ])
+        var palette = ArtifactSunburstPalette()
+        let layout = ArtifactSunburstLayout(snapshot: snapshot)
+        palette.include(layout)
+        #expect(!layout.sectors.contains { $0.nodeID == "Project/Small/b/target" })
+        let small = try #require(palette.color(for: "Project/Small"))
+        #expect(small != palette.color(for: "Project/Large"))
+        #expect(palette.color(for: "Project/Small/b/target") == small)
+    }
+
     @Test("A later sibling does not change the first visible branch color")
     func streamingSplitPreservesColor() {
         let incoming = ArtifactSunburstPalette.Swatch(hue: 0.64)
