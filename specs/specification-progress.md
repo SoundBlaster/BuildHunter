@@ -1649,6 +1649,16 @@ with both changed source files overlaid; signature, sandbox and resource hash
 checks passed. This does not establish visual runtime behavior. Hypercode CLI
 was unavailable.
 
+### Benchmark dependency discovery — 2026-11-14
+
+The CI comparison harness discovers Cargo's actual release library directories
+instead of assuming `release/deps`. This preserves the same benchmark and
+thresholds across Cargo artifact layouts. Full baseline/candidate comparisons
+passed locally with Rust 1.97 and 1.100; hosted CI remains the authority for
+its own required check. Source SHA-256:
+`3bb3f794cd694c32fe12ab182b3acc904fb70cf87cff526aa3cf62e42d7fa111`
+(`scripts/compare_performance.py`).
+
 ### Checkbox and icon spacing — 2026-11-07
 
 The GUI Settings presentation adds leading space to the labels of individual
