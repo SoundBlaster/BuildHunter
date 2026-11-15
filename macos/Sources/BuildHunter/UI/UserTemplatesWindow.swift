@@ -6,7 +6,6 @@ import UniformTypeIdentifiers
 struct UserTemplatesWindow: View {
     @Bindable var workspace: TemplateWorkspace
     @State private var pending: PendingAction?
-    @State private var showingHelp = false
 
     private enum PendingAction { case new, load(TemplateReference) }
 
@@ -18,7 +17,9 @@ struct UserTemplatesWindow: View {
                     .nestedAccessibilityIdentifier("connect")
                 Button("New…") { request(.new) }
                     .nestedAccessibilityIdentifier("new")
-                Button("Template Help") { showingHelp = true }
+                Button("Template Help") {
+                    NSHelpManager.shared.openHelpAnchor("templates", inBook: "dev.buildhunter.app.help.v4")
+                }
                     .nestedAccessibilityIdentifier("help")
                 Spacer()
                 if workspace.busy { ProgressView().controlSize(.small) }
@@ -94,7 +95,6 @@ struct UserTemplatesWindow: View {
         }
         .padding()
         .a11yRoot("buildhunter.templates")
-        .sheet(isPresented: $showingHelp) { TemplateWritingHelp() }
         .confirmationDialog("Discard the unsaved template changes?", isPresented: Binding(
             get: { pending != nil }, set: { if !$0 { pending = nil } })) {
             Button("Discard Changes", role: .destructive) {
@@ -142,40 +142,6 @@ struct UserTemplatesWindow: View {
                     else { await workspace.saveAs(url) }
                 }
             }
-        }
-    }
-}
-
-private struct TemplateWritingHelp: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Write a scan template").font(.title2.bold())
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Templates are JSON files that describe what to find. They do not run commands or delete files.")
-                    helpStep("1. Start with an example", "Choose New… in Templates. The example finds a forge-out directory beside a forge.project marker. You can also import an existing JSON file.")
-                    helpStep("2. Describe your artifact", "Replace the example package and target titles. Keep the generated IDs unique, or choose your own stable IDs. Avoid the reserved swift, rust and python namespaces.")
-                    helpStep("3. Set matching conditions", "Change forge-out to the exact file or folder name you want to find and forge.project to a marker in its parent folder. Set the node kind to directory or regular_file. The marker is checked by name; its contents are not read.")
-                    helpStep("4. Check and save", "Choose Check and fix any diagnostics. Choose Save As… and select where to keep the JSON file. Enable the saved template in the list.")
-                    helpStep("5. Try a scan", "Create a small test folder with a matching artifact and marker, plus a similar folder without the marker. Start a new scan or Rescan and check that only the intended artifact appears.")
-                    Text("Changes apply to new scans. Connected files stay in their chosen folder, including a Git repository. A broken enabled template prevents the next scan until you fix or disable it.")
-                        .foregroundStyle(.secondary)
-                    Link("Template language reference ↗", destination: URL(string: "https://github.com/SoundBlaster/BuildHunter/blob/main/docs/template-language.md")!)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            HStack { Spacer(); Button("Done") { dismiss() }.keyboardShortcut(.defaultAction) }
-        }
-        .padding(24)
-        .frame(minWidth: 480, idealWidth: 600, minHeight: 420, idealHeight: 600)
-    }
-
-    private func helpStep(_ title: LocalizedStringKey, _ description: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.headline)
-            Text(description)
         }
     }
 }

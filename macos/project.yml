@@ -29,6 +29,9 @@ targets:
       - path: Resources/BuildHunter.icon
         buildPhase: resources
         type: file
+      - path: Resources/BuildHunter.help
+        buildPhase: resources
+        type: folder
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.buildhunter.app
@@ -44,6 +47,9 @@ targets:
         FUSE_BUILD_SCRIPT_PHASES: NO
         SWIFT_VERSION: "6.0"
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Resources/AppInfo.plist
+        CURRENT_PROJECT_VERSION: "1"
+        MARKETING_VERSION: "0.1.1"
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
         INFOPLIST_KEY_NSPrincipalClass: NSApplication
         SWIFT_STRICT_CONCURRENCY: complete
@@ -86,6 +92,13 @@ targets:
           - "$(SRCROOT)/../vendor/hunter-fs-core/src/thread_qos.rs"
         outputFiles:
           - "$(SRCROOT)/../target/aarch64-apple-darwin/release/libbuild_hunter.a"
+    postBuildScripts:
+      - name: Index built-in help
+        basedOnDependencyAnalysis: false
+        script: |
+          help_dir="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/BuildHunter.help/Contents/Resources/en.lproj"
+          /usr/bin/hiutil -I lsm -C -a -f "$help_dir/BuildHunter.helpindex" "$help_dir"
+          /usr/bin/hiutil -I corespotlight -C -a -f "$help_dir/BuildHunter.cshelpindex" "$help_dir"
   BuildHunterTests:
     type: bundle.unit-test
     platform: macOS

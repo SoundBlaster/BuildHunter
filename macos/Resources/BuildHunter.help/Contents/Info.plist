@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleIdentifier</key>
+	<string>dev.buildhunter.app.help.v4</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>BuildHunter Help</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleSignature</key>
+	<string>hbwr</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>HPDBookAccessPath</key>
+	<string>index.html</string>
+	<key>HPDBookCSIndexPath</key>
+	<string>BuildHunter.cshelpindex</string>
+	<key>HPDBookIconPath</key>
+	<string>shared/icon.png</string>
+	<key>HPDBookIdentifier</key>
+	<string>dev.buildhunter.app.help.v4</string>
+	<key>HPDBookIndexPath</key>
+	<string>BuildHunter.helpindex</string>
+	<key>HPDBookKBProduct</key>
+	<string>buildhunter</string>
+	<key>HPDBookTitle</key>
+	<string>BuildHunter Help</string>
+	<key>HPDBookType</key>
+	<string>3</string>
+</dict>
+</plist>
