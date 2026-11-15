@@ -1726,3 +1726,7 @@ rooted lexically at the selected scan root; unavailable paths remain unknown.
 The pure Rifle policy adapter does not acquire filesystem facts. Historical R2/R4
 receipts and the frozen migration corpus remain intact; tests identify the one
 intentional expectation change. See `validation/relative-path-markers-20261106`.
+
+## Template writing help — 2026-11-15
+
+The Templates settings view now includes a local step-by-step help sheet, using the existing generated example and linking to the public language reference. This presentation is folded into TemplateManagement; current.templates file_exchange, draft_validation, scan_isolation and existing assembly obligations are unchanged. The help itself does not alter files or scan state. Prior receipts remain historical; a local Debug build confirms compilation only, not visual or accessibility acceptance.
