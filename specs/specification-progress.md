@@ -1729,6 +1729,14 @@ intentional expectation change. See `validation/relative-path-markers-20261106`.
 
 ## Template writing help — 2026-11-15
 
+The shared macOS asset catalog gains framework and tool icons. These are
+presentation resources; scan, rule and template behavior and assembly
+obligations are unchanged. `actool` compiled the asset catalog locally and
+`make specpm-validate` passed with four existing platform warnings. The
+application's default marketing version was also aligned with release
+`v0.1.3`; release overrides remain authoritative. No visual app validation was
+performed for these assets.
+
 The subsequent native Help Book replaces the sheet with an offline Help Viewer
 article, accessible from the Help menu and the Templates settings button. This
 remains a presentation change; template validation, scanning, and the existing
