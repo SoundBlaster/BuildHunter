@@ -73,6 +73,8 @@ registrations** action; this does not delete source files.
 
 ## Writing a template, including with an agent
 
+In **Settings → Templates**, choose **Template Help** for an offline, step-by-step walkthrough of the built-in example, validation and a small test scan. The language reference below covers the full format.
+
 The [language reference](template-language.md) explains every binding/operator,
 truth/unknown semantics, limits and fixtures. [Rule profiling](rule-profiling.md)
 shows how to measure and compare individual rules.

@@ -1726,3 +1726,9 @@ rooted lexically at the selected scan root; unavailable paths remain unknown.
 The pure Rifle policy adapter does not acquire filesystem facts. Historical R2/R4
 receipts and the frozen migration corpus remain intact; tests identify the one
 intentional expectation change. See `validation/relative-path-markers-20261106`.
+
+## Template writing help — 2026-11-15
+
+The Templates settings view now includes a local step-by-step help sheet, using the existing generated example and linking to the public language reference. This presentation is folded into TemplateManagement; current.templates file_exchange, draft_validation, scan_isolation and existing assembly obligations are unchanged. The help itself does not alter files or scan state. Prior receipts remain historical; a local Debug build confirms compilation only, not visual or accessibility acceptance.
+
+Source baseline `efb81febd8e51d54213742335e90a4f9fef6afb9`; changed UI SHA-256 `5d8fbd11f381a252bdfc3c86c5462a37b0304cc43a1560195e25ad53923c92e6`. Unchanged current HC/HCS SHA-256: `69cbc997c36ff5c48a6f9501cda7e5ea758cc2051f53a5f415e15194e252db0f` / `c30b8ee6b9ec8f26ec5ccf6cf8150d529f711178902a5e6ea61281633d03d4ad`. `make specpm-validate` (SpecPM 0.2.0, local registry) passed with zero errors and four existing abstract platform warnings. Hypercode CLI was unavailable, so HC parse/validation was not run; unchanged topology is a source review, not structural verification.
