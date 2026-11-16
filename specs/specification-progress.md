@@ -1737,6 +1737,12 @@ application's default marketing version was also aligned with release
 `v0.1.3`; release overrides remain authoritative. No visual app validation was
 performed for these assets.
 
+The Unity, Godot and Unreal Engine icon additions are likewise presentation-only
+resources. They do not change scan, rule, template or assembly contracts.
+The asset catalog compiled with `actool`; `make specpm-validate` passed with
+zero errors and the four existing platform warnings. Visual app presentation was
+not verified in this check.
+
 The subsequent native Help Book replaces the sheet with an offline Help Viewer
 article, accessible from the Help menu and the Templates settings button. This
 remains a presentation change; template validation, scanning, and the existing
