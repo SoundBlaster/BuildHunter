@@ -6,8 +6,8 @@ use crate::{
     catalog::{CatalogSnapshot, ClientProfile},
 };
 use buildhunter_plugin_policy::{
-    CandidateFacts, Classification, Decision, MarkerFact, MarkerProbe, NodeKind, RulePhase,
-    RuleProfile, Scope, TargetDescriptor,
+    CandidateFacts, Classification, Decision, MarkerFact, MarkerMatch, MarkerProbe, NodeKind,
+    RulePhase, RuleProfile, Scope, TargetDescriptor,
 };
 use std::{
     cell::RefCell,
@@ -187,8 +187,9 @@ pub fn scan_client(
                 let probe = MarkerProbe {
                     scope: Scope::Own,
                     name: "pyvenv.cfg".into(),
+                    matching: MarkerMatch::Exact,
                 };
-                let value = observe_marker(path, &probe);
+                let value = observe_marker(path, &probe, control);
                 state.observations = state.observations.saturating_add(1);
                 let prune = matches!(value, Observation::Known(true));
                 if let Observation::Unavailable(reason) = &value {
@@ -255,7 +256,7 @@ pub fn scan_client(
                                 Observation::Unavailable("cancelled".into())
                             } else {
                                 state.observations = state.observations.saturating_add(1);
-                                observe_marker(path, probe)
+                                observe_marker(path, probe, control)
                             },
                         );
                     }
@@ -491,7 +492,7 @@ impl Observation {
         }
     }
 }
-fn observe_marker(candidate: &Path, probe: &MarkerProbe) -> Observation {
+fn observe_marker(candidate: &Path, probe: &MarkerProbe, control: &ScanControl) -> Observation {
     let directory = match probe.scope {
         Scope::Own => Some(candidate),
         Scope::Parent => candidate.parent(),
@@ -499,6 +500,37 @@ fn observe_marker(candidate: &Path, probe: &MarkerProbe) -> Observation {
     let Some(directory) = directory else {
         return Observation::Known(false);
     };
+    if probe.matching == MarkerMatch::Suffix {
+        let entries = match std::fs::read_dir(directory) {
+            Ok(entries) => entries,
+            Err(error) => return Observation::Unavailable(error.to_string()),
+        };
+        let mut error = None;
+        for (index, entry) in entries.enumerate() {
+            if control.should_stop() {
+                return Observation::Unavailable("cancelled".into());
+            }
+            if index >= buildhunter_plugin_policy::MARKER_SUFFIX_ENTRY_LIMIT {
+                return Observation::Unavailable("marker_entry_limit".into());
+            }
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(e) => {
+                    error = Some(e.to_string());
+                    continue;
+                }
+            };
+            if !probe.matches_name(&entry.file_name()) {
+                continue;
+            }
+            match entry.file_type() {
+                Ok(kind) if kind.is_file() || kind.is_symlink() => return Observation::Known(true),
+                Ok(_) => {}
+                Err(e) => error = Some(e.to_string()),
+            }
+        }
+        return error.map_or(Observation::Known(false), Observation::Unavailable);
+    }
     match std::fs::symlink_metadata(directory.join(&probe.name)) {
         Ok(metadata) => Observation::Known(metadata.is_file() || metadata.file_type().is_symlink()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Observation::Known(false),

@@ -1,6 +1,7 @@
 use super::error;
 use super::{
-    ActivePlugin, Binding, MarkerProbe, Origin, Scope, Target, TargetDescriptor, TargetKind,
+    ActivePlugin, Binding, MarkerMatch, MarkerProbe, Origin, Scope, Target, TargetDescriptor,
+    TargetKind,
 };
 use rifle_rules::{Error, FactType, Plan};
 use serde_json::{Map, Value};
@@ -75,8 +76,10 @@ fn binding(v: &Value, kind: FactType, path: &str) -> Result<Binding, Error> {
                 _ => Binding::RelativePath,
             })
         }
-        "marker" => {
-            let o = object(v, &["source", "scope", "name"], path)?;
+        "marker" | "marker.suffix" => {
+            let suffix = source == "marker.suffix";
+            let key = if suffix { "suffix" } else { "name" };
+            let o = object(v, &["source", "scope", key], path)?;
             if kind != FactType::Boolean {
                 return Err(error(
                     "type_mismatch",
@@ -89,9 +92,10 @@ fn binding(v: &Value, kind: FactType, path: &str) -> Result<Binding, Error> {
                 Some("parent") => Scope::Parent,
                 _ => return Err(error("invalid_shape", path, "unknown marker scope")),
             };
-            let name = text(&o["name"], 128, path)?;
+            let name = text(&o[key], 128, path)?;
             if name == "."
                 || name == ".."
+                || (suffix && (!name.starts_with('.') || name.len() < 2))
                 || !name
                     .bytes()
                     .all(|b| b.is_ascii_alphanumeric() || b"_.-".contains(&b))
@@ -105,6 +109,11 @@ fn binding(v: &Value, kind: FactType, path: &str) -> Result<Binding, Error> {
             Ok(Binding::Marker(MarkerProbe {
                 scope,
                 name: name.into(),
+                matching: if suffix {
+                    MarkerMatch::Suffix
+                } else {
+                    MarkerMatch::Exact
+                },
             }))
         }
         _ => Err(error("invalid_shape", path, "unsupported binding source")),

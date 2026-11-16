@@ -1,6 +1,6 @@
 use buildhunter_plugin_policy::{
-    CandidateFacts, Decision, MarkerFact, MarkerProbe, NodeKind, Origin, PluginCatalog,
-    PluginInput, Scope,
+    CandidateFacts, Decision, MarkerFact, MarkerMatch, MarkerProbe, NodeKind, Origin,
+    PluginCatalog, PluginInput, Scope,
 };
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
@@ -9,6 +9,55 @@ const RUST: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/r
 const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
 const RELATIVE: &[u8] =
     include_bytes!("../../../docs/contracts/plugin-v1/examples/relative-path.json");
+const SUFFIX: &[u8] =
+    include_bytes!("../../../docs/contracts/plugin-v1/examples/suffix-marker.json");
+
+#[test]
+fn suffix_markers_are_typed_and_bounded() {
+    let catalog = PluginCatalog::load(&[input(SUFFIX, Origin::External)], &[]).unwrap();
+    let probe = MarkerProbe {
+        scope: Scope::Parent,
+        name: ".forgeproj".into(),
+        matching: MarkerMatch::Suffix,
+    };
+    assert!(
+        catalog
+            .marker_requests(NodeKind::Directory)
+            .contains(&&probe)
+    );
+    assert!(probe.matches_name(std::ffi::OsStr::new("game.forgeproj")));
+    assert!(!probe.matches_name(std::ffi::OsStr::new(".forgeproj")));
+    assert!(!probe.matches_name(std::ffi::OsStr::new("game.FORGEPROJ")));
+    for (value, expected) in [
+        (
+            MarkerFact::Known(true),
+            Decision::Found("example.forge-output".into()),
+        ),
+        (MarkerFact::Known(false), Decision::NoMatch),
+        (
+            MarkerFact::Unavailable("marker_entry_limit"),
+            Decision::Indeterminate,
+        ),
+    ] {
+        let markers = BTreeMap::from([(probe.clone(), value)]);
+        assert_eq!(
+            catalog
+                .classify(facts(Some("forge-out"), NodeKind::Directory, &markers))
+                .unwrap()
+                .decision,
+            expected
+        );
+    }
+    for suffix in ["", ".", "..", "forgeproj", ".bad/path", ".bad*", ".bad\n"] {
+        let mut value: Value = serde_json::from_slice(SUFFIX).unwrap();
+        value["bindings"]["project"]["suffix"] = json!(suffix);
+        let bytes = serde_json::to_vec(&value).unwrap();
+        assert!(
+            PluginCatalog::load(&[input(&bytes, Origin::External)], &[]).is_err(),
+            "accepted {suffix:?}"
+        );
+    }
+}
 fn input(bytes: &[u8], origin: Origin) -> PluginInput<'_> {
     PluginInput { bytes, origin }
 }
@@ -16,6 +65,7 @@ fn rust_marker() -> MarkerProbe {
     MarkerProbe {
         scope: Scope::Parent,
         name: "Cargo.toml".into(),
+        matching: MarkerMatch::Exact,
     }
 }
 fn load(bytes: &[u8]) -> Result<PluginCatalog, rifle_rules::Error> {
@@ -357,6 +407,7 @@ fn one_true_and_one_unknown_is_indeterminate_not_a_confirmed_finding() {
             MarkerProbe {
                 scope: Scope::Own,
                 name: "another.marker".into(),
+                matching: MarkerMatch::Exact,
             },
             MarkerFact::Unavailable("access_denied"),
         ),
@@ -390,6 +441,7 @@ fn rules_for_one_target_use_or_and_true_suppresses_irrelevant_unknowns() {
             MarkerProbe {
                 scope: Scope::Own,
                 name: "unknown.marker".into(),
+                matching: MarkerMatch::Exact,
             },
             MarkerFact::Unavailable("io_error"),
         ),
@@ -433,6 +485,7 @@ fn input_order_does_not_change_catalog_identity_or_classification() {
             MarkerProbe {
                 scope: Scope::Parent,
                 name: "forge.project".into(),
+                matching: MarkerMatch::Exact,
             },
             MarkerFact::Known(false),
         ),
@@ -539,6 +592,7 @@ fn new_ecosystem_rule_is_evaluated_without_fixed_marker_vocabulary() {
         MarkerProbe {
             scope: Scope::Parent,
             name: "forge.project".into(),
+            matching: MarkerMatch::Exact,
         },
         MarkerFact::Known(true),
     )]);

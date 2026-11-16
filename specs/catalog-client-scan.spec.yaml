@@ -45,6 +45,9 @@ constraints:
 - id: potential_symlinks
   level: MUST
   statement: For a visited symlink, consider targets with a necessary matching name or a rule explicitly comparing node kind with symlink. Explicit kind comparisons use the actual entry kind; otherwise the target type and own markers remain unavailable. Parent markers may be observed under the selected profile. Report a single unambiguous possible target as a terminal symlink discovery with no target I/O or size. Retain other unavailable facts and conflicts as diagnostics; never count unknown size as zero or include it in measured totals.
+- id: suffix_marker_acquisition
+  level: MUST
+  statement: In the existing pathname profile, inspect at most 4096 entries in a suffix marker's requested own or parent directory. Regular files and symlink entries with a nonempty prefix and exact case-sensitive suffix count; errors, cancellation, or an exceeded limit yield unavailable rather than false. Preserve selected-root parent lookup and do not claim descriptor confinement.
 - id: relative_path_fact
   level: MUST
   statement: Supply node.relative_path only when enabled rules need it, relative to the selected root, with slash-separated components and dot for the root. Reject out-of-scope, parent-component and non-UTF-8 paths as unavailable; never expose an absolute path through this fact.
@@ -79,6 +82,7 @@ evidence:
   - constraints.relative_path_fact
   - constraints.identity
   - constraints.diagnostics
+  - constraints.suffix_marker_acquisition
 - id: bridge_source
   kind: source
   path: src/catalog_bridge.rs
@@ -93,6 +97,7 @@ evidence:
   - constraints.compatible_profiles
   - constraints.relative_path_fact
   - constraints.diagnostics
+  - constraints.suffix_marker_acquisition
   - constraints.event_lifetime
 provenance:
   sourceConfidence:

@@ -86,6 +86,16 @@ class PluginWireShapeTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.reject(candidate)
 
+    def test_suffix_marker_shape(self):
+        for suffix in ("", ".", "..", "forgeproj", ".bad/path", ".bad*", ".bad\n"):
+            candidate = copy.deepcopy(self.plugin)
+            candidate["bindings"]["project"] = {"source": "marker.suffix", "scope": "parent", "suffix": suffix}
+            with self.subTest(suffix=suffix):
+                self.reject(candidate)
+        candidate = copy.deepcopy(self.plugin)
+        candidate["bindings"]["project"] = {"source": "marker.suffix", "scope": "parent", "suffix": ".forgeproj"}
+        VALIDATOR.validate(candidate)
+
     def test_artifact_ancestry_is_not_a_v1_binding(self):
         for source in ("artifact.ancestor", "artifact_ancestor", "node.artifactAncestor"):
             candidate = copy.deepcopy(self.plugin)

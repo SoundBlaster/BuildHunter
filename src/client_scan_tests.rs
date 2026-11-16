@@ -10,6 +10,99 @@ use std::collections::BTreeSet;
 #[path = "../tests/support/catalog_fixture.rs"]
 mod catalog_fixture;
 
+#[cfg(unix)]
+#[test]
+fn suffix_markers_find_only_matching_sibling_entries_in_both_clients() {
+    use std::os::unix::fs::symlink;
+    let tree = tests::TempTree::new();
+    for name in [
+        "file",
+        "link",
+        "no-marker",
+        "directory",
+        "wrong-case",
+        "empty-name",
+        "wrong-scope",
+    ] {
+        fs::create_dir_all(tree.0.join(name).join("forge-out")).unwrap();
+    }
+    fs::write(tree.0.join("file/game.forgeproj"), b"marker").unwrap();
+    symlink("missing", tree.0.join("link/game.forgeproj")).unwrap();
+    fs::create_dir_all(tree.0.join("directory/game.forgeproj")).unwrap();
+    fs::write(tree.0.join("wrong-case/game.FORGEPROJ"), b"").unwrap();
+    fs::write(tree.0.join("empty-name/.forgeproj"), b"").unwrap();
+    fs::write(tree.0.join("outside.forgeproj"), b"").unwrap();
+    let doc = include_bytes!("../docs/contracts/plugin-v1/examples/suffix-marker.json");
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::with_templates(profile, &[doc], &[]).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(report.status, ScanStatus::Completed);
+        assert!(report.diagnostics.is_empty() && report.warnings.is_empty());
+        let found: BTreeSet<_> = report
+            .artifacts
+            .iter()
+            .filter(|a| a.target.id == "example.forge-output")
+            .map(|a| a.relative_path.clone())
+            .collect();
+        assert_eq!(
+            found,
+            BTreeSet::from([
+                PathBuf::from("file/forge-out"),
+                PathBuf::from("link/forge-out")
+            ])
+        );
+        let selected = tree.0.join("file/forge-out");
+        let root_report = scan_client(
+            &selected,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert_eq!(
+            root_report.artifacts.len(),
+            1,
+            "the client profile allows the selected root's parent marker"
+        );
+    }
+}
+
+#[test]
+fn suffix_marker_listing_limit_is_unknown_not_false() {
+    let tree = tests::TempTree::new();
+    fs::create_dir_all(tree.0.join("forge-out")).unwrap();
+    for i in 0..=buildhunter_plugin_policy::MARKER_SUFFIX_ENTRY_LIMIT {
+        fs::write(tree.0.join(format!("unrelated-{i}")), b"").unwrap();
+    }
+    let doc = include_bytes!("../docs/contracts/plugin-v1/examples/suffix-marker.json");
+    for profile in [ClientProfile::CliV1, ClientProfile::GuiV1] {
+        let snapshot = CatalogSnapshot::with_templates(profile, &[doc], &[]).unwrap();
+        let report = scan_client(
+            &tree.0,
+            &snapshot,
+            ScanOptions::default(),
+            true,
+            &ScanControl::new(),
+            |_| {},
+        );
+        assert!(report.artifacts.is_empty());
+        assert!(report.diagnostics.iter().any(|d| {
+            d.classification
+                .unavailable
+                .iter()
+                .any(|n| n.reason == "marker_entry_limit")
+        }));
+    }
+}
+
 #[cfg(target_os = "macos")]
 #[test]
 fn catalog_clients_skip_devicefs_without_marker_facts_or_diagnostics() {

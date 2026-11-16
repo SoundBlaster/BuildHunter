@@ -1,8 +1,11 @@
 //! Product-owned mapping from Hunter metadata to plugin marker facts.
-use buildhunter_plugin_policy::{MarkerFact, MarkerProbe, Scope as MarkerScope};
+use buildhunter_plugin_policy::{
+    MARKER_SUFFIX_ENTRY_LIMIT, MarkerFact, MarkerMatch, MarkerProbe, Scope as MarkerScope,
+};
 use hunter_fs::{FileFact, Location, ScopedFilesystem, ScopedMetadata, Unavailable};
-use hunter_fs_core::ScanAccess;
+use hunter_fs_core::{DirectoryEvent, DirectoryVisit, ScanAccess};
 use std::{
+    cell::Cell,
     ffi::OsStr,
     io,
     path::{Component, Path},
@@ -33,6 +36,7 @@ impl<'a> Scope<'a> {
         &self,
         candidate: &Path,
         probe: &MarkerProbe,
+        cancelled: &dyn Fn() -> bool,
     ) -> (MarkerFact<'static>, u64) {
         let Some(scope) = &self.metadata else {
             return (MarkerFact::Unavailable("out_of_scope"), 0);
@@ -57,6 +61,46 @@ impl<'a> Scope<'a> {
             Location::Parent if candidate != self.root => candidate.parent(),
             Location::Parent => None,
         };
+        if probe.matching == MarkerMatch::Suffix {
+            let Some(directory) = directory else {
+                return (MarkerFact::Unavailable("out_of_scope"), 0);
+            };
+            let count = Cell::new(0usize);
+            let found = Cell::new(false);
+            let error = Cell::new(false);
+            let visit = self.filesystem.visit_directory(
+                directory,
+                &mut || cancelled() || found.get() || count.get() >= MARKER_SUFFIX_ENTRY_LIMIT,
+                &mut |event| {
+                    count.set(count.get() + 1);
+                    match event {
+                        DirectoryEvent::Entry { path, file_type } => {
+                            if (file_type.is_file() || file_type.is_symlink())
+                                && path
+                                    .file_name()
+                                    .is_some_and(|name| probe.matches_name(name))
+                            {
+                                found.set(true);
+                            }
+                        }
+                        DirectoryEvent::Error { .. } => error.set(true),
+                    }
+                },
+            );
+            let fact = if found.get() {
+                MarkerFact::Known(true)
+            } else if cancelled() {
+                MarkerFact::Unavailable("cancelled")
+            } else if visit == DirectoryVisit::Cancelled && count.get() >= MARKER_SUFFIX_ENTRY_LIMIT
+            {
+                MarkerFact::Unavailable("marker_entry_limit")
+            } else if error.get() || visit != DirectoryVisit::Completed {
+                MarkerFact::Unavailable("io_error")
+            } else {
+                MarkerFact::Known(false)
+            };
+            return (fact, 1);
+        }
         let mut attempted = 0;
         if let Some(directory) = directory
             && let Ok(handle) = self.filesystem.prepare_directory(directory)

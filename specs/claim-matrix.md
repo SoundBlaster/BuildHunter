@@ -1,5 +1,12 @@
 # Claim origin, consumer sufficiency and assembly review
 
+## Filename-suffix project markers — draft
+
+| Consumer question | Draft obligation / source | Assembly and evidence limits |
+| --- | --- | --- |
+| Can a rule detect a project-named sibling? | `buildhunter.plugin.policy/suffix_marker`: a typed literal suffix probe with a nonempty prefix. | The host supplies observations; pure policy does not enumerate directories. |
+| How are incomplete listings represented? | `buildhunter.catalog.scan/suffix_marker_acquisition` and `buildhunter.plugin.scanner/suffix_marker_acquisition`: inspect up to 4096 entries and retain inconclusive results as unavailable. | Pathname clients allow a selected root's parent; the strict scanner confines observations to its root. Tests use synthetic files and do not establish GUI or deployed behavior. |
+
 Latest implementation on PR branch: [Hunter batch integration](../docs/hunter-batch-metadata.md),
 2026-10-21. This extends the earlier main audit; it is not yet a merged-main claim.
 
