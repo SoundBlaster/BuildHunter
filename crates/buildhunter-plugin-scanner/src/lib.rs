@@ -212,7 +212,7 @@ pub fn scan(
                         let (fact, observed) = if control.is_cancelled() {
                             (MarkerFact::Unavailable("cancelled"), 0)
                         } else {
-                            scope.observe(path, probe)
+                            scope.observe(path, probe, &|| control.is_cancelled())
                         };
                         state.observations = state.observations.saturating_add(observed);
                         markers.insert(probe.clone(), fact);

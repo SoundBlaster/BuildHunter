@@ -66,7 +66,10 @@ constraints:
 - id: budgets
   level: MUST
   statement: Validate complete catalogs before exclusions and enforce Rifle budgets plus 2048 target IDs and 512
-    unique declared scope/name markers. No whole-process RSS or throughput guarantee.
+    unique declared scope/match/name markers. No whole-process RSS or throughput guarantee.
+- id: suffix_marker
+  level: MUST
+  statement: Accept a typed marker.suffix binding for a literal ASCII filename suffix beginning with a dot, with own or parent scope. A matching entry requires a nonempty filename prefix and is case-sensitive. Expose suffix and exact markers as distinct deduplicated probes; the policy consumes host observations without doing filesystem I/O.
 - id: opt_in
   level: MUST
   statement: Keep the pure policy separately testable and free of filesystem acquisition. The host now depends on this runtime, with vendored source replacement preserving fresh-cache offline builds; default CLI/GUI decisions use it through scan_client. Versioned catalog event ABI is separate from the retained numeric scan APIs.
@@ -83,6 +86,7 @@ evidence:
   - constraints.classification
   - constraints.fact_boundary
   - constraints.budgets
+  - constraints.suffix_marker
 - id: plugin_validator_source
   kind: source
   path: crates/buildhunter-plugin-policy/src/validation.rs
@@ -100,6 +104,7 @@ evidence:
   path: crates/buildhunter-plugin-policy/src/dispatch.rs
   supports:
   - constraints.indexed_dispatch
+  - constraints.suffix_marker
 - id: plugin_tests
   kind: test
   path: crates/buildhunter-plugin-policy/tests/plugin_adapter.rs

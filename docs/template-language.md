@@ -77,10 +77,18 @@ OR. Multiple matching targets are **ambiguous**, not first-match-wins.
 | `node.relative_path` | `string` | Lossless path relative to the selected root; `/` separates components, root is `.` |
 | `marker`, scope `own` | `boolean` | A regular file or symlink entry in the candidate directory |
 | `marker`, scope `parent` | `boolean` | A regular file or symlink entry in the candidate's parent |
+| `marker.suffix`, scope `own` or `parent` | `boolean` | A regular file or symlink entry whose nonempty name prefix precedes the specified literal suffix |
 
 Marker names are single components: no `/`, `\\`, `.` or `..`. All declared
 facts need matching bindings, and all facts must be used. For ordinary candidates,
 own-marker facts are false on non-directories.
+A suffix marker uses, for example, `{"source":"marker.suffix","scope":"parent","suffix":".forgeproj"}`.
+The suffix must be a literal ASCII component suffix beginning with `.`, with at
+least one character after the dot. Matching is case-sensitive; `.forgeproj`
+alone does not match because a nonempty filename prefix is required. The host
+inspects at most 4096 directory entries per suffix probe. If the limit or an I/O
+error prevents a conclusive result, the fact is unavailable, not false. Existing
+exact-name markers do not enumerate their directory and retain their behavior.
 A missing marker is known false; an inaccessible marker is unavailable, not false.
 The CLI/GUI `terminal-entry-file-or-symlink/2` profile counts a terminal symlink
 as a marker by its own entry, even if its target is missing; it never reads the

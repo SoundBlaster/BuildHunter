@@ -24,10 +24,29 @@ pub enum Scope {
     Own,
     Parent,
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum MarkerMatch {
+    Exact,
+    Suffix,
+}
+/// Maximum entries inspected by a suffix marker in one directory.
+pub const MARKER_SUFFIX_ENTRY_LIMIT: usize = 4096;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MarkerProbe {
     pub scope: Scope,
     pub name: String,
+    pub matching: MarkerMatch,
+}
+impl MarkerProbe {
+    pub fn matches_name(&self, name: &std::ffi::OsStr) -> bool {
+        let bytes = name.as_encoded_bytes();
+        match self.matching {
+            MarkerMatch::Exact => bytes == self.name.as_bytes(),
+            MarkerMatch::Suffix => {
+                bytes.len() > self.name.len() && bytes.ends_with(self.name.as_bytes())
+            }
+        }
+    }
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Binding {

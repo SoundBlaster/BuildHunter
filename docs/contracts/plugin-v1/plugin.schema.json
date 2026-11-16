@@ -77,6 +77,35 @@
               "name"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "source": {
+                "const": "marker.suffix"
+              },
+              "scope": {
+                "enum": [
+                  "own",
+                  "parent"
+                ]
+              },
+              "suffix": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 128,
+                "pattern": "^\\.[A-Za-z0-9_.-]+(?![\\s\\S])",
+                "not": {
+                  "const": ".."
+                }
+              }
+            },
+            "required": [
+              "source",
+              "scope",
+              "suffix"
+            ],
+            "additionalProperties": false
           }
         ]
       },

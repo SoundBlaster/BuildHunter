@@ -1,5 +1,31 @@
 # BuildHunter — architecture and specification progress
 
+## Literal suffix marker — 2026-11-16
+
+Consumer goal: recognize a generated directory by a project-named sibling without
+reading file contents. Source baseline before this change: `f38fdb0f709c8221ae09f2761026ba808ef23643`.
+`MarkerVocabulary` and `ClientMarkerAcquisition` remain folded into
+`buildhunter.catalog.scan`; `MarkerAcquisition` remains folded into
+`buildhunter.plugin.scanner`; pure validation remains `buildhunter.plugin.policy`.
+The new suffix acquisition constraints are draft descriptions, not acceptance
+of a new root-confinement guarantee for pathname clients. The strict profile
+continues to exclude the selected root's parent; the clients continue to allow it.
+
+Local execution on the modified tree: root `cargo test --locked --offline` passed
+103 library and 5 CLI tests; independent policy and scoped-scanner suites passed
+23 and 22 tests respectively. `scripts/test_plugin_contract.py` passed 14 tests;
+`make specpm-validate` (SpecPM 0.2.0, registry at 127.0.0.1:8081) reported zero
+errors and four baseline platform warnings. The Hypercode CLI was unavailable;
+the edited map properties have not been parsed or validated by Hypercode here.
+These results do not prove GUI rendering or deployed application behavior.
+
+Modified source identities, SHA-256: policy `lib.rs`
+`e970d33b89eca1bdb2ee20ca1841e061f0a305dbbe5dabfcc8bc595051e845b7`, validator
+`01a9a39d6d2b8b96dbb16e5e21883389854cf49bae0aa5dbd444d004e9a01938`, client
+`fd94da1db42682c387beae627f35bdac3ccac69fa3d545e8f4cc090da6208687`, scoped
+acquisition `45e329c9d03b16875261d6a48b7e3b81057d18543f7a4036d54125cca502f1dc`,
+and current map properties `8f921972779667f21174471c348d7e0b4143c35c454036aa3028b8ef60ca2d8f`.
+
 ## Navigable Other groups — 2026-11-14
 
 `MacApplication` / `buildhunter.current.application` keeps diagram grouping

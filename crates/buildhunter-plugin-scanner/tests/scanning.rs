@@ -11,6 +11,8 @@ use std::{
 const FORGE: &[u8] = include_bytes!("../../../docs/contracts/plugin-v1/examples/synthetic.json");
 const RELATIVE: &[u8] =
     include_bytes!("../../../docs/contracts/plugin-v1/examples/relative-path.json");
+const SUFFIX: &[u8] =
+    include_bytes!("../../../docs/contracts/plugin-v1/examples/suffix-marker.json");
 struct Tree(PathBuf);
 impl Tree {
     fn new() -> Self {
@@ -43,6 +45,96 @@ fn catalog(excluded: &[&str]) -> PluginCatalog {
         excluded,
     )
     .unwrap()
+}
+
+#[test]
+fn suffix_markers_are_scoped_and_do_not_follow_links() {
+    use std::os::unix::fs::symlink;
+    let tree = Tree::new();
+    tree.file("file/game.forgeproj", b"marker");
+    tree.file("file/forge-out/object", b"data");
+    tree.file("link/forge-out/object", b"data");
+    symlink("missing", tree.0.join("link/game.forgeproj")).unwrap();
+    tree.file("directory/forge-out/object", b"data");
+    fs::create_dir(tree.0.join("directory/game.forgeproj")).unwrap();
+    tree.file("wrong-scope/forge-out/object", b"data");
+    tree.file("outside.forgeproj", b"marker");
+    let catalog = PluginCatalog::load(
+        &[PluginInput {
+            bytes: SUFFIX,
+            origin: Origin::External,
+        }],
+        &[],
+    )
+    .unwrap();
+    let report = scan(
+        &tree.0,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert_eq!(report.status, ScanStatus::Completed);
+    assert!(report.warnings.is_empty() && report.diagnostics.is_empty());
+    let found: std::collections::BTreeSet<_> = report
+        .artifacts
+        .iter()
+        .map(|a| a.relative_path.clone())
+        .collect();
+    assert_eq!(
+        found,
+        [
+            PathBuf::from("file/forge-out"),
+            PathBuf::from("link/forge-out")
+        ]
+        .into()
+    );
+    let report = scan(
+        &tree.0.join("file/forge-out"),
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert!(report.artifacts.is_empty());
+    assert!(
+        !report.diagnostics.is_empty(),
+        "root parent is unavailable in the strict profile"
+    );
+}
+
+#[test]
+fn suffix_marker_listing_limit_is_reported_as_unavailable() {
+    let tree = Tree::new();
+    fs::create_dir(tree.0.join("forge-out")).unwrap();
+    for i in 0..=buildhunter_plugin_policy::MARKER_SUFFIX_ENTRY_LIMIT {
+        tree.file(&format!("unrelated-{i}"), b"");
+    }
+    let catalog = PluginCatalog::load(
+        &[PluginInput {
+            bytes: SUFFIX,
+            origin: Origin::External,
+        }],
+        &[],
+    )
+    .unwrap();
+    let report = scan(
+        &tree.0,
+        &catalog,
+        ScanOptions::default(),
+        &ScanControl::new(),
+        |_| {},
+    )
+    .unwrap();
+    assert!(report.artifacts.is_empty());
+    assert!(report.diagnostics.iter().any(|d| {
+        d.classification
+            .unavailable
+            .iter()
+            .any(|n| n.reason == "marker_entry_limit")
+    }));
 }
 
 #[test]

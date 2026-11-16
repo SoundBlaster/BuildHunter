@@ -27,7 +27,7 @@ ownership/authenticity policy remains host-owned; this validator only enforces
 these reserved core namespaces and globally unique target IDs.
 
 Limits are the contract's per-program/package/catalog budgets from Rifle plus
-2048 targets and 512 distinct declared scope/name marker probes. No partial
+2048 targets and 512 distinct declared scope/match/name marker probes. No partial
 snapshot escapes errors. Unknown well-formed exclusion IDs are retained; exclusions
 are immutable and separate from catalog digest. Settings can inspect all target
 metadata, including disabled entries.
@@ -40,6 +40,12 @@ it does not change merely because settings change. Original metadata JSON and
 unfiltered Rifle plans are not retained in the final snapshot.
 
 ## Classification, facts and probes
+
+Exact-name and literal-suffix marker probes are distinct, deduplicated values.
+The policy remains pure: hosts provide the observations. A suffix marker needs a
+nonempty prefix, is case-sensitive, and is evaluated only against regular-file
+or symlink entries. Hosts limit a suffix probe to 4096 entries and report an
+unavailable fact if inspection is inconclusive; this is not a negative match.
 
 `marker_requests(kind)` returns deduplicated active probes. Own markers are not
 requested for non-directories; symlink candidates have no requests and never
