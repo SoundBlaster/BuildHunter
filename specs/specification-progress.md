@@ -25,14 +25,15 @@ and `buildhunter.delivery.website`, their bindings and parent obligations are
 unchanged. This record does not add an accepted runtime requirement.
 
 JavaScript syntax checks passed. A simulated canvas exercised all four layouts,
-image aspect ratios, size selection, export callback and reset; this is not
+image aspect ratios, size selection, export callback, reset and preservation of
+edited headlines when switching compositions; this is not
 evidence of browser rendering or a downloaded PNG. `make specpm-validate` passed
 with zero errors and four existing abstract-platform warnings. Hypercode CLI was
 unavailable; no map changed. Browser policy blocked opening the local file, so
 real interactive visual and export checks remain outstanding.
 
 Source SHA-256: `index.html` `0308076040a2100a7822cb0fc524f79cab83774b31ea9f546745eb46a176aa68`,
-`studio.js` `aec053515f8564c1c228adb5ee22aab53155a20e6d9ec86135a76e4565171e1b`,
+`studio.js` `bfba40a478a622fa8a2041eabccf59731b8860670908b55db154266cf2d3c50b`,
 `style.css` `bfde44c836c8bdf558e7da13b2805c1452380e29aa061c7f34735ba1016916a1`,
 `demo-assets.js` `e899b0fd0214061f3b03cbc41eb38d445880387eba2f2470af77af147f4f6dc8`.
 
