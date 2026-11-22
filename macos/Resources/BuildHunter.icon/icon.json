@@ -19,10 +19,15 @@
           }
         },
         {
-          "glass" : false,
-          "hidden" : false,
-          "image-name" : "BuildHunter.png",
-          "name" : "BuildHunter"
+          "image-name" : "19BBFA0F-44DF-430C-953B-165D0E06C5D8.PNG",
+          "name" : "19BBFA0F-44DF-430C-953B-165D0E06C5D8",
+          "position" : {
+            "scale" : 0.82,
+            "translation-in-points" : [
+              -2.1399999999999864,
+              -56
+            ]
+          }
         }
       ],
       "name" : "Artwork",

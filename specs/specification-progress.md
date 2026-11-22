@@ -1,5 +1,20 @@
 # BuildHunter — architecture and specification progress
 
+## Application icon refresh — 2026-11-22
+
+The user-edited layered icon is copied from the local prepared Store composition
+into `macos/Resources/BuildHunter.icon`. The existing XcodeGen resource and
+`ASSETCATALOG_COMPILER_APPICON_NAME` wiring is unchanged. This is presentation
+within `buildhunter.current.application`; scanning, delivery boundaries, maps,
+and parent obligations are unchanged. No new runtime requirement is accepted.
+The icon document and source image SHA-256 are respectively
+`e74a7ad6ed5ef45f865ea21ded5d25e0ab0103a6487ee0d2034f6e619af6db9b` and
+`211fdcdf8e36680ab3d682e87e69f0080bcc2a4da42f2aeb7fe59beee3f8d64f`.
+The copied document matches the user's saved composition byte-for-byte. SpecPM
+validation reported zero errors and four existing abstract-platform warnings;
+Hypercode CLI was unavailable and no map changed. Building and visually checking
+the compiled icon are separate evidence from these source checks.
+
 ## Literal suffix marker — 2026-11-16
 
 Consumer goal: recognize a generated directory by a project-named sibling without
