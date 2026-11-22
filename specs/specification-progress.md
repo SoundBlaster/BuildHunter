@@ -35,7 +35,9 @@ real interactive visual and export checks remain outstanding.
 Source SHA-256: `index.html` `0308076040a2100a7822cb0fc524f79cab83774b31ea9f546745eb46a176aa68`,
 `studio.js` `bfba40a478a622fa8a2041eabccf59731b8860670908b55db154266cf2d3c50b`,
 `style.css` `bfde44c836c8bdf558e7da13b2805c1452380e29aa061c7f34735ba1016916a1`,
-`demo-assets.js` `e899b0fd0214061f3b03cbc41eb38d445880387eba2f2470af77af147f4f6dc8`.
+`demo-assets.js` `40890b7430daedab6a13ce5339f9a636009dc828f9c4b0343ad334e83ae60d06`.
+The demo icon is extracted from the locally compiled updated application icon;
+the demo application windows still show synthetic data.
 
 ## Literal suffix marker — 2026-11-16
 
